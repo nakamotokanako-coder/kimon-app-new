@@ -137,7 +137,7 @@ export default function App() {
         {board && (
           <>
             <div className="board-area">
-              <MetaPanel meta={board.meta} />
+              <MetaPanel meta={board.meta} banLevel={board.banLevel} />
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}

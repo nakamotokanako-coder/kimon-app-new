@@ -20,7 +20,7 @@ function renderKanText(value) {
   });
 }
 
-export default function PalaceCell({ label, number, zodiac, data, score, isCenter }) {
+export default function PalaceCell({ label, zodiac, data, score, isCenter }) {
   const hasKyo = score?.detected_kakkyoku?.some((k) => k.kichi_kyo === 'kyo');
   const scoreTone = score?.score >= 40
     ? 'score-positive'
@@ -39,7 +39,6 @@ export default function PalaceCell({ label, number, zodiac, data, score, isCente
       <div className={cellClass}>
         <div className="cell-header">
           <span className="palace-label">{label}</span>
-          <span className="palace-number">{number}</span>
           {zodiac && <span className="zodiac">{zodiac}</span>}
         </div>
         <div className="cell-empty">－</div>
@@ -51,7 +50,6 @@ export default function PalaceCell({ label, number, zodiac, data, score, isCente
     <div className={cellClass}>
       <div className="cell-header">
         <span className="palace-label">{label}</span>
-        <span className="palace-number">{number}</span>
         {zodiac && <span className="zodiac">{zodiac}</span>}
         {score && <span className={`score-badge ${scoreTone}`}>{score.score}</span>}
       </div>

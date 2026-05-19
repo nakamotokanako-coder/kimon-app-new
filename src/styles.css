@@ -330,6 +330,8 @@ select {
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 16%, transparent), transparent 44%),
     var(--bg-elevated);
+  /* 中宮は使えない宮のため少し薄く表示（先生指示 2026-05-19 Q3） */
+  opacity: 0.55;
 }
 
 .cell-header {
@@ -348,7 +350,6 @@ select {
   font-weight: 700;
 }
 
-.palace-number,
 .zodiac {
   color: var(--text-secondary);
   font-size: 0.72rem;
@@ -503,6 +504,17 @@ select {
   margin: 0;
   color: var(--text-primary);
   overflow-wrap: anywhere;
+}
+
+.meta-section dd.ban-alert {
+  color: var(--text-danger);
+  font-weight: 700;
+}
+
+.ban-none {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
 }
 
 .error {
