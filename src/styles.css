@@ -372,12 +372,12 @@ select {
 }
 
 /* ============================================================
-   Phase 2C (2026-05-21): 外周十二支ラベル（先生Excel の方位ラベル位置に統一）
-   Phase 2C-followup2 (2026-05-22): 角ペアは盤に隣接した位置に近接配置
+   Phase 2C (2026-05-21〜): 外周十二支ラベル
+   Phase 2C-followup3 (2026-05-22): 12 個個別配置（角のペア廃止）。
+   各十二支は紐づく宮の真上/真下/真左/真右に単独配置。
+   上辺/下辺/左右辺それぞれ 3 ラベルが内側 cell-w 間隔で並ぶ。
    ============================================================ */
 
-/* 辺中央の単独十二支ラベル（午・卯・酉・子）。
-   ＝ Excel の 南/東/西/北 方位ラベル位置に相当 */
 .zodiac-label {
   display: flex;
   align-items: center;
@@ -392,31 +392,8 @@ select {
   user-select: none;
 }
 
-/* 四隅ペア: 2 文字を横並びでコンパクトに（盤に隣接した位置に置く）。
-   ＝ Excel の 南東/南西/北東/北西 方位ラベル位置に相当 */
-.zodiac-pair {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px 6px;
-}
-
-.zodiac-pair-char {
-  color: var(--text-secondary);
-  opacity: 0.65;
-  font-family: var(--font-heading);
-  font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  user-select: none;
-}
-
-/* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21）。
-   ペア内では該当する 1 文字のみ赤字（個別判定）。 */
-.zodiac-label.is-kuubou,
-.zodiac-pair-char.is-kuubou {
+/* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21） */
+.zodiac-label.is-kuubou {
   color: var(--text-danger);
   opacity: 1;
   font-weight: 700;
