@@ -2,12 +2,16 @@ import React from 'react';
 import PalaceCell from './PalaceCell.jsx';
 import { isKuubouZodiac } from '../kimon/banLevel.js';
 
-// 5×5 グリッド。中央 3×3 が宮セル、外周 12 マスに十二支ラベル、四隅は空白。
+// 5×5 グリッド。中央 3×3 が宮セル、外周 8 マスにラベル。
 // 北を下（南が上）= 先生Excel と同じデフォルト orientation。
 // south_bottom 切替時は (row, col) を (6-row, 6-col) で点対称反転。
 //
-// Phase 2C (2026-05-21): 先生指示で四隅宮の十二支 (辰巳/未申/丑寅/戌亥) を分解し、
-// 12 十二支を外周の上下左右の辺に振り分け配置。空亡対応十二支は赤字表示。
+// Phase 2C-followup (2026-05-22): 外周ラベルを以下に再編。
+//   ・四隅（r1c1/r1c5/r5c1/r5c5）: 隣接する四隅宮に紐づく 2 文字を angle area で配置
+//       例: TL は 巽宮(SE) の外側 → 巳(上辺寄り)と辰(左辺寄り)を対角で
+//   ・辺中央（r1c3/r3c1/r3c5/r5c3）: 四正宮の単独十二支
+//   ・他の外周セル（r1c2,r1c4,r2c1,r2c5,r4c1,r4c5,r5c2,r5c4）: 空白
+// これにより各十二支が紐づく宮の真外側に密集表示される。
 
 const PALACE_FIVE_ELEMENTS = {
   '坎': '水', '艮': '土', '震': '木', '巽': '木',
@@ -15,32 +19,33 @@ const PALACE_FIVE_ELEMENTS = {
 };
 
 /**
- * 北を下（南を上）= デフォルト＝先生Excel と同じ orientation。
- * 外周 12 十二支 + 内側 9 セルの 5×5 構成。
+ * 四隅 angle area の内部レイアウト（NB orientation）。
+ * tl/tr/bl/br = 内部 2×2 サブグリッドの 4 隅。
  *
- * row1: 空,  巳, 午, 未, 空
- * row2: 辰, 巽, 離, 坤, 申
- * row3: 卯, 震, 中, 兌, 酉
- * row4: 寅, 艮, 坎, 乾, 戌
- * row5: 空, 丑, 子, 亥, 空
+ * 例 TL (巽宮の外側):
+ *   tr = 巳 (上辺寄り、巽の真上方向)
+ *   bl = 辰 (左辺寄り、巽の真左方向)
+ *   tl と br は空。
  */
+const ANGLE_NB = {
+  TL: { tr: '巳', bl: '辰' },  // 巽 (SE) の外側
+  TR: { tl: '未', br: '申' },  // 坤 (SW) の外側
+  BR: { tr: '戌', bl: '亥' },  // 乾 (NW) の外側
+  BL: { tl: '寅', br: '丑' },  // 艮 (NE) の外側
+};
+
+/** 北を下（南を上）= デフォルト＝先生Excel と同じ orientation の構成要素 */
 const NB_ITEMS = [
-  // ── 外周 十二支ラベル（上辺：左→右 巳・午・未） ──
-  { type: 'zodiac', row: 1, col: 2, zodiac: '巳' },
-  { type: 'zodiac', row: 1, col: 3, zodiac: '午' },
-  { type: 'zodiac', row: 1, col: 4, zodiac: '未' },
-  // ── 右辺：上→下 申・酉・戌 ──
-  { type: 'zodiac', row: 2, col: 5, zodiac: '申' },
-  { type: 'zodiac', row: 3, col: 5, zodiac: '酉' },
-  { type: 'zodiac', row: 4, col: 5, zodiac: '戌' },
-  // ── 下辺：左→右 丑・子・亥 ──
-  { type: 'zodiac', row: 5, col: 2, zodiac: '丑' },
-  { type: 'zodiac', row: 5, col: 3, zodiac: '子' },
-  { type: 'zodiac', row: 5, col: 4, zodiac: '亥' },
-  // ── 左辺：上→下 辰・卯・寅 ──
-  { type: 'zodiac', row: 2, col: 1, zodiac: '辰' },
-  { type: 'zodiac', row: 3, col: 1, zodiac: '卯' },
-  { type: 'zodiac', row: 4, col: 1, zodiac: '寅' },
+  // ── 四隅 angle areas ──
+  { type: 'angle', row: 1, col: 1, definition: ANGLE_NB.TL },
+  { type: 'angle', row: 1, col: 5, definition: ANGLE_NB.TR },
+  { type: 'angle', row: 5, col: 1, definition: ANGLE_NB.BL },
+  { type: 'angle', row: 5, col: 5, definition: ANGLE_NB.BR },
+  // ── 辺中央の単独十二支（四正宮の真外側）──
+  { type: 'zodiac', row: 1, col: 3, zodiac: '午' },  // 離宮 (S) の真上
+  { type: 'zodiac', row: 3, col: 1, zodiac: '卯' },  // 震宮 (E) の真左
+  { type: 'zodiac', row: 3, col: 5, zodiac: '酉' },  // 兌宮 (W) の真右
+  { type: 'zodiac', row: 5, col: 3, zodiac: '子' },  // 坎宮 (N) の真下
   // ── 宮セル（内側 3×3） ──
   { type: 'cell', row: 2, col: 2, key: 'son',  label: '巽' },
   { type: 'cell', row: 2, col: 3, key: 'ri',   label: '離' },
@@ -53,10 +58,25 @@ const NB_ITEMS = [
   { type: 'cell', row: 4, col: 4, key: 'ken',  label: '乾' },
 ];
 
+/** angle definition を 180° 回転（south_bottom 用、tl↔br / tr↔bl を swap） */
+function rotateAngle(def) {
+  const out = {};
+  if (def.tl) out.br = def.tl;
+  if (def.tr) out.bl = def.tr;
+  if (def.bl) out.tr = def.bl;
+  if (def.br) out.tl = def.br;
+  return out;
+}
+
 function getItems(direction) {
   if (direction !== 'south_bottom') return NB_ITEMS;
-  // 点対称で位置を反転。十二支ラベルもセルも同じ反転で対応する compass 位置に移る。
-  return NB_ITEMS.map((it) => ({ ...it, row: 6 - it.row, col: 6 - it.col }));
+  return NB_ITEMS.map((it) => {
+    const newItem = { ...it, row: 6 - it.row, col: 6 - it.col };
+    if (newItem.type === 'angle') {
+      newItem.definition = rotateAngle(it.definition);
+    }
+    return newItem;
+  });
 }
 
 /** 坤宮地盤が複合表記なら右側の干を中宮に表示する（Phase 2B Task 5） */
@@ -69,6 +89,29 @@ function deriveCenterKan(palaces) {
   return '';
 }
 
+/** 四隅 angle area の 1 セル内に対角配置で 2 文字を描く小コンポーネント */
+function ZodiacAngle({ definition, kuubou }) {
+  const slots = ['tl', 'tr', 'bl', 'br'];
+  return (
+    <div className="zodiac-angle">
+      {slots.map((slot) => {
+        const char = definition[slot];
+        if (!char) return null;
+        const isKuubou = isKuubouZodiac(char, kuubou);
+        return (
+          <span
+            key={slot}
+            className={`zodiac-angle-slot pos-${slot}${isKuubou ? ' is-kuubou' : ''}`}
+            aria-label={isKuubou ? `${char}（空亡）` : char}
+          >
+            {char}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function BoardGrid({ palaces, scores = {}, direction = 'north_bottom', kuubou = null }) {
   const items = getItems(direction);
   const centerKan = deriveCenterKan(palaces);
@@ -77,6 +120,13 @@ export default function BoardGrid({ palaces, scores = {}, direction = 'north_bot
     <div className="board-grid">
       {items.map((it, idx) => {
         const style = { gridRow: it.row, gridColumn: it.col };
+        if (it.type === 'angle') {
+          return (
+            <div key={`A-${idx}`} style={style}>
+              <ZodiacAngle definition={it.definition} kuubou={kuubou} />
+            </div>
+          );
+        }
         if (it.type === 'zodiac') {
           const isKuubou = isKuubouZodiac(it.zodiac, kuubou);
           return (
