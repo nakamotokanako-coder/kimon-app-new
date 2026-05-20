@@ -125,6 +125,9 @@ export function scorePalace(palaceData, palaceName, boardMeta, options = {}) {
   const kakkyokuList = detectPalaceKakkyoku(palaceData, palaceName, boardMeta);
   const kakkyokuScore = kakkyokuList.reduce((sum, k) => sum + (k.score || 0), 0);
 
+  // 十干剋応 詳細（Phase 2B: UI で「〇△×名」表示用）
+  const jukkanList = lookupJukkanKokuouMulti(palaceData.tenban, palaceData.chiban);
+
   // Phase 2A: per-palace 減点（門迫4パターン・空亡）
   const palaceBan = scorePalaceBanLevel(palaceName, palaceData, boardMeta?.kuubou);
 
@@ -156,6 +159,12 @@ export function scorePalace(palaceData, palaceName, boardMeta, options = {}) {
       name: k.name,
       kichi_kyo: k.kichi_kyo,
       score: k.score,
+    })),
+    detected_jukkan: jukkanList.map(j => ({
+      tenban: j.tenban,
+      chiban: j.chiban,
+      kikkyo: j.kikkyo,
+      name: j.name,
     })),
     purposes,
   };

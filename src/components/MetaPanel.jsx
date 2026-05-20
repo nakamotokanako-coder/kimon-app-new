@@ -1,18 +1,5 @@
 import React from 'react';
 
-// 九星の略表記（数字漢字）→ 完全名称（先生指示 2026-05-19 Task 2）
-const KYUSEI_FULL_NAMES = {
-  '一': '一白水星', '二': '二黒土星', '三': '三碧木星',
-  '四': '四緑木星', '五': '五黄土星', '六': '六白金星',
-  '七': '七赤金星', '八': '八白土星', '九': '九紫火星',
-};
-
-// 既に完全名称（例「二黒土星」）の場合はそのまま返す（冪等）
-function toKyuseiFullName(num) {
-  if (!num) return '—';
-  return KYUSEI_FULL_NAMES[num] ?? num;
-}
-
 export default function MetaPanel({ meta, banLevel }) {
   if (!meta) return null;
   const isHour = meta.boardType === '時';
@@ -62,14 +49,9 @@ export default function MetaPanel({ meta, banLevel }) {
         </dl>
       </div>
 
-      <div className="meta-section">
-        <h3>九星</h3>
-        <dl>
-          <dt>年</dt><dd>{toKyuseiFullName(meta.kyusei_year)}</dd>
-          <dt>月</dt><dd>{toKyuseiFullName(meta.kyusei_month)}</dd>
-          <dt>日</dt><dd>{toKyuseiFullName(meta.kyusei_day)}</dd>
-        </dl>
-      </div>
+      {/* Phase 2B (2026-05-20): 九星セクションは盤情報パネルから削除
+          （先生指示「情報の中に九星の情報はいらない」）。
+          九星の計算ロジック自体は temporal data として温存。 */}
 
       <div className="meta-section">
         <h3>盤レベル判定</h3>
