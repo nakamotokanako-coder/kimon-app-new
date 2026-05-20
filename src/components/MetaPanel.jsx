@@ -17,14 +17,20 @@ export default function MetaPanel({ meta, banLevel }) {
   if (!meta) return null;
   const isHour = meta.boardType === '時';
 
-  // 盤レベル判定: 伏吟・反吟・門迫・五不遇時 は該当時のみ赤字表示。
-  // 空亡 は常に存在する旬空のため通常色で常時表示。
+  // Phase 2A (2026-05-20): 表示文言を細分化（先生指示）。
+  //   伏吟 → 干伏吟 / 星伏吟 / 門伏吟（独立カウント・複数同時可）
+  //   反吟 → 星反吟 / 門反吟
+  //   門迫・空亡・五不遇時 は文言変更なし
+  // 配色とレイアウトは Phase 2B で扱うため、本フェーズは触らない。
   const banRows = banLevel
     ? [
-        { key: 'fukugin', label: '伏吟', value: banLevel.fukugin, alert: true },
-        { key: 'hangin', label: '反吟', value: banLevel.hangin, alert: true },
-        { key: 'monpaku', label: '門迫', value: banLevel.monpaku, alert: true },
-        { key: 'kuubou', label: '空亡', value: banLevel.kuubou, alert: false },
+        { key: 'kan_fukugin', label: '干伏吟', value: banLevel.kan_fukugin ? '該当' : null, alert: true },
+        { key: 'sei_fukugin', label: '星伏吟', value: banLevel.sei_fukugin ? '該当' : null, alert: true },
+        { key: 'mon_fukugin', label: '門伏吟', value: banLevel.mon_fukugin ? '該当' : null, alert: true },
+        { key: 'sei_hangin', label: '星反吟', value: banLevel.sei_hangin ? '該当' : null, alert: true },
+        { key: 'mon_hangin', label: '門反吟', value: banLevel.mon_hangin ? '該当' : null, alert: true },
+        { key: 'monpaku', label: '門迫', value: banLevel.monpaku_palaces?.length ? '該当' : null, alert: true },
+        { key: 'kuubou', label: '空亡', value: banLevel.kuubou_text, alert: false },
         { key: 'gofuguuji', label: '五不遇時', value: banLevel.gofuguuji, alert: true },
       ].filter((r) => r.value)
     : [];

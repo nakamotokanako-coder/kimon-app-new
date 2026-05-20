@@ -8,11 +8,14 @@ import {
 } from './jukkanKokuou.js';
 import {
   detectPalaceKakkyoku,
-  detectBoardKakkyoku,
-  scoreBanLevel,
   PALACE_NAMES,
   PALACE_JP,
 } from './kakkyoku.js';
+import {
+  detectBanLevel,
+  scoreBoardBanLevel,
+  scorePalaceBanLevel,
+} from './banLevel.js';
 
 // ============================================================
 // スコア定義（講座p80）
@@ -122,9 +125,13 @@ export function scorePalace(palaceData, palaceName, boardMeta, options = {}) {
   const kakkyokuList = detectPalaceKakkyoku(palaceData, palaceName, boardMeta);
   const kakkyokuScore = kakkyokuList.reduce((sum, k) => sum + (k.score || 0), 0);
 
+  // Phase 2A: per-palace 減点（門迫4パターン・空亡）
+  const palaceBan = scorePalaceBanLevel(palaceName, palaceData, boardMeta?.kuubou);
+
   // 合計
   const subtotal = kanScore + monScore + kyuseiScore + hasshinScore +
-                   jukkanScore + kakkyokuScore;
+                   jukkanScore + kakkyokuScore +
+                   palaceBan.monpaku + palaceBan.kuubou;
   const score = subtotal + banLevelMinus;
 
   // 目的別タグ
@@ -140,6 +147,8 @@ export function scorePalace(palaceData, palaceName, boardMeta, options = {}) {
       hasshin: hasshinScore,
       jukkan_kokuou: jukkanScore,
       kakkyoku: kakkyokuScore,
+      monpaku: palaceBan.monpaku,
+      kuubou: palaceBan.kuubou,
       ban_level_minus: banLevelMinus,
       subtotal,
     },
@@ -215,16 +224,36 @@ export function scoreBoard(board) {
   if (!board?.palaces) {
     return {
       palaces: {},
-      ban_level: { detected: [], ban_minus: 0, gofuguuji_minus: 0, total_minus: 0 },
+      ban_level: {
+        detected: [],
+        board_minus: 0,
+        total_minus: 0,
+        flags: null,
+      },
       usable_palaces: [],
       best_overall: null,
       best_by_purpose: {},
     };
   }
 
-  // 盤レベル減点を先に計算
-  const banLevel = scoreBanLevel(board);
-  const banLevelMinus = banLevel.total_minus;
+  // Phase 2A: 盤レベル減点（全宮一律）は banLevel.js から算出。
+  // board.banLevel が buildBoard で添付済みなら再利用、なければここで検出する。
+  const flags = board.banLevel || detectBanLevel(board);
+  const banLevelMinus = scoreBoardBanLevel(flags);
+  const detectedNames = [
+    flags.kan_fukugin && '干伏吟',
+    flags.sei_fukugin && '星伏吟',
+    flags.mon_fukugin && '門伏吟',
+    flags.sei_hangin && '星反吟',
+    flags.mon_hangin && '門反吟',
+    flags.gofuguuji && '五不遇時',
+  ].filter(Boolean);
+  const banLevel = {
+    detected: detectedNames,
+    board_minus: banLevelMinus,
+    total_minus: banLevelMinus, // 互換用エイリアス
+    flags,
+  };
 
   // 各宮のスコア
   const palaceScores = {};
