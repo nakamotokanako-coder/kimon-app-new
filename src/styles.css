@@ -305,15 +305,30 @@ select {
 
 .board-grid {
   display: grid;
-  /* 外周 (1/5) = auto（方位ラベルは中身サイズ）／ 内側 3 列は均等 1fr */
-  grid-template-columns: auto 1fr 1fr 1fr auto;
-  /* 行も同じ。内側 3 行の高さはセルの aspect-ratio で揃う（下記 .cell 参照） */
-  grid-template-rows: auto auto auto auto auto;
+  /* Phase 2B-fix3: cell サイズを viewport 高さ・幅・上限の3つの min() で決定。
+     これによりファーストビュー（スクロールなし）で 9 宮すべて表示。
+     - 高さベース: (100vh - 230px) / 3   ※ヘッダー+コントロール+余白で 230px 確保
+     - 幅ベース:   2/3 列の 60% を 3 等分（直接 width を取れないので app max-width で近似）
+     - 上限:       220px（巨大ディスプレイでセルが大きくなりすぎないように） */
+  --cell-side: clamp(
+    80px,
+    min(
+      calc((100vh - 230px) / 3),
+      calc((min(1180px, 100vw - 32px) * 0.62 - 80px) / 3)
+    ),
+    220px
+  );
+  /* 外周 (1/5) = auto、内側 3 列は --cell-side 固定。これで全宮ぴったり同サイズ正方形 */
+  grid-template-columns: auto repeat(3, var(--cell-side)) auto;
+  grid-template-rows: auto repeat(3, var(--cell-side)) auto;
   gap: 6px;
   padding: 10px;
   border: 1px solid var(--border-main);
   background: color-mix(in srgb, var(--bg-main) 92%, var(--border-main));
   box-shadow: var(--shadow-glow), 0 18px 48px rgba(0, 0, 0, 0.36);
+  /* 親の 2fr 列より小さい場合に左寄せ（中央埋めの余白で歪まないように） */
+  justify-self: start;
+  max-width: 100%;
 }
 
 .direction-label {
@@ -356,10 +371,10 @@ select {
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  /* Phase 2B-fix: 全宮を同一サイズ正方形に固定（中身の量で形が崩れないように）。
-     列幅(1fr)が決まればセル幅が決まり、aspect-ratio: 1 で同じ高さ＝正方形。
-     全 3 行で 1 番大きいセル高さに揃うが、全セル同じ高さなので「全部揃う」。 */
-  aspect-ratio: 1 / 1;
+  /* Phase 2B-fix3: グリッドトラックが --cell-side × --cell-side で正方形固定済み。
+     セルはトラックを完全に埋めるだけ。aspect-ratio は不要。 */
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border-main) 62%, transparent);
   background:
@@ -746,6 +761,13 @@ select {
        JSX 順が Board → Meta なので order 指定不要。 */
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .board-grid {
+    /* モバイル: 横幅ベース。デスクトップの高さ上限は無効化（モバイルは横スクロール禁止が最優先）。
+       (-140) ≈ app padding(32) + board padding(20) + outer labels(64) + gaps(24) で安全側に余裕。 */
+    --cell-side: calc((100vw - 140px) / 3);
+    justify-self: stretch;
+  }
 }
 
 @media (max-width: 640px) {
@@ -774,6 +796,9 @@ select {
   .board-grid {
     gap: 4px;
     padding: 4px;
+    /* phone (≤640): padding/gap 縮小 + 外周ラベルもタイト想定。
+       375px → 約 78px / 430px → 約 96px のセル幅。横スクロール無し。 */
+    --cell-side: calc((100vw - 120px) / 3);
   }
 
   .cell {
