@@ -303,8 +303,10 @@ select {
 
 .board-grid {
   display: grid;
-  grid-template-columns: minmax(0, auto) repeat(3, minmax(0, 1fr)) minmax(0, auto);
-  grid-template-rows: minmax(0, auto) repeat(3, minmax(0, 1fr)) minmax(0, auto);
+  /* 外周 (1/5) = auto（方位ラベルは中身サイズ）／ 内側 3 列は均等 1fr */
+  grid-template-columns: auto 1fr 1fr 1fr auto;
+  /* 行も同じ。内側 3 行の高さはセルの aspect-ratio で揃う（下記 .cell 参照） */
+  grid-template-rows: auto auto auto auto auto;
   gap: 6px;
   padding: 10px;
   border: 1px solid var(--border-main);
@@ -351,8 +353,12 @@ select {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 184px;
-  padding: 10px;
+  padding: 8px;
+  /* Phase 2B-fix: 全宮を同一サイズ正方形に固定（中身の量で形が崩れないように）。
+     列幅(1fr)が決まればセル幅が決まり、aspect-ratio: 1 で同じ高さ＝正方形。
+     全 3 行で 1 番大きいセル高さに揃うが、全セル同じ高さなので「全部揃う」。 */
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border-main) 62%, transparent);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 10%, transparent), transparent 38%),
@@ -414,6 +420,7 @@ select {
   justify-content: space-between;
   align-items: flex-start;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .kan-stack {
@@ -457,8 +464,9 @@ select {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 32px;
+  min-height: 30px;
   margin: 2px 0;
+  flex-shrink: 0;
 }
 
 .mon-pill {
@@ -495,11 +503,25 @@ select {
   flex-direction: column;
   gap: 1px;
   margin: 0;
-  padding: 0;
+  padding: 0 2px 0 0;
   list-style: none;
-  font-size: 0.74rem;
-  line-height: 1.4;
+  font-size: 0.72rem;
+  line-height: 1.32;
+  /* セル正方形強制で空きが少ない場合、ここを縦スクロールにする */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  /* 細いスクロールバー（Webkit & Firefox 双方） */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
 }
+
+.info-list::-webkit-scrollbar { width: 4px; }
+.info-list::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+.info-list::-webkit-scrollbar-track { background: transparent; }
 
 .info-item {
   display: flex;
@@ -755,22 +777,31 @@ select {
   }
 
   .cell {
-    min-height: 158px;
-    padding: 8px;
+    padding: 6px;
+    gap: 4px;
   }
 
   .kan-tenban,
   .kan-chiban {
-    font-size: 1.18rem;
+    font-size: 1.06rem;
   }
 
   .mon-pill {
-    font-size: 1.06rem;
-    min-width: 60px;
-    padding: 3px 10px;
+    font-size: 0.96rem;
+    min-width: 54px;
+    padding: 2px 8px;
+  }
+
+  .cell-mon-row {
+    min-height: 24px;
+  }
+
+  .info-list {
+    font-size: 0.66rem;
+    line-height: 1.24;
   }
 
   .direction-label {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
   }
 }
