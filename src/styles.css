@@ -80,9 +80,10 @@ select {
 }
 
 .app {
-  width: min(1180px, calc(100% - 32px));
+  /* Phase 2B-fix4: 1180 → 1480 に拡張して FHD で横の余白を減らす */
+  width: min(1480px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 24px 0 56px;
+  padding: 24px 0 48px;
 }
 
 .app-header {
@@ -291,11 +292,13 @@ select {
 
 .board-area {
   display: grid;
-  /* Phase 2B-fix2: 盤を左(2/3) ・ 盤情報を右(1/3) で大きく見せる。
-     minmax(0, ...) を入れることで grid 内コンテンツの最小幅で破綻しないように。 */
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  /* Phase 2B-fix4: 盤=自然幅(auto)・情報=残り(1fr)に変更。
+     2fr 1fr 比率だと board が height-limited で col が空く問題があったため、
+     board の実サイズを auto で測り、残りすべてを meta-panel に渡す。
+     align-items: stretch で meta-panel を board と同じ高さに伸ばす。 */
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* ============================================================
@@ -313,10 +316,13 @@ select {
   --cell-side: clamp(
     80px,
     min(
-      calc((100vh - 230px) / 3),
-      calc((min(1180px, 100vw - 32px) * 0.62 - 80px) / 3)
+      /* 高さベース: ヘッダー+コントロール+ボード自身の外周 計 280px 確保 */
+      calc((100vh - 280px) / 3),
+      /* 幅ベース: app幅 - meta最低幅 540px(meta confortable) を 3 等分 */
+      calc((min(1480px, 100vw - 32px) - 540px) / 3)
     ),
-    220px
+    /* 上限 240px（巨大ディスプレイで cell が大きくなりすぎないように） */
+    240px
   );
   /* 外周 (1/5) = auto、内側 3 列は --cell-side 固定。これで全宮ぴったり同サイズ正方形 */
   grid-template-columns: auto repeat(3, var(--cell-side)) auto;
@@ -609,8 +615,8 @@ select {
 }
 
 .meta-panel {
-  padding: 12px 14px;
-  font-size: 0.82rem;
+  padding: 16px 18px;
+  font-size: 0.88rem;
 }
 
 .meta-section {
@@ -633,8 +639,8 @@ select {
 
 .meta-section dl {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 4px 10px;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 5px 12px;
   margin: 0;
 }
 
@@ -764,8 +770,8 @@ select {
 
   .board-grid {
     /* モバイル: 横幅ベース。デスクトップの高さ上限は無効化（モバイルは横スクロール禁止が最優先）。
-       (-140) ≈ app padding(32) + board padding(20) + outer labels(64) + gaps(24) で安全側に余裕。 */
-    --cell-side: calc((100vw - 140px) / 3);
+       (-160) ≈ app padding(32) + board padding(20) + outer labels(64) + gaps(24) + 安全余裕。 */
+    --cell-side: calc((100vw - 160px) / 3);
     justify-self: stretch;
   }
 }
