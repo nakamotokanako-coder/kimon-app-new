@@ -80,9 +80,11 @@ select {
 }
 
 .app {
+  /* Phase 2B-fix5: 1480 → 1180 に戻す（fix4 で meta-panel が 1fr で巨大化した反省）。
+     盤 + 情報 + 右余白 の3エリア構成を 1180 に収めつつ、画面中央〜左に表示。 */
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 24px 0 56px;
+  padding: 20px 0 32px;
 }
 
 .app-header {
@@ -291,7 +293,12 @@ select {
 
 .board-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  /* Phase 2B-fix5: 盤・情報 両方を中身フィット (auto auto)。
+     右側の余白は意図的に許容（"あってOK" / user指示）。
+     justify-content: start で左寄せ、左→盤→gap→情報→右余白 の自然な並び。
+     align-items: start で meta-panel は自然な高さ（無理に board に揃えない）。 */
+  grid-template-columns: auto auto;
+  justify-content: start;
   gap: 18px;
   align-items: start;
 }
@@ -303,20 +310,36 @@ select {
 
 .board-grid {
   display: grid;
-  /* 外周 (1/5) = auto（方位ラベルは中身サイズ）／ 内側 3 列は均等 1fr */
-  grid-template-columns: auto 1fr 1fr 1fr auto;
-  /* 行も同じ。内側 3 行の高さはセルの aspect-ratio で揃う（下記 .cell 参照） */
-  grid-template-rows: auto auto auto auto auto;
+  /* Phase 2B-fix3: cell サイズを viewport 高さ・幅・上限の3つの min() で決定。
+     これによりファーストビュー（スクロールなし）で 9 宮すべて表示。
+     - 高さベース: (100vh - 230px) / 3   ※ヘッダー+コントロール+余白で 230px 確保
+     - 幅ベース:   2/3 列の 60% を 3 等分（直接 width を取れないので app max-width で近似）
+     - 上限:       220px（巨大ディスプレイでセルが大きくなりすぎないように） */
+  --cell-w: clamp(
+    80px,
+    min(
+      /* 高さベース: chrome 230px 確保 ／ 縦長 1.1 倍を考慮 → / 3 / 1.1 */
+      calc((100vh - 230px) / 3 / 1.1),
+      /* 幅ベース: app 1180 から meta 約 380 + gap + ボード外周 を引いた残りを 3 等分 */
+      calc((min(1180px, 100vw - 32px) - 420px) / 3)
+    ),
+    220px
+  );
+  /* Phase 2B-fix5: セルを縦長 (1.1 倍) にして八門ラベルが切れないように。
+     正方形ルールは緩和。代わりに「全宮同サイズ・固定」は維持（cell-w × cell-h）。
+     縦の最低値 115px を保証（モバイルで cell-w が小さいと mon-row が cut されるのを防止）。 */
+  --cell-h: max(calc(var(--cell-w) * 1.1), 115px);
+  grid-template-columns: auto repeat(3, var(--cell-w)) auto;
+  grid-template-rows: auto repeat(3, var(--cell-h)) auto;
   gap: 6px;
   padding: 10px;
   border: 1px solid var(--border-main);
   background: color-mix(in srgb, var(--bg-main) 92%, var(--border-main));
   box-shadow: var(--shadow-glow), 0 18px 48px rgba(0, 0, 0, 0.36);
+  /* 親の 2fr 列より小さい場合に左寄せ（中央埋めの余白で歪まないように） */
+  justify-self: start;
+  max-width: 100%;
 }
-
-/* Phase 2C (2026-05-21): 外周は単独十二支ラベル 12 個 + 四隅空白に再構成。
-   旧 .direction-label / .dir-* は Phase 2B 形式（方位+十二支ペア）の名残りで未使用。
-   後方互換のため定義は残す（他コンポーネントから参照されている可能性に備えて）。 */
 
 .direction-label {
   display: flex;
@@ -342,33 +365,10 @@ select {
   letter-spacing: 0.04em;
 }
 
-/* 東/西 は縦に並べると視認性が良い（旧仕様の残り） */
+/* 東/西 は縦に並べると視認性が良い */
 .dir-東, .dir-西 {
   flex-direction: column;
   gap: 2px;
-}
-
-/* ── Phase 2C: 単独十二支ラベル（外周）─────────────────── */
-
-.zodiac-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 6px;
-  color: var(--text-secondary);
-  opacity: 0.65;
-  font-family: var(--font-heading);
-  font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  user-select: none;
-}
-
-/* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21） */
-.zodiac-label.is-kuubou {
-  color: var(--text-danger);
-  opacity: 1;
-  font-weight: 700;
 }
 
 /* ============================================================
@@ -381,10 +381,10 @@ select {
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  /* Phase 2B-fix: 全宮を同一サイズ正方形に固定（中身の量で形が崩れないように）。
-     列幅(1fr)が決まればセル幅が決まり、aspect-ratio: 1 で同じ高さ＝正方形。
-     全 3 行で 1 番大きいセル高さに揃うが、全セル同じ高さなので「全部揃う」。 */
-  aspect-ratio: 1 / 1;
+  /* Phase 2B-fix3: グリッドトラックが --cell-side × --cell-side で正方形固定済み。
+     セルはトラックを完全に埋めるだけ。aspect-ratio は不要。 */
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border-main) 62%, transparent);
   background:
@@ -620,7 +620,10 @@ select {
 
 .meta-panel {
   padding: 14px 16px;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
+  /* Phase 2B-fix5: パネルを中身フィット幅に。これより右はあえて空白として残す。 */
+  width: fit-content;
+  max-width: 100%;
 }
 
 .meta-section {
@@ -643,7 +646,7 @@ select {
 
 .meta-section dl {
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr);
+  grid-template-columns: 100px minmax(0, 1fr);
   gap: 5px 12px;
   margin: 0;
 }
@@ -767,11 +770,21 @@ select {
 
 @media (max-width: 900px) {
   .board-area {
-    grid-template-columns: 1fr;
+    /* モバイル: 縦積み（盤が上、情報が下）。
+       JSX 順が Board → Meta なので order 指定不要。 */
+    grid-template-columns: minmax(0, 1fr);
   }
 
+  .board-grid {
+    /* モバイル: 横幅ベース。デスクトップの高さ上限は無効化（モバイルは横スクロール禁止が最優先）。
+       (-160) ≈ app padding(32) + board padding(20) + outer labels(64) + gaps(24) + 安全余裕。 */
+    --cell-w: calc((100vw - 160px) / 3);
+    justify-self: stretch;
+  }
   .meta-panel {
-    order: 2;
+    /* モバイルは縦積み・横幅いっぱい使う */
+    width: 100%;
+    max-width: none;
   }
 }
 
@@ -801,6 +814,8 @@ select {
   .board-grid {
     gap: 4px;
     padding: 4px;
+    /* phone (≤640): padding/gap 縮小。375px → 約 85px / 430px → 約 103px。 */
+    --cell-w: calc((100vw - 120px) / 3);
   }
 
   .cell {

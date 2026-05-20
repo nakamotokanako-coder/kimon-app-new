@@ -137,13 +137,15 @@ export default function App() {
         {board && (
           <>
             <div className="board-area">
-              <MetaPanel meta={board.meta} banLevel={board.banLevel} />
+              {/* Phase 2B-relayout (2026-05-21): 盤を左・情報パネルを右に配置。
+                  styles.css の board-area が auto auto + justify-content: start で受ける。 */}
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}
                 direction={direction}
                 kuubou={board.banLevel?.kuubou_text}
               />
+              <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
             <ShouiPanel board={board} />
           </>
