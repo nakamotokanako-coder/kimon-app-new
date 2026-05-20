@@ -372,11 +372,12 @@ select {
 }
 
 /* ============================================================
-   Phase 2C (2026-05-21): 外周単独十二支ラベル
-   Phase 2C-followup (2026-05-22): 四隅 angle area で 2 文字対角配置
+   Phase 2C (2026-05-21): 外周十二支ラベル（先生Excel の方位ラベル位置に統一）
+   Phase 2C-followup2 (2026-05-22): 角ペアは盤に隣接した位置に近接配置
    ============================================================ */
 
-/* 辺中央の単独十二支ラベル（午・卯・酉・子） */
+/* 辺中央の単独十二支ラベル（午・卯・酉・子）。
+   ＝ Excel の 南/東/西/北 方位ラベル位置に相当 */
 .zodiac-label {
   display: flex;
   align-items: center;
@@ -391,23 +392,18 @@ select {
   user-select: none;
 }
 
-/* 四隅 angle area: 2×2 サブグリッドで 2 文字を対角配置 */
-.zodiac-angle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  width: 100%;
-  height: 100%;
-  min-width: 40px;
-  min-height: 40px;
-  padding: 2px;
-  gap: 0;
-}
-
-.zodiac-angle-slot {
+/* 四隅ペア: 2 文字を横並びでコンパクトに（盤に隣接した位置に置く）。
+   ＝ Excel の 南東/南西/北東/北西 方位ラベル位置に相当 */
+.zodiac-pair {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  padding: 4px 6px;
+}
+
+.zodiac-pair-char {
   color: var(--text-secondary);
   opacity: 0.65;
   font-family: var(--font-heading);
@@ -417,14 +413,10 @@ select {
   user-select: none;
 }
 
-.zodiac-angle-slot.pos-tl { grid-area: 1 / 1; justify-self: start; align-self: start; }
-.zodiac-angle-slot.pos-tr { grid-area: 1 / 2; justify-self: end;   align-self: start; }
-.zodiac-angle-slot.pos-bl { grid-area: 2 / 1; justify-self: start; align-self: end;   }
-.zodiac-angle-slot.pos-br { grid-area: 2 / 2; justify-self: end;   align-self: end;   }
-
-/* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21） */
+/* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21）。
+   ペア内では該当する 1 文字のみ赤字（個別判定）。 */
 .zodiac-label.is-kuubou,
-.zodiac-angle-slot.is-kuubou {
+.zodiac-pair-char.is-kuubou {
   color: var(--text-danger);
   opacity: 1;
   font-weight: 700;
