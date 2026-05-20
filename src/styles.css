@@ -80,10 +80,11 @@ select {
 }
 
 .app {
-  /* Phase 2B-fix4: 1180 → 1480 に拡張して FHD で横の余白を減らす */
-  width: min(1480px, calc(100% - 32px));
+  /* Phase 2B-fix5: 1480 → 1180 に戻す（fix4 で meta-panel が 1fr で巨大化した反省）。
+     盤 + 情報 + 右余白 の3エリア構成を 1180 に収めつつ、画面中央〜左に表示。 */
+  width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 24px 0 48px;
+  padding: 20px 0 32px;
 }
 
 .app-header {
@@ -292,13 +293,14 @@ select {
 
 .board-area {
   display: grid;
-  /* Phase 2B-fix4: 盤=自然幅(auto)・情報=残り(1fr)に変更。
-     2fr 1fr 比率だと board が height-limited で col が空く問題があったため、
-     board の実サイズを auto で測り、残りすべてを meta-panel に渡す。
-     align-items: stretch で meta-panel を board と同じ高さに伸ばす。 */
-  grid-template-columns: auto minmax(0, 1fr);
+  /* Phase 2B-fix5: 盤・情報 両方を中身フィット (auto auto)。
+     右側の余白は意図的に許容（"あってOK" / user指示）。
+     justify-content: start で左寄せ、左→盤→gap→情報→右余白 の自然な並び。
+     align-items: start で meta-panel は自然な高さ（無理に board に揃えない）。 */
+  grid-template-columns: auto auto;
+  justify-content: start;
   gap: 18px;
-  align-items: stretch;
+  align-items: start;
 }
 
 /* ============================================================
@@ -313,20 +315,22 @@ select {
      - 高さベース: (100vh - 230px) / 3   ※ヘッダー+コントロール+余白で 230px 確保
      - 幅ベース:   2/3 列の 60% を 3 等分（直接 width を取れないので app max-width で近似）
      - 上限:       220px（巨大ディスプレイでセルが大きくなりすぎないように） */
-  --cell-side: clamp(
+  --cell-w: clamp(
     80px,
     min(
-      /* 高さベース: ヘッダー+コントロール+ボード自身の外周 計 280px 確保 */
-      calc((100vh - 280px) / 3),
-      /* 幅ベース: app幅 - meta最低幅 540px(meta confortable) を 3 等分 */
-      calc((min(1480px, 100vw - 32px) - 540px) / 3)
+      /* 高さベース: chrome 230px 確保 ／ 縦長 1.1 倍を考慮 → / 3 / 1.1 */
+      calc((100vh - 230px) / 3 / 1.1),
+      /* 幅ベース: app 1180 から meta 約 380 + gap + ボード外周 を引いた残りを 3 等分 */
+      calc((min(1180px, 100vw - 32px) - 420px) / 3)
     ),
-    /* 上限 240px（巨大ディスプレイで cell が大きくなりすぎないように） */
-    240px
+    220px
   );
-  /* 外周 (1/5) = auto、内側 3 列は --cell-side 固定。これで全宮ぴったり同サイズ正方形 */
-  grid-template-columns: auto repeat(3, var(--cell-side)) auto;
-  grid-template-rows: auto repeat(3, var(--cell-side)) auto;
+  /* Phase 2B-fix5: セルを縦長 (1.1 倍) にして八門ラベルが切れないように。
+     正方形ルールは緩和。代わりに「全宮同サイズ・固定」は維持（cell-w × cell-h）。
+     縦の最低値 115px を保証（モバイルで cell-w が小さいと mon-row が cut されるのを防止）。 */
+  --cell-h: max(calc(var(--cell-w) * 1.1), 115px);
+  grid-template-columns: auto repeat(3, var(--cell-w)) auto;
+  grid-template-rows: auto repeat(3, var(--cell-h)) auto;
   gap: 6px;
   padding: 10px;
   border: 1px solid var(--border-main);
@@ -615,8 +619,11 @@ select {
 }
 
 .meta-panel {
-  padding: 16px 18px;
-  font-size: 0.88rem;
+  padding: 14px 16px;
+  font-size: 0.86rem;
+  /* Phase 2B-fix5: パネルを中身フィット幅に。これより右はあえて空白として残す。 */
+  width: fit-content;
+  max-width: 100%;
 }
 
 .meta-section {
@@ -771,8 +778,13 @@ select {
   .board-grid {
     /* モバイル: 横幅ベース。デスクトップの高さ上限は無効化（モバイルは横スクロール禁止が最優先）。
        (-160) ≈ app padding(32) + board padding(20) + outer labels(64) + gaps(24) + 安全余裕。 */
-    --cell-side: calc((100vw - 160px) / 3);
+    --cell-w: calc((100vw - 160px) / 3);
     justify-self: stretch;
+  }
+  .meta-panel {
+    /* モバイルは縦積み・横幅いっぱい使う */
+    width: 100%;
+    max-width: none;
   }
 }
 
@@ -802,9 +814,8 @@ select {
   .board-grid {
     gap: 4px;
     padding: 4px;
-    /* phone (≤640): padding/gap 縮小 + 外周ラベルもタイト想定。
-       375px → 約 78px / 430px → 約 96px のセル幅。横スクロール無し。 */
-    --cell-side: calc((100vw - 120px) / 3);
+    /* phone (≤640): padding/gap 縮小。375px → 約 85px / 430px → 約 103px。 */
+    --cell-w: calc((100vw - 120px) / 3);
   }
 
   .cell {
