@@ -175,6 +175,17 @@ export function isKuubouCell(palaceName, kuubouStr) {
   return false;
 }
 
+/**
+ * 単一の十二支文字が空亡かどうか（Phase 2C: 外周ラベル赤字判定用）。
+ * @param {string} zodiacChar - 1文字の十二支（子丑寅卯辰巳午未申酉戌亥 のいずれか）
+ * @param {string} kuubouStr - 空亡の地支ペア（例 "申酉"）
+ * @returns {boolean}
+ */
+export function isKuubouZodiac(zodiacChar, kuubouStr) {
+  if (!zodiacChar || !kuubouStr) return false;
+  return [...kuubouStr].includes(zodiacChar);
+}
+
 /** 門迫該当宮の配列 */
 export function detectMonpakuPalaces(palaces) {
   return PALACE_NAMES.filter((n) => isMonpakuCell(n, palaces?.[n]?.hachimon));

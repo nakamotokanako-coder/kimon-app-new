@@ -142,6 +142,7 @@ export default function App() {
                 palaces={board.palaces}
                 scores={board.score?.palaces}
                 direction={direction}
+                kuubou={board.banLevel?.kuubou_text}
               />
             </div>
             <ShouiPanel board={board} />
