@@ -8,6 +8,7 @@ import {
   detectMonHangin,
   isMonpakuCell,
   isKuubouCell,
+  isKuubouZodiac,
   detectMonpakuPalaces,
   detectKuubouPalaces,
   detectBanLevel,
@@ -241,6 +242,35 @@ describe('detectMonpakuPalaces', () => {
 // ============================================================
 // 空亡（地支重複）
 // ============================================================
+
+describe('isKuubouZodiac（Phase 2C: 外周ラベル単独判定）', () => {
+  it('空亡="申酉" のとき 申 と 酉 は true、他は false', () => {
+    expect(isKuubouZodiac('申', '申酉')).toBe(true);
+    expect(isKuubouZodiac('酉', '申酉')).toBe(true);
+    expect(isKuubouZodiac('戌', '申酉')).toBe(false);
+    expect(isKuubouZodiac('子', '申酉')).toBe(false);
+  });
+  it('空亡="午未" のとき 午 と 未 のみ true', () => {
+    expect(isKuubouZodiac('午', '午未')).toBe(true);
+    expect(isKuubouZodiac('未', '午未')).toBe(true);
+    expect(isKuubouZodiac('巳', '午未')).toBe(false);
+    expect(isKuubouZodiac('申', '午未')).toBe(false);
+  });
+  it('空亡 が空/未設定なら false', () => {
+    expect(isKuubouZodiac('子', '')).toBe(false);
+    expect(isKuubouZodiac('子', null)).toBe(false);
+  });
+  it('十二支文字が空なら false', () => {
+    expect(isKuubouZodiac('', '申酉')).toBe(false);
+    expect(isKuubouZodiac(null, '申酉')).toBe(false);
+  });
+  it('12 十二支すべて空亡判定を貫通できる', () => {
+    const all = '子丑寅卯辰巳午未申酉戌亥';
+    for (const z of all) {
+      expect(isKuubouZodiac(z, all)).toBe(true);
+    }
+  });
+});
 
 describe('isKuubouCell / detectKuubouPalaces', () => {
   it('kuubou="申酉" → 坤宮(未申) と 兌宮(酉) が該当', () => {
