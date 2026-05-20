@@ -10,7 +10,8 @@
   --text-primary: #f0f0f0;
   --text-secondary: #888888;
   --text-accent: #d4af37;
-  --text-danger: #c5302e;
+  --text-danger: #e74c3c;  /* 凶赤（先生指示 Phase 2B：ダーク背景でも視認性確保） */
+  --text-info:   #5ab1ff;   /* 吉青（先生指示 Phase 2B） */
   --text-success: #6bcf7f;
   --shadow-glow: 0 0 8px rgba(212, 175, 55, 0.3);
   --font-heading: 'Noto Serif JP', serif;
@@ -32,6 +33,7 @@
   --text-secondary: #8a9bb0;
   --text-accent: #7dd3fc;
   --text-danger: #ff8a8a;
+  --text-info:   #5ab1ff;
   --text-success: #6bcf7f;
   --shadow-glow: 0 0 8px rgba(125, 211, 252, 0.4);
 }
@@ -47,6 +49,7 @@
   --text-secondary: #6b6450;
   --text-accent: #b8860b;
   --text-danger: #c5302e;
+  --text-info:   #1f6fb3;
   --text-success: #2d7a3e;
   --shadow-glow: 0 0 8px rgba(197, 48, 46, 0.25);
 }
@@ -93,8 +96,7 @@ select {
 .header-controls,
 .theme-switcher,
 .direction-toggle,
-.input-controls,
-.row-shin-sei {
+.input-controls {
   display: flex;
 }
 
@@ -294,23 +296,69 @@ select {
   align-items: start;
 }
 
+/* ============================================================
+   盤グリッド（Phase 2B 全面改修: 先生 Excel 準拠の 5×5 レイアウト）
+   外周に方位+十二支、内側 3×3 が宮セル。
+   ============================================================ */
+
 .board-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* 外周 (1/5) = auto（方位ラベルは中身サイズ）／ 内側 3 列は均等 1fr */
+  grid-template-columns: auto 1fr 1fr 1fr auto;
+  /* 行も同じ。内側 3 行の高さはセルの aspect-ratio で揃う（下記 .cell 参照） */
+  grid-template-rows: auto auto auto auto auto;
   gap: 6px;
-  padding: 6px;
+  padding: 10px;
   border: 1px solid var(--border-main);
   background: color-mix(in srgb, var(--bg-main) 92%, var(--border-main));
   box-shadow: var(--shadow-glow), 0 18px 48px rgba(0, 0, 0, 0.36);
 }
 
+.direction-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 6px;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+}
+
+.direction-label .dir-name {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.direction-label .dir-zodiac {
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+}
+
+/* 東/西 は縦に並べると視認性が良い */
+.dir-東, .dir-西 {
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ============================================================
+   宮セル
+   ============================================================ */
+
 .cell {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  min-height: 164px;
-  padding: 10px;
+  gap: 6px;
+  padding: 8px;
+  /* Phase 2B-fix: 全宮を同一サイズ正方形に固定（中身の量で形が崩れないように）。
+     列幅(1fr)が決まればセル幅が決まり、aspect-ratio: 1 で同じ高さ＝正方形。
+     全 3 行で 1 番大きいセル高さに揃うが、全セル同じ高さなので「全部揃う」。 */
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border-main) 62%, transparent);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 10%, transparent), transparent 38%),
@@ -326,43 +374,34 @@ select {
   border-color: color-mix(in srgb, var(--text-danger) 65%, var(--border-main));
 }
 
-.cell-center {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 16%, transparent), transparent 44%),
-    var(--bg-elevated);
-  /* 中宮は使えない宮のため少し薄く表示（先生指示 2026-05-19 Q3） */
-  opacity: 0.55;
-}
+/* ── header（宮名 + 五行薄く + スコア）─────────────── */
 
 .cell-header {
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  min-height: 25px;
-  padding-bottom: 6px;
+  gap: 6px;
+  min-height: 22px;
+  padding-bottom: 4px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .palace-label {
   color: var(--text-accent);
   font-family: var(--font-heading);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
-.zodiac {
+.palace-element {
   color: var(--text-secondary);
+  opacity: 0.5;
   font-size: 0.72rem;
-}
-
-.zodiac {
-  margin-left: auto;
-  letter-spacing: 0.08em;
+  font-weight: 500;
 }
 
 .score-badge {
   min-width: 34px;
-  margin-left: 2px;
+  margin-left: auto;
   padding: 2px 7px;
   border: 1px solid var(--border-subtle);
   font-size: 0.74rem;
@@ -370,83 +409,171 @@ select {
   text-align: center;
 }
 
-.score-positive {
-  color: var(--text-success);
-}
+.score-positive { color: var(--text-success); }
+.score-neutral  { color: var(--text-secondary); }
+.score-negative { color: var(--text-danger); }
 
-.score-neutral {
-  color: var(--text-secondary);
-}
+/* ── body row 1: 天盤/地盤(左)  ／ 八神/九星(右) ─────── */
 
-.score-negative {
-  color: var(--text-danger);
-}
-
-.row-shin-sei {
-  align-items: center;
+.cell-row-top {
+  display: flex;
   justify-content: space-between;
-  gap: 10px;
-  color: var(--text-secondary);
-  font-size: 0.86rem;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.hasshin.is-chokufu,
-.kan-accent {
+.kan-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.1;
+}
+
+.kan-tenban,
+.kan-chiban {
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 1.36rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.kan-chiban {
+  color: color-mix(in srgb, var(--text-primary) 82%, var(--text-secondary));
+}
+
+.cell-meta-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.84rem;
+}
+
+.hasshin,
+.kyusei {
+  color: color-mix(in srgb, var(--text-primary) 80%, var(--text-secondary));
+  font-weight: 600;
+}
+
+/* ── 八門ピル（中央・大きく・色付き背景・位置固定）──── */
+
+.cell-mon-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 30px;
+  margin: 2px 0;
+  flex-shrink: 0;
+}
+
+.mon-pill {
+  display: inline-block;
+  min-width: 70px;
+  padding: 4px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.mon-pill.tone-kichi {
+  border-color: color-mix(in srgb, var(--text-info) 70%, transparent);
+  background: color-mix(in srgb, var(--text-info) 22%, var(--bg-cell));
+  color: #ffffff;
+}
+
+.mon-pill.tone-kyo {
+  border-color: color-mix(in srgb, var(--text-danger) 75%, transparent);
+  background: color-mix(in srgb, var(--text-danger) 26%, var(--bg-cell));
+  color: #ffffff;
+}
+
+/* ── 格局 + 十干剋応 リスト（八門の下）───────────── */
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0 2px 0 0;
+  list-style: none;
+  font-size: 0.72rem;
+  line-height: 1.32;
+  /* セル正方形強制で空きが少ない場合、ここを縦スクロールにする */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  /* 細いスクロールバー（Webkit & Firefox 双方） */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.info-list::-webkit-scrollbar { width: 4px; }
+.info-list::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+.info-list::-webkit-scrollbar-track { background: transparent; }
+
+.info-item {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.info-prefix {
+  font-weight: 700;
+  min-width: 12px;
+  text-align: center;
+}
+
+.info-kichi   { color: var(--text-info); }
+.info-kyo     { color: var(--text-danger); }
+.info-neutral { color: var(--text-secondary); }
+
+/* ── 吉/凶 干 のテキスト着色（複合表記内の1文字単位）── */
+
+.tone-kichi { color: var(--text-info); }
+.tone-kyo   { color: var(--text-danger); }
+
+/* 直符のハイライトは accent を維持（旧仕様） */
+.hasshin.is-chokufu {
   color: var(--text-accent);
   text-shadow: var(--shadow-glow);
 }
 
-.kyusei {
-  color: color-mix(in srgb, var(--text-primary) 78%, var(--text-secondary));
+/* ── 中宮セル（戊 のみ表示 / 旬首が中宮にある場合）──── */
+
+.cell-center {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 16%, transparent), transparent 44%),
+    var(--bg-elevated);
+  opacity: 0.72;
+  display: grid;
+  place-items: center;
 }
 
-.row-tenban,
-.row-chiban,
-.row-hachimon {
-  text-align: center;
-  line-height: 1.1;
+.cell-center-body {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
 }
 
-.row-tenban {
-  margin-top: 2px;
+.center-kan {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
   color: var(--text-primary);
-  font-family: var(--font-heading);
-  font-size: 1.72rem;
-  font-weight: 700;
-}
-
-.row-chiban {
-  color: color-mix(in srgb, var(--text-primary) 72%, var(--text-secondary));
-  font-family: var(--font-heading);
-  font-size: 1.2rem;
-}
-
-.row-hachimon {
-  margin-top: auto;
-  color: var(--text-success);
-  font-weight: 700;
-}
-
-.kan-danger,
-.kyo-tags,
-.kikkyo-× {
-  color: var(--text-danger);
-}
-
-.kyo-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: center;
-  min-height: 20px;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.kyo-tags span {
-  border: 1px solid color-mix(in srgb, var(--text-danger) 70%, transparent);
-  padding: 1px 5px;
-  background: rgba(197, 48, 46, 0.1);
+  letter-spacing: 0.05em;
 }
 
 .cell-empty {
@@ -650,15 +777,31 @@ select {
   }
 
   .cell {
-    min-height: 142px;
-    padding: 8px;
+    padding: 6px;
+    gap: 4px;
   }
 
-  .row-tenban {
-    font-size: 1.42rem;
+  .kan-tenban,
+  .kan-chiban {
+    font-size: 1.06rem;
   }
 
-  .row-chiban {
-    font-size: 1.04rem;
+  .mon-pill {
+    font-size: 0.96rem;
+    min-width: 54px;
+    padding: 2px 8px;
+  }
+
+  .cell-mon-row {
+    min-height: 24px;
+  }
+
+  .info-list {
+    font-size: 0.66rem;
+    line-height: 1.24;
+  }
+
+  .direction-label {
+    font-size: 0.74rem;
   }
 }
