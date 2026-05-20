@@ -137,12 +137,14 @@ export default function App() {
         {board && (
           <>
             <div className="board-area">
-              <MetaPanel meta={board.meta} banLevel={board.banLevel} />
+              {/* Phase 2B-fix2 (2026-05-20): 盤を左(2/3)・盤情報を右(1/3)に。
+                  盤が広く取れることで宮セルが十分なサイズになり中身が読める。 */}
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}
                 direction={direction}
               />
+              <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
             <ShouiPanel board={board} />
           </>
