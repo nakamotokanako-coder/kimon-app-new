@@ -3,6 +3,7 @@
 // 出典: ◯◯先生「奇門遁甲講座2025」第5章 p67-76
 
 import kakkyokuData from '../../data/kakkyoku.json' with { type: 'json' };
+import { detectBanLevel } from './banLevel.js';
 
 // ============================================================
 // 定数定義
@@ -25,51 +26,11 @@ export const PALACE_KEY = Object.fromEntries(
   Object.entries(PALACE_JP).map(([k, v]) => [v, k])
 );
 
-/** 宮の五行 */
-const PALACE_GOGYO = {
-  kan: '水', kun: '土', shin: '木', son: '木',
-  ri: '火', ken: '金', da: '金', gon: '土',
-};
-
-/** 対中宮（反吟判定用） */
-const TAICHU_KYU = {
-  kan: 'ri', ri: 'kan',
-  gon: 'kun', kun: 'gon',
-  shin: 'da', da: 'shin',
-  son: 'ken', ken: 'son',
-};
-
-/** 天蓬九星の定位（どの宮にあるべきか） */
-const KYUSEI_TEII = {
-  '天輔': 'son', '天英': 'ri', '天芮': 'kun',
-  '天衝': 'shin',                  '天柱': 'da',
-  '天任': 'gon', '天蓬': 'kan', '天心': 'ken',
-  // 天禽は中宮の定位だが、講座流派では天芮と同宮（書かない）
-};
-
-/** 八門の定位 */
-const HACHIMON_TEII = {
-  '杜門': 'son', '景門': 'ri', '死門': 'kun',
-  '傷門': 'shin',                '驚門': 'da',
-  '生門': 'gon', '休門': 'kan', '開門': 'ken',
-};
-
-/** 八門の五行 */
-const HACHIMON_GOGYO = {
-  '休門': '水', '生門': '土', '傷門': '木', '杜門': '木',
-  '景門': '火', '死門': '土', '驚門': '金', '開門': '金',
-};
-
-/** 五行の相剋関係: A 剋 B = relationKokusu[A].includes(B) */
-const KOKUSU = {
-  '木': '土', '土': '水', '水': '火', '火': '金', '金': '木',
-};
-
-/** 五不遇時の表 */
-const GOFUGUUJI = {
-  '甲': '庚', '乙': '辛', '丙': '壬', '丁': '癸', '戊': '甲',
-  '己': '乙', '庚': '丙', '辛': '丁', '壬': '戊', '癸': '己',
-};
+// Phase 2A (2026-05-20): 盤レベル判定（伏吟・反吟・門迫・五不遇時）の検出と減点は
+// すべて banLevel.js に移管した。そのため以下の定数は不要となり削除済み:
+//   PALACE_GOGYO / TAICHU_KYU / KYUSEI_TEII / HACHIMON_TEII /
+//   HACHIMON_GOGYO / KOKUSU / GOFUGUUJI
+// detectBoardKakkyoku は CSV 生成スクリプト等の互換のため facade として残る。
 
 /** 三吉門判定 */
 const isSankichi = (mon) => SANKICHI_MON.includes(mon);
@@ -357,80 +318,29 @@ export function detectPalaceKakkyoku(palaceData, palaceName, boardMeta) {
 // ============================================================
 
 /**
- * 盤全体の格局を検出（伏吟・反吟・門迫・五不遇時）
+ * 盤全体の盤レベル判定（旧 detectBoardKakkyoku の互換 facade）。
+ *
+ * Phase 2A 以降、検出ロジックは banLevel.js に移管された。
+ * この関数は CSV 生成スクリプトなど旧来の {name} 配列を期待する呼び出し元との
+ * 後方互換のために残してある。新コードからは detectBanLevel(board) を直接使うこと。
+ *
+ * 返却名は新仕様: 干伏吟 / 星伏吟 / 門伏吟 / 星反吟 / 門反吟 / 五不遇時。
+ * 門迫・空亡は per-palace 判定に再分類されたため facade からは除外。
+ *
  * @param {object} board - { meta, palaces }
- * @returns {Array} 該当格局の配列
+ * @returns {Array<{ name: string, count_for_minus: boolean, score: number }>}
  */
 export function detectBoardKakkyoku(board) {
   if (!board?.palaces) return [];
-  const results = [];
-
-  // 伏吟: 全宮で天盤=地盤
-  // ※ 厳密には「すべての宮で同じ干」だが、講座p75の図では「天=地が並ぶ」状態を示す
-  // 旬首が中宮で甲伏吟になるケース（例外3）
-  let fukuginCount = 0;
-  let palaceCount = 0;
-  for (const palName of PALACE_NAMES) {
-    const p = board.palaces[palName];
-    if (!p?.tenban || !p?.chiban) continue;
-    palaceCount++;
-    // 複合表記の場合、最初の文字同士で比較（簡略化）
-    const t = splitKan(p.tenban)[0];
-    const c = splitKan(p.chiban)[0];
-    if (t === c) fukuginCount++;
-  }
-  if (palaceCount > 0 && fukuginCount === palaceCount) {
-    results.push(buildBanLevelResult('伏吟'));
-  }
-
-  // 反吟: いずれかの宮で九星/八門が定位の対中宮にある
-  let hanginFound = false;
-  for (const palName of PALACE_NAMES) {
-    const p = board.palaces[palName];
-    if (!p) continue;
-    // 九星の反吟
-    const kyuseiTeii = KYUSEI_TEII[p.kyusei];
-    if (kyuseiTeii && TAICHU_KYU[kyuseiTeii] === palName) {
-      hanginFound = true;
-      break;
-    }
-    // 八門の反吟
-    const monTeii = HACHIMON_TEII[p.hachimon];
-    if (monTeii && TAICHU_KYU[monTeii] === palName) {
-      hanginFound = true;
-      break;
-    }
-  }
-  if (hanginFound) {
-    results.push(buildBanLevelResult('反吟'));
-  }
-
-  // 門迫: いずれかの宮で八門が定位の五行を剋する
-  let monpakuFound = false;
-  for (const palName of PALACE_NAMES) {
-    const p = board.palaces[palName];
-    if (!p?.hachimon) continue;
-    const monGogyo = HACHIMON_GOGYO[p.hachimon];
-    const palaceGogyo = PALACE_GOGYO[palName];
-    // 門の五行が宮の五行を剋する場合
-    if (monGogyo && palaceGogyo && KOKUSU[monGogyo] === palaceGogyo) {
-      monpakuFound = true;
-      break;
-    }
-  }
-  if (monpakuFound) {
-    results.push(buildBanLevelResult('門迫'));
-  }
-
-  // 五不遇時: 日干×時干の表で判定（時盤のみ）
-  const dayKan = getKan(board.meta?.eto_day);
-  const timeKan = getKan(board.meta?.eto_time);
-  if (dayKan && timeKan && board.meta?.boardType === '時' &&
-      GOFUGUUJI[dayKan] === timeKan) {
-    results.push(buildBanLevelResult('五不遇時'));
-  }
-
-  return results;
+  const bl = detectBanLevel(board);
+  const out = [];
+  if (bl.kan_fukugin) out.push({ name: '干伏吟', count_for_minus: true, score: -10 });
+  if (bl.sei_fukugin) out.push({ name: '星伏吟', count_for_minus: true, score: -10 });
+  if (bl.mon_fukugin) out.push({ name: '門伏吟', count_for_minus: true, score: -10 });
+  if (bl.sei_hangin) out.push({ name: '星反吟', count_for_minus: true, score: -10 });
+  if (bl.mon_hangin) out.push({ name: '門反吟', count_for_minus: true, score: -10 });
+  if (bl.gofuguuji) out.push({ name: '五不遇時', count_for_minus: true, score: -10 });
+  return out;
 }
 
 // ============================================================
@@ -449,34 +359,8 @@ export function scoreKakkyoku(palaceData, palaceName, boardMeta) {
   return results.reduce((sum, r) => sum + (r.score || 0), 0);
 }
 
-/**
- * 盤レベル減点の合計を返す（伏吟・反吟・門迫のカウント × -10）
- * 五不遇時は別途専用スコア
- * @param {object} board
- * @returns {object} { ban_minus, gofuguuji_minus, total_minus }
- */
-export function scoreBanLevel(board) {
-  const banResults = detectBoardKakkyoku(board);
-  const minusPerCount = kakkyokuData.meta.ban_level_minus_per_count;
-
-  let banMinus = 0;
-  let gofuguujiMinus = 0;
-
-  for (const r of banResults) {
-    if (r.count_for_minus) {
-      banMinus += minusPerCount;
-    } else if (r.name === '五不遇時') {
-      gofuguujiMinus = r.score || -30;
-    }
-  }
-
-  return {
-    ban_minus: banMinus,
-    gofuguuji_minus: gofuguujiMinus,
-    total_minus: banMinus + gofuguujiMinus,
-    detected: banResults.map(r => r.name),
-  };
-}
+// Phase 2A: scoreBanLevel は廃止。盤レベル減点は scoreEngine.js が
+// banLevel.js の scoreBoardBanLevel / scorePalaceBanLevel から直接合算する。
 
 // ============================================================
 // 結果オブジェクトのビルダー
@@ -498,19 +382,6 @@ function buildResult(key, kichiKyo) {
   };
 }
 
-function buildBanLevelResult(key) {
-  const data = kakkyokuData.ban_level?.[key];
-  if (!data) {
-    return { name: key, count_for_minus: true };
-  }
-  return {
-    name: key,
-    category: data.category,
-    meaning: data.meaning,
-    reading: data.reading,
-    count_for_minus: data.count_for_minus,
-    score: data.score,
-  };
-}
+// buildBanLevelResult は scoreBanLevel と共に廃止（banLevel.js に集約）。
 
 export { kakkyokuData };

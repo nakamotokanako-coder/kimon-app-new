@@ -4,7 +4,6 @@ import {
   detectPalaceKakkyoku,
   detectBoardKakkyoku,
   scoreKakkyoku,
-  scoreBanLevel,
   kakkyokuData,
   PALACE_NAMES,
 } from '../src/kimon/kakkyoku.js';
@@ -423,15 +422,18 @@ describe('scoreKakkyoku: スコア', () => {
 // 盤レベル格局
 // ============================================================
 
-describe('detectBoardKakkyoku: 盤レベル', () => {
-  it('門迫: 八門が定位の五行を剋する', () => {
-    // 例: 開門(金)が震宮(木)にある → 金剋木 → 門迫
+// Phase 2A (2026-05-20): 盤レベル判定は banLevel.js に移管。
+// detectBoardKakkyoku は CSV 生成スクリプト等の後方互換用 facade。
+// 詳細な盤レベル検出テストは test/banLevel.test.js を参照。
+describe('detectBoardKakkyoku: facade（後方互換）', () => {
+  it('門迫は facade からは返らない（per-palace 判定に再分類）', () => {
+    // 旧仕様で「開門が震宮にある→門迫」だった盤。新仕様では facade に含まれない。
     const board = {
       meta: makeBoardMeta(),
       palaces: {
         kan: palace({ tenban: '甲', chiban: '甲', kyusei: '天蓬', hachimon: '休門' }),
         gon: palace({ tenban: '甲', chiban: '甲', kyusei: '天任', hachimon: '生門' }),
-        shin: palace({ tenban: '甲', chiban: '甲', kyusei: '天衝', hachimon: '開門' }), // 開門(金)×震(木) = 門迫
+        shin: palace({ tenban: '甲', chiban: '甲', kyusei: '天衝', hachimon: '開門' }),
         son: palace({ tenban: '甲', chiban: '甲', kyusei: '天輔', hachimon: '杜門' }),
         ri: palace({ tenban: '甲', chiban: '甲', kyusei: '天英', hachimon: '景門' }),
         kun: palace({ tenban: '甲', chiban: '甲', kyusei: '天芮', hachimon: '死門' }),
@@ -440,26 +442,27 @@ describe('detectBoardKakkyoku: 盤レベル', () => {
       },
     };
     const r = detectBoardKakkyoku(board);
-    expect(r.find(x => x.name === '門迫')).toBeDefined();
+    expect(r.find(x => x.name === '門迫')).toBeUndefined();
   });
 
-  it('反吟: 八門が定位の対中宮にある', () => {
-    // 休門の定位は坎、対中宮は離 → 離宮に休門があると反吟
+  it('1宮だけ対中宮配置でも 反吟 (星/門) は発火しない（全宮一致が条件）', () => {
+    // 7宮は定位、ri だけ反吟逆配置(休門)。これでは 門反吟 は発火しない。
     const board = {
       meta: makeBoardMeta(),
       palaces: {
-        kan: palace({ tenban: '甲', chiban: '甲', kyusei: '天蓬', hachimon: '景門' }),
-        gon: palace({ tenban: '甲', chiban: '甲', kyusei: '天任', hachimon: '死門' }),
-        shin: palace({ tenban: '甲', chiban: '甲', kyusei: '天衝', hachimon: '驚門' }),
-        son: palace({ tenban: '甲', chiban: '甲', kyusei: '天輔', hachimon: '開門' }),
-        ri: palace({ tenban: '甲', chiban: '甲', kyusei: '天英', hachimon: '休門' }), // 休門が離宮 = 反吟
-        kun: palace({ tenban: '甲', chiban: '甲', kyusei: '天芮', hachimon: '生門' }),
-        da: palace({ tenban: '甲', chiban: '甲', kyusei: '天柱', hachimon: '傷門' }),
-        ken: palace({ tenban: '甲', chiban: '甲', kyusei: '天心', hachimon: '杜門' }),
+        kan: palace({ hachimon: '休門' }),  // 定位
+        gon: palace({ hachimon: '生門' }),  // 定位
+        shin: palace({ hachimon: '傷門' }), // 定位
+        son: palace({ hachimon: '杜門' }),  // 定位
+        ri: palace({ hachimon: '休門' }),   // ← 1宮だけ反吟逆配置
+        kun: palace({ hachimon: '死門' }),  // 定位
+        da: palace({ hachimon: '驚門' }),   // 定位
+        ken: palace({ hachimon: '開門' }),  // 定位
       },
     };
     const r = detectBoardKakkyoku(board);
-    expect(r.find(x => x.name === '反吟')).toBeDefined();
+    expect(r.find(x => x.name === '星反吟')).toBeUndefined();
+    expect(r.find(x => x.name === '門反吟')).toBeUndefined();
   });
 
   it('五不遇時: 戊日×甲時で成立（時盤のみ）', () => {
@@ -482,29 +485,5 @@ describe('detectBoardKakkyoku: 盤レベル', () => {
     };
     const r = detectBoardKakkyoku(board);
     expect(r.find(x => x.name === '五不遇時')).toBeUndefined();
-  });
-});
-
-describe('scoreBanLevel: 盤レベル減点', () => {
-  it('反吟・門迫が両方あれば-20', () => {
-    // 上の門迫テストと反吟テストを足した盤
-    // tenban !== chiban にして伏吟を回避（戊×己 など）
-    const board = {
-      meta: makeBoardMeta(),
-      palaces: {
-        kan: palace({ tenban: '戊', chiban: '己', kyusei: '天蓬', hachimon: '景門' }),
-        gon: palace({ tenban: '戊', chiban: '己', kyusei: '天任', hachimon: '死門' }),
-        shin: palace({ tenban: '戊', chiban: '己', kyusei: '天衝', hachimon: '開門' }), // 門迫
-        son: palace({ tenban: '戊', chiban: '己', kyusei: '天輔', hachimon: '驚門' }),
-        ri: palace({ tenban: '戊', chiban: '己', kyusei: '天英', hachimon: '休門' }), // 反吟
-        kun: palace({ tenban: '戊', chiban: '己', kyusei: '天芮', hachimon: '生門' }),
-        da: palace({ tenban: '戊', chiban: '己', kyusei: '天柱', hachimon: '傷門' }),
-        ken: palace({ tenban: '戊', chiban: '己', kyusei: '天心', hachimon: '杜門' }),
-      },
-    };
-    const score = scoreBanLevel(board);
-    expect(score.ban_minus).toBe(-20);
-    expect(score.detected).toContain('反吟');
-    expect(score.detected).toContain('門迫');
   });
 });

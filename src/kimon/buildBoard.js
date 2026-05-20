@@ -2,8 +2,7 @@ import { lookupKoyomi } from './loadKoyomi.js';
 import { lookupChito } from './loadChito.js';
 import { lookupDayKyokusu } from './loadDayKyokusu.js';
 import { calcTimeKanshi } from './timeKanshi.js';
-import { detectBoardKakkyoku } from './kakkyoku.js';
-import { detectGofuguuji } from './banLevel.js';
+import { detectBanLevel } from './banLevel.js';
 
 const PALACES = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
 const ELEMENTS = ['tenban', 'chiban', 'kyusei', 'hasshin', 'hachimon'];
@@ -71,18 +70,10 @@ export function buildBoard({ date, hour, boardType }) {
 
   const board = { meta, palaces };
 
-  // 盤レベル判定（Phase 1: 表示用。検出ロジックの精緻化は Phase 2）
-  // 伏吟・反吟・門迫 は既存の detectBoardKakkyoku を流用（種別/該当宮の細分は Phase 2）。
-  const detected = detectBoardKakkyoku(board).map((r) => r.name);
-  const dayKan = koyomi.eto_day?.charAt(0) || '';
-  const hourKan = boardType === '時' ? (eto?.charAt(0) || '') : '';
-  board.banLevel = {
-    fukugin: detected.includes('伏吟') ? '該当' : null,
-    hangin: detected.includes('反吟') ? '該当' : null,
-    monpaku: detected.includes('門迫') ? '該当' : null,
-    kuubou: meta.kuubou || null,
-    gofuguuji: detectGofuguuji(dayKan, hourKan, boardType),
-  };
+  // Phase 2A (2026-05-20): 盤レベル判定は banLevel.js に全面移管。
+  // 干伏吟・星伏吟・門伏吟・星反吟・門反吟・五不遇時（全宮 -10）と、
+  // 門迫(4パターン)・空亡（該当宮のみ -10）の per-palace 判定をまとめて返す。
+  board.banLevel = detectBanLevel(board);
 
   return board;
 }

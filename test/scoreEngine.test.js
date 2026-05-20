@@ -118,29 +118,25 @@ describe('scorePalace: 基本スコア', () => {
   });
 
   it('40点ちょうどでusable=true', () => {
-    // 休門+40 だけで40点になる組み合わせを作る
-    // ただし他の要素が0でないと正確に40にならない
-    // 戊+休門+天蓬+(空)+戊戊× = 0+40+0+0-10 = 30 → だめ
-    // 戊+生門+(空)+(空) = 0+40+0+0+0 = 40 ※実装上は中宮以外は宮名必要
+    // 戊0 + 生門40 + 天蓬0 + 八神なし0 + 戊己=×-10 = 30
+    // 宮名は gon（艮宮）にして 4パターン門迫（坎+生門）を避ける
     const p = palace({
       tenban: '戊', chiban: '己', // 戊己=×貴人入獄 → -10
       kyusei: '天蓬', hasshin: '', hachimon: '生門',
     });
-    const r = scorePalace(p, 'kan', makeBoardMeta());
-    // 戊0 + 生門40 + 天蓬0 + 八神なし0 + 戊己=×-10 = 30
-    // これは40に届かない
+    const r = scorePalace(p, 'gon', makeBoardMeta());
     expect(r.score).toBe(30);
     expect(r.usable).toBe(false);
   });
 
   it('40点ジャストで使用可能', () => {
-    // 乙+生門+天蓬+(空)+乙己×-10 = 10+40+0+0-10 = 40
+    // 乙+10 + 生門+40 + 天蓬0 + (空)0 + 乙己=×-10 = 40
+    // 宮名は gon にして 4パターン門迫（坎+生門）を避ける
     const p = palace({
       tenban: '乙', chiban: '己',
       kyusei: '天蓬', hasshin: '', hachimon: '生門',
     });
-    const r = scorePalace(p, 'kan', makeBoardMeta());
-    // 乙+10 + 生門+40 + 天蓬0 + (空)0 + 乙己=×-10 = 40
+    const r = scorePalace(p, 'gon', makeBoardMeta());
     expect(r.score).toBe(40);
     expect(r.usable).toBe(true);
   });
@@ -398,8 +394,9 @@ describe('scoreBoard: 盤全体集計', () => {
     expect(result.best_by_purpose['仕事運']).toBeNull();
   });
 
-  it('盤レベル減点がすべての宮スコアに反映される', () => {
-    // 反吟・門迫が両方ある盤
+  it('盤レベル減点（星伏吟）が全宮スコアに反映され、門迫は該当宮のみ減点', () => {
+    // Phase 2A: 全宮で九星=定位 → 星伏吟（-10 全宮）
+    //   震宮+開門, 離宮+休門 は 4パターン門迫該当（該当宮のみ -10）
     const board = {
       meta: makeBoardMeta(),
       palaces: {
@@ -407,18 +404,28 @@ describe('scoreBoard: 盤全体集計', () => {
         gon: palace({ tenban: '戊', chiban: '己', kyusei: '天任', hachimon: '死門' }),
         shin: palace({ tenban: '戊', chiban: '己', kyusei: '天衝', hachimon: '開門' }), // 門迫
         son: palace({ tenban: '戊', chiban: '己', kyusei: '天輔', hachimon: '驚門' }),
-        ri: palace({ tenban: '戊', chiban: '己', kyusei: '天英', hachimon: '休門' }), // 反吟
+        ri: palace({ tenban: '戊', chiban: '己', kyusei: '天英', hachimon: '休門' }),   // 門迫
         kun: palace({ tenban: '戊', chiban: '己', kyusei: '天芮', hachimon: '生門' }),
         da: palace({ tenban: '戊', chiban: '己', kyusei: '天柱', hachimon: '傷門' }),
         ken: palace({ tenban: '戊', chiban: '己', kyusei: '天心', hachimon: '杜門' }),
       },
     };
     const result = scoreBoard(board);
-    expect(result.ban_level.ban_minus).toBe(-20); // 反吟+門迫
-    // 全宮で-20の減点が入っている
+    expect(result.ban_level.board_minus).toBe(-10);   // 星伏吟のみ
+    expect(result.ban_level.detected).toContain('星伏吟');
+    // 全宮で -10 の盤レベル減点が入る
     for (const palName of Object.keys(result.palaces)) {
-      expect(result.palaces[palName].breakdown.ban_level_minus).toBe(-20);
+      expect(result.palaces[palName].breakdown.ban_level_minus).toBe(-10);
     }
+    // 該当宮のみ門迫 -10
+    expect(result.palaces.shin.breakdown.monpaku).toBe(-10);
+    expect(result.palaces.ri.breakdown.monpaku).toBe(-10);
+    expect(result.palaces.kan.breakdown.monpaku).toBe(0);
+    expect(result.palaces.gon.breakdown.monpaku).toBe(0);
+    expect(result.palaces.son.breakdown.monpaku).toBe(0);
+    expect(result.palaces.kun.breakdown.monpaku).toBe(0);
+    expect(result.palaces.da.breakdown.monpaku).toBe(0);
+    expect(result.palaces.ken.breakdown.monpaku).toBe(0);
   });
 });
 
