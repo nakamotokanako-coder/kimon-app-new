@@ -11,10 +11,11 @@ import { buildInfoItems } from './palaceCellHelpers.js';
 /**
  * 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応）。
  *
- * Phase 2D-followup (2026-05-21): 旬首マーカーの括弧 ( ) は CSS 疑似要素
- * (::before / ::after) で描画する。これにより干文字本体のサイズ・位置は
- * 通常の干と完全に同一になり、天盤と地盤が綺麗に整列する。
- * （旧実装: テキストに "(X)" を直接含めると幅が増し、上下位置のズレが生じていた）
+ * Phase 2D-followup2 (2026-05-21): 旬首マーカーを「3カラム固定幅スロット構造」で実装。
+ * 各干は [左括弧スロット 0.5em] + [干スロット 1em] + [右括弧スロット 0.5em] = 2em 固定幅。
+ * 旬首該当の干は左右スロットに ( と ) を入れ、それ以外は空白。
+ * 結果として、括弧の有無にかかわらず干文字の中心位置（縦の中心線）が
+ * 全干で完全に一致する → 天盤と地盤が綺麗に整列する。
  *
  * @param {string} value - 干文字列（複合可: 例 "丙己" "乙庚"）
  * @param {string|null} markChar - 旬首として括弧表示する文字（このパレースの当該盤側のみセット）
@@ -23,15 +24,16 @@ function renderKanText(value, markChar = null) {
   if (!value) return '－';
   return [...value].map((char, index) => {
     const isJunshu = !!markChar && char === markChar;
-    const cls = toneClass(kanTone(char));
-    const className = [cls, isJunshu ? 'is-junshu' : ''].filter(Boolean).join(' ');
-    if (className) {
-      return (
-        <span className={className} key={`${char}-${index}`}>{char}</span>
-      );
-    }
+    const tone = toneClass(kanTone(char));
     return (
-      <React.Fragment key={`${char}-${index}`}>{char}</React.Fragment>
+      <span
+        className={`kan-slot${isJunshu ? ' is-junshu' : ''}`}
+        key={`${char}-${index}`}
+      >
+        <span className="kan-bracket kan-bracket-l">{isJunshu ? '(' : ''}</span>
+        <span className={`kan-char ${tone}`}>{char}</span>
+        <span className="kan-bracket kan-bracket-r">{isJunshu ? ')' : ''}</span>
+      </span>
     );
   });
 }

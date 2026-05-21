@@ -115,3 +115,55 @@ describe('外枠色の統一（border-color 差分なし）', () => {
     expect(body).toMatch(/border\s*:[^;]*var\(--border-main\)/);
   });
 });
+
+// ============================================================
+// 要件: 旬首マーカーの 3 カラム固定幅スロット構造
+// 括弧の有無にかかわらず干文字の中心 X 位置が一致することを担保する
+// ============================================================
+
+describe('旬首マーカー: 固定幅スロット構造', () => {
+  function ruleBody(selector) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`);
+    const m = cssText.match(re);
+    return m ? m[1] : null;
+  }
+
+  it('.kan-char に固定幅 (width: 1em) が設定されている', () => {
+    const body = ruleBody('.kan-char');
+    expect(body).not.toBeNull();
+    expect(body).toMatch(/width\s*:\s*1em\b/);
+    expect(body).toMatch(/text-align\s*:\s*center/);
+  });
+
+  it('.kan-bracket に固定幅 (width: 0.5em) が設定されている（空でも幅を保つ）', () => {
+    const body = ruleBody('.kan-bracket');
+    expect(body).not.toBeNull();
+    expect(body).toMatch(/width\s*:\s*0\.5em\b/);
+    expect(body).toMatch(/text-align\s*:\s*center/);
+  });
+
+  it('.kan-bracket は通常の干より小さく薄い装飾（font-size < 1em, opacity < 1）', () => {
+    const body = ruleBody('.kan-bracket');
+    expect(body).not.toBeNull();
+    const fontSizeMatch = body.match(/font-size\s*:\s*([\d.]+)em/);
+    expect(fontSizeMatch).not.toBeNull();
+    expect(parseFloat(fontSizeMatch[1])).toBeLessThan(1);
+    const opacityMatch = body.match(/opacity\s*:\s*([\d.]+)/);
+    expect(opacityMatch).not.toBeNull();
+    expect(parseFloat(opacityMatch[1])).toBeLessThan(1);
+  });
+
+  it('.kan-slot は inline-flex / align-items center で 3 子要素を整列', () => {
+    const body = ruleBody('.kan-slot');
+    expect(body).not.toBeNull();
+    expect(body).toMatch(/display\s*:\s*inline-flex/);
+    expect(body).toMatch(/align-items\s*:\s*center/);
+  });
+
+  it('旧 .is-junshu::before / ::after の擬似要素ルールは撤去されている', () => {
+    // 3 カラム構造に移行したため、擬似要素を使った括弧描画は無いはず
+    expect(cssText).not.toMatch(/\.is-junshu::before/);
+    expect(cssText).not.toMatch(/\.is-junshu::after/);
+  });
+});
