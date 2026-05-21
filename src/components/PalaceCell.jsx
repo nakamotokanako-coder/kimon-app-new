@@ -6,16 +6,34 @@ import {
   hachimonTone,
   toneClass,
 } from '../kimon/palaceColors.js';
+import { buildInfoItems } from './palaceCellHelpers.js';
 
-/** 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応） */
-function renderKanText(value) {
+/**
+ * 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応）。
+ *
+ * Phase 2D-followup2 (2026-05-21): 旬首マーカーを「3カラム固定幅スロット構造」で実装。
+ * 各干は [左括弧スロット 0.5em] + [干スロット 1em] + [右括弧スロット 0.5em] = 2em 固定幅。
+ * 旬首該当の干は左右スロットに ( と ) を入れ、それ以外は空白。
+ * 結果として、括弧の有無にかかわらず干文字の中心位置（縦の中心線）が
+ * 全干で完全に一致する → 天盤と地盤が綺麗に整列する。
+ *
+ * @param {string} value - 干文字列（複合可: 例 "丙己" "乙庚"）
+ * @param {string|null} markChar - 旬首として括弧表示する文字（このパレースの当該盤側のみセット）
+ */
+function renderKanText(value, markChar = null) {
   if (!value) return '－';
   return [...value].map((char, index) => {
-    const cls = toneClass(kanTone(char));
-    return cls ? (
-      <span className={cls} key={`${char}-${index}`}>{char}</span>
-    ) : (
-      <React.Fragment key={`${char}-${index}`}>{char}</React.Fragment>
+    const isJunshu = !!markChar && char === markChar;
+    const tone = toneClass(kanTone(char));
+    return (
+      <span
+        className={`kan-slot${isJunshu ? ' is-junshu' : ''}`}
+        key={`${char}-${index}`}
+      >
+        <span className="kan-bracket kan-bracket-l">{isJunshu ? '(' : ''}</span>
+        <span className={`kan-char ${tone}`}>{char}</span>
+        <span className="kan-bracket kan-bracket-r">{isJunshu ? ')' : ''}</span>
+      </span>
     );
   });
 }
@@ -36,7 +54,18 @@ function kakkyokuPrefix(kichi_kyo) {
  *   │ ○格局 / ×格局 / 〇剋応 ...     │  info-list
  *   └──────────────────────────────┘
  */
-export default function PalaceCell({ label, element, data, score, isCenter, centerKan }) {
+export default function PalaceCell({
+  label,
+  element,
+  data,
+  score,
+  isCenter,
+  centerKan,
+  // Phase 2D (2026-05-21): 旬首マーカー用
+  junshu = null,                 // 旬首干（例 "庚"）
+  isTenbanJunshuPalace = false,  // この宮が tenban_junshu_p と一致するか
+  isChibanJunshuPalace = false,  // この宮が chiban_junshu_p と一致するか
+}) {
   // ── 中宮 ──────────────────────────────────────────────
   if (isCenter) {
     return (
@@ -90,8 +119,12 @@ export default function PalaceCell({ label, element, data, score, isCenter, cent
       {/* ── body row 1: 天盤干(左) / 八神 + 九星(右) ── */}
       <div className="cell-row-top">
         <div className="kan-stack">
-          <div className="kan-tenban">{renderKanText(data.tenban)}</div>
-          <div className="kan-chiban">{renderKanText(data.chiban)}</div>
+          <div className="kan-tenban">
+            {renderKanText(data.tenban, isTenbanJunshuPalace ? junshu : null)}
+          </div>
+          <div className="kan-chiban">
+            {renderKanText(data.chiban, isChibanJunshuPalace ? junshu : null)}
+          </div>
         </div>
         <div className="cell-meta-right">
           {data.hasshin && (
@@ -114,25 +147,28 @@ export default function PalaceCell({ label, element, data, score, isCenter, cent
         )}
       </div>
 
-      {/* ── info: 格局 + 十干剋応 リスト ── */}
+      {/* ── info: 十干剋応(上) → 格局(下) の固定順 (Phase 2D 要件1) ── */}
       {(score?.detected_kakkyoku?.length > 0 || score?.detected_jukkan?.length > 0) && (
         <ul className="info-list">
-          {score.detected_kakkyoku?.map((k, i) => (
-            <li
-              key={`k-${i}-${k.name}`}
-              className={`info-item info-${k.kichi_kyo === 'kichi' ? 'kichi' : 'kyo'}`}
-            >
-              <span className="info-prefix">{kakkyokuPrefix(k.kichi_kyo)}</span>
-              <span className="info-name">{k.name}</span>
-            </li>
-          ))}
-          {score.detected_jukkan?.map((j, i) => {
-            const cls = j.kikkyo === '〇' ? 'info-kichi'
-              : j.kikkyo === '×' ? 'info-kyo' : 'info-neutral';
+          {buildInfoItems(score.detected_jukkan, score.detected_kakkyoku).map((it, i) => {
+            if (it.kind === 'jukkan') {
+              const cls = it.kikkyo === '〇' ? 'info-kichi'
+                : it.kikkyo === '×' ? 'info-kyo' : 'info-neutral';
+              return (
+                <li key={`j-${i}-${it.name}`} className={`info-item ${cls}`}>
+                  <span className="info-prefix">{it.kikkyo}</span>
+                  <span className="info-name">{it.name}</span>
+                </li>
+              );
+            }
+            // kakkyoku
             return (
-              <li key={`j-${i}-${j.name}`} className={`info-item ${cls}`}>
-                <span className="info-prefix">{j.kikkyo}</span>
-                <span className="info-name">{j.name}</span>
+              <li
+                key={`k-${i}-${it.name}`}
+                className={`info-item info-${it.kichi_kyo === 'kichi' ? 'kichi' : 'kyo'}`}
+              >
+                <span className="info-prefix">{kakkyokuPrefix(it.kichi_kyo)}</span>
+                <span className="info-name">{it.name}</span>
               </li>
             );
           })}

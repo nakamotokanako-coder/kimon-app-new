@@ -144,6 +144,9 @@ export default function App() {
                 scores={board.score?.palaces}
                 direction={direction}
                 kuubou={board.banLevel?.kuubou_text}
+                junshu={board.meta?.junshu}
+                tenbanJunshuPalace={board.meta?.tenban_junshu_p}
+                chibanJunshuPalace={board.meta?.chiban_junshu_p}
               />
               <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
