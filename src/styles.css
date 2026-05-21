@@ -600,6 +600,31 @@ select {
 .tone-kichi { color: var(--text-info); }
 .tone-kyo   { color: var(--text-danger); }
 
+/* ── 旬首マーカー（Phase 2D-followup 2026-05-21）──
+   括弧 ( ) は CSS 疑似要素として小さく薄く描画。干文字本体のサイズ・位置は
+   通常の干と完全に同一になり、天盤/地盤の縦整列を維持する。 */
+
+.is-junshu::before,
+.is-junshu::after {
+  display: inline;
+  font-size: 0.62em;
+  font-weight: normal;
+  opacity: 0.55;
+  vertical-align: middle;
+  /* 干文字との隙間を少し詰めて、横幅増加を最小化 */
+  letter-spacing: 0;
+}
+
+.is-junshu::before {
+  content: '(';
+  margin-right: 0.04em;
+}
+
+.is-junshu::after {
+  content: ')';
+  margin-left: 0.04em;
+}
+
 /* 直符のハイライトは accent を維持（旧仕様） */
 .hasshin.is-chokufu {
   color: var(--text-accent);

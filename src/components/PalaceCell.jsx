@@ -10,8 +10,11 @@ import { buildInfoItems } from './palaceCellHelpers.js';
 
 /**
  * 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応）。
- * Phase 2D (2026-05-21): 旬首干をパレース内で識別できるよう、該当文字を
- * 半角括弧で囲む（例 旬首=庚, 該当宮の天盤に庚があれば「(庚)」と表示）。
+ *
+ * Phase 2D-followup (2026-05-21): 旬首マーカーの括弧 ( ) は CSS 疑似要素
+ * (::before / ::after) で描画する。これにより干文字本体のサイズ・位置は
+ * 通常の干と完全に同一になり、天盤と地盤が綺麗に整列する。
+ * （旧実装: テキストに "(X)" を直接含めると幅が増し、上下位置のズレが生じていた）
  *
  * @param {string} value - 干文字列（複合可: 例 "丙己" "乙庚"）
  * @param {string|null} markChar - 旬首として括弧表示する文字（このパレースの当該盤側のみセット）
@@ -21,15 +24,14 @@ function renderKanText(value, markChar = null) {
   return [...value].map((char, index) => {
     const isJunshu = !!markChar && char === markChar;
     const cls = toneClass(kanTone(char));
-    const display = isJunshu ? `(${char})` : char;
     const className = [cls, isJunshu ? 'is-junshu' : ''].filter(Boolean).join(' ');
     if (className) {
       return (
-        <span className={className} key={`${char}-${index}`}>{display}</span>
+        <span className={className} key={`${char}-${index}`}>{char}</span>
       );
     }
     return (
-      <React.Fragment key={`${char}-${index}`}>{display}</React.Fragment>
+      <React.Fragment key={`${char}-${index}`}>{char}</React.Fragment>
     );
   });
 }
