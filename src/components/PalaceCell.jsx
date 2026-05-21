@@ -7,15 +7,28 @@ import {
   toneClass,
 } from '../kimon/palaceColors.js';
 
-/** 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応） */
-function renderKanText(value) {
+/**
+ * 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応）。
+ * Phase 2D (2026-05-21): 旬首干をパレース内で識別できるよう、該当文字を
+ * 半角括弧で囲む（例 旬首=庚, 該当宮の天盤に庚があれば「(庚)」と表示）。
+ *
+ * @param {string} value - 干文字列（複合可: 例 "丙己" "乙庚"）
+ * @param {string|null} markChar - 旬首として括弧表示する文字（このパレースの当該盤側のみセット）
+ */
+function renderKanText(value, markChar = null) {
   if (!value) return '－';
   return [...value].map((char, index) => {
+    const isJunshu = !!markChar && char === markChar;
     const cls = toneClass(kanTone(char));
-    return cls ? (
-      <span className={cls} key={`${char}-${index}`}>{char}</span>
-    ) : (
-      <React.Fragment key={`${char}-${index}`}>{char}</React.Fragment>
+    const display = isJunshu ? `(${char})` : char;
+    const className = [cls, isJunshu ? 'is-junshu' : ''].filter(Boolean).join(' ');
+    if (className) {
+      return (
+        <span className={className} key={`${char}-${index}`}>{display}</span>
+      );
+    }
+    return (
+      <React.Fragment key={`${char}-${index}`}>{display}</React.Fragment>
     );
   });
 }
@@ -36,7 +49,18 @@ function kakkyokuPrefix(kichi_kyo) {
  *   │ ○格局 / ×格局 / 〇剋応 ...     │  info-list
  *   └──────────────────────────────┘
  */
-export default function PalaceCell({ label, element, data, score, isCenter, centerKan }) {
+export default function PalaceCell({
+  label,
+  element,
+  data,
+  score,
+  isCenter,
+  centerKan,
+  // Phase 2D (2026-05-21): 旬首マーカー用
+  junshu = null,                 // 旬首干（例 "庚"）
+  isTenbanJunshuPalace = false,  // この宮が tenban_junshu_p と一致するか
+  isChibanJunshuPalace = false,  // この宮が chiban_junshu_p と一致するか
+}) {
   // ── 中宮 ──────────────────────────────────────────────
   if (isCenter) {
     return (
@@ -90,8 +114,12 @@ export default function PalaceCell({ label, element, data, score, isCenter, cent
       {/* ── body row 1: 天盤干(左) / 八神 + 九星(右) ── */}
       <div className="cell-row-top">
         <div className="kan-stack">
-          <div className="kan-tenban">{renderKanText(data.tenban)}</div>
-          <div className="kan-chiban">{renderKanText(data.chiban)}</div>
+          <div className="kan-tenban">
+            {renderKanText(data.tenban, isTenbanJunshuPalace ? junshu : null)}
+          </div>
+          <div className="kan-chiban">
+            {renderKanText(data.chiban, isChibanJunshuPalace ? junshu : null)}
+          </div>
         </div>
         <div className="cell-meta-right">
           {data.hasshin && (

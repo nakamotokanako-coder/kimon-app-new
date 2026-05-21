@@ -71,7 +71,16 @@ function deriveCenterKan(palaces) {
   return '';
 }
 
-export default function BoardGrid({ palaces, scores = {}, direction = 'north_bottom', kuubou = null }) {
+export default function BoardGrid({
+  palaces,
+  scores = {},
+  direction = 'north_bottom',
+  kuubou = null,
+  // Phase 2D (2026-05-21): 旬首マーカー用
+  junshu = null,               // 旬首干（例 "庚"）
+  tenbanJunshuPalace = null,   // 天盤旬首がある宮の日本語名（例 "離"）
+  chibanJunshuPalace = null,   // 地盤旬首がある宮の日本語名（例 "兌"）
+}) {
   const items = getItems(direction);
   const centerKan = deriveCenterKan(palaces);
 
@@ -102,6 +111,9 @@ export default function BoardGrid({ palaces, scores = {}, direction = 'north_bot
               score={isCenter ? null : scores[it.key]}
               isCenter={isCenter}
               centerKan={isCenter ? centerKan : ''}
+              junshu={junshu}
+              isTenbanJunshuPalace={!isCenter && it.label === tenbanJunshuPalace}
+              isChibanJunshuPalace={!isCenter && it.label === chibanJunshuPalace}
             />
           </div>
         );
