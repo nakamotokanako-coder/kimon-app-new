@@ -6,6 +6,7 @@ import {
   hachimonTone,
   toneClass,
 } from '../kimon/palaceColors.js';
+import { buildInfoItems } from './palaceCellHelpers.js';
 
 /**
  * 干文字列を1文字ずつ吉凶クラスを付けてレンダリング（複合表記対応）。
@@ -142,25 +143,28 @@ export default function PalaceCell({
         )}
       </div>
 
-      {/* ── info: 格局 + 十干剋応 リスト ── */}
+      {/* ── info: 十干剋応(上) → 格局(下) の固定順 (Phase 2D 要件1) ── */}
       {(score?.detected_kakkyoku?.length > 0 || score?.detected_jukkan?.length > 0) && (
         <ul className="info-list">
-          {score.detected_kakkyoku?.map((k, i) => (
-            <li
-              key={`k-${i}-${k.name}`}
-              className={`info-item info-${k.kichi_kyo === 'kichi' ? 'kichi' : 'kyo'}`}
-            >
-              <span className="info-prefix">{kakkyokuPrefix(k.kichi_kyo)}</span>
-              <span className="info-name">{k.name}</span>
-            </li>
-          ))}
-          {score.detected_jukkan?.map((j, i) => {
-            const cls = j.kikkyo === '〇' ? 'info-kichi'
-              : j.kikkyo === '×' ? 'info-kyo' : 'info-neutral';
+          {buildInfoItems(score.detected_jukkan, score.detected_kakkyoku).map((it, i) => {
+            if (it.kind === 'jukkan') {
+              const cls = it.kikkyo === '〇' ? 'info-kichi'
+                : it.kikkyo === '×' ? 'info-kyo' : 'info-neutral';
+              return (
+                <li key={`j-${i}-${it.name}`} className={`info-item ${cls}`}>
+                  <span className="info-prefix">{it.kikkyo}</span>
+                  <span className="info-name">{it.name}</span>
+                </li>
+              );
+            }
+            // kakkyoku
             return (
-              <li key={`j-${i}-${j.name}`} className={`info-item ${cls}`}>
-                <span className="info-prefix">{j.kikkyo}</span>
-                <span className="info-name">{j.name}</span>
+              <li
+                key={`k-${i}-${it.name}`}
+                className={`info-item info-${it.kichi_kyo === 'kichi' ? 'kichi' : 'kyo'}`}
+              >
+                <span className="info-prefix">{kakkyokuPrefix(it.kichi_kyo)}</span>
+                <span className="info-name">{it.name}</span>
               </li>
             );
           })}

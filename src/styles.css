@@ -420,14 +420,15 @@ select {
     var(--bg-cell);
 }
 
+/* Phase 2D 要件2 (2026-05-21): 全 9 宮の外枠色を統一する（ゴールド系）。
+   .cell-usable / .cell-has-kyo は class として残すが border-color は付与しない。
+   状態の差分は score-badge の色と info-list の格局表記で示す。
+   .cell-usable は控えめな内側グロウのみ残置（外枠色は default 維持）。 */
 .cell-usable {
-  border-color: var(--text-success);
-  box-shadow: 0 0 12px rgba(107, 207, 127, 0.22), inset 0 0 0 1px rgba(107, 207, 127, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(107, 207, 127, 0.18);
 }
-
-.cell-has-kyo {
-  border-color: color-mix(in srgb, var(--text-danger) 65%, var(--border-main));
-}
+/* .cell-has-kyo: class 名は JSX 側で付与し続けるが、外枠を統一するため
+   CSS 上のスタイル付与は無し（凶情報は info-list の ×格局 で表現）。 */
 
 /* ── header（宮名 + 五行薄く + スコア）─────────────── */
 
