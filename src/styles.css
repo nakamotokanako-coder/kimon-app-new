@@ -317,10 +317,10 @@ select {
      - 行高: auto で各セルのコンテンツに合わせる。セル側で min-height を保証
      各行は CSS Grid の default (align-items: stretch) で同じ高さに揃う（同一行内）。
      行間で高さが異なる可能性はあるが、min-height で最低高さは揃う。 */
-  grid-template-columns: auto repeat(3, minmax(220px, 260px)) auto;
+  grid-template-columns: auto repeat(3, minmax(180px, 210px)) auto;
   grid-template-rows: auto auto auto auto auto;
-  gap: 6px;
-  padding: 10px;
+  gap: 3px;
+  padding: 6px;
   border: 1px solid var(--border-main);
   background: color-mix(in srgb, var(--bg-main) 92%, var(--border-main));
   box-shadow: var(--shadow-glow), 0 18px 48px rgba(0, 0, 0, 0.36);
@@ -369,11 +369,11 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 6px;
+  padding: 2px 4px;
   color: var(--text-secondary);
   opacity: 0.65;
   font-family: var(--font-heading);
-  font-size: 0.92rem;
+  font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   user-select: none;
@@ -394,14 +394,14 @@ select {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px;
+  gap: 3px;
+  padding: 6px;
   /* Phase 2D-followup3 (2026-05-21): コンテンツ駆動の高さに変更。
      - min-height 280px で「最低限の見通し」を確保
      - height/width 固定はせず、コンテンツが多い宮は縦に伸びる
      - overflow: hidden を撤去（八門・剋応・格局のはみ出しを防ぐ）
      行間で高さが揃わない可能性はあるが、コンテンツ完全表示を最優先（先生方針）。 */
-  min-height: 280px;
+  min-height: 190px;
   border: 1px solid color-mix(in srgb, var(--border-main) 62%, transparent);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 10%, transparent), transparent 38%),
@@ -423,32 +423,32 @@ select {
 .cell-header {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  min-height: 22px;
-  padding-bottom: 4px;
+  gap: 4px;
+  min-height: 16px;
+  padding-bottom: 2px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .palace-label {
   color: var(--text-accent);
   font-family: var(--font-heading);
-  font-size: 1.1rem;
+  font-size: 0.86rem;
   font-weight: 700;
 }
 
 .palace-element {
   color: var(--text-secondary);
   opacity: 0.5;
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   font-weight: 500;
 }
 
 .score-badge {
-  min-width: 34px;
+  min-width: 26px;
   margin-left: auto;
-  padding: 2px 7px;
+  padding: 1px 5px;
   border: 1px solid var(--border-subtle);
-  font-size: 0.74rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-align: center;
 }
@@ -463,22 +463,22 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 8px;
+  gap: 5px;
   flex-shrink: 0;
 }
 
 .kan-stack {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  line-height: 1.1;
+  gap: 1px;
+  line-height: 1;
 }
 
 .kan-tenban,
 .kan-chiban {
   color: var(--text-primary);
   font-family: var(--font-heading);
-  font-size: 1.36rem;
+  font-size: 1.04rem;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -491,9 +491,10 @@ select {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
-  font-size: 0.84rem;
+  font-size: 0.66rem;
+  line-height: 1.1;
 }
 
 .hasshin,
@@ -508,21 +509,21 @@ select {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 30px;
-  margin: 2px 0;
+  min-height: 22px;
+  margin: 1px 0;
   flex-shrink: 0;
 }
 
 .mon-pill {
   display: inline-block;
-  min-width: 70px;
-  padding: 4px 14px;
+  min-width: 54px;
+  padding: 2px 9px;
   border: 1px solid var(--border-subtle);
   border-radius: 2px;
   background: var(--bg-elevated);
   color: var(--text-primary);
   font-family: var(--font-heading);
-  font-size: 1.18rem;
+  font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-align: center;
@@ -545,25 +546,25 @@ select {
 .info-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 0.74rem;
-  line-height: 1.35;
+  font-size: 0.58rem;
+  line-height: 1.18;
   /* Phase 2D-followup3: コンテンツ駆動の高さに変更したため内部スクロールは不要。
      格局・剋応の数が多ければ自然にセル高が伸び、外側で縦スクロール表示される。 */
 }
 
 .info-item {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: baseline;
 }
 
 .info-prefix {
   font-weight: 700;
-  min-width: 12px;
+  min-width: 10px;
   text-align: center;
 }
 
@@ -631,7 +632,7 @@ select {
 
 .center-kan {
   font-family: var(--font-heading);
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 0.05em;
@@ -642,7 +643,7 @@ select {
   place-items: center;
   flex: 1;
   color: var(--text-secondary);
-  font-size: 1.8rem;
+  font-size: 1.35rem;
 }
 
 .meta-panel,
@@ -851,30 +852,30 @@ select {
   }
 
   .cell {
-    padding: 6px;
-    gap: 4px;
+    padding: 5px;
+    gap: 3px;
     /* phone は min-height を抑えめに（コンテンツが多い宮は伸びる） */
-    min-height: 220px;
+    min-height: 170px;
   }
 
   .kan-tenban,
   .kan-chiban {
-    font-size: 1.06rem;
+    font-size: 0.94rem;
   }
 
   .mon-pill {
-    font-size: 0.96rem;
-    min-width: 54px;
-    padding: 2px 8px;
+    font-size: 0.84rem;
+    min-width: 48px;
+    padding: 2px 7px;
   }
 
   .cell-mon-row {
-    min-height: 24px;
+    min-height: 20px;
   }
 
   .info-list {
-    font-size: 0.66rem;
-    line-height: 1.24;
+    font-size: 0.56rem;
+    line-height: 1.16;
   }
 
   .direction-label {
