@@ -500,6 +500,7 @@ select {
 .hasshin,
 .kyusei {
   color: color-mix(in srgb, var(--text-primary) 80%, var(--text-secondary));
+  font-size: 1.04rem;
   font-weight: 600;
 }
 
@@ -860,6 +861,11 @@ select {
 
   .kan-tenban,
   .kan-chiban {
+    font-size: 0.94rem;
+  }
+
+  .hasshin,
+  .kyusei {
     font-size: 0.94rem;
   }
 
