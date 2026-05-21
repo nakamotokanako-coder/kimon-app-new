@@ -167,3 +167,52 @@ describe('旬首マーカー: 固定幅スロット構造', () => {
     expect(cssText).not.toMatch(/\.is-junshu::after/);
   });
 });
+
+// ============================================================
+// コンテンツ駆動レイアウト (Phase 2D-followup3 2026-05-21)
+// 八門・剋応・格局など全コンテンツが切れずに表示されることを担保
+// ============================================================
+
+describe('コンテンツ駆動レイアウト', () => {
+  // ルール本体からコメントを除いた文字列を返す（コメント内記述を誤マッチしないため）
+  function ruleBody(selector) {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`);
+    const m = cssText.match(re);
+    if (!m) return null;
+    return m[1].replace(/\/\*[\s\S]*?\*\//g, '');
+  }
+
+  it('.cell に min-height があり、固定 height は無い（コンテンツに応じて伸びる）', () => {
+    const body = ruleBody('.cell');
+    expect(body).not.toBeNull();
+    expect(body).toMatch(/min-height\s*:/);
+    // 固定 height / aspect-ratio は撤去済
+    expect(body).not.toMatch(/^\s*height\s*:/m);
+    expect(body).not.toMatch(/aspect-ratio\s*:/);
+  });
+
+  it('.cell に overflow: hidden がない（コンテンツ切れを防止）', () => {
+    const body = ruleBody('.cell');
+    expect(body).not.toBeNull();
+    // overflow: hidden は完全撤去
+    expect(body).not.toMatch(/overflow\s*:\s*hidden/);
+  });
+
+  it('.info-list にスクロール設定がない（外側でセル全体が伸びる方針）', () => {
+    const body = ruleBody('.info-list');
+    expect(body).not.toBeNull();
+    expect(body).not.toMatch(/overflow-y\s*:\s*auto/);
+    expect(body).not.toMatch(/flex\s*:\s*1\s+1\s+0/);
+  });
+
+  it('.board-grid の grid-template-rows は固定値ではなく auto ベース', () => {
+    const body = ruleBody('.board-grid');
+    expect(body).not.toBeNull();
+    // grid-template-rows に --cell-h や固定px が無く、auto を使用
+    const rowsMatch = body.match(/grid-template-rows\s*:\s*([^;]+)/);
+    expect(rowsMatch).not.toBeNull();
+    expect(rowsMatch[1]).toMatch(/auto/);
+    expect(rowsMatch[1]).not.toMatch(/--cell-h|var\(--cell-h\)/);
+  });
+});
