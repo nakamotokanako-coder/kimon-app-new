@@ -142,6 +142,7 @@ export default function App() {
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}
+                banLevel={board.banLevel}
                 direction={direction}
                 kuubou={board.banLevel?.kuubou_text}
                 junshu={board.meta?.junshu}

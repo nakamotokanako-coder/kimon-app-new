@@ -61,19 +61,23 @@ function getItems(direction) {
   return NB_ITEMS.map((it) => ({ ...it, row: 6 - it.row, col: 6 - it.col }));
 }
 
-/** 坤宮地盤が複合表記なら右側の干を中宮に表示する（Phase 2B Task 5） */
-function deriveCenterKan(palaces) {
-  const kunChiban = palaces?.kun?.chiban || '';
-  const chars = [...kunChiban];
-  if (chars.length >= 2) {
-    return chars[chars.length - 1];
-  }
-  return '';
+/** Build the board-level alert labels shown in the center palace. */
+function buildCenterAlerts(banLevel) {
+  if (!banLevel) return [];
+  return [
+    banLevel.kan_fukugin && '\u5e72\u4f0f\u541f',
+    banLevel.sei_fukugin && '\u661f\u4f0f\u541f',
+    banLevel.mon_fukugin && '\u9580\u4f0f\u541f',
+    banLevel.sei_hangin && '\u661f\u53cd\u541f',
+    banLevel.mon_hangin && '\u9580\u53cd\u541f',
+    banLevel.gofuguuji && '\u4e94\u4e0d\u9047\u6642',
+  ].filter(Boolean);
 }
 
 export default function BoardGrid({
   palaces,
   scores = {},
+  banLevel = null,
   direction = 'north_bottom',
   kuubou = null,
   // Phase 2D (2026-05-21): 旬首マーカー用
@@ -82,7 +86,7 @@ export default function BoardGrid({
   chibanJunshuPalace = null,   // 地盤旬首がある宮の日本語名（例 "兌"）
 }) {
   const items = getItems(direction);
-  const centerKan = deriveCenterKan(palaces);
+  const centerAlerts = buildCenterAlerts(banLevel);
 
   return (
     <div className="board-grid">
@@ -110,7 +114,7 @@ export default function BoardGrid({
               data={isCenter ? null : palaces[it.key]}
               score={isCenter ? null : scores[it.key]}
               isCenter={isCenter}
-              centerKan={isCenter ? centerKan : ''}
+              centerAlerts={isCenter ? centerAlerts : []}
               junshu={junshu}
               isTenbanJunshuPalace={!isCenter && it.label === tenbanJunshuPalace}
               isChibanJunshuPalace={!isCenter && it.label === chibanJunshuPalace}
