@@ -60,7 +60,7 @@ export default function PalaceCell({
   data,
   score,
   isCenter,
-  centerKan,
+  centerAlerts = [],
   // Phase 2D (2026-05-21): 旬首マーカー用
   junshu = null,                 // 旬首干（例 "庚"）
   isTenbanJunshuPalace = false,  // この宮が tenban_junshu_p と一致するか
@@ -71,10 +71,12 @@ export default function PalaceCell({
     return (
       <div className="cell cell-center">
         <div className="cell-center-body">
-          {centerKan ? (
-            <span className={`center-kan ${toneClass(kanTone(centerKan))}`}>
-              {centerKan}
-            </span>
+          {centerAlerts.length > 0 ? (
+            <ul className="center-alerts">
+              {centerAlerts.map((label) => (
+                <li key={label}>{label}</li>
+              ))}
+            </ul>
           ) : (
             <span className="cell-empty">－</span>
           )}
