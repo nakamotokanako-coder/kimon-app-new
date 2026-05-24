@@ -108,12 +108,12 @@ describe('scorePalace: 基本スコア', () => {
       kyusei: '天蓬', hasshin: '螣蛇', hachimon: '死門',
     });
     const r = scorePalace(p, 'kan', makeBoardMeta());
-    // 庚-20, 死門0, 天蓬0, 螣蛇-20, 庚庚=×-10 (太白同宮) = -50
+    // 庚-20, 死門-40, 天蓬0, 螣蛇-20, 庚庚=×-10 (太白同宮) = -90
     // 注: 戦格は十干剋応「庚庚×太白同宮」と重複するため格局から削除済
     expect(r.breakdown.tenban_kan).toBe(-20);
     expect(r.breakdown.hasshin).toBe(-20);
     expect(r.breakdown.jukkan_kokuou).toBe(-10);
-    expect(r.score).toBe(-50);
+    expect(r.score).toBe(-90);
     expect(r.usable).toBe(false);
   });
 
@@ -426,6 +426,94 @@ describe('scoreBoard: 盤全体集計', () => {
     expect(result.palaces.kun.breakdown.monpaku).toBe(0);
     expect(result.palaces.da.breakdown.monpaku).toBe(0);
     expect(result.palaces.ken.breakdown.monpaku).toBe(0);
+  });
+});
+
+// ============================================================
+// Phase 3-C: ◎順利 (junri) — scoreBoard 統合
+// ============================================================
+
+describe('scoreBoard: ◎順利フラグ (Phase 3-C)', () => {
+  /**
+   * 起点宮=kan（dayKan=戊 を kan.tenban に置く）の盤を構成。
+   * 対象宮テーブル(kan)=[kan, da, ken] の各宮で吉門/凶門/スコア境界を検証する。
+   * 非対象宮(gon/shin/son/ri/kun)は星伏吟・五不遇時・門迫を回避するダミー構成。
+   */
+  function makeJunriBoardKanOrigin() {
+    return {
+      meta: makeBoardMeta({ eto_day: '戊申', junshu: '壬' }),
+      palaces: {
+        // 起点: dayKan='戊' を tenban に置く。吉門+高スコア → ◎順利想定。
+        kan:  palace({ tenban: '戊', chiban: '己', kyusei: '天蓬', hasshin: '六合', hachimon: '休門' }),
+        // 対象 da: 吉門だがスコア低 (<40) → 順利不成立想定。
+        //   兌+景門は門迫なので、吉門は休門を使う。
+        da:   palace({ tenban: '辛', chiban: '',  kyusei: '天柱', hasshin: '勾陳', hachimon: '休門' }),
+        // 対象 ken: 凶門 (死門) → スコアにかかわらず順利不成立想定。
+        ken:  palace({ tenban: '乙', chiban: '癸', kyusei: '天心', hasshin: '直符', hachimon: '死門' }),
+        // 以下は非対象宮（kyusei は全宮で別星にして星伏吟を回避）
+        gon:  palace({ tenban: '丁', chiban: '丁', kyusei: '天任', hasshin: '太陰', hachimon: '杜門' }),
+        shin: palace({ tenban: '己', chiban: '己', kyusei: '天衝', hasshin: '九地', hachimon: '驚門' }),
+        son:  palace({ tenban: '癸', chiban: '癸', kyusei: '天輔', hasshin: '螣蛇', hachimon: '傷門' }),
+        ri:   palace({ tenban: '丙', chiban: '丙', kyusei: '天英', hasshin: '朱雀', hachimon: '驚門' }),
+        kun:  palace({ tenban: '辛', chiban: '辛', kyusei: '天芮', hasshin: '九天', hachimon: '杜門' }),
+      },
+    };
+  }
+
+  it('day_kan_palace は天盤の日干から決まり、対象宮テーブルが適用される', () => {
+    const r = scoreBoard(makeJunriBoardKanOrigin());
+    expect(r.day_kan_palace).toBe('kan'); // dayKan='戊' は kan.tenban に存在
+  });
+
+  it('対象宮で吉門+40以上 → is_junri=true / junri_palaces に入る', () => {
+    const r = scoreBoard(makeJunriBoardKanOrigin());
+    // kan: 六合(+20) + 休門(+40) + 戊×己 jukkan(-10) = +50 を見込む
+    expect(r.palaces.kan.score).toBeGreaterThanOrEqual(40);
+    expect(r.palaces.kan.is_junri).toBe(true);
+    expect(r.junri_palaces).toContain('kan');
+  });
+
+  it('対象宮で吉門だが40未満 → is_junri=false', () => {
+    const r = scoreBoard(makeJunriBoardKanOrigin());
+    // da: 辛(0) + 勾陳(-20) + 休門(+40) + jukkan(0) ≒ +20 (盤レベル減点が乗ればさらに減)
+    expect(r.palaces.da.score).toBeLessThan(40);
+    expect(r.palaces.da.is_junri).toBe(false);
+    expect(r.junri_palaces).not.toContain('da');
+  });
+
+  it('対象宮で凶門 → is_junri=false（凶門フィルタが効く）', () => {
+    // 注: scoring rules 上「凶門 (-40) を持ち合計 ≥40」は実質構築不能。
+    //     ここでは achievable な凶門スコアで「八門が凶 → 順利棄却」を確認し、
+    //     ≥40 with 凶門 のフィルタ動作は junri.test.js の単体テストで網羅。
+    const board = makeJunriBoardKanOrigin();
+    const r = scoreBoard(board);
+    expect(['傷門','杜門','死門','驚門']).toContain(board.palaces.ken.hachimon);
+    expect(r.palaces.ken.is_junri).toBe(false);
+    expect(r.junri_palaces).not.toContain('ken');
+  });
+
+  it('日干が天盤に無く、旬首フォールバックで day_kan_palace が決まる', () => {
+    // dayKan='甲' は天盤に存在しない。junshu='壬' を ri.tenban に置く → 起点=ri、対象=[ri, shin, son]
+    // shin に 吉門+高スコア を置いて順利成立を確認
+    const board = {
+      meta: makeBoardMeta({ eto_day: '甲子', junshu: '壬' }),
+      palaces: {
+        kan:  palace({ tenban: '乙', chiban: '丙', kyusei: '天蓬', hasshin: '太陰', hachimon: '杜門' }),
+        gon:  palace({ tenban: '丁', chiban: '丁', kyusei: '天任', hasshin: '六合', hachimon: '景門' }),
+        // shin+開門は門迫なので 生門 を使う。乙(+10) + 直符(+20) + 生門(+40) ≒ +70
+        shin: palace({ tenban: '乙', chiban: '丙', kyusei: '天衝', hasshin: '直符', hachimon: '生門' }),
+        son:  palace({ tenban: '癸', chiban: '癸', kyusei: '天輔', hasshin: '螣蛇', hachimon: '傷門' }),
+        ri:   palace({ tenban: '壬', chiban: '癸', kyusei: '天英', hasshin: '朱雀', hachimon: '驚門' }), // 旬首干あり
+        kun:  palace({ tenban: '辛', chiban: '辛', kyusei: '天芮', hasshin: '九天', hachimon: '杜門' }),
+        da:   palace({ tenban: '己', chiban: '己', kyusei: '天柱', hasshin: '勾陳', hachimon: '驚門' }),
+        ken:  palace({ tenban: '丁', chiban: '丁', kyusei: '天心', hasshin: '九地', hachimon: '死門' }),
+      },
+    };
+    const r = scoreBoard(board);
+    expect(r.day_kan_palace).toBe('ri'); // 旬首フォールバック
+    expect(r.palaces.shin.score).toBeGreaterThanOrEqual(40);
+    expect(r.palaces.shin.is_junri).toBe(true);
+    expect(r.junri_palaces).toContain('shin');
   });
 });
 
