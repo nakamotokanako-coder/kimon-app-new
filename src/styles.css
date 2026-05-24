@@ -821,6 +821,115 @@ select {
   line-height: 1.7;
 }
 
+/* ============================================================
+   Phase 3-D: 象意パネル（十干剋応 + 格局）
+   ============================================================ */
+
+/* 吉凶の色クラス（先生指示: 吉=青 / 中立=黄 / 凶=赤）
+   shoui_dict.json の color (green/yellow/red) は意味ラベルとして保持し、
+   表示はここで実色にマッピングする。 */
+.shoui-kichi   { color: var(--text-info); }     /* 吉=青 */
+.shoui-kyo     { color: var(--text-danger); }   /* 凶=赤 */
+.shoui-chu     { color: var(--text-accent); }   /* 中立=黄(ゴールド) */
+
+/* 表中の名前ボタン（クリックで詳細展開） */
+.shoui-term {
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.shoui-term:hover {
+  border-color: var(--border-subtle);
+  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
+}
+
+.shoui-term[aria-expanded="true"] {
+  border-color: var(--border-main);
+  background: color-mix(in srgb, var(--text-accent) 18%, transparent);
+}
+
+.shoui-term-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.shoui-term-empty {
+  color: var(--text-secondary);
+}
+
+/* 解説アコーディオン（原文 / 現代の読み替え / 実務での示唆 の3段） */
+.shoui-detail-block {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--border-main);
+  background: color-mix(in srgb, var(--bg-cell) 70%, var(--bg-elevated));
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.shoui-detail-block h4 {
+  margin: 0 0 4px;
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.shoui-detail-block h4 .shoui-sign {
+  margin-left: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.shoui-detail-block dl {
+  display: grid;
+  grid-template-columns: 7em minmax(0, 1fr);
+  gap: 4px 10px;
+  margin: 6px 0 0;
+}
+
+.shoui-detail-block dt {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.shoui-detail-block dd {
+  margin: 0;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   Phase 3-C: ◎順利 (junri) UI
+   ============================================================ */
+
+.cell-junri {
+  /* 順利の宮を最優先で目立たせる（評価ランク「◎◎効果最大」の予兆表示） */
+  outline: 2px solid var(--text-info);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 1px var(--text-info), inset 0 0 12px color-mix(in srgb, var(--text-info) 22%, transparent);
+}
+
+.junri-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--text-info);
+  background: color-mix(in srgb, var(--text-info) 18%, transparent);
+  color: var(--text-info);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
 @media (max-width: 900px) {
   .board-area {
     /* モバイル: 縦積み（盤が上、情報が下）。
