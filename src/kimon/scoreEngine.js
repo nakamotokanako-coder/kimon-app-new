@@ -16,6 +16,7 @@ import {
   scoreBoardBanLevel,
   scorePalaceBanLevel,
 } from './banLevel.js';
+import { detectJunri } from './junri.js';
 
 // ============================================================
 // スコア定義（講座p80）
@@ -242,6 +243,8 @@ export function scoreBoard(board) {
       usable_palaces: [],
       best_overall: null,
       best_by_purpose: {},
+      day_kan_palace: null,
+      junri_palaces: [],
     };
   }
 
@@ -302,12 +305,26 @@ export function scoreBoard(board) {
     bestByPurpose[purpose] = best;
   }
 
+  // Phase 3-C (2026-05-22): ◎順利判定。
+  // 日干のある宮（無ければ旬首の宮）を起点に、対象宮テーブル上の宮で
+  // 「吉門（休/生/開/景）かつ score >= 40」を満たす宮を ◎順利 とする。
+  // 評価ランク決定（Phase 3-B）への入力として、各宮に is_junri フラグを付与。
+  // 点数計算自体は変更しない。
+  const junri = detectJunri(board, palaceScores);
+  for (const palName of PALACE_NAMES) {
+    if (palaceScores[palName]) {
+      palaceScores[palName].is_junri = junri.junri_palaces.includes(palName);
+    }
+  }
+
   return {
     palaces: palaceScores,
     ban_level: banLevel,
     usable_palaces: usablePalaces,
     best_overall: bestOverall,
     best_by_purpose: bestByPurpose,
+    day_kan_palace: junri.day_kan_palace,
+    junri_palaces: junri.junri_palaces,
   };
 }
 
