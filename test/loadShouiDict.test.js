@@ -22,7 +22,7 @@ describe('loadShouiDict: データ整合', () => {
     expect(d.kakkyoku.length).toBe(50);
   });
 
-  it('各十干剋応エントリは name / original / modern / practical を持つ', () => {
+  it('各十干剋応エントリは name / original / modern / practical / display_text を持つ', () => {
     const d = getShouiDict();
     for (const e of d.jukan_kokuou) {
       expect(e.no).toBeTypeOf('number');
@@ -30,10 +30,13 @@ describe('loadShouiDict: データ整合', () => {
       expect(typeof e.original).toBe('string');
       expect(typeof e.modern).toBe('string');
       expect(typeof e.practical).toBe('string');
+      expect(typeof e.display_text).toBe('string');
+      expect(e.display_text).not.toBe('');
+      expect(e.display_text).not.toContain('\n');
     }
   });
 
-  it('各格局エントリは name / original / modern / practical を持つ', () => {
+  it('各格局エントリは name / original / modern / practical / display_text を持つ', () => {
     const d = getShouiDict();
     for (const e of d.kakkyoku) {
       expect(e.no).toBeTypeOf('number');
@@ -41,6 +44,9 @@ describe('loadShouiDict: データ整合', () => {
       expect(typeof e.original).toBe('string');
       expect(typeof e.modern).toBe('string');
       expect(typeof e.practical).toBe('string');
+      expect(typeof e.display_text).toBe('string');
+      expect(e.display_text).not.toBe('');
+      expect(e.display_text).not.toContain('\n');
     }
   });
 

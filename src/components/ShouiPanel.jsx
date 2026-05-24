@@ -30,6 +30,10 @@ function kakkyokuColorClass(kichi_kyo) {
 }
 
 function ShouiDetail({ entry, signLabel, signClass }) {
+  const text = entry?.display_text
+    || [entry?.modern, entry?.practical].filter(Boolean).join('　')
+    || '—';
+
   return (
     <div className="shoui-detail-block">
       <h4>
@@ -38,14 +42,7 @@ function ShouiDetail({ entry, signLabel, signClass }) {
           <span className={`shoui-sign ${signClass}`}>{signLabel}</span>
         )}
       </h4>
-      <dl>
-        <dt>原文</dt>
-        <dd>{entry.original || '—'}</dd>
-        <dt>現代の読み替え</dt>
-        <dd>{entry.modern || '—'}</dd>
-        <dt>実務での示唆</dt>
-        <dd>{entry.practical || '—'}</dd>
-      </dl>
+      <p className="shoui-text">{text}</p>
     </div>
   );
 }

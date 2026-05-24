@@ -862,7 +862,7 @@ select {
   color: var(--text-secondary);
 }
 
-/* 解説アコーディオン（原文 / 現代の読み替え / 実務での示唆 の3段） */
+/* 解説アコーディオン（display_text の1段表示） */
 .shoui-detail-block {
   margin-top: 6px;
   padding: 10px 12px;
@@ -886,21 +886,8 @@ select {
   font-weight: 500;
 }
 
-.shoui-detail-block dl {
-  display: grid;
-  grid-template-columns: 7em minmax(0, 1fr);
-  gap: 4px 10px;
+.shoui-text {
   margin: 6px 0 0;
-}
-
-.shoui-detail-block dt {
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.shoui-detail-block dd {
-  margin: 0;
   color: var(--text-primary);
   overflow-wrap: anywhere;
 }
