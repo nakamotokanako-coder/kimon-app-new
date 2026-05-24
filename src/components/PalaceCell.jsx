@@ -95,6 +95,7 @@ export default function PalaceCell({
   }
 
   const hasKyo = score?.detected_kakkyoku?.some((k) => k.kichi_kyo === 'kyo');
+  const isJunri = score?.is_junri === true;
   const scoreTone = score?.score >= 40
     ? 'score-positive'
     : score?.score >= 0
@@ -105,16 +106,22 @@ export default function PalaceCell({
     'cell',
     score?.usable ? 'cell-usable' : '',
     hasKyo ? 'cell-has-kyo' : '',
+    isJunri ? 'cell-junri' : '',
   ].filter(Boolean).join(' ');
 
   const monClass = `mon-pill ${toneClass(hachimonTone(data.hachimon))}`;
 
   return (
     <div className={cellClass}>
-      {/* ── header: 宮名 + 五行(薄く) + スコア ── */}
+      {/* ── header: 宮名 + 五行(薄く) + ◎順利バッジ + スコア ── */}
       <div className="cell-header">
         <span className="palace-label">{label}</span>
         {element && <span className="palace-element">{element}</span>}
+        {isJunri && (
+          <span className="junri-badge" title="◎順利（秘伝・先生監修 2026-05-22）">
+            ◎順利
+          </span>
+        )}
         {score && <span className={`score-badge ${scoreTone}`}>{score.score}</span>}
       </div>
 
