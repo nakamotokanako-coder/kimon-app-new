@@ -972,20 +972,65 @@ select {
     min-height: 170px;
   }
 
+  .cell-header {
+    gap: 3px;
+  }
+
+  .palace-label {
+    font-size: 0.78rem;
+  }
+
+  .palace-element {
+    font-size: 0.52rem;
+  }
+
+  .score-badge {
+    min-width: 22px;
+    padding: 1px 4px;
+    font-size: 0.54rem;
+  }
+
+  .junri-badge {
+    margin-left: 2px;
+    padding: 1px 4px;
+    font-size: 0.52rem;
+    white-space: nowrap;
+  }
+
+  .cell-row-top {
+    gap: 3px;
+  }
+
+  .kan-stack {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
   .kan-tenban,
   .kan-chiban {
-    font-size: 0.94rem;
+    font-size: 0.74rem;
+    letter-spacing: 0;
+  }
+
+  .cell-meta-right {
+    flex: 0 1 auto;
+    min-width: max-content;
+    gap: 0;
+    line-height: 1.05;
   }
 
   .hasshin,
   .kyusei {
-    font-size: 0.94rem;
+    font-size: 0.74rem;
+    white-space: nowrap;
   }
 
   .mon-pill {
-    font-size: 0.84rem;
-    min-width: 48px;
-    padding: 2px 7px;
+    font-size: 0.76rem;
+    min-width: 42px;
+    padding: 2px 6px;
+    letter-spacing: 0.02em;
   }
 
   .cell-mon-row {
@@ -993,11 +1038,57 @@ select {
   }
 
   .info-list {
-    font-size: 0.56rem;
+    font-size: 0.53rem;
     line-height: 1.16;
+  }
+
+  .info-item {
+    gap: 2px;
   }
 
   .direction-label {
     font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .app {
+    width: min(100% - 12px, 1180px);
+  }
+
+  .board-grid {
+    gap: 3px;
+    padding: 3px;
+  }
+
+  .cell {
+    padding: 4px;
+    min-height: 158px;
+  }
+
+  .kan-tenban,
+  .kan-chiban,
+  .hasshin,
+  .kyusei {
+    font-size: 0.68rem;
+  }
+
+  .cell-row-top {
+    gap: 2px;
+  }
+
+  .mon-pill {
+    font-size: 0.7rem;
+    min-width: 38px;
+    padding: 1px 5px;
+  }
+
+  .info-list {
+    font-size: 0.5rem;
+    line-height: 1.12;
+  }
+
+  .center-alerts {
+    font-size: 0.72rem;
   }
 }
