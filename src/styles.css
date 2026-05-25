@@ -1394,14 +1394,14 @@ body {
 }
 
 .cell {
-  aspect-ratio: 1 / 1.28;
+  aspect-ratio: 1 / 1.12;
   min-height: 0;
   height: auto;
   overflow: visible;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 10px 12px;
+  gap: 0;
+  padding: 8px 9px;
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   background: var(--bg-cell);
@@ -1424,7 +1424,7 @@ body {
 }
 
 .cell-header {
-  min-height: 26px;
+  min-height: 22px;
   padding-bottom: 0;
   border-bottom: 0;
   align-items: flex-start;
@@ -1441,7 +1441,7 @@ body {
 .palace-label {
   color: #e6c34a;
   font-family: var(--font-heading);
-  font-size: 21px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1;
 }
@@ -1463,7 +1463,7 @@ body {
   border: 0;
   background: transparent;
   font-family: var(--font-body);
-  font-size: 25px;
+  font-size: 18px;
   font-weight: 900;
   line-height: 1;
 }
@@ -1472,22 +1472,26 @@ body {
 .score-neutral  { color: var(--text-secondary); }
 .score-negative { color: #ff7a7a; }
 
-.kanmeta {
+.kanmeta,
+.cell-excel-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  row-gap: 2px;
-  column-gap: 6px;
+  column-gap: 4px;
   flex-shrink: 0;
+}
+
+.cell-excel-row-top {
+  margin-bottom: 1px;
 }
 
 .kan {
   min-width: 0;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 21px;
+  font-size: 14px;
   font-weight: 900;
-  line-height: 1.12;
+  line-height: 1.2;
   letter-spacing: 0;
   white-space: nowrap;
 }
@@ -1496,19 +1500,26 @@ body {
 .kan-chiban {
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 21px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 0;
 }
 
-.meta {
+.meta,
+.cell-meta-pair {
   min-width: 0;
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.12;
+  line-height: 1.2;
   text-align: right;
   white-space: nowrap;
+}
+
+.cell-meta-pair {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
 }
 
 .hasshin,
@@ -1527,22 +1538,31 @@ body {
 }
 
 .cell-mon-row {
-  min-height: 30px;
-  margin: 3px 0 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 0;
+  margin: 0;
   flex-shrink: 0;
 }
 
 .mon-pill {
   min-width: 0;
-  padding: 5px 15px;
+  padding: 2px 9px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 6px;
   color: #fff;
   font-family: var(--font-body);
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
+}
+
+.cell-info-divider {
+  flex: 0 0 auto;
+  border-top: 1px dotted var(--border-subtle);
+  margin: 5px 0 4px;
 }
 
 .mon-pill.tone-kichi {
@@ -1557,11 +1577,11 @@ body {
 
 .info-list {
   margin-top: auto;
-  padding-top: 1px;
-  overflow: visible;
+  padding-top: 0;
+  overflow: hidden;
   font-family: var(--font-body);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.32;
 }
 
 .info-item {
@@ -1613,9 +1633,9 @@ body {
   }
 
   .cell {
-    padding: 5px 6px;
+    padding: 6px 6px;
     border-radius: 14px;
-    gap: 2px;
+    gap: 0;
   }
 
   .cell-header {
@@ -1634,32 +1654,38 @@ body {
     font-size: 18px;
   }
 
-  .kanmeta {
-    row-gap: 0;
+  .kanmeta,
+  .cell-excel-row {
     column-gap: 3px;
   }
 
   .kan,
   .kan-tenban,
   .kan-chiban {
-    font-size: 14px;
-    line-height: 1.05;
+    font-size: 10px;
+    line-height: 1.15;
   }
 
-  .meta {
+  .meta,
+  .cell-meta-pair {
     font-size: 10px;
-    line-height: 1.05;
+    line-height: 1.15;
+    gap: 3px;
   }
 
   .cell-mon-row {
-    min-height: 17px;
-    margin-top: 1px;
+    min-height: 0;
+    margin-top: 0;
   }
 
   .mon-pill {
-    padding: 2px 8px;
-    border-radius: 7px;
-    font-size: 14px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 10px;
+  }
+
+  .cell-info-divider {
+    margin: 3px 0 2px;
   }
 
   .info-list {

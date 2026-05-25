@@ -48,9 +48,9 @@ function kakkyokuPrefix(kichi_kyo) {
  * 通常宮セル: 先生Excel準拠の固定レイアウト。
  *   ┌──────────────────────────────┐
  *   │ [宮名+五行]            [score]│  header
- *   │ [天盤干]              [八神]   │  body row1
- *   │ [地盤干]              [九星]   │  body row2
- *   │       [八門 大ピル色付き]      │  center
+ *   │ [天盤干]      [八神 九星]     │  row 1
+ *   │ [地盤干]            [八門]     │  row 2
+ *   │ - - - - - - - - - - - - - -  │  divider
  *   │ ○格局 / ×格局 / 〇剋応 ...     │  info-list
  *   └──────────────────────────────┘
  */
@@ -122,22 +122,17 @@ export default function PalaceCell({
         {score && <span className={`score-badge ${scoreTone}`}>{score.score}</span>}
       </div>
 
-      {/* ── body: 天盤干=八神 / 地盤干=九星 を 2×2 に揃える ── */}
-      <div className="kanmeta">
+      {/* ── row 1: 天盤干 / 八神 + 九星（先生元Excel配置） ── */}
+      <div className="cell-excel-row cell-excel-row-top">
         <div className="kan kan-tenban">
           {renderKanText(data.tenban, isTenbanJunshuPalace ? junshu : null)}
         </div>
-        <div className="meta meta-hasshin">
+        <div className="cell-meta-pair">
           {data.hasshin && (
             <span className={`hasshin ${toneClass(hasshinTone(data.hasshin))}`}>
               {data.hasshin}
             </span>
           )}
-        </div>
-        <div className="kan kan-chiban">
-          {renderKanText(data.chiban, isChibanJunshuPalace ? junshu : null)}
-        </div>
-        <div className="meta meta-kyusei">
           {data.kyusei && (
             <span className={`kyusei ${toneClass(kyuseiTone(data.kyusei))}`}>
               {data.kyusei}
@@ -146,12 +141,19 @@ export default function PalaceCell({
         </div>
       </div>
 
-      {/* ── center: 八門 大ピル ── */}
-      <div className="cell-mon-row">
-        {data.hachimon && (
-          <span className={monClass}>{data.hachimon}</span>
-        )}
+      {/* ── row 2: 地盤干 / 八門 ── */}
+      <div className="cell-excel-row cell-excel-row-bottom">
+        <div className="kan kan-chiban">
+          {renderKanText(data.chiban, isChibanJunshuPalace ? junshu : null)}
+        </div>
+        <div className="cell-mon-row">
+          {data.hachimon && (
+            <span className={monClass}>{data.hachimon}</span>
+          )}
+        </div>
       </div>
+
+      <div className="cell-info-divider" aria-hidden="true" />
 
       {/* ── info: 十干剋応(上) → 格局(下) の固定順 (Phase 2D 要件1) ── */}
       {(score?.detected_kakkyoku?.length > 0 || score?.detected_jukkan?.length > 0) && (
