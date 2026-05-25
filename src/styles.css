@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@600;700&display=swap');
 
 :root {
   --theme-name: 'dark-gold';
@@ -381,9 +381,9 @@ select {
 
 /* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21） */
 .zodiac-label.is-kuubou {
-  color: var(--text-danger);
+  color: #c2c8d2;
   opacity: 1;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* ============================================================
@@ -588,6 +588,7 @@ select {
   display: inline-flex;
   align-items: center;
   vertical-align: baseline;
+  min-width: 0;
 }
 
 .kan-char {
@@ -1090,5 +1091,354 @@ select {
 
   .center-alerts {
     font-size: 0.72rem;
+  }
+}
+
+/* ============================================================
+   盤デザイン刷新（2026-05-25）
+   スマホ/タブレット専用: 盤は最大 480px で中央固定。
+   セル外形は aspect-ratio で固定し、内容量で高さを変えない。
+   ============================================================ */
+
+:root {
+  --bg-main: #0f0d08;
+  --bg-cell: #15140f;
+  --bg-elevated: #100e09;
+  --border-main: #b8923a;
+  --border-subtle: #4a4636;
+  --text-primary: #e8e8ea;
+  --text-secondary: #8a8678;
+  --text-accent: #e6c34a;
+  --text-danger: #ff7a7a;
+  --text-info: #7fb0f0;
+  --text-success: #6cd06c;
+  --shadow-glow: 0 0 8px rgba(184, 146, 58, 0.28);
+}
+
+body {
+  background: var(--bg-main);
+  font-family: var(--font-body);
+}
+
+.board-area {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.board-grid {
+  width: min(480px, calc(100vw - 20px));
+  max-width: calc(100vw - 20px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 22px repeat(3, minmax(0, 1fr)) 22px;
+  grid-template-rows: 22px repeat(3, auto) 22px;
+  gap: 9px;
+  padding: 14px;
+  border: 2px solid var(--border-main);
+  border-radius: 16px;
+  background: var(--bg-main);
+  box-shadow: var(--shadow-glow), 0 18px 48px rgba(0, 0, 0, 0.36);
+  justify-self: center;
+}
+
+.board-grid > div {
+  min-width: 0;
+}
+
+.zodiac-label {
+  padding: 0;
+  color: #c2c8d2;
+  opacity: 1;
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.zodiac-label.is-kuubou {
+  color: #c2c8d2;
+  font-weight: 500;
+}
+
+.cell {
+  aspect-ratio: 1 / 1.28;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--bg-cell);
+  box-shadow: none;
+}
+
+.cell-center {
+  background: var(--bg-elevated);
+  opacity: 1;
+}
+
+.cell-junri {
+  border: 3px solid #4472C4;
+  outline: none;
+  box-shadow: none;
+}
+
+.junri-badge {
+  display: none;
+}
+
+.cell-header {
+  min-height: 26px;
+  padding-bottom: 0;
+  border-bottom: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.palace-title {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.palace-label {
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.palace-element {
+  margin-left: 2px;
+  color: var(--text-secondary);
+  opacity: 1;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.score-badge {
+  min-width: 0;
+  margin-left: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.score-positive { color: var(--text-success); }
+.score-neutral  { color: var(--text-secondary); }
+.score-negative { color: var(--text-danger); }
+
+.kanmeta {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+  align-items: center;
+  row-gap: 2px;
+  column-gap: 6px;
+  flex-shrink: 0;
+}
+
+.kan {
+  min-width: 0;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.kan-tenban,
+.kan-chiban {
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.meta {
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.12;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.hasshin,
+.kyusei {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.tone-kichi { color: var(--text-info); }
+.tone-kyo   { color: var(--text-danger); }
+
+.kan-bracket {
+  color: #9aa0ab;
+  opacity: 0.55;
+}
+
+.cell-mon-row {
+  min-height: 30px;
+  margin: 3px 0 0;
+  flex-shrink: 0;
+}
+
+.mon-pill {
+  min-width: 0;
+  padding: 5px 15px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.mon-pill.tone-kichi {
+  background: #4472C4;
+  color: #fff;
+}
+
+.mon-pill.tone-kyo {
+  background: #FF0000;
+  color: #fff;
+}
+
+.info-list {
+  margin-top: auto;
+  padding-top: 1px;
+  overflow: visible;
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.info-item {
+  min-width: 0;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.info-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.info-kichi   { color: var(--text-info); }
+.info-kyo     { color: var(--text-danger); }
+.info-neutral { color: var(--text-secondary); }
+
+.center-alerts {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cell-empty {
+  color: #6a665a;
+  font-family: var(--font-body);
+  font-size: 30px;
+}
+
+.meta-panel {
+  width: min(100%, 480px);
+  justify-self: center;
+}
+
+@media (max-width: 480px) {
+  .board-grid {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    grid-template-columns: 18px repeat(3, minmax(0, 1fr)) 18px;
+    grid-template-rows: 18px repeat(3, auto) 18px;
+    gap: 7px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .zodiac-label {
+    font-size: 17px;
+  }
+
+  .cell {
+    padding: 5px 6px;
+    border-radius: 14px;
+    gap: 2px;
+  }
+
+  .cell-header {
+    min-height: 19px;
+  }
+
+  .palace-label {
+    font-size: 16px;
+  }
+
+  .palace-element {
+    font-size: 8px;
+  }
+
+  .score-badge {
+    font-size: 18px;
+  }
+
+  .kanmeta {
+    row-gap: 0;
+    column-gap: 3px;
+  }
+
+  .kan,
+  .kan-tenban,
+  .kan-chiban {
+    font-size: 14px;
+    line-height: 1.05;
+  }
+
+  .meta {
+    font-size: 10px;
+    line-height: 1.05;
+  }
+
+  .cell-mon-row {
+    min-height: 17px;
+    margin-top: 1px;
+  }
+
+  .mon-pill {
+    padding: 2px 8px;
+    border-radius: 7px;
+    font-size: 14px;
+  }
+
+  .info-list {
+    padding-top: 0;
+    font-size: 8px;
+    line-height: 1.08;
+  }
+
+  .info-prefix {
+    min-width: 8px;
   }
 }
