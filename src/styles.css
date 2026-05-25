@@ -14,6 +14,7 @@
   --text-info:   #5ab1ff;   /* 吉青（先生指示 Phase 2B） */
   --text-success: #6bcf7f;
   --shadow-glow: 0 0 8px rgba(212, 175, 55, 0.3);
+  --zodiac-color: #c2c8d2;
   --font-heading: 'Noto Serif JP', serif;
   --font-body: 'Noto Sans JP', sans-serif;
 }
@@ -36,12 +37,13 @@
   --text-info:   #5ab1ff;
   --text-success: #6bcf7f;
   --shadow-glow: 0 0 8px rgba(125, 211, 252, 0.4);
+  --zodiac-color: #c2c8d2;
 }
 
 :root[data-theme="washi-vermillion"] {
   --theme-name: 'washi-vermillion';
-  --bg-main: #f4ecd8;
-  --bg-cell: #ffffff;
+  --bg-main: #f7f3ea;
+  --bg-cell: #fffefb;
   --bg-elevated: #ebe0c5;
   --border-main: #2d2d2d;
   --border-subtle: #c8b896;
@@ -52,6 +54,24 @@
   --text-info:   #1f6fb3;
   --text-success: #2d7a3e;
   --shadow-glow: 0 0 8px rgba(197, 48, 46, 0.25);
+  --zodiac-color: #2b2b2b;
+}
+
+:root[data-theme="dusty-pink"] {
+  --theme-name: 'dusty-pink';
+  --bg-main: #f3e3e0;
+  --bg-cell: #fdf8f7;
+  --bg-elevated: #ead0cb;
+  --border-main: #6b3f3a;
+  --border-subtle: #c8aaa4;
+  --text-primary: #261817;
+  --text-secondary: #73534f;
+  --text-accent: #9a5c53;
+  --text-danger: #c5302e;
+  --text-info:   #1f6fb3;
+  --text-success: #2d7a3e;
+  --shadow-glow: 0 0 8px rgba(107, 63, 58, 0.22);
+  --zodiac-color: #6b3f3a;
 }
 
 * {
@@ -256,8 +276,8 @@ select {
   outline: none;
 }
 
-:root:not([data-theme="washi-vermillion"]) .ctrl input[type="date"],
-:root:not([data-theme="washi-vermillion"]) .ctrl select {
+:root:not([data-theme="washi-vermillion"]):not([data-theme="dusty-pink"]) .ctrl input[type="date"],
+:root:not([data-theme="washi-vermillion"]):not([data-theme="dusty-pink"]) .ctrl select {
   color-scheme: dark;
 }
 
@@ -768,9 +788,9 @@ select {
 /* 吉凶の色クラス（先生指示: 吉=青 / 中立=黄 / 凶=赤）
    shoui_dict.json の color (green/yellow/red) は意味ラベルとして保持し、
    表示はここで実色にマッピングする。 */
-.shoui-kichi   { color: var(--text-info); }     /* 吉=青 */
-.shoui-kyo     { color: var(--text-danger); }   /* 凶=赤 */
-.shoui-chu     { color: var(--text-accent); }   /* 中立=黄(ゴールド) */
+.shoui-kichi   { color: #4472C4; }              /* 吉=青 */
+.shoui-kyo     { color: #FF0000; }              /* 凶=赤 */
+.shoui-chu     { color: #e6c34a; }              /* 中立=黄(ゴールド) */
 
 .shoui-palace-list {
   display: grid;
@@ -918,8 +938,8 @@ select {
 }
 
 .shoui-chip.shoui-chu {
-  border-color: var(--text-accent);
-  background: color-mix(in srgb, var(--text-accent) 24%, var(--bg-elevated));
+  border-color: #e6c34a;
+  background: color-mix(in srgb, #e6c34a 24%, var(--bg-elevated));
   color: var(--text-primary);
 }
 
@@ -963,7 +983,7 @@ select {
 }
 
 .shoui-detail-block.shoui-chu {
-  border-left-color: var(--text-accent);
+  border-left-color: #e6c34a;
 }
 
 .shoui-detail-block h4 {
@@ -1225,7 +1245,8 @@ select {
    セル外形は aspect-ratio で固定し、内容量で高さを変えない。
    ============================================================ */
 
-:root {
+:root,
+:root[data-theme="dark-gold"] {
   --bg-main: #0f0d08;
   --bg-cell: #15140f;
   --bg-elevated: #100e09;
@@ -1238,6 +1259,55 @@ select {
   --text-info: #7fb0f0;
   --text-success: #6cd06c;
   --shadow-glow: 0 0 8px rgba(184, 146, 58, 0.28);
+  --zodiac-color: #c2c8d2;
+}
+
+:root[data-theme="navy-silver"] {
+  --bg-main: #0d1b2a;
+  --bg-cell: #15140f;
+  --bg-elevated: #172235;
+  --border-main: #a8b8c8;
+  --border-subtle: #3a4a5c;
+  --text-primary: #e8eef5;
+  --text-secondary: #8a9bb0;
+  --text-accent: #7dd3fc;
+  --text-danger: #ff8a8a;
+  --text-info: #7fb0f0;
+  --text-success: #6cd06c;
+  --shadow-glow: 0 0 8px rgba(125, 211, 252, 0.34);
+  --zodiac-color: #c2c8d2;
+}
+
+:root[data-theme="washi-vermillion"] {
+  --bg-main: #f7f3ea;
+  --bg-cell: #fffefb;
+  --bg-elevated: #ebe0c5;
+  --border-main: #2d2d2d;
+  --border-subtle: #c8b896;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6450;
+  --text-accent: #b8860b;
+  --text-danger: #c5302e;
+  --text-info: #1f6fb3;
+  --text-success: #2d7a3e;
+  --shadow-glow: 0 0 8px rgba(45, 45, 45, 0.16);
+  --zodiac-color: #2b2b2b;
+}
+
+:root[data-theme="dusty-pink"] {
+  --bg-main: #f3e3e0;
+  --bg-cell: #fdf8f7;
+  --bg-elevated: #ead0cb;
+  --border-main: #6b3f3a;
+  --border-subtle: #c8aaa4;
+  --text-primary: #261817;
+  --text-secondary: #73534f;
+  --text-accent: #9a5c53;
+  --text-danger: #c5302e;
+  --text-info: #1f6fb3;
+  --text-success: #2d7a3e;
+  --shadow-glow: 0 0 8px rgba(107, 63, 58, 0.22);
+  --zodiac-color: #6b3f3a;
 }
 
 body {
@@ -1274,7 +1344,7 @@ body {
 
 .zodiac-label {
   padding: 0;
-  color: #c2c8d2;
+  color: var(--zodiac-color);
   opacity: 1;
   font-family: var(--font-body);
   font-size: 20px;
@@ -1284,7 +1354,7 @@ body {
 }
 
 .zodiac-label.is-kuubou {
-  color: #c2c8d2;
+  color: var(--zodiac-color);
   font-weight: 500;
 }
 
@@ -1334,7 +1404,7 @@ body {
 }
 
 .palace-label {
-  color: var(--text-accent);
+  color: #e6c34a;
   font-family: var(--font-heading);
   font-size: 21px;
   font-weight: 700;
@@ -1363,9 +1433,9 @@ body {
   line-height: 1;
 }
 
-.score-positive { color: var(--text-success); }
+.score-positive { color: #6cd06c; }
 .score-neutral  { color: var(--text-secondary); }
-.score-negative { color: var(--text-danger); }
+.score-negative { color: #ff7a7a; }
 
 .kanmeta {
   display: grid;
@@ -1413,8 +1483,8 @@ body {
   line-height: inherit;
 }
 
-.tone-kichi { color: var(--text-info); }
-.tone-kyo   { color: var(--text-danger); }
+.tone-kichi { color: #7fb0f0; }
+.tone-kyo   { color: #ff7a7a; }
 
 .kan-bracket {
   color: #9aa0ab;
@@ -1471,8 +1541,8 @@ body {
   text-overflow: clip;
 }
 
-.info-kichi   { color: var(--text-info); }
-.info-kyo     { color: var(--text-danger); }
+.info-kichi   { color: #7fb0f0; }
+.info-kyo     { color: #ff7a7a; }
 .info-neutral { color: var(--text-secondary); }
 
 .center-alerts {

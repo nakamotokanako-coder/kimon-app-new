@@ -11,8 +11,15 @@ const THEMES = [
   { name: 'dark-gold', label: '黒金' },
   { name: 'navy-silver', label: '紺銀' },
   { name: 'washi-vermillion', label: '和' },
+  { name: 'dusty-pink', label: '桜' },
 ];
 const THEME_NAMES = new Set(THEMES.map((theme) => theme.name));
+
+function getTodayJst() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return jst.toISOString().slice(0, 10);
+}
 
 function applyInitialTheme() {
   if (typeof document === 'undefined') return DEFAULT_THEME;
@@ -34,8 +41,8 @@ const INITIAL_THEME = applyInitialTheme();
 export default function App() {
   const [state, setState] = useState({
     // 日盤の対応期間は 2026-01-01〜2044-01-31（day_kyokusu.csv）。
-    // 初期値は範囲内の日付にする。
-    date: '2026-05-18',
+    // 初期値は JST 基準の今日にする。
+    date: getTodayJst(),
     hour: 0,
     boardType: '日',
   });
