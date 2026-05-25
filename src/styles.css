@@ -1394,10 +1394,10 @@ body {
 }
 
 .cell {
-  aspect-ratio: 1 / 1.28;
+  aspect-ratio: 1 / 1.34;
   min-height: 0;
   height: auto;
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1527,8 +1527,8 @@ body {
 }
 
 .cell-mon-row {
-  min-height: 30px;
-  margin: 3px 0 0;
+  min-height: 28px;
+  margin: 1px 0 0;
   flex-shrink: 0;
 }
 
@@ -1557,11 +1557,18 @@ body {
 
 .info-list {
   margin-top: auto;
-  padding-top: 1px;
-  overflow: visible;
+  padding-top: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
   font-family: var(--font-body);
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.22;
+}
+
+.info-list::-webkit-scrollbar {
+  display: none;
 }
 
 .info-item {
@@ -1652,8 +1659,8 @@ body {
   }
 
   .cell-mon-row {
-    min-height: 17px;
-    margin-top: 1px;
+    min-height: 16px;
+    margin-top: 0;
   }
 
   .mon-pill {
@@ -1665,7 +1672,7 @@ body {
   .info-list {
     padding-top: 0;
     font-size: 8px;
-    line-height: 1.08;
+    line-height: 1.02;
   }
 
   .info-prefix {
