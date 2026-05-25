@@ -737,7 +737,8 @@ select {
 
 .shoui-panel {
   padding: 14px 16px 16px;
-  overflow-x: auto;
+  overflow-x: hidden;
+  font-family: var(--font-body);
 }
 
 .shoui-notice {
@@ -752,74 +753,12 @@ select {
 .shoui-context {
   margin-bottom: 10px;
   color: var(--text-secondary);
+  font-family: var(--font-body);
   font-size: 0.86rem;
 }
 
 .shoui-context strong {
   color: var(--text-accent);
-}
-
-.shoui-table {
-  width: 100%;
-  min-width: 720px;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.shoui-table th,
-.shoui-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border-subtle);
-  text-align: left;
-}
-
-.shoui-table th {
-  background: color-mix(in srgb, var(--bg-main) 72%, var(--bg-elevated));
-  color: var(--text-accent);
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.shoui-row-empty td {
-  color: var(--text-secondary);
-}
-
-.kikkyo {
-  width: 36px;
-  text-align: center;
-  font-weight: 700;
-}
-
-.kikkyo-〇 {
-  color: var(--text-success);
-}
-
-.kikkyo-△ {
-  color: var(--text-accent);
-}
-
-.kikkyo-na {
-  color: var(--text-secondary);
-}
-
-.shoui-toggle {
-  min-height: 28px;
-  padding: 4px 10px;
-  border: 1px solid var(--border-main);
-  background: transparent;
-  color: var(--text-accent);
-  cursor: pointer;
-}
-
-.shoui-toggle:hover {
-  background: color-mix(in srgb, var(--text-accent) 14%, transparent);
-}
-
-.shoui-detail td {
-  background: var(--bg-cell);
-  color: var(--text-primary);
-  font-size: 0.86rem;
-  line-height: 1.7;
 }
 
 /* ============================================================
@@ -833,50 +772,204 @@ select {
 .shoui-kyo     { color: var(--text-danger); }   /* 凶=赤 */
 .shoui-chu     { color: var(--text-accent); }   /* 中立=黄(ゴールド) */
 
-/* 表中の名前ボタン（クリックで詳細展開） */
+.shoui-palace-list {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.shoui-palace-card {
+  min-width: 0;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-main) 62%, var(--bg-elevated));
+}
+
+.shoui-palace-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-body);
+}
+
+.shoui-palace-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text-accent);
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.shoui-palace-name small {
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.shoui-palace-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 12px;
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-body);
+}
+
+.shoui-palace-meta div {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.shoui-palace-meta dt {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.shoui-palace-meta dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.shoui-chip-area {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.shoui-term-group {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.shoui-term-label {
+  padding-top: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
 .shoui-term {
-  padding: 2px 6px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px 12px;
   border: 1px solid transparent;
-  background: transparent;
+  border-radius: 999px;
   cursor: pointer;
-  font: inherit;
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
 }
 
 .shoui-term:hover {
-  border-color: var(--border-subtle);
-  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
+  filter: brightness(1.08);
 }
 
 .shoui-term[aria-expanded="true"] {
-  border-color: var(--border-main);
-  background: color-mix(in srgb, var(--text-accent) 18%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 30%, transparent);
 }
 
 .shoui-term-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 6px;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.shoui-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.shoui-chip.shoui-kichi {
+  background: #4472C4;
+  color: #fff;
+}
+
+.shoui-chip.shoui-kyo {
+  background: #FF0000;
+  color: #fff;
+}
+
+.shoui-chip.shoui-chu {
+  border-color: var(--text-accent);
+  background: color-mix(in srgb, var(--text-accent) 24%, var(--bg-elevated));
+  color: var(--text-primary);
+}
+
+.shoui-caret {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  line-height: 1;
 }
 
 .shoui-term-empty {
   color: var(--text-secondary);
+  font-family: var(--font-body);
+  line-height: 44px;
 }
 
-/* 解説アコーディオン（display_text の1段表示） */
+.shoui-detail-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 10px;
+}
+
+/* チップ展開部（display_text の1段表示） */
 .shoui-detail-block {
-  margin-top: 6px;
   padding: 10px 12px;
   border-left: 3px solid var(--border-main);
   background: color-mix(in srgb, var(--bg-cell) 70%, var(--bg-elevated));
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   line-height: 1.6;
+}
+
+.shoui-detail-block.shoui-kichi {
+  border-left-color: #4472C4;
+}
+
+.shoui-detail-block.shoui-kyo {
+  border-left-color: #FF0000;
+}
+
+.shoui-detail-block.shoui-chu {
+  border-left-color: var(--text-accent);
 }
 
 .shoui-detail-block h4 {
   margin: 0 0 4px;
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -890,7 +983,39 @@ select {
 .shoui-text {
   margin: 6px 0 0;
   color: var(--text-primary);
+  white-space: normal;
   overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+@media (max-width: 520px) {
+  .shoui-panel {
+    padding: 12px;
+  }
+
+  .shoui-palace-header {
+    display: grid;
+    gap: 6px;
+  }
+
+  .shoui-palace-meta {
+    justify-content: flex-start;
+  }
+
+  .shoui-term-group {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .shoui-term-label {
+    padding-top: 0;
+  }
+
+  .shoui-term {
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
 }
 
 /* ============================================================
