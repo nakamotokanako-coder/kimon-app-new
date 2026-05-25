@@ -1489,7 +1489,7 @@ body {
   min-width: 0;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 900;
   line-height: 1.2;
   letter-spacing: 0;
@@ -1500,7 +1500,7 @@ body {
 .kan-chiban {
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 900;
   letter-spacing: 0;
 }
@@ -1509,7 +1509,7 @@ body {
 .cell-meta-pair {
   min-width: 0;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 1.2;
   text-align: right;
@@ -1548,12 +1548,12 @@ body {
 
 .mon-pill {
   min-width: 0;
-  padding: 2px 9px;
+  padding: 1px 8px;
   border: 0;
   border-radius: 6px;
   color: #fff;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
@@ -1562,7 +1562,7 @@ body {
 .cell-info-divider {
   flex: 0 0 auto;
   border-top: 1px dotted var(--border-subtle);
-  margin: 5px 0 4px;
+  margin: 3px 0 2px;
 }
 
 .mon-pill.tone-kichi {
@@ -1580,8 +1580,8 @@ body {
   padding-top: 0;
   overflow: hidden;
   font-family: var(--font-body);
-  font-size: 10px;
-  line-height: 1.32;
+  font-size: 9.5px;
+  line-height: 1.18;
 }
 
 .info-item {
