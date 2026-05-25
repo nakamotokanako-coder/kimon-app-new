@@ -48,8 +48,8 @@ function kakkyokuPrefix(kichi_kyo) {
  * 通常宮セル: 先生Excel準拠の固定レイアウト。
  *   ┌──────────────────────────────┐
  *   │ [宮名+五行]            [score]│  header
- *   │ [天盤干]      [八神 九星]     │  body row1
- *   │ [地盤干]                       │  body row2
+ *   │ [天盤干]              [八神]   │  body row1
+ *   │ [地盤干]              [九星]   │  body row2
  *   │       [八門 大ピル色付き]      │  center
  *   │ ○格局 / ×格局 / 〇剋応 ...     │  info-list
  *   └──────────────────────────────┘
@@ -113,34 +113,31 @@ export default function PalaceCell({
 
   return (
     <div className={cellClass}>
-      {/* ── header: 宮名 + 五行(薄く) + ◎順利バッジ + スコア ── */}
+      {/* ── header: 宮名 + 五行(薄く) + スコア ── */}
       <div className="cell-header">
-        <span className="palace-label">{label}</span>
-        {element && <span className="palace-element">{element}</span>}
-        {isJunri && (
-          <span className="junri-badge" title="◎順利（秘伝・先生監修 2026-05-22）">
-            ◎順利
-          </span>
-        )}
+        <div className="palace-title">
+          <span className="palace-label">{label}</span>
+          {element && <span className="palace-element">{element}</span>}
+        </div>
         {score && <span className={`score-badge ${scoreTone}`}>{score.score}</span>}
       </div>
 
-      {/* ── body row 1: 天盤干(左) / 八神 + 九星(右) ── */}
-      <div className="cell-row-top">
-        <div className="kan-stack">
-          <div className="kan-tenban">
-            {renderKanText(data.tenban, isTenbanJunshuPalace ? junshu : null)}
-          </div>
-          <div className="kan-chiban">
-            {renderKanText(data.chiban, isChibanJunshuPalace ? junshu : null)}
-          </div>
+      {/* ── body: 天盤干=八神 / 地盤干=九星 を 2×2 に揃える ── */}
+      <div className="kanmeta">
+        <div className="kan kan-tenban">
+          {renderKanText(data.tenban, isTenbanJunshuPalace ? junshu : null)}
         </div>
-        <div className="cell-meta-right">
+        <div className="meta meta-hasshin">
           {data.hasshin && (
             <span className={`hasshin ${toneClass(hasshinTone(data.hasshin))}`}>
               {data.hasshin}
             </span>
           )}
+        </div>
+        <div className="kan kan-chiban">
+          {renderKanText(data.chiban, isChibanJunshuPalace ? junshu : null)}
+        </div>
+        <div className="meta meta-kyusei">
           {data.kyusei && (
             <span className={`kyusei ${toneClass(kyuseiTone(data.kyusei))}`}>
               {data.kyusei}
