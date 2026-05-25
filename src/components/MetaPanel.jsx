@@ -1,4 +1,24 @@
-import React from 'react';
+function MetaCardGrid({ rows, emptyText = null }) {
+  const visibleRows = rows.filter((row) => row.value);
+
+  if (visibleRows.length === 0) {
+    return emptyText ? <p className="ban-none">{emptyText}</p> : null;
+  }
+
+  return (
+    <div className="meta-card-grid">
+      {visibleRows.map((row) => (
+        <div
+          className={`meta-card${row.alert ? ' is-alert' : ''}${row.wide ? ' is-wide' : ''}`}
+          key={row.key || row.label}
+        >
+          <div className="meta-card-label">{row.label}</div>
+          <div className="meta-card-value">{row.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function MetaPanel({ meta, banLevel }) {
   if (!meta) return null;
@@ -22,31 +42,35 @@ export default function MetaPanel({ meta, banLevel }) {
       ].filter((r) => r.value)
     : [];
 
+  const infoRows = [
+    { key: 'boardType', label: '盤種', value: `${meta.boardType}盤` },
+    { key: 'kyokusu', label: '局数', value: meta.kyokusu },
+    { key: 'eto', label: 'キー干支', value: meta.eto },
+    { key: 'junshu', label: '旬首', value: meta.junshu },
+    { key: 'chokufu', label: '直符', value: meta.chokufu },
+    { key: 'chokushi', label: '直使', value: meta.chokushi },
+    { key: 'kuubou', label: '空亡', value: meta.kuubou },
+    { key: 'tenban_junshu_p', label: '旬首・天盤宮', value: meta.tenban_junshu_p },
+    { key: 'chiban_junshu_p', label: '旬首・地盤宮', value: meta.chiban_junshu_p },
+  ];
+
+  const etoRows = [
+    { key: 'eto_year', label: '年', value: meta.eto_year },
+    { key: 'eto_month', label: '月', value: meta.eto_month },
+    { key: 'eto_day', label: '日', value: meta.eto_day },
+    { key: 'eto_time', label: '時', value: isHour ? meta.eto_time : null },
+  ];
+
   return (
     <div className="meta-panel">
       <div className="meta-section">
         <h3>盤情報</h3>
-        <dl>
-          <dt>盤種</dt><dd>{meta.boardType}盤</dd>
-          <dt>局数</dt><dd>{meta.kyokusu}</dd>
-          <dt>キー干支</dt><dd>{meta.eto}</dd>
-          <dt>旬首</dt><dd>{meta.junshu}</dd>
-          <dt>直符</dt><dd>{meta.chokufu}</dd>
-          <dt>直使</dt><dd>{meta.chokushi}</dd>
-          <dt>空亡</dt><dd>{meta.kuubou}</dd>
-          <dt>旬首・天盤宮</dt><dd>{meta.tenban_junshu_p}</dd>
-          <dt>旬首・地盤宮</dt><dd>{meta.chiban_junshu_p}</dd>
-        </dl>
+        <MetaCardGrid rows={infoRows} />
       </div>
 
       <div className="meta-section">
         <h3>干支</h3>
-        <dl>
-          <dt>年</dt><dd>{meta.eto_year}</dd>
-          <dt>月</dt><dd>{meta.eto_month}</dd>
-          <dt>日</dt><dd>{meta.eto_day}</dd>
-          {isHour && <><dt>時</dt><dd>{meta.eto_time}</dd></>}
-        </dl>
+        <MetaCardGrid rows={etoRows} />
       </div>
 
       {/* Phase 2B (2026-05-20): 九星セクションは盤情報パネルから削除
@@ -55,18 +79,7 @@ export default function MetaPanel({ meta, banLevel }) {
 
       <div className="meta-section">
         <h3>盤レベル判定</h3>
-        {banRows.length > 0 ? (
-          <dl>
-            {banRows.map((r) => (
-              <React.Fragment key={r.key}>
-                <dt>{r.label}</dt>
-                <dd className={r.alert ? 'ban-alert' : ''}>{r.value}</dd>
-              </React.Fragment>
-            ))}
-          </dl>
-        ) : (
-          <p className="ban-none">特になし</p>
-        )}
+        <MetaCardGrid rows={banRows} emptyText="特になし" />
       </div>
     </div>
   );
