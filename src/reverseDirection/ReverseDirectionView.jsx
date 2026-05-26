@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
+import SaikyoRankingView from './SaikyoRankingView.jsx';
 import {
   buildDayReverseBoard,
   buildReverseBoard,
@@ -150,12 +151,14 @@ export default function ReverseDirectionView() {
         <div>
           <h2>吉方位</h2>
           <p>
-            {mode === 'day'
+            {mode === 'ranking'
+              ? `日盤・最強ランキング / ${location.name}`
+              : mode === 'day'
               ? `日盤・遠出 / ${location.name}`
               : `時盤・自然時補正 ${formatCorrection(correction)} / ${location.name}`}
           </p>
         </div>
-        <div className="reverse-time-chip">{mode === 'day' ? dayDate : getTimeSlotLabel(slotHour)}</div>
+        <div className="reverse-time-chip">{mode === 'day' || mode === 'ranking' ? dayDate : getTimeSlotLabel(slotHour)}</div>
       </div>
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
@@ -164,6 +167,9 @@ export default function ReverseDirectionView() {
         </button>
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
           日盤 遠出<small>本実装</small>
+        </button>
+        <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
+          最強ランキング<small>期間</small>
         </button>
         <button className={mode === 'range' ? 'is-active' : ''} type="button" onClick={() => setMode('range')}>
           期間検索<small>将来</small>
@@ -343,6 +349,19 @@ export default function ReverseDirectionView() {
             </>
           )}
         </>
+      )}
+
+      {mode === 'ranking' && (
+        <SaikyoRankingView
+          location={location}
+          startDate={date}
+          goodOnly={goodOnly}
+          onGoodOnlyChange={setGoodOnly}
+          onSelectDate={(nextDate) => {
+            setDayDate(nextDate);
+            setMode('day');
+          }}
+        />
       )}
 
       {mode === 'range' && (

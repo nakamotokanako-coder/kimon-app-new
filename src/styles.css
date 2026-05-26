@@ -1827,7 +1827,7 @@ body {
 
 .reverse-mode-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -2208,6 +2208,343 @@ body {
 
 .reverse-aux-card strong {
   color: var(--text-accent);
+}
+
+.saikyo-view {
+  display: grid;
+  gap: 12px;
+}
+
+.saikyo-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: radial-gradient(120% 120% at 100% 0%, rgba(230, 195, 74, 0.12), transparent 54%), var(--bg-card);
+}
+
+.saikyo-kicker,
+.saikyo-top p,
+.saikyo-period p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.saikyo-top h3 {
+  margin: 2px 0;
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+}
+
+.saikyo-top > span {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border: 1px solid var(--border-main);
+  border-radius: 999px;
+  color: var(--text-accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.saikyo-basis {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.saikyo-basis strong {
+  color: var(--text-main);
+}
+
+.saikyo-basis label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.saikyo-period {
+  display: grid;
+  gap: 6px;
+}
+
+.saikyo-period > div {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.saikyo-period > div::-webkit-scrollbar {
+  display: none;
+}
+
+.saikyo-period button {
+  flex: 0 0 auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 8px 13px;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.saikyo-period button.is-active {
+  border-color: var(--border-main);
+  color: var(--text-accent);
+  background: color-mix(in srgb, var(--text-accent) 13%, var(--bg-cell));
+}
+
+.saikyo-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.saikyo-section h3 {
+  margin: 0;
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+}
+
+.saikyo-section span {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+.saikyo-list {
+  display: grid;
+  gap: 8px;
+}
+
+.saikyo-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(160deg, var(--bg-elevated), var(--bg-card));
+  color: var(--text-main);
+  text-align: left;
+}
+
+.saikyo-card.is-top1 {
+  border-color: var(--border-main);
+  box-shadow: 0 0 0 1px rgba(230, 195, 74, 0.24), 0 10px 24px -18px rgba(230, 195, 74, 0.7);
+}
+
+.saikyo-rank {
+  display: grid;
+  justify-items: center;
+  color: var(--text-secondary);
+}
+
+.saikyo-rank strong {
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.saikyo-rank small,
+.saikyo-score small {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+}
+
+.saikyo-main {
+  min-width: 0;
+}
+
+.saikyo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.saikyo-row strong {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+}
+
+.saikyo-row span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.saikyo-row small {
+  margin-left: 2px;
+}
+
+.saikyo-row small.is-sat { color: #7fb0f0; }
+.saikyo-row small.is-sun { color: #ff7a7a; }
+
+.saikyo-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.saikyo-badge {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 3px 7px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.saikyo-badge.is-safe {
+  border-color: rgba(154, 151, 139, 0.4);
+  color: var(--text-secondary);
+  background: rgba(154, 151, 139, 0.1);
+}
+
+.saikyo-badge.is-warn {
+  border-color: rgba(194, 85, 79, 0.55);
+  color: #ffc0bc;
+  background: rgba(194, 85, 79, 0.13);
+}
+
+.saikyo-badge.is-mon {
+  color: #fff;
+  background: #4472c4;
+}
+
+.saikyo-badge.is-kaku {
+  border-color: rgba(127, 176, 240, 0.5);
+  color: #7fb0f0;
+  background: rgba(127, 176, 240, 0.13);
+}
+
+.saikyo-score {
+  display: grid;
+  justify-items: end;
+  align-self: stretch;
+  align-content: center;
+  width: 72px;
+  color: #8ee08e;
+  font-family: var(--font-heading);
+  font-size: 1.32rem;
+  font-weight: 800;
+}
+
+.saikyo-score.is-bad {
+  color: #ff7a7a;
+}
+
+.saikyo-tie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+}
+
+.saikyo-tie span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+}
+
+.saikyo-more {
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 11px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.saikyo-monthly {
+  display: grid;
+  gap: 7px;
+}
+
+.saikyo-monthly button {
+  display: grid;
+  grid-template-columns: 45px 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 11px;
+  padding: 10px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  text-align: left;
+}
+
+.saikyo-monthly strong {
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+}
+
+.saikyo-monthly small {
+  color: var(--text-secondary);
+}
+
+.saikyo-monthly em {
+  min-width: 0;
+  color: #7fb0f0;
+  font-size: 0.68rem;
+  font-style: normal;
+}
+
+.saikyo-monthly b {
+  color: #8ee08e;
+  font-family: var(--font-heading);
+}
+
+.saikyo-rule {
+  border: 1px solid var(--border-subtle);
+  border-radius: 13px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  overflow: hidden;
+}
+
+.saikyo-rule summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  color: var(--text-accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.saikyo-rule summary span {
+  margin-left: auto;
+}
+
+.saikyo-rule ol {
+  margin: 0;
+  padding: 0 18px 12px 34px;
+  font-size: 0.72rem;
+  line-height: 1.7;
+}
+
+.saikyo-rule p {
+  margin: 0;
+  padding: 0 14px 13px;
+  font-size: 0.68rem;
 }
 
 .reverse-compass-frame {
