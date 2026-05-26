@@ -1,15 +1,22 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
   MAP_FAN,
   MAP_FAN_COLORS,
+  bearingFor,
   buildFanLayerSpecs,
   destPoint,
+  directionIndexFor,
   isNegativeTone,
   isPositiveTone,
   sectorPolygon,
 } from './mapFan.js';
+
+const LABEL_MODE = {
+  compact: { className: 'is-compact', showScore: true },
+  fullscreen: { className: 'is-fullscreen', showScore: true },
+};
 
 function scoreText(score) {
   return `${score > 0 ? '+' : ''}${score}`;
@@ -21,11 +28,27 @@ function scoreColor(tone) {
   return '#d8d6cf';
 }
 
+function buildBearingOptions(center, bearingMode, useDeclination) {
+  return {
+    center,
+    mode: bearingMode,
+    declination: useDeclination,
+  };
+}
+
 export default function DirectionMap({ location, rankings, bestPalace }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [bearingMode, setBearingMode] = useState(MAP_FAN.defaultBearingMode);
+  const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
   const mapRef = useRef(null);
   const mapNodeRef = useRef(null);
   const layerGroupRef = useRef(null);
   const center = useMemo(() => [location.latitude, location.longitude], [location.latitude, location.longitude]);
+  const bearingOptions = useMemo(
+    () => buildBearingOptions(center, bearingMode, useDeclination),
+    [bearingMode, center, useDeclination],
+  );
+  const labelMode = isFullscreen ? LABEL_MODE.fullscreen : LABEL_MODE.compact;
 
   useEffect(() => {
     if (!mapNodeRef.current || mapRef.current) return;
@@ -47,9 +70,9 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
     if (!map || !layerGroup) return;
 
     layerGroup.clearLayers();
-    map.setView(center, MAP_FAN.zoom);
+    map.setView(center, isFullscreen ? Math.max(MAP_FAN.zoom, 14) : MAP_FAN.zoom);
 
-    const specs = buildFanLayerSpecs(rankings, bestPalace);
+    const specs = buildFanLayerSpecs(rankings, bestPalace, bearingOptions);
     specs.forEach((spec) => {
       L.polygon(
         sectorPolygon(center, spec.from, spec.to, spec.outer, spec.inner),
@@ -72,28 +95,78 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
       opacity: 0.7,
       fill: false,
       dashArray: '3 5',
-    }).bindTooltip('500m（確定ライン）', { permanent: false, direction: 'top' }).addTo(layerGroup);
+    }).bindTooltip('500m 確定ライン', { permanent: false, direction: 'top' }).addTo(layerGroup);
 
     (rankings || []).forEach((item) => {
-      const labelPoint = destPoint(center, item.angle, MAP_FAN.radiusM * 0.62);
+      const labelAngle = bearingFor(directionIndexFor(item), bearingOptions);
+      const labelPoint = destPoint(center, labelAngle, MAP_FAN.radiusM * 0.62);
+      const score = labelMode.showScore
+        ? `<br><span style="color:${scoreColor(item.tone)}">${scoreText(item.score)}</span>`
+        : '';
       const icon = L.divIcon({
         className: '',
-        html: `<div class="direction-map-label">${item.label}<br><span style="color:${scoreColor(item.tone)}">${scoreText(item.score)}</span></div>`,
-        iconSize: [44, 32],
-        iconAnchor: [22, 16],
+        html: `<div class="direction-map-label ${labelMode.className}">${item.label}${score}</div>`,
+        iconSize: isFullscreen ? [54, 38] : [44, 28],
+        iconAnchor: isFullscreen ? [27, 19] : [22, 14],
       });
       L.marker(labelPoint, { icon, interactive: false }).addTo(layerGroup);
     });
 
     window.setTimeout(() => map.invalidateSize(), 0);
-  }, [bestPalace, center, location.name, rankings]);
+  }, [bearingOptions, bestPalace, center, isFullscreen, labelMode, location.name, rankings]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return undefined;
+    const timer = window.setTimeout(() => map.invalidateSize(), 80);
+    return () => window.clearTimeout(timer);
+  }, [isFullscreen]);
 
   return (
-    <div className="direction-map-wrap">
-      <div className="direction-map-note">
-        <span>500m確定ライン</span>
-        <span>外側は10kmまでフェード表示</span>
+    <div className={`direction-map-wrap ${isFullscreen ? 'is-fullscreen' : ''}`}>
+      <div className="direction-map-header">
+        <div className="direction-map-note">
+          <span>500m 確定ライン</span>
+          <span>外側は10kmまでフェード表示</span>
+        </div>
+        <button
+          type="button"
+          className="direction-map-action"
+          onClick={() => setIsFullscreen((value) => !value)}
+        >
+          {isFullscreen ? '閉じる' : '拡大'}
+        </button>
       </div>
+
+      {isFullscreen && (
+        <div className="direction-map-controls" aria-label="方位線の引き方">
+          <div className="direction-map-toggle" role="group" aria-label="平面または球面">
+            <button
+              type="button"
+              className={bearingMode === 'plane' ? 'is-active' : ''}
+              onClick={() => setBearingMode('plane')}
+            >
+              平面
+            </button>
+            <button
+              type="button"
+              className={bearingMode === 'sphere' ? 'is-active' : ''}
+              onClick={() => setBearingMode('sphere')}
+            >
+              球面
+            </button>
+          </div>
+          <label className="direction-map-check">
+            <input
+              type="checkbox"
+              checked={useDeclination}
+              onChange={(event) => setUseDeclination(event.target.checked)}
+            />
+            西偏角あり
+          </label>
+        </div>
+      )}
+
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
       <div className="direction-map-legend">
         <span><i className="legend-swatch tone-great" />大吉</span>
