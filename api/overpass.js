@@ -29,8 +29,11 @@ export default async function handler(req, res) {
       console.error('[overpass] trying', url, 'querylen', query.length);
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain; charset=UTF-8' },
-        body: query,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'kimon-app/1.0 (kimon-app-new.vercel.app)',
+        },
+        body: `data=${encodeURIComponent(query)}`,
         signal: controller.signal,
       });
       clearTimeout(timer);
