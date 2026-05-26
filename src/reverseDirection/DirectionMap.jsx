@@ -22,6 +22,7 @@ import {
   favoriteKey,
   findFacilityPreset,
   normalizeOverpassElements,
+  overpassFetch,
 } from './mapSearch.js';
 
 const LABEL_MODE = {
@@ -140,12 +141,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     if (!map) return;
     setMapStatus(`${preset.label}を表示中の地図範囲で検索しています。`);
     const query = buildOverpassQuery(preset.selectors, map.getBounds());
-    const response = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-    });
-    if (!response.ok) throw new Error('Overpass API error');
-    const data = await response.json();
+    const data = await overpassFetch(query);
     const decorated = decoratePlaces(
       normalizeOverpassElements(data.elements).slice(0, 60),
       center,
@@ -163,12 +159,12 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     const map = mapRef.current;
     if (!map) return false;
     const query = buildOverpassNameQuery(word, map.getBounds());
-    const response = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: `data=${encodeURIComponent(query)}`,
-    });
-    if (!response.ok) return false;
-    const data = await response.json();
+    let data;
+    try {
+      data = await overpassFetch(query);
+    } catch {
+      return false;
+    }
     const decorated = decoratePlaces(
       normalizeOverpassElements(data.elements).slice(0, 40),
       center,
