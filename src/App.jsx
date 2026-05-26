@@ -5,6 +5,7 @@ import InputControls from './components/InputControls.jsx';
 import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
+import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 
 const DEFAULT_THEME = 'dark-gold';
 const THEMES = [
@@ -40,14 +41,13 @@ const INITIAL_THEME = applyInitialTheme();
 
 export default function App() {
   const [state, setState] = useState({
-    // 日盤の対応期間は 2026-01-01〜2044-01-31（day_kyokusu.csv）。
-    // 初期値は JST 基準の今日にする。
     date: getTodayJst(),
     hour: 0,
-    boardType: '日',
+    boardType: '\u65e5',
   });
   const [theme, setTheme] = useState(INITIAL_THEME);
   const [direction, setDirection] = useState('north_bottom');
+  const [activeTab, setActiveTab] = useState('board');
   const [error, setError] = useState(null);
 
   const board = useMemo(() => {
@@ -79,53 +79,15 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="app">
+  const boardView = (
+    <>
       <header className="app-header">
         <div className="header-row">
           <div className="brand-block">
-            <span className="brand-mark">秘</span>
+            <span className="brand-mark">遁</span>
             <div>
               <h1>奇門遁甲</h1>
-              <p className="subtitle">日盤・時盤デモ</p>
-            </div>
-          </div>
-          <div className="header-controls">
-            <div className="theme-switcher" aria-label="テーマ切替">
-              {THEMES.map((item) => (
-                <button
-                  key={item.name}
-                  type="button"
-                  className={theme === item.name ? 'is-active' : ''}
-                  aria-pressed={theme === item.name}
-                  onClick={() => handleThemeChange(item.name)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <div className="direction-toggle" aria-label="方位表示">
-              <span className="direction-label">方位</span>
-              <label>
-                <input
-                  type="radio"
-                  name="direction"
-                  value="north_bottom"
-                  checked={direction === 'north_bottom'}
-                  onChange={() => setDirection('north_bottom')}
-                />
-                北を下
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="direction"
-                  value="south_bottom"
-                  checked={direction === 'south_bottom'}
-                  onChange={() => setDirection('south_bottom')}
-                />
-                南を下
-              </label>
+              <p className="subtitle">日盤・時盤メモ</p>
             </div>
           </div>
         </div>
@@ -144,8 +106,6 @@ export default function App() {
         {board && (
           <>
             <div className="board-area">
-              {/* Phase 2B-relayout (2026-05-21): 盤を左・情報パネルを右に配置。
-                  styles.css の board-area が auto auto + justify-content: start で受ける。 */}
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}
@@ -162,6 +122,94 @@ export default function App() {
           </>
         )}
       </main>
+    </>
+  );
+
+  const settingsView = (
+    <main className="settings-view">
+      <section className="settings-card">
+        <h2>設定</h2>
+        <p>テーマと盤の方位表示を切り替えます。</p>
+
+        <div className="settings-section">
+          <h3>テーマ</h3>
+          <div className="theme-switcher" aria-label="テーマ切替">
+            {THEMES.map((item) => (
+              <button
+                key={item.name}
+                type="button"
+                className={theme === item.name ? 'is-active' : ''}
+                aria-pressed={theme === item.name}
+                onClick={() => handleThemeChange(item.name)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h3>盤の方位表示</h3>
+          <div className="direction-toggle" aria-label="方位表示">
+            <span className="direction-label">方位</span>
+            <label>
+              <input
+                type="radio"
+                name="direction"
+                value="north_bottom"
+                checked={direction === 'north_bottom'}
+                onChange={() => setDirection('north_bottom')}
+              />
+              北を下
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="direction"
+                value="south_bottom"
+                checked={direction === 'south_bottom'}
+                onChange={() => setDirection('south_bottom')}
+              />
+              南を下
+            </label>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+
+  return (
+    <div className="app app-with-tabs">
+      {activeTab === 'board' && boardView}
+      {activeTab === 'direction' && <ReverseDirectionView />}
+      {activeTab === 'settings' && settingsView}
+
+      <nav className="bottom-tabbar" aria-label="アプリメニュー">
+        <button
+          type="button"
+          className={activeTab === 'board' ? 'is-active' : ''}
+          onClick={() => setActiveTab('board')}
+        >
+          <span className="bottom-tab-icon">▦</span>
+          <span>盤</span>
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'direction' ? 'is-active' : ''}
+          onClick={() => setActiveTab('direction')}
+        >
+          <span className="bottom-tab-icon">✦</span>
+          <span>吉方位</span>
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'settings' ? 'is-active' : ''}
+          onClick={() => setActiveTab('settings')}
+        >
+          <span className="bottom-tab-icon">⚙</span>
+          <span>設定</span>
+        </button>
+      </nav>
     </div>
   );
 }
