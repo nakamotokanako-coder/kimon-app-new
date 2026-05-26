@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildMonthlyBest,
+  buildPeriodRange,
+  formatDateForOrigin,
+  formatPeriodLabel,
   scanStrongestRanking,
   sortRanking,
 } from '../src/reverseDirection/strongestRanking.js';
@@ -69,11 +72,27 @@ describe('strongest ranking sort', () => {
 });
 
 describe('strongest ranking scan', () => {
+  it('builds future-only period ranges from the start date', () => {
+    expect(buildPeriodRange('2026-05-26', 7)).toEqual({
+      startDate: '2026-05-26',
+      endDate: '2026-06-01',
+      days: 7,
+    });
+    expect(formatPeriodLabel(buildPeriodRange('2026-05-26', 31))).toBe('本日 5/26 〜 6/25');
+  });
+
+  it('formats year only when the date differs from the origin year', () => {
+    expect(formatDateForOrigin('2026-06-11', '2026-05-26').displayText).toBe('6/11');
+    expect(formatDateForOrigin('2027-01-17', '2026-05-26').displayText).toBe('2027年 1/17');
+    expect(formatDateForOrigin('2027-01-17', '2026-05-26').monthDisplay).toBe('2027年 1月');
+  });
+
   it('returns one best direction per day', () => {
     const result = scanStrongestRanking({ startDate: '2026-06-01', days: 7, goodOnly: false });
     expect(result.errors).toHaveLength(0);
     expect(result.rows).toHaveLength(7);
     expect(new Set(result.rows.map((row) => row.date)).size).toBe(7);
+    expect(result.rows.every((row) => row.date >= '2026-06-01')).toBe(true);
   });
 
   it('builds one monthly best per month in chronological month order', () => {

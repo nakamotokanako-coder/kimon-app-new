@@ -47,6 +47,14 @@ export function addDays(date, days) {
   return next.toISOString().slice(0, 10);
 }
 
+export function buildPeriodRange(startDate, days) {
+  return {
+    startDate,
+    endDate: addDays(startDate, days - 1),
+    days,
+  };
+}
+
 export function formatRankingDate(date) {
   const [year, monthValue, dayValue] = date.split('-').map(Number);
   const parsed = new Date(Date.UTC(year, monthValue - 1, dayValue));
@@ -59,6 +67,23 @@ export function formatRankingDate(date) {
     monthKey: `${parsed.getUTCFullYear()}-${String(month).padStart(2, '0')}`,
     monthLabel: `${month}月`,
   };
+}
+
+export function formatDateForOrigin(date, originDate) {
+  const meta = formatRankingDate(date);
+  const year = date.slice(0, 4);
+  const originYear = originDate.slice(0, 4);
+  return {
+    ...meta,
+    displayText: year === originYear ? meta.text : `${Number(year)}年 ${meta.text}`,
+    monthDisplay: year === originYear ? meta.monthLabel : `${Number(year)}年 ${meta.monthLabel}`,
+  };
+}
+
+export function formatPeriodLabel({ startDate, endDate }) {
+  const start = formatRankingDate(startDate);
+  const end = formatDateForOrigin(endDate, startDate);
+  return `本日 ${start.text} 〜 ${end.displayText}`;
 }
 
 export function hasBadElement(candidate) {
@@ -132,7 +157,8 @@ export function buildDayCandidates(date) {
 export function scanStrongestRanking({ startDate, days, goodOnly = true }) {
   const rows = [];
   const errors = [];
-  for (let i = 0; i < days; i += 1) {
+  const range = buildPeriodRange(startDate, days);
+  for (let i = 0; i < range.days; i += 1) {
     const date = addDays(startDate, i);
     try {
       const best = sortRanking(buildDayCandidates(date))[0];
@@ -142,6 +168,7 @@ export function scanStrongestRanking({ startDate, days, goodOnly = true }) {
     }
   }
   return {
+    range,
     rows: sortRanking(rows),
     errors,
   };

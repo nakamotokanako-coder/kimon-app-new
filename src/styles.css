@@ -2332,8 +2332,8 @@ body {
 .saikyo-card {
   width: 100%;
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
-  align-items: start;
+  grid-template-columns: 42px minmax(0, 1fr) 72px;
+  align-items: center;
   gap: 11px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
@@ -2437,6 +2437,9 @@ body {
 .saikyo-score {
   display: grid;
   justify-items: end;
+  align-self: stretch;
+  align-content: center;
+  width: 72px;
   color: #8ee08e;
   font-family: var(--font-heading);
   font-size: 1.32rem;

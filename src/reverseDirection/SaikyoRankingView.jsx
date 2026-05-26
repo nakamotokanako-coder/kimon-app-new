@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import {
   buildMonthlyBest,
+  formatDateForOrigin,
+  formatPeriodLabel,
   scanStrongestRanking,
 } from './strongestRanking.js';
 
 const PERIODS = [
-  { key: 'week', label: '今週', days: 7, long: false },
-  { key: 'month', label: '今月', days: 31, long: false },
+  { key: 'week', label: '1週間', days: 7, long: false },
+  { key: 'month', label: '1ヶ月', days: 31, long: false },
   { key: 'q', label: '3ヶ月', days: 92, long: true },
   { key: 'half', label: '半年', days: 183, long: true },
   { key: 'year', label: '1年', days: 365, long: true },
@@ -34,8 +36,9 @@ function RankingBadges({ item }) {
   );
 }
 
-function RankingCard({ item, index, onSelect }) {
+function RankingCard({ item, index, startDate, onSelect }) {
   const rank = index + 1;
+  const dateLabel = formatDateForOrigin(item.date, startDate);
   return (
     <button
       type="button"
@@ -50,7 +53,7 @@ function RankingCard({ item, index, onSelect }) {
         <span className="saikyo-row">
           <strong>{item.label}</strong>
           <span>
-            {item.text}
+            {dateLabel.displayText}
             <small className={weekdayClass(item.weekday)}>({item.weekday})</small>
           </span>
         </span>
@@ -81,6 +84,7 @@ export default function SaikyoRankingView({
 
   const visibleRows = result.rows.slice(0, visibleCount);
   const monthly = useMemo(() => buildMonthlyBest(result.rows), [result.rows]);
+  const periodLabel = formatPeriodLabel(result.range);
 
   const handlePeriodChange = (key) => {
     setPeriodKey(key);
@@ -135,7 +139,7 @@ export default function SaikyoRankingView({
 
       <div className="saikyo-section">
         <h3>総合トップ</h3>
-        <span>{result.rows.length}件</span>
+        <span>{periodLabel} / {result.rows.length}件</span>
       </div>
 
       <div className="saikyo-list">
@@ -148,7 +152,7 @@ export default function SaikyoRankingView({
                 <span />
               </div>
             )}
-            <RankingCard item={item} index={index} onSelect={onSelectDate} />
+            <RankingCard item={item} index={index} startDate={startDate} onSelect={onSelectDate} />
           </React.Fragment>
         ))}
       </div>
@@ -172,9 +176,9 @@ export default function SaikyoRankingView({
           <div className="saikyo-monthly">
             {monthly.map((item) => (
               <button key={item.monthKey} type="button" onClick={() => onSelectDate(item.date)}>
-                <strong>{item.monthLabel}</strong>
+                <strong>{formatDateForOrigin(item.date, startDate).monthDisplay}</strong>
                 <span>{item.label}</span>
-                <small>{item.text}({item.weekday})</small>
+                <small>{formatDateForOrigin(item.date, startDate).displayText}({item.weekday})</small>
                 {item.kakuName && <em>{item.kakuName}</em>}
                 <b>{scoreText(item.score)}</b>
               </button>
