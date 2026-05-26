@@ -2237,7 +2237,7 @@ body {
 .saikyo-top h3 {
   margin: 2px 0;
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.2rem;
 }
 
@@ -2315,7 +2315,7 @@ body {
 .saikyo-section h3 {
   margin: 0;
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.95rem;
 }
 
@@ -2356,7 +2356,7 @@ body {
 
 .saikyo-rank strong {
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.45rem;
   line-height: 1;
 }
@@ -2379,7 +2379,7 @@ body {
 }
 
 .saikyo-row strong {
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.05rem;
 }
 
@@ -2441,7 +2441,7 @@ body {
   align-content: center;
   width: 72px;
   color: #8ee08e;
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.32rem;
   font-weight: 800;
 }
@@ -2493,7 +2493,7 @@ body {
 
 .saikyo-monthly strong {
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
 }
 
 .saikyo-monthly small {
@@ -2509,7 +2509,7 @@ body {
 
 .saikyo-monthly b {
   color: #8ee08e;
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
 }
 
 .saikyo-rule {
