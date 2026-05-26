@@ -26,7 +26,6 @@ export default async function handler(req, res) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      console.error('[overpass] trying', url, 'querylen', query.length);
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -37,19 +36,14 @@ export default async function handler(req, res) {
         signal: controller.signal,
       });
       clearTimeout(timer);
-      if (!response.ok) {
-        console.error('[overpass] upstream not ok', url, response.status);
-        continue;
-      }
+      if (!response.ok) continue;
       const json = await response.json();
       res.setHeader('Cache-Control', 's-maxage=300');
       return res.status(200).json(json);
-    } catch (e) {
+    } catch {
       clearTimeout(timer);
-      console.error('[overpass] upstream threw', url, e?.name, e?.message);
     }
   }
 
-  console.error('[overpass] all upstreams failed');
   return res.status(502).json({ error: 'overpass upstream failed' });
 }
