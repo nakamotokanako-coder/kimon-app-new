@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
+import DirectionMap from './DirectionMap.jsx';
 import {
   buildReverseBoard,
   buildTimeline,
@@ -160,6 +161,10 @@ export default function ReverseDirectionView() {
 
       {mode === 'time' && (
         <>
+          <div className="reverse-card reverse-compass-card">
+            <DirectionMap location={location} rankings={reverse.rankings} bestPalace={best?.palace} />
+          </div>
+
           <div className="reverse-card reverse-compass-card">
             <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
           </div>
