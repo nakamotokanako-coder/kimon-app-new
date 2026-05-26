@@ -2,6 +2,12 @@ import { bearingFor, directionIndexFor, initialBearing } from './mapFan.js';
 
 export const MAP_SEARCH_STORAGE_KEY = 'kimon_map_favorites_v1';
 
+export const OVERPASS_ENDPOINTS = [
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+];
+
 export const FACILITY_PRESETS = [
   {
     label: 'コンビニ',
@@ -99,6 +105,46 @@ export function distanceMeters(from, to) {
   return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+export async function overpassFetch(query, fetchImpl = fetch) {
+  let lastError;
+  for (const url of OVERPASS_ENDPOINTS) {
+    try {
+      const response = await fetchImpl(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: query,
+      });
+      if (!response.ok) {
+        lastError = new Error(`Overpass API error: HTTP ${response.status}`);
+        continue;
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('All Overpass endpoints failed');
+}
+
+export function pickNearestAddressCandidate(candidates, home) {
+  if (!candidates?.length) return null;
+  if (!home || candidates.length === 1) return candidates[0];
+  return candidates
+    .map((candidate) => {
+      const coords = candidate?.geometry?.coordinates;
+      if (!coords || coords.length < 2) return null;
+      const longitude = Number(coords[0]);
+      const latitude = Number(coords[1]);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+      return {
+        candidate,
+        distance: distanceMeters(home, [latitude, longitude]),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance)[0]?.candidate || candidates[0];
+}
+
 function circularDistance(a, b) {
   const diff = Math.abs(a - b) % 360;
   return Math.min(diff, 360 - diff);
@@ -136,4 +182,3 @@ export function decoratePlaces(places, center, rankings, bearingOptions = {}) {
 export function favoriteKey(place) {
   return `${Number(place.latitude).toFixed(5)},${Number(place.longitude).toFixed(5)}`;
 }
-

@@ -7,6 +7,8 @@ import {
   favoriteKey,
   findFacilityPreset,
   normalizeOverpassElements,
+  overpassFetch,
+  pickNearestAddressCandidate,
   sanitizeOverpassRegex,
 } from '../src/reverseDirection/mapSearch.js';
 
@@ -72,5 +74,55 @@ describe('map search helpers', () => {
   it('uses rounded coordinates as favorite identity', () => {
     expect(favoriteKey({ latitude: 35.123456, longitude: 139.987654 })).toBe('35.12346,139.98765');
   });
-});
 
+  it('posts raw Overpass QL as text/plain and falls back to the next endpoint', async () => {
+    const calls = [];
+    const fetchImpl = async (url, options) => {
+      calls.push({ url, options });
+      if (calls.length === 1) return { ok: false, status: 406 };
+      return { ok: true, json: async () => ({ elements: [{ id: 1 }] }) };
+    };
+
+    const data = await overpassFetch('[out:json];node(1);out;', fetchImpl);
+
+    expect(data.elements).toHaveLength(1);
+    expect(calls).toHaveLength(2);
+    expect(calls[0].options).toMatchObject({
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: '[out:json];node(1);out;',
+    });
+    expect(calls[0].options.body.startsWith('data=')).toBe(false);
+  });
+
+  it('throws only after all Overpass endpoints fail', async () => {
+    const fetchImpl = async () => {
+      throw new Error('network down');
+    };
+
+    await expect(overpassFetch('[out:json];node(1);out;', fetchImpl)).rejects.toThrow('network down');
+  });
+
+  it('picks the address search candidate nearest to the home point', () => {
+    const home = [35.681236, 139.767125];
+    const candidates = [
+      {
+        geometry: { coordinates: [145.3609, 43.3301] },
+        properties: { title: 'Nemuro Kawagishi' },
+      },
+      {
+        geometry: { coordinates: [139.7035, 35.6909] },
+        properties: { title: 'Saitama Kawagishi' },
+      },
+    ];
+
+    expect(pickNearestAddressCandidate(candidates, home)?.properties.title).toBe('Saitama Kawagishi');
+  });
+
+  it('uses the first address candidate when home is unavailable or the list is empty', () => {
+    const first = { geometry: { coordinates: [139, 35] }, properties: { title: 'First' } };
+
+    expect(pickNearestAddressCandidate([first], null)).toBe(first);
+    expect(pickNearestAddressCandidate([], [35, 139])).toBeNull();
+  });
+});
