@@ -81,6 +81,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
+  const [mapSearching, setMapSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [favorites, setFavorites] = useState(() => {
@@ -211,15 +212,18 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
 
   const runMapSearch = async (word = mapQuery) => {
     const text = word.trim();
-    if (!text) return;
+    if (!text || mapSearching) return;
     setMapQuery(text);
     clearPlaceMarkers();
+    setMapSearching(true);
     try {
       const preset = findFacilityPreset(text);
       if (preset) await runFacilitySearch(text, preset);
       else await runPlaceSearch(text);
     } catch (error) {
       setMapStatus(`検索に失敗しました。時間をおいて再検索してください。${error.message ? ` (${error.message})` : ''}`);
+    } finally {
+      setMapSearching(false);
     }
   };
 
@@ -439,11 +443,11 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
             placeholder="施設や地名を検索"
             onChange={(event) => setMapQuery(event.target.value)}
           />
-          <button type="submit">検索</button>
+          <button type="submit" disabled={mapSearching}>検索</button>
         </form>
         <div className="direction-map-chips">
           {FACILITY_PRESETS.slice(0, 6).map((preset) => (
-            <button key={preset.label} type="button" onClick={() => runMapSearch(preset.label)}>
+            <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
               {preset.label}
             </button>
           ))}

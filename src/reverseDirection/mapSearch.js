@@ -2,6 +2,8 @@ import { bearingFor, directionIndexFor, initialBearing } from './mapFan.js';
 
 export const MAP_SEARCH_STORAGE_KEY = 'kimon_map_favorites_v1';
 
+export const OVERPASS_PROXY_PATH = '/api/overpass';
+
 export const FACILITY_PRESETS = [
   {
     label: 'コンビニ',
@@ -58,7 +60,7 @@ export function buildOverpassQuery(selectors, bounds, limit = 60) {
     bounds.getEast(),
   ].map((value) => Number(value).toFixed(5)).join(',');
   const body = selectors.map((selector) => `${selector}(${bbox});`).join('');
-  return `[out:json][timeout:20];(${body});out center ${limit};`;
+  return `[out:json][timeout:15];(${body});out center ${limit};`;
 }
 
 export function buildOverpassNameQuery(word, bounds, limit = 40) {
@@ -69,7 +71,7 @@ export function buildOverpassNameQuery(word, bounds, limit = 40) {
     bounds.getNorth(),
     bounds.getEast(),
   ].map((value) => Number(value).toFixed(5)).join(',');
-  return `[out:json][timeout:20];(node["name"~"${safe}"](${bbox});way["name"~"${safe}"](${bbox}););out center ${limit};`;
+  return `[out:json][timeout:15];(node["name"~"${safe}"](${bbox});way["name"~"${safe}"](${bbox}););out center ${limit};`;
 }
 
 export function normalizeOverpassElements(elements) {
@@ -97,6 +99,37 @@ export function distanceMeters(from, to) {
   const a = Math.sin(dLat / 2) ** 2
     + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
   return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export async function overpassFetch(query, fetchImpl = fetch) {
+  const response = await fetchImpl(OVERPASS_PROXY_PATH, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: query,
+  });
+  if (!response.ok) {
+    throw new Error(`Overpass proxy error: HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+export function pickNearestAddressCandidate(candidates, home) {
+  if (!candidates?.length) return null;
+  if (!home || candidates.length === 1) return candidates[0];
+  return candidates
+    .map((candidate) => {
+      const coords = candidate?.geometry?.coordinates;
+      if (!coords || coords.length < 2) return null;
+      const longitude = Number(coords[0]);
+      const latitude = Number(coords[1]);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+      return {
+        candidate,
+        distance: distanceMeters(home, [latitude, longitude]),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance)[0]?.candidate || candidates[0];
 }
 
 function circularDistance(a, b) {
@@ -136,4 +169,3 @@ export function decoratePlaces(places, center, rankings, bearingOptions = {}) {
 export function favoriteKey(place) {
   return `${Number(place.latitude).toFixed(5)},${Number(place.longitude).toFixed(5)}`;
 }
-
