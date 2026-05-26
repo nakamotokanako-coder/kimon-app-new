@@ -1698,3 +1698,513 @@ body {
     min-width: 8px;
   }
 }
+
+/* ============================================================
+   Reverse direction search / bottom navigation
+   ============================================================ */
+
+.app-with-tabs {
+  padding-bottom: 116px;
+}
+
+.bottom-tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 100;
+  width: min(100%, 760px);
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 76px;
+  padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-cell) 98%, transparent);
+  box-shadow: 0 -14px 32px rgba(0, 0, 0, 0.42);
+}
+
+.bottom-tabbar button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+}
+
+.bottom-tabbar button.is-active {
+  color: var(--text-accent);
+  font-weight: 800;
+}
+
+.bottom-tab-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.settings-view,
+.reverse-view {
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+
+.settings-view {
+  padding: 16px 0 0;
+}
+
+.settings-card,
+.reverse-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-cell);
+}
+
+.settings-card {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.settings-card h2,
+.settings-card h3,
+.reverse-header h2,
+.reverse-card-title h3,
+.reverse-timeline h3,
+.reverse-placeholder h3 {
+  margin: 0;
+}
+
+.settings-card p {
+  margin: -8px 0 0;
+  color: var(--text-secondary);
+}
+
+.settings-section {
+  display: grid;
+  gap: 10px;
+}
+
+.reverse-view {
+  display: grid;
+  gap: 12px;
+  padding: 14px 0 0;
+}
+
+.reverse-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reverse-header h2 {
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+}
+
+.reverse-header p {
+  margin: 3px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.reverse-time-chip {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: var(--bg-cell);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.reverse-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reverse-mode-tabs button {
+  min-width: 0;
+  padding: 9px 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.reverse-mode-tabs button small {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.64rem;
+  font-weight: 500;
+}
+
+.reverse-mode-tabs button.is-active {
+  border-color: var(--border-main);
+  background: color-mix(in srgb, var(--text-accent) 13%, var(--bg-cell));
+  color: var(--text-accent);
+}
+
+.reverse-card {
+  padding: 13px 14px;
+}
+
+.reverse-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.reverse-card-title h3,
+.reverse-timeline h3 {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.reverse-card-title span {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.reverse-location-actions,
+.reverse-search-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.reverse-location-actions button,
+.reverse-location-actions label,
+.reverse-search-row button,
+.reverse-search-row input,
+.reverse-location-actions select {
+  min-height: 42px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.reverse-location-actions button,
+.reverse-search-row button {
+  color: var(--text-accent);
+  cursor: pointer;
+}
+
+.reverse-location-actions label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.reverse-location-actions select {
+  min-height: 30px;
+  border: 0;
+  background: transparent;
+}
+
+.reverse-search-row {
+  margin-top: 8px;
+  grid-template-columns: minmax(0, 1fr) 72px;
+}
+
+.reverse-search-row input {
+  padding: 0 11px;
+}
+
+.reverse-correction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 9px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.reverse-status {
+  margin: 8px 0 0;
+  color: var(--text-accent);
+  font-size: 0.72rem;
+}
+
+.reverse-compass-card {
+  padding: 14px 10px 8px;
+}
+
+.reverse-compass-frame {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.reverse-seg {
+  stroke: var(--bg-main);
+  stroke-width: 2;
+}
+
+.reverse-seg.tone-great { fill: #185fa5; }
+.reverse-seg.tone-good { fill: #378add; }
+.reverse-seg.tone-weak { fill: #85b7eb; }
+.reverse-seg.tone-neutral { fill: #6f6c5e; }
+.reverse-seg.tone-bad { fill: #c2554f; }
+.reverse-seg.tone-bad-strong { fill: #a3302a; }
+
+.reverse-seg.is-best {
+  stroke: #e6c34a;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 7px rgba(230, 195, 74, 0.75));
+}
+
+.reverse-score-text,
+.reverse-dir-text {
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.reverse-score-text {
+  fill: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.reverse-dir-text {
+  fill: var(--text-primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.reverse-center-circle {
+  fill: var(--bg-elevated);
+  stroke: var(--border-subtle);
+  stroke-width: 1.5;
+}
+
+.reverse-center-text {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.reverse-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px 12px;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.reverse-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.legend-swatch.tone-great { background: #185fa5; }
+.legend-swatch.tone-weak { background: #85b7eb; }
+.legend-swatch.tone-neutral { background: #6f6c5e; }
+.legend-swatch.tone-bad { background: #c2554f; }
+.legend-swatch.tone-best { background: #e6c34a; }
+
+.reverse-best-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  background: #16223a;
+  border-color: #185fa5;
+}
+
+.reverse-best-no {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #185fa5;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.reverse-best-main {
+  min-width: 0;
+}
+
+.reverse-best-main strong {
+  font-size: 1.05rem;
+}
+
+.reverse-best-main small {
+  margin-left: 6px;
+  color: #85b7eb;
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+
+.reverse-best-main p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.reverse-best-score {
+  color: #85b7eb;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.reverse-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.reverse-filter-list button {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  padding: 7px 12px;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.reverse-filter-list button.is-active {
+  border-color: var(--text-accent);
+  background: var(--text-accent);
+  color: #1a1606;
+  font-weight: 800;
+}
+
+.reverse-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.reverse-toggle-row input {
+  width: 44px;
+  height: 24px;
+  accent-color: var(--text-accent);
+}
+
+.reverse-timeline {
+  display: grid;
+  gap: 7px;
+}
+
+.reverse-timeline h3 {
+  padding: 2px 2px 0;
+}
+
+.reverse-tl-item {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 11px;
+  background: var(--bg-cell);
+  padding: 9px 12px;
+}
+
+.reverse-tl-item.is-now {
+  border-color: var(--border-main);
+  background: color-mix(in srgb, var(--text-accent) 10%, var(--bg-cell));
+}
+
+.reverse-tl-time {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.reverse-tl-main {
+  min-width: 0;
+}
+
+.reverse-tl-main strong {
+  font-size: 0.86rem;
+}
+
+.reverse-tl-main span {
+  margin-left: 5px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.reverse-tl-score {
+  color: var(--text-success);
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.reverse-tl-score.is-bad {
+  color: var(--text-danger);
+}
+
+.reverse-placeholder {
+  display: grid;
+  gap: 8px;
+}
+
+.reverse-placeholder p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .app-with-tabs {
+    width: min(100% - 20px, 760px);
+    padding-bottom: 116px;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-with-tabs {
+    width: min(100% - 12px, 760px);
+  }
+
+  .reverse-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reverse-time-chip {
+    align-self: flex-start;
+  }
+}
