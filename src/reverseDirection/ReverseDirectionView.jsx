@@ -13,6 +13,7 @@ import {
   getTimeSlotLabel,
   getPurposeNames,
 } from './reverseDirection.js';
+import { pickNearestAddressCandidate } from './mapSearch.js';
 
 const DEFAULT_LOCATIONS = [
   { name: '東京', latitude: 35.6812, longitude: 139.7671 },
@@ -99,7 +100,7 @@ export default function ReverseDirectionView() {
     try {
       const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(text)}`);
       const data = await res.json();
-      const first = data?.[0];
+      const first = pickNearestAddressCandidate(data, [location.latitude, location.longitude]);
       const coords = first?.geometry?.coordinates;
       if (!coords) {
         setStatus('候補が見つかりませんでした。');

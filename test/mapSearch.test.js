@@ -7,6 +7,9 @@ import {
   favoriteKey,
   findFacilityPreset,
   normalizeOverpassElements,
+  overpassFetch,
+  OVERPASS_PROXY_PATH,
+  pickNearestAddressCandidate,
   sanitizeOverpassRegex,
 } from '../src/reverseDirection/mapSearch.js';
 
@@ -34,6 +37,7 @@ describe('map search helpers', () => {
   it('builds bounded Overpass queries', () => {
     const query = buildOverpassQuery(['node["shop"="convenience"]'], bounds);
     expect(query).toContain('node["shop"="convenience"](35.10000,139.10000,35.20000,139.20000);');
+    expect(query).toContain('[timeout:15]');
     expect(query).toContain('out center 60');
   });
 
@@ -72,5 +76,53 @@ describe('map search helpers', () => {
   it('uses rounded coordinates as favorite identity', () => {
     expect(favoriteKey({ latitude: 35.123456, longitude: 139.987654 })).toBe('35.12346,139.98765');
   });
-});
 
+  it('posts raw Overpass QL to the same-origin proxy', async () => {
+    const calls = [];
+    const fetchImpl = async (url, options) => {
+      calls.push({ url, options });
+      return { ok: true, json: async () => ({ elements: [{ id: 1 }] }) };
+    };
+
+    const data = await overpassFetch('[out:json];node(1);out;', fetchImpl);
+
+    expect(data.elements).toHaveLength(1);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe(OVERPASS_PROXY_PATH);
+    expect(calls[0].options).toMatchObject({
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: '[out:json];node(1);out;',
+    });
+    expect(calls[0].options.body.startsWith('data=')).toBe(false);
+  });
+
+  it('throws when the Overpass proxy returns an error', async () => {
+    const fetchImpl = async () => ({ ok: false, status: 502 });
+
+    await expect(overpassFetch('[out:json];node(1);out;', fetchImpl)).rejects.toThrow('HTTP 502');
+  });
+
+  it('picks the address search candidate nearest to the home point', () => {
+    const home = [35.681236, 139.767125];
+    const candidates = [
+      {
+        geometry: { coordinates: [145.3609, 43.3301] },
+        properties: { title: 'Nemuro Kawagishi' },
+      },
+      {
+        geometry: { coordinates: [139.7035, 35.6909] },
+        properties: { title: 'Saitama Kawagishi' },
+      },
+    ];
+
+    expect(pickNearestAddressCandidate(candidates, home)?.properties.title).toBe('Saitama Kawagishi');
+  });
+
+  it('uses the first address candidate when home is unavailable or the list is empty', () => {
+    const first = { geometry: { coordinates: [139, 35] }, properties: { title: 'First' } };
+
+    expect(pickNearestAddressCandidate([first], null)).toBe(first);
+    expect(pickNearestAddressCandidate([], [35, 139])).toBeNull();
+  });
+});
