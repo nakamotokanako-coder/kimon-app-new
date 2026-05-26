@@ -3,7 +3,6 @@ import { PALACE_DIRECTIONS } from './reverseDirection.js';
 
 const CENTER = 175;
 const RADIUS = 145;
-const START_OFFSET = -112.5;
 
 function polarPoint(angleDeg) {
   const rad = (angleDeg - 90) * Math.PI / 180;
@@ -13,9 +12,9 @@ function polarPoint(angleDeg) {
   };
 }
 
-function wedgePath(index) {
-  const start = START_OFFSET + index * 45;
-  const end = start + 45;
+function wedgePath(angle) {
+  const start = angle - 22.5;
+  const end = angle + 22.5;
   const p1 = polarPoint(start);
   const p2 = polarPoint(end);
   return `M ${CENTER} ${CENTER} L ${p1.x.toFixed(1)} ${p1.y.toFixed(1)} A ${RADIUS} ${RADIUS} 0 0 1 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z`;
@@ -35,7 +34,7 @@ export default function CompassWheel({ rankings, bestPalace }) {
   return (
     <div className="reverse-compass-frame">
       <svg width="100%" viewBox="0 0 350 350" role="img" aria-label="45度8区画の方位盤">
-        {PALACE_DIRECTIONS.map((direction, index) => {
+        {PALACE_DIRECTIONS.map((direction) => {
           const item = byPalace[direction.palace];
           const scorePoint = textPoint(direction.angle, 92);
           const labelPoint = textPoint(direction.angle, 162);
@@ -44,7 +43,7 @@ export default function CompassWheel({ rankings, bestPalace }) {
             <g key={direction.palace}>
               <path
                 className={`reverse-seg tone-${item?.tone || 'neutral'} ${isBest ? 'is-best' : ''}`}
-                d={wedgePath(index)}
+                d={wedgePath(direction.angle)}
               />
               <text className="reverse-score-text" x={scorePoint.x} y={scorePoint.y}>
                 {item ? `${item.score > 0 ? '+' : ''}${item.score}` : '0'}
