@@ -1,16 +1,64 @@
 export const MAP_FAN = {
-  radiusM: 500,
   sectorDeg: 45,
-  zoom: 13,
   defaultBearingMode: 'plane',
   defaultDeclination: false,
   sphereReferenceM: 1000000,
-  fadeBands: [
-    { inner: 500, outer: 1000, opacity: 0.30 },
-    { inner: 1000, outer: 2500, opacity: 0.20 },
-    { inner: 2500, outer: 5000, opacity: 0.12 },
-    { inner: 5000, outer: 10000, opacity: 0.07 },
-  ],
+};
+
+export const DISTANCE_PROFILE = {
+  jiban: {
+    key: 'jiban',
+    confirmKm: 0.5,
+    fadeMaxKm: 10,
+    initialZoom: 13,
+    caption: '500m以上＋5分滞在で効果（効果5日）。500mの確定ゾーンが濃く、外側は10kmまで薄くフェード表示。',
+    note: ['500m 確定ライン', '外側は10kmまでフェード表示'],
+    scaleTitle: '時盤の距離：内が濃い → 外が薄い',
+    scaleNote: '徒歩5分≒400m。500m未満は近すぎ。確定ゾーンを出ると効果が薄れる＝外ほど淡く。',
+    fadeBands: [
+      { from: 0, to: 0.5, op: 0.55 },
+      { from: 0.5, to: 2, op: 0.40 },
+      { from: 2, to: 4, op: 0.28 },
+      { from: 4, to: 7, op: 0.18 },
+      { from: 7, to: 10, op: 0.10 },
+    ],
+    rings: [
+      { km: 0.5, label: '500m 確定' },
+      { km: 10, label: '10km' },
+    ],
+    ruler: [
+      { x: 0, w: 5, op: 0.9, label: '0', bottom: '起点' },
+      { x: 5, w: 20, op: 0.7, label: '500m', bottom: '確定ライン' },
+      { x: 25, w: 75, op: 0.3, label: '', bottom: '10kmへフェード' },
+    ],
+  },
+  nichiban: {
+    key: 'nichiban',
+    confirmKm: 50,
+    fadeMaxKm: 250,
+    initialZoom: 7,
+    caption: '50km以上＋3時間滞在で効果（効果60日）。50km未満は近すぎ＝薄く、遠いほど効果が増すので外ほど濃い（時盤と逆）。',
+    note: ['50km 有効ライン', '遠いほど濃い反転フェード'],
+    scaleTitle: '日盤の距離：内が薄い → 外が濃い',
+    scaleNote: '日帰り行軍≒39km、50kmで無難、50〜100km以上が理想。直線距離で測る。',
+    fadeBands: [
+      { from: 0, to: 50, op: 0.10 },
+      { from: 50, to: 100, op: 0.28 },
+      { from: 100, to: 160, op: 0.42 },
+      { from: 160, to: 250, op: 0.55 },
+    ],
+    rings: [
+      { km: 50, label: '50km 有効ライン' },
+      { km: 100, label: '100km' },
+      { km: 200, label: '200km' },
+    ],
+    ruler: [
+      { x: 0, w: 20, op: 0.12, label: '0', bottom: '近すぎ' },
+      { x: 20, w: 20, op: 0.30, label: '50km', bottom: '有効ライン' },
+      { x: 40, w: 30, op: 0.45, label: '100km', bottom: '' },
+      { x: 70, w: 30, op: 0.60, label: '200km〜', bottom: '遠いほど強' },
+    ],
+  },
 };
 
 export const MAP_FAN_COLORS = {
@@ -119,7 +167,12 @@ export function directionIndexFor(item) {
   return 0;
 }
 
-export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}) {
+export function getDistanceProfile(profileKey = 'jiban') {
+  return DISTANCE_PROFILE[profileKey] || DISTANCE_PROFILE.jiban;
+}
+
+export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, profileKey = 'jiban') {
+  const profile = getDistanceProfile(profileKey);
   const specs = [];
   for (const item of rankings || []) {
     const color = getFanColor(item.tone);
@@ -130,47 +183,85 @@ export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}) {
     const from = angle - MAP_FAN.sectorDeg / 2;
     const to = angle + MAP_FAN.sectorDeg / 2;
 
-    specs.push({
-      item,
-      type: 'solid',
-      angle,
-      from,
-      to,
-      inner: 0,
-      outer: MAP_FAN.radiusM,
-      color,
-      options: {
-        color: isBest ? MAP_FAN_COLORS.best : color,
-        weight: isBest ? 3 : (isGood || isBad ? 1.5 : 1),
-        opacity: isBest ? 0.95 : (isGood || isBad ? 0.7 : 0.4),
-        fillColor: color,
-        fillOpacity: isBest ? 0.45 : (isGood ? 0.32 : (isBad ? 0.30 : 0.14)),
-        dashArray: isBest || isGood || isBad ? null : '4 3',
-      },
-    });
-
     if (isGood || isBad) {
       const base = isBad ? 0.75 : 1;
-      for (const band of MAP_FAN.fadeBands) {
+      for (const band of profile.fadeBands) {
         specs.push({
           item,
           type: 'fade',
           angle,
           from,
           to,
-          inner: band.inner,
-          outer: band.outer,
+          inner: band.from * 1000,
+          outer: band.to * 1000,
           color,
           options: {
             color,
-            weight: 0.7,
+            weight: 0,
             opacity: 0.4 * base,
             fillColor: color,
-            fillOpacity: band.opacity * base,
+            fillOpacity: band.op * base,
             interactive: false,
           },
         });
       }
+    } else {
+      specs.push({
+        item,
+        type: 'neutral',
+        angle,
+        from,
+        to,
+        inner: 0,
+        outer: profile.confirmKm * 1000,
+        color,
+        options: {
+          color,
+          weight: 1,
+          opacity: 0.35,
+          fillColor: color,
+          fillOpacity: 0.14,
+          dashArray: '4 3',
+        },
+      });
+    }
+
+    specs.push({
+      item,
+      type: 'edge',
+      angle,
+      from,
+      to,
+      inner: profile.confirmKm * 1000,
+      outer: profile.fadeMaxKm * 1000,
+      color,
+      options: {
+        color: isBest ? MAP_FAN_COLORS.best : color,
+        weight: isBest ? 2.5 : 1,
+        opacity: isBest ? 0.95 : 0.35,
+        fill: false,
+        interactive: false,
+      },
+    });
+
+    if (isBest) {
+      specs.push({
+        item,
+        type: 'best',
+        angle,
+        from,
+        to,
+        inner: profile.confirmKm * 1000,
+        outer: profile.fadeMaxKm * 1000,
+        color: MAP_FAN_COLORS.best,
+        options: {
+          color: MAP_FAN_COLORS.best,
+          weight: 4,
+          opacity: 0.22,
+          fill: false,
+          interactive: false,
+        },
+      });
     }
   }
   return specs;

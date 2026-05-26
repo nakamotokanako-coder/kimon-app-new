@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildDayReverseBoard,
   filterGoodRankings,
   getLongitudeCorrectionMinutes,
   getScoreTone,
@@ -33,5 +34,17 @@ describe('reverse direction utilities', () => {
     expect(getScoreTone(0)).toBe('neutral');
     expect(getScoreTone(-10)).toBe('bad');
     expect(getScoreTone(-20)).toBe('bad-strong');
+  });
+
+  it('builds day-board rankings from a selected date without an hour', () => {
+    const result = buildDayReverseBoard({ date: '2026-06-01', purposeName: '仕事' });
+    expect(result.board.meta.boardType).toBe('日');
+    expect(result.rankings).toHaveLength(8);
+    expect(result.rankings[0]).toEqual(expect.objectContaining({
+      palace: expect.any(String),
+      label: expect.any(String),
+      score: expect.any(Number),
+      tone: expect.any(String),
+    }));
   });
 });

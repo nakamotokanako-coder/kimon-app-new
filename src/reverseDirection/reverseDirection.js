@@ -3,6 +3,7 @@ import { scoreBoard } from '../kimon/scoreEngine.js';
 import purposeFilters from '../data/purposeFilters.json';
 
 export const TIME_BOARD_TYPE = '\u6642';
+export const DAY_BOARD_TYPE = '\u65e5';
 
 export const PALACE_DIRECTIONS = [
   { palace: 'kan', label: '\u5317', short: 'N', angle: 0 },
@@ -100,8 +101,7 @@ export function getMainReasons(palaceData, palaceScore, matches = []) {
   return [...new Set(reasons)].slice(0, 4);
 }
 
-export function buildReverseBoard({ date, hour, purposeName = '仕事' }) {
-  const board = buildBoard({ date, hour, boardType: TIME_BOARD_TYPE });
+function buildRankings(board, purposeName) {
   const score = scoreBoard(board);
   const rankings = PALACE_DIRECTIONS.map((direction) => {
     const palaceData = board.palaces[direction.palace];
@@ -122,6 +122,16 @@ export function buildReverseBoard({ date, hour, purposeName = '仕事' }) {
   }).sort((a, b) => b.score - a.score || PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace));
 
   return { board: { ...board, score }, rankings };
+}
+
+export function buildReverseBoard({ date, hour, purposeName = '仕事' }) {
+  const board = buildBoard({ date, hour, boardType: TIME_BOARD_TYPE });
+  return buildRankings(board, purposeName);
+}
+
+export function buildDayReverseBoard({ date, purposeName = '仕事' }) {
+  const board = buildBoard({ date, boardType: DAY_BOARD_TYPE });
+  return buildRankings(board, purposeName);
 }
 
 export function filterGoodRankings(rankings, goodOnly) {
