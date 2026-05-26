@@ -3,6 +3,7 @@ import {
   approximateWestDeclination,
   bearingFor,
   buildFanLayerSpecs,
+  DISTANCE_PROFILE,
   destPoint,
   sectorPolygon,
 } from '../src/reverseDirection/mapFan.js';
@@ -69,10 +70,10 @@ describe('map fan geometry', () => {
       { palace: 'ken', angle: 315, tone: 'neutral', score: 0 },
     ];
     const specs = buildFanLayerSpecs(rankings, 'kan');
-    expect(specs.filter((spec) => spec.item.palace === 'kan')).toHaveLength(5);
-    expect(specs.filter((spec) => spec.item.palace === 'shin')).toHaveLength(5);
-    expect(specs.filter((spec) => spec.item.palace === 'ken')).toHaveLength(1);
-    expect(specs.find((spec) => spec.item.palace === 'kan' && spec.type === 'solid').options.color).toBe('#e6c34a');
+    expect(specs.filter((spec) => spec.item.palace === 'kan' && spec.type === 'fade')).toHaveLength(5);
+    expect(specs.filter((spec) => spec.item.palace === 'shin' && spec.type === 'fade')).toHaveLength(5);
+    expect(specs.filter((spec) => spec.item.palace === 'ken' && spec.type === 'neutral')).toHaveLength(1);
+    expect(specs.find((spec) => spec.item.palace === 'kan' && spec.type === 'edge').options.color).toBe('#e6c34a');
   });
 
   it('applies bearing options when building fan layer specs', () => {
@@ -82,9 +83,22 @@ describe('map fan geometry', () => {
     ];
     const specs = buildFanLayerSpecs(rankings, 'kan', { mode: 'plane', declination: true, center });
     const declination = approximateWestDeclination(center);
-    expect(specs.find((spec) => spec.item.palace === 'kan' && spec.type === 'solid').angle)
+    expect(specs.find((spec) => spec.item.palace === 'kan' && spec.type === 'edge').angle)
       .toBeCloseTo(360 - declination, 6);
-    expect(specs.find((spec) => spec.item.palace === 'shin' && spec.type === 'solid').angle)
+    expect(specs.find((spec) => spec.item.palace === 'shin' && spec.type === 'edge').angle)
       .toBeCloseTo(90 - declination, 6);
+  });
+
+  it('uses the day-board distance profile for reversed long-distance fade', () => {
+    const rankings = [
+      { palace: 'kan', angle: 0, tone: 'great', score: 40 },
+    ];
+    const specs = buildFanLayerSpecs(rankings, 'kan', {}, 'nichiban');
+    const fade = specs.filter((spec) => spec.type === 'fade');
+    expect(DISTANCE_PROFILE.nichiban.confirmKm).toBe(50);
+    expect(DISTANCE_PROFILE.nichiban.fadeBands[0].op).toBeLessThan(DISTANCE_PROFILE.nichiban.fadeBands.at(-1).op);
+    expect(fade[0].inner).toBe(0);
+    expect(fade[0].outer).toBe(50000);
+    expect(fade.at(-1).outer).toBe(250000);
   });
 });

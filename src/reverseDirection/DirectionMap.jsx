@@ -8,6 +8,7 @@ import {
   buildFanLayerSpecs,
   destPoint,
   directionIndexFor,
+  getDistanceProfile,
   isNegativeTone,
   isPositiveTone,
   sectorPolygon,
@@ -36,7 +37,7 @@ function buildBearingOptions(center, bearingMode, useDeclination) {
   };
 }
 
-export default function DirectionMap({ location, rankings, bestPalace }) {
+export default function DirectionMap({ location, rankings, bestPalace, profileKey = 'jiban', showScale = false }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bearingMode, setBearingMode] = useState(MAP_FAN.defaultBearingMode);
   const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
@@ -48,6 +49,7 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
     () => buildBearingOptions(center, bearingMode, useDeclination),
     [bearingMode, center, useDeclination],
   );
+  const profile = getDistanceProfile(profileKey);
   const labelMode = isFullscreen ? LABEL_MODE.fullscreen : LABEL_MODE.compact;
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
     mapRef.current = L.map(mapNodeRef.current, {
       zoomControl: true,
       attributionControl: true,
-    }).setView(center, MAP_FAN.zoom);
+    }).setView(center, profile.initialZoom);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
       subdomains: 'abcd',
@@ -70,9 +72,9 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
     if (!map || !layerGroup) return;
 
     layerGroup.clearLayers();
-    map.setView(center, isFullscreen ? Math.max(MAP_FAN.zoom, 14) : MAP_FAN.zoom);
+    map.setView(center, isFullscreen ? Math.max(profile.initialZoom, 7) : profile.initialZoom);
 
-    const specs = buildFanLayerSpecs(rankings, bestPalace, bearingOptions);
+    const specs = buildFanLayerSpecs(rankings, bestPalace, bearingOptions, profileKey);
     specs.forEach((spec) => {
       L.polygon(
         sectorPolygon(center, spec.from, spec.to, spec.outer, spec.inner),
@@ -88,18 +90,43 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
       weight: 2,
     }).bindTooltip(`基準点：${location.name}`, { permanent: false }).addTo(layerGroup);
 
-    L.circle(center, {
-      radius: MAP_FAN.radiusM,
-      color: MAP_FAN_COLORS.best,
-      weight: 1.5,
-      opacity: 0.7,
-      fill: false,
-      dashArray: '3 5',
-    }).bindTooltip('500m 確定ライン', { permanent: false, direction: 'top' }).addTo(layerGroup);
+    profile.rings.forEach((ring) => {
+      const isConfirm = ring.km === profile.confirmKm;
+      if (isConfirm) {
+        L.circle(center, {
+          radius: ring.km * 1000,
+          color: MAP_FAN_COLORS.best,
+          weight: 6,
+          opacity: 0.25,
+          fill: false,
+          interactive: false,
+        }).addTo(layerGroup);
+      }
+      L.circle(center, {
+        radius: ring.km * 1000,
+        color: isConfirm ? MAP_FAN_COLORS.best : '#c9c4b0',
+        weight: isConfirm ? 2.5 : 1,
+        opacity: 0.85,
+        fill: false,
+        dashArray: isConfirm ? null : '4 6',
+        interactive: false,
+      }).bindTooltip(ring.label, { permanent: false, direction: 'top' }).addTo(layerGroup);
+
+      const labelPoint = destPoint(center, 65, ring.km * 1000);
+      L.marker(labelPoint, {
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="direction-ring-label">${ring.label}</div>`,
+          iconSize: [96, 16],
+          iconAnchor: [48, 8],
+        }),
+        interactive: false,
+      }).addTo(layerGroup);
+    });
 
     (rankings || []).forEach((item) => {
       const labelAngle = bearingFor(directionIndexFor(item), bearingOptions);
-      const labelPoint = destPoint(center, labelAngle, MAP_FAN.radiusM * 0.62);
+      const labelPoint = destPoint(center, labelAngle, profile.fadeMaxKm * 1000 * 0.72);
       const score = labelMode.showScore
         ? `<br><span style="color:${scoreColor(item.tone)}">${scoreText(item.score)}</span>`
         : '';
@@ -113,7 +140,7 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
     });
 
     window.setTimeout(() => map.invalidateSize(), 0);
-  }, [bearingOptions, bestPalace, center, isFullscreen, labelMode, location.name, rankings]);
+  }, [bearingOptions, bestPalace, center, isFullscreen, labelMode, location.name, profile, profileKey, rankings]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -126,8 +153,8 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
     <div className={`direction-map-wrap ${isFullscreen ? 'is-fullscreen' : ''}`}>
       <div className="direction-map-header">
         <div className="direction-map-note">
-          <span>500m 確定ライン</span>
-          <span>外側は10kmまでフェード表示</span>
+          <span>{profile.note[0]}</span>
+          <span>{profile.note[1]}</span>
         </div>
         <button
           type="button"
@@ -168,6 +195,33 @@ export default function DirectionMap({ location, rankings, bestPalace }) {
       )}
 
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
+      <p className="direction-map-caption">{profile.caption}</p>
+      {showScale && (
+        <div className="direction-scale-card">
+          <h3>{profile.scaleTitle}</h3>
+          <div className="direction-ruler" aria-hidden="true">
+            {profile.ruler.map((segment) => (
+              <React.Fragment key={`${segment.x}-${segment.w}`}>
+                <span
+                  className="direction-ruler-band"
+                  style={{
+                    left: `${segment.x}%`,
+                    width: `${segment.w}%`,
+                    backgroundColor: `rgba(24, 95, 165, ${segment.op})`,
+                  }}
+                />
+                {segment.label && (
+                  <span className="direction-ruler-label" style={{ left: `${segment.x + 1}%` }}>{segment.label}</span>
+                )}
+                {segment.bottom && (
+                  <span className="direction-ruler-label is-bottom" style={{ left: `${segment.x + 1}%` }}>{segment.bottom}</span>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+          <p>{profile.scaleNote}</p>
+        </div>
+      )}
       <div className="direction-map-legend">
         <span><i className="legend-swatch tone-great" />大吉</span>
         <span><i className="legend-swatch tone-weak" />小吉</span>

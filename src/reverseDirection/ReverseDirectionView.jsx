@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import {
+  buildDayReverseBoard,
   buildReverseBoard,
   buildTimeline,
   filterGoodRankings,
@@ -37,6 +38,7 @@ export default function ReverseDirectionView() {
   const [purpose, setPurpose] = useState('仕事');
   const [goodOnly, setGoodOnly] = useState(true);
   const [mode, setMode] = useState('time');
+  const [dayDate, setDayDate] = useState(getTodayJst());
   const [status, setStatus] = useState('');
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
@@ -50,6 +52,20 @@ export default function ReverseDirectionView() {
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   const best = visibleRankings[0] || null;
+
+  const dayReverseState = useMemo(() => {
+    try {
+      return {
+        result: buildDayReverseBoard({ date: dayDate, purposeName: purpose }),
+        error: null,
+      };
+    } catch (error) {
+      return { result: null, error: error.message };
+    }
+  }, [dayDate, purpose]);
+  const dayReverse = dayReverseState.result;
+  const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
+  const dayBest = dayVisibleRankings[0] || null;
 
   const timeline = useMemo(() => (
     buildTimeline({ date, purposeName: purpose, goodOnly })
@@ -99,14 +115,47 @@ export default function ReverseDirectionView() {
     }
   };
 
+  const filterCard = (
+    <div className="reverse-card reverse-filter-card">
+      <div className="reverse-card-title">
+        <h3>目的フィルタ</h3>
+        <span>目的別の加点</span>
+      </div>
+      <div className="reverse-filter-list">
+        {getPurposeNames().map((name) => (
+          <button
+            key={name}
+            type="button"
+            className={purpose === name ? 'is-active' : ''}
+            onClick={() => setPurpose(name)}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+      <label className="reverse-toggle-row">
+        <span>吉のみ表示</span>
+        <input
+          type="checkbox"
+          checked={goodOnly}
+          onChange={(e) => setGoodOnly(e.target.checked)}
+        />
+      </label>
+    </div>
+  );
+
   return (
     <section className="reverse-view" aria-label="逆引き方位検索">
       <div className="reverse-header">
         <div>
           <h2>吉方位</h2>
-          <p>時盤・自然時補正 {formatCorrection(correction)} / {location.name}</p>
+          <p>
+            {mode === 'day'
+              ? `日盤・遠出 / ${location.name}`
+              : `時盤・自然時補正 ${formatCorrection(correction)} / ${location.name}`}
+          </p>
         </div>
-        <div className="reverse-time-chip">{getTimeSlotLabel(slotHour)}</div>
+        <div className="reverse-time-chip">{mode === 'day' ? dayDate : getTimeSlotLabel(slotHour)}</div>
       </div>
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
@@ -114,7 +163,7 @@ export default function ReverseDirectionView() {
           時盤 お散歩<small>今と本日</small>
         </button>
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
-          日盤 遠出<small>プレビュー</small>
+          日盤 遠出<small>本実装</small>
         </button>
         <button className={mode === 'range' ? 'is-active' : ''} type="button" onClick={() => setMode('range')}>
           期間検索<small>将来</small>
@@ -152,17 +201,24 @@ export default function ReverseDirectionView() {
           />
           <button type="button" onClick={searchPlace}>検索</button>
         </div>
-        <div className="reverse-correction">
-          <span>自然時補正：{location.name} {formatCorrection(correction)}</span>
-          <span>経度 {location.longitude.toFixed(2)}</span>
-        </div>
+        {mode === 'time' ? (
+          <div className="reverse-correction">
+            <span>自然時補正：{location.name} {formatCorrection(correction)}</span>
+            <span>経度 {location.longitude.toFixed(2)}</span>
+          </div>
+        ) : (
+          <div className="reverse-correction">
+            <span>日盤は自然時補正なし</span>
+            <span>経度 {location.longitude.toFixed(2)}</span>
+          </div>
+        )}
         {status && <p className="reverse-status">{status}</p>}
       </div>
 
       {mode === 'time' && (
         <>
           <div className="reverse-card reverse-compass-card">
-            <DirectionMap location={location} rankings={reverse.rankings} bestPalace={best?.palace} />
+            <DirectionMap location={location} rankings={reverse.rankings} bestPalace={best?.palace} profileKey="jiban" />
           </div>
 
           <div className="reverse-card reverse-compass-card">
@@ -187,32 +243,7 @@ export default function ReverseDirectionView() {
             <div className="reverse-best-score">{best ? `${best.score > 0 ? '+' : ''}${best.score}` : '-'}</div>
           </div>
 
-          <div className="reverse-card reverse-filter-card">
-            <div className="reverse-card-title">
-              <h3>目的フィルタ</h3>
-              <span>JSON叩き台</span>
-            </div>
-            <div className="reverse-filter-list">
-              {getPurposeNames().map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  className={purpose === name ? 'is-active' : ''}
-                  onClick={() => setPurpose(name)}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-            <label className="reverse-toggle-row">
-              <span>吉のみ表示</span>
-              <input
-                type="checkbox"
-                checked={goodOnly}
-                onChange={(e) => setGoodOnly(e.target.checked)}
-              />
-            </label>
-          </div>
+          {filterCard}
 
           <div className="reverse-timeline">
             <h3>本日の時間帯別ベスト</h3>
@@ -232,10 +263,92 @@ export default function ReverseDirectionView() {
         </>
       )}
 
-      {mode !== 'time' && (
+      {mode === 'day' && (
+        <>
+          <div className="reverse-card reverse-day-card">
+            <div className="reverse-card-title">
+              <h3>基準点・日付</h3>
+              <span>日盤 遠出</span>
+            </div>
+            <label className="reverse-date-row">
+              <span>行く日</span>
+              <input
+                type="date"
+                value={dayDate}
+                onChange={(e) => setDayDate(e.target.value)}
+              />
+            </label>
+          </div>
+
+          {dayReverseState.error ? (
+            <div className="reverse-card reverse-placeholder">
+              <h3>日盤を表示できません</h3>
+              <p>{dayReverseState.error}</p>
+            </div>
+          ) : (
+            <>
+              <div className="reverse-card reverse-compass-card">
+                <DirectionMap
+                  location={location}
+                  rankings={dayReverse.rankings}
+                  bestPalace={dayBest?.palace}
+                  profileKey="nichiban"
+                  showScale
+                />
+              </div>
+
+              <div className="reverse-card reverse-compass-card">
+                <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
+              </div>
+
+              <div className="reverse-card reverse-best-card">
+                <div className="reverse-best-no">1</div>
+                <div className="reverse-best-main">
+                  {dayBest ? (
+                    <>
+                      <strong>{dayBest.label}<small>{dayBest.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
+                      <p>この日の最大吉 / 目的: {purpose} +{dayBest.purposeBonus}</p>
+                    </>
+                  ) : (
+                    <>
+                      <strong>該当なし</strong>
+                      <p>吉のみ表示中です。凶も見ると全方位を確認できます。</p>
+                    </>
+                  )}
+                </div>
+                <div className="reverse-best-score">{dayBest ? `${dayBest.score > 0 ? '+' : ''}${dayBest.score}` : '-'}</div>
+              </div>
+
+              <div className="reverse-timeline">
+                <h3>この日の方位ランキング</h3>
+                {dayVisibleRankings.map((item, index) => (
+                  <div key={item.palace} className="reverse-tl-item">
+                    <span className="reverse-tl-time">{index + 1}</span>
+                    <div className="reverse-tl-main">
+                      <strong>{item.label}</strong>
+                      <span>{item.reasons.slice(0, 2).join('・') || '吉凶判定'}</span>
+                    </div>
+                    <span className={`reverse-tl-score ${item.score < 0 ? 'is-bad' : ''}`}>
+                      {item.score > 0 ? '+' : ''}{item.score}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {filterCard}
+
+              <div className="reverse-card reverse-aux-card">
+                <p><strong>補助</strong>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。出発時刻の時盤併用を出すかは先生確認事項です。</p>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {mode === 'range' && (
         <div className="reverse-card reverse-placeholder">
-          <h3>{mode === 'day' ? '日盤 遠出' : '期間検索'}</h3>
-          <p>{mode === 'day' ? 'この段階ではプレビュー枠のみです。日盤本実装は次フェーズで行います。' : '期間検索は将来拡張タブです。'}</p>
+          <h3>期間検索</h3>
+          <p>期間検索は将来拡張タブです。</p>
         </div>
       )}
     </section>
