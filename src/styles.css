@@ -2197,6 +2197,37 @@ body {
   text-align: left;
 }
 
+.direction-place-row.is-editable {
+  grid-template-columns: minmax(0, 1fr) 32px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.direction-place-main {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px 4px 8px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.direction-place-edit {
+  align-self: stretch;
+  min-width: 32px;
+  border: 0;
+  border-left: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-accent);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .direction-place-row span:not(.direction-place-dot) {
   display: grid;
   min-width: 0;
@@ -2237,6 +2268,90 @@ body {
 
 .direction-place-dot.is-bad {
   background: #c2554f;
+}
+
+.direction-favorite-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(9, 12, 16, 0.58);
+}
+
+.direction-favorite-sheet {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 360px);
+  padding: 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.32);
+}
+
+.direction-favorite-sheet h3,
+.direction-favorite-sheet p {
+  margin: 0;
+}
+
+.direction-favorite-sheet h3 {
+  color: var(--text-accent);
+  font-size: 0.95rem;
+}
+
+.direction-favorite-sheet label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.direction-favorite-sheet input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.direction-favorite-sheet p {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.direction-favorite-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.direction-favorite-actions button,
+.direction-favorite-delete {
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.direction-favorite-actions button {
+  background: var(--text-accent);
+  color: var(--bg-primary);
+}
+
+.direction-favorite-actions .is-ghost {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.direction-favorite-delete {
+  background: rgba(194, 85, 79, 0.12);
+  color: #c2554f;
 }
 
 .direction-map-label {

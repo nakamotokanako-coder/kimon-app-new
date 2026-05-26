@@ -169,3 +169,20 @@ export function decoratePlaces(places, center, rankings, bearingOptions = {}) {
 export function favoriteKey(place) {
   return `${Number(place.latitude).toFixed(5)},${Number(place.longitude).toFixed(5)}`;
 }
+
+export function favoriteDisplayName(favorite) {
+  return favorite?.label?.trim() ? favorite.label : favorite?.name;
+}
+
+export function renameFavorite(favorites, targetKey, label) {
+  const nextLabel = String(label ?? '').trim();
+  return (favorites || []).map((favorite) => {
+    if (favoriteKey(favorite) !== targetKey) return favorite;
+    const { label: _label, ...rest } = favorite;
+    return nextLabel ? { ...rest, label: nextLabel } : rest;
+  });
+}
+
+export function deleteFavorite(favorites, targetKey) {
+  return (favorites || []).filter((favorite) => favoriteKey(favorite) !== targetKey);
+}
