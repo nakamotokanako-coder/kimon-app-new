@@ -3,13 +3,16 @@ import {
   buildOverpassNameQuery,
   buildOverpassQuery,
   decoratePlaces,
+  deleteFavorite,
   directionForPoint,
+  favoriteDisplayName,
   favoriteKey,
   findFacilityPreset,
   normalizeOverpassElements,
   overpassFetch,
   OVERPASS_PROXY_PATH,
   pickNearestAddressCandidate,
+  renameFavorite,
   sanitizeOverpassRegex,
 } from '../src/reverseDirection/mapSearch.js';
 
@@ -75,6 +78,43 @@ describe('map search helpers', () => {
 
   it('uses rounded coordinates as favorite identity', () => {
     expect(favoriteKey({ latitude: 35.123456, longitude: 139.987654 })).toBe('35.12346,139.98765');
+  });
+
+  it('uses label as the favorite display name when present', () => {
+    expect(favoriteDisplayName({ name: '東京都板橋区幸町66番4号', label: '実家' })).toBe('実家');
+    expect(favoriteDisplayName({ name: '東京都板橋区幸町66番4号' })).toBe('東京都板橋区幸町66番4号');
+    expect(favoriteDisplayName({ name: '東京都板橋区幸町66番4号', label: '   ' })).toBe('東京都板橋区幸町66番4号');
+  });
+
+  it('renames a favorite by storing label without changing existing fields', () => {
+    const favorites = [
+      { name: 'A address', latitude: 35.1, longitude: 139.1 },
+      { name: 'B address', latitude: 35.2, longitude: 139.2 },
+    ];
+
+    const renamed = renameFavorite(favorites, favoriteKey(favorites[0]), '  会社  ');
+
+    expect(renamed[0]).toEqual({ name: 'A address', latitude: 35.1, longitude: 139.1, label: '会社' });
+    expect(renamed[1]).toBe(favorites[1]);
+    expect(favoriteDisplayName(renamed[0])).toBe('会社');
+  });
+
+  it('clears favorite label when the renamed value is blank', () => {
+    const favorites = [{ name: 'A address', latitude: 35.1, longitude: 139.1, label: '会社' }];
+
+    const renamed = renameFavorite(favorites, favoriteKey(favorites[0]), '   ');
+
+    expect(renamed[0]).toEqual({ name: 'A address', latitude: 35.1, longitude: 139.1 });
+    expect(favoriteDisplayName(renamed[0])).toBe('A address');
+  });
+
+  it('deletes only the targeted favorite', () => {
+    const favorites = [
+      { name: 'A address', latitude: 35.1, longitude: 139.1 },
+      { name: 'B address', latitude: 35.2, longitude: 139.2 },
+    ];
+
+    expect(deleteFavorite(favorites, favoriteKey(favorites[0]))).toEqual([favorites[1]]);
   });
 
   it('posts raw Overpass QL to the same-origin proxy', async () => {

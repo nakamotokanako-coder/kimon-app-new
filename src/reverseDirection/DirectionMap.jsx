@@ -19,10 +19,13 @@ import {
   buildOverpassNameQuery,
   buildOverpassQuery,
   decoratePlaces,
+  deleteFavorite,
   favoriteKey,
+  favoriteDisplayName,
   findFacilityPreset,
   normalizeOverpassElements,
   overpassFetch,
+  renameFavorite,
 } from './mapSearch.js';
 
 const LABEL_MODE = {
@@ -85,6 +88,8 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const [mapSearching, setMapSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
+  const [editingFavoriteKey, setEditingFavoriteKey] = useState(null);
+  const [favoriteLabelDraft, setFavoriteLabelDraft] = useState('');
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = window.localStorage.getItem(MAP_SEARCH_STORAGE_KEY);
@@ -129,6 +134,37 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     const key = favoriteKey(place);
     saveFavorites(favorites.filter((item) => favoriteKey(item) !== key));
     setMapStatus(`${place.name}をお気に入りから削除しました。`);
+  };
+
+  const editingFavorite = useMemo(
+    () => decoratedFavorites.find((item) => favoriteKey(item) === editingFavoriteKey) || null,
+    [decoratedFavorites, editingFavoriteKey],
+  );
+
+  const openFavoriteEditor = (favorite) => {
+    setEditingFavoriteKey(favoriteKey(favorite));
+    setFavoriteLabelDraft(favoriteDisplayName(favorite) || '');
+  };
+
+  const closeFavoriteEditor = () => {
+    setEditingFavoriteKey(null);
+    setFavoriteLabelDraft('');
+  };
+
+  const saveFavoriteLabel = () => {
+    if (!editingFavoriteKey) return;
+    saveFavorites(renameFavorite(favorites, editingFavoriteKey, favoriteLabelDraft));
+    setMapStatus('お気に入りの名前を保存しました。');
+    closeFavoriteEditor();
+  };
+
+  const deleteEditingFavorite = () => {
+    if (!editingFavoriteKey || !editingFavorite) return;
+    const name = favoriteDisplayName(editingFavorite) || editingFavorite.name;
+    if (!window.confirm(`「${name}」を削除しますか?`)) return;
+    saveFavorites(deleteFavorite(favorites, editingFavoriteKey));
+    setMapStatus(`${name}をお気に入りから削除しました。`);
+    closeFavoriteEditor();
   };
 
   const clearPlaceMarkers = () => {
@@ -459,14 +495,25 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
             <div className="direction-place-section">
               <h3>お気に入り</h3>
               {decoratedFavorites.map((item) => (
-                <button key={favoriteKey(item)} type="button" className="direction-place-row" onClick={() => showPlace(item)}>
-                  <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
-                  <span>
-                    <strong>{item.name}</strong>
-                    <small>家から約{formatDistance(item.distanceM)}</small>
-                  </span>
-                  <b>{item.direction?.label || '-'} {scoreText(item.direction?.score || 0)}</b>
-                </button>
+                <div key={favoriteKey(item)} className="direction-place-row is-editable">
+                  <button type="button" className="direction-place-main" onClick={() => showPlace(item)}>
+                    <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                    <span>
+                      <strong>{favoriteDisplayName(item)}</strong>
+                      <small>{item.name} ・ 家から約{formatDistance(item.distanceM)}</small>
+                    </span>
+                    <b>{item.direction?.label || '-'} {scoreText(item.direction?.score || 0)}</b>
+                  </button>
+                  <button
+                    type="button"
+                    className="direction-place-edit"
+                    aria-label={`${favoriteDisplayName(item)}の名前を編集`}
+                    title="名前を編集"
+                    onClick={() => openFavoriteEditor(item)}
+                  >
+                    ✎
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -521,6 +568,31 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         <span><i className="legend-swatch tone-neutral" />中立</span>
         <span><i className="legend-swatch tone-bad" />凶</span>
       </div>
+      {editingFavorite && (
+        <div className="direction-favorite-modal" role="dialog" aria-modal="true" aria-label="お気に入りの編集">
+          <div className="direction-favorite-sheet">
+            <h3>お気に入りの編集</h3>
+            <label>
+              <span>名前</span>
+              <input
+                type="text"
+                value={favoriteLabelDraft}
+                placeholder="お気に入りの名前"
+                onChange={(event) => setFavoriteLabelDraft(event.target.value)}
+                autoFocus
+              />
+            </label>
+            <p>{editingFavorite.name}</p>
+            <div className="direction-favorite-actions">
+              <button type="button" onClick={saveFavoriteLabel}>保存</button>
+              <button type="button" className="is-ghost" onClick={closeFavoriteEditor}>キャンセル</button>
+            </div>
+            <button type="button" className="direction-favorite-delete" onClick={deleteEditingFavorite}>
+              このお気に入りを削除
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
