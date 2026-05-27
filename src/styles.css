@@ -1827,7 +1827,7 @@ body {
 
 .reverse-mode-tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -2883,6 +2883,256 @@ body {
   margin: 0;
   padding: 0 14px 13px;
   font-size: 0.68rem;
+}
+
+.kakkyoku-search-view {
+  display: grid;
+  gap: 12px;
+  font-family: var(--font-body);
+}
+
+.kakkyoku-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: radial-gradient(120% 120% at 100% 0%, rgba(127, 176, 240, 0.14), transparent 54%), var(--bg-card);
+}
+
+.kakkyoku-hero p,
+.kakkyoku-hero h3,
+.kakkyoku-hero span,
+.kakkyoku-group p,
+.kakkyoku-period p,
+.kakkyoku-result-head h3 {
+  margin: 0;
+}
+
+.kakkyoku-hero p,
+.kakkyoku-hero span,
+.kakkyoku-period p,
+.kakkyoku-picker-head span,
+.kakkyoku-result-head span,
+.kakkyoku-practical {
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+}
+
+.kakkyoku-hero h3,
+.kakkyoku-picker-head h3,
+.kakkyoku-result-head h3 {
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 1.08rem;
+}
+
+.kakkyoku-hero > b {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border: 1px solid var(--border-main);
+  border-radius: 999px;
+  color: var(--text-accent);
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+}
+
+.kakkyoku-basis,
+.kakkyoku-picker-head,
+.kakkyoku-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kakkyoku-basis {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.kakkyoku-basis strong {
+  color: var(--text-primary);
+}
+
+.kakkyoku-period,
+.kakkyoku-picker {
+  display: grid;
+  gap: 9px;
+}
+
+.kakkyoku-period > div,
+.kakkyoku-picker-head > div:last-child,
+.kakkyoku-group > div,
+.kakkyoku-sort-toggle,
+.kakkyoku-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kakkyoku-period button,
+.kakkyoku-picker-head button,
+.kakkyoku-group button,
+.kakkyoku-sort-toggle button {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font: 800 0.72rem var(--font-body);
+  cursor: pointer;
+}
+
+.kakkyoku-period button.is-active,
+.kakkyoku-group button.is-active,
+.kakkyoku-sort-toggle button.is-active {
+  border-color: var(--border-main);
+  background: color-mix(in srgb, var(--text-accent) 15%, var(--bg-cell));
+  color: var(--text-accent);
+}
+
+.kakkyoku-picker {
+  padding: 13px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-cell);
+}
+
+.kakkyoku-group {
+  display: grid;
+  gap: 7px;
+}
+
+.kakkyoku-group p {
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.kakkyoku-search-button {
+  min-height: 44px;
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  background: var(--text-accent);
+  color: #1a1606;
+  font-family: var(--font-body);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.kakkyoku-search-button:disabled {
+  border-color: var(--border-subtle);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.kakkyoku-result-list {
+  display: grid;
+  gap: 8px;
+}
+
+.kakkyoku-result-card {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 13px;
+  background: linear-gradient(160deg, var(--bg-elevated), var(--bg-card));
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.kakkyoku-result-dir {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.kakkyoku-result-dir strong {
+  color: var(--text-accent);
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+}
+
+.kakkyoku-result-dir small,
+.kakkyoku-result-score small {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+}
+
+.kakkyoku-result-main {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.kakkyoku-result-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.kakkyoku-result-date small.is-sat { color: #7fb0f0; }
+.kakkyoku-result-date small.is-sun { color: #ff7a7a; }
+
+.kakkyoku-result-date b {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.kakkyoku-badges em,
+.kakkyoku-badges i {
+  border-radius: 7px;
+  padding: 3px 7px;
+  font-family: var(--font-body);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.kakkyoku-badges em {
+  border: 1px solid rgba(127, 176, 240, 0.5);
+  background: rgba(127, 176, 240, 0.13);
+  color: #7fb0f0;
+}
+
+.kakkyoku-badges i {
+  background: #4472c4;
+  color: #fff;
+}
+
+.kakkyoku-practical {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kakkyoku-result-score {
+  display: grid;
+  justify-items: end;
+  color: #8ee08e;
+  font-family: var(--font-body);
+  font-size: 1.12rem;
+  font-weight: 900;
+}
+
+.kakkyoku-result-score.is-bad {
+  color: #ff7a7a;
 }
 
 .reverse-compass-frame {

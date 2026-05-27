@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
+import KakkyokuSearchView from './KakkyokuSearchView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import { sortTimelineSlotsByScore } from './strongestRanking.js';
@@ -177,7 +178,9 @@ export default function ReverseDirectionView() {
         <div>
           <h2>吉方位</h2>
           <p>
-            {mode === 'ranking'
+            {mode === 'kakkyoku'
+              ? `時盤・格局検索 / ${location.name}`
+              : mode === 'ranking'
               ? `日盤・最強ランキング / ${location.name}`
               : mode === 'day'
               ? `日盤・遠出 / ${location.name}`
@@ -196,6 +199,9 @@ export default function ReverseDirectionView() {
         </button>
         <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
           最強ランキング<small>期間</small>
+        </button>
+        <button className={mode === 'kakkyoku' ? 'is-active' : ''} type="button" onClick={() => setMode('kakkyoku')}>
+          格局を探す<small>時盤</small>
         </button>
         <button className={mode === 'range' ? 'is-active' : ''} type="button" onClick={() => setMode('range')}>
           期間検索<small>将来</small>
@@ -233,7 +239,7 @@ export default function ReverseDirectionView() {
           />
           <button type="button" onClick={searchPlace}>検索</button>
         </div>
-        {mode === 'time' ? (
+        {mode === 'time' || mode === 'kakkyoku' ? (
           <div className="reverse-correction">
             <span>自然時補正：{location.name} {formatCorrection(correction)}</span>
             <span>経度 {location.longitude.toFixed(2)}</span>
@@ -399,6 +405,14 @@ export default function ReverseDirectionView() {
             setDayDate(nextDate);
             setMode('day');
           }}
+        />
+      )}
+
+      {mode === 'kakkyoku' && (
+        <KakkyokuSearchView
+          location={location}
+          startDate={date}
+          correctionLabel={`${location.name} ${formatCorrection(correction)}`}
         />
       )}
 
