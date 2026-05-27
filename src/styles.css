@@ -2198,7 +2198,8 @@ body {
 }
 
 .direction-scroll-window {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
   max-height: 240px;
   overflow-y: auto;
@@ -2217,6 +2218,7 @@ body {
   align-items: center;
   gap: 9px;
   min-width: 0;
+  flex-shrink: 0;
   padding: 8px 10px;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
