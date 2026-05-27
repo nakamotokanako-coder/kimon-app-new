@@ -5,6 +5,7 @@ import {
   buildFanLayerSpecs,
   DISTANCE_PROFILE,
   destPoint,
+  liveLineColor,
   sectorPolygon,
 } from '../src/reverseDirection/mapFan.js';
 
@@ -100,5 +101,13 @@ describe('map fan geometry', () => {
     expect(fade[0].inner).toBe(0);
     expect(fade[0].outer).toBe(50000);
     expect(fade.at(-1).outer).toBe(250000);
+  });
+
+  it('colors the live location line by best palace and positive tone', () => {
+    expect(liveLineColor(null, 'kan')).toBe('#8a8a8a');
+    expect(liveLineColor({ palace: 'kan', tone: 'bad' }, 'kan')).toBe('#2e9e5b');
+    expect(liveLineColor({ palace: 'shin', tone: 'weak' }, 'kan')).toBe('#2e9e5b');
+    expect(liveLineColor({ palace: 'shin', tone: 'neutral' }, 'kan')).toBe('#8a8a8a');
+    expect(liveLineColor({ palace: 'shin', tone: 'bad' }, 'kan')).toBe('#8a8a8a');
   });
 });
