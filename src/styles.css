@@ -2888,6 +2888,7 @@ body {
 .kakkyoku-search-view {
   display: grid;
   gap: 12px;
+  font-family: var(--font-body);
 }
 
 .kakkyoku-hero {
@@ -2917,6 +2918,7 @@ body {
 .kakkyoku-result-head span,
 .kakkyoku-practical {
   color: var(--text-secondary);
+  font-family: var(--font-body);
   font-size: 0.7rem;
 }
 
@@ -2934,6 +2936,7 @@ body {
   border: 1px solid var(--border-main);
   border-radius: 999px;
   color: var(--text-accent);
+  font-family: var(--font-body);
   font-size: 0.66rem;
 }
 
@@ -3006,6 +3009,7 @@ body {
 
 .kakkyoku-group p {
   color: var(--text-primary);
+  font-family: var(--font-body);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -3016,6 +3020,7 @@ body {
   border-radius: 12px;
   background: var(--text-accent);
   color: #1a1606;
+  font-family: var(--font-body);
   font-weight: 900;
   cursor: pointer;
 }
@@ -3076,6 +3081,7 @@ body {
   align-items: baseline;
   gap: 6px;
   color: var(--text-primary);
+  font-family: var(--font-body);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -3092,6 +3098,7 @@ body {
 .kakkyoku-badges i {
   border-radius: 7px;
   padding: 3px 7px;
+  font-family: var(--font-body);
   font-size: 0.64rem;
   font-style: normal;
   font-weight: 800;
