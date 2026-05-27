@@ -2105,17 +2105,20 @@ body {
 
 .direction-map {
   width: 100%;
-  /* Favorite-list growth must not resize the map; tune these bounds after device checks if needed. */
-  height: clamp(320px, 50vh, 560px);
-  min-height: 320px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   overflow: hidden;
   background: var(--bg-elevated);
 }
 
+.direction-map-wrap:not(.is-fullscreen) .direction-map {
+  /* Favorite-list growth must not resize the normal map; tune these bounds after device checks if needed. */
+  height: clamp(320px, 50vh, 560px);
+  min-height: 320px;
+}
+
 .direction-map-wrap.is-fullscreen .direction-map {
-  height: auto;
+  height: 100%;
   min-height: 0;
   border-radius: 10px;
 }
