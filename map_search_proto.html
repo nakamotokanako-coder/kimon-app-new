@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>地図 施設検索モック（扇＋検索）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#0f0d08; --panel:#15140f; --panel2:#100e09; --line:#3a372c;
+  --gong:#e6c34a; --txt:#e8e8ea; --muted:#9aa0ab;
+  --kichi-strong:#185FA5; --kichi-mid:#378ADD; --kichi-weak:#85B7EB;
+  --neutral:#6f6c5e; --kyo:#c2554f; --best-ring:#e6c34a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#070600;font-family:'Noto Sans JP',sans-serif;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;min-height:100vh;background:var(--bg);color:var(--txt);
+  display:flex;flex-direction:column;position:relative;padding-bottom:68px;}
+.hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;}
+.hd .ttl{font-size:17px;font-weight:700;color:var(--gong);font-family:'Noto Serif JP',serif;}
+.hd .sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.note{font-size:11px;color:var(--muted);padding:0 16px 8px;line-height:1.5;}
+
+/* 基準点カード */
+.card{margin:0 16px 10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;}
+.row{display:flex;gap:8px;align-items:center;}
+.field{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--txt);display:flex;justify-content:space-between;align-items:center;}
+.field .act{font-size:11px;color:var(--gong);}
+.correction{font-size:11px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;}
+
+/* 施設検索バー */
+.searchbar{margin:0 16px 8px;display:flex;gap:8px;align-items:center;}
+.searchbar input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;font-size:14px;color:var(--txt);font-family:'Noto Sans JP',sans-serif;}
+.searchbar input::placeholder{color:var(--muted);}
+.searchbar input:focus{outline:none;border-color:var(--gong);}
+.searchbar .go{background:var(--gong);color:#1a1606;border:none;border-radius:10px;
+  padding:10px 16px;font-size:14px;font-weight:700;font-family:'Noto Sans JP',sans-serif;flex-shrink:0;}
+.chips{margin:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap;}
+.chip{font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);
+  color:var(--muted);background:var(--panel);}
+.chip:active{border-color:var(--gong);color:var(--gong);}
+.searchstate{margin:0 16px 8px;font-size:11px;color:var(--muted);min-height:15px;line-height:1.4;}
+.searchstate b{color:var(--gong);}
+
+/* 地図 */
+.map-wrap{margin:0 16px 10px;border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;}
+#map{width:100%;height:380px;background:#1a1a1a;}
+.hint{position:absolute;left:8px;bottom:8px;z-index:500;background:rgba(15,13,8,.82);
+  border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:10px;color:var(--muted);
+  max-width:75%;line-height:1.4;}
+
+/* 凡例 */
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:11px;color:var(--muted);padding:6px 16px 4px;}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block;opacity:.5;}
+
+/* 検索結果リスト */
+.results{margin:6px 16px 10px;}
+.results h4{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:6px;}
+.result{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:11px;padding:9px 11px;margin-bottom:7px;}
+.result .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.result .rmain{flex:1;min-width:0;}
+.result .rname{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.result .rsub{font-size:11px;color:var(--muted);margin-top:1px;}
+.result .rdir{text-align:right;flex-shrink:0;}
+.result .rdir .d{font-size:14px;font-weight:700;}
+.result .rdir .s{font-size:11px;}
+
+/* お気に入り */
+.favs{margin:6px 16px 4px;}
+.favs h4{font-size:12px;color:var(--gong);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.fav{display:flex;align-items:center;gap:10px;background:#1a1810;border:1px solid var(--line);
+  border-radius:11px;padding:9px 11px;margin-bottom:7px;}
+.fav .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.fav .fmain{flex:1;min-width:0;}
+.fav .fname{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fav .fsub{font-size:11px;color:var(--muted);margin-top:1px;}
+.fav .fdir{text-align:right;flex-shrink:0;}
+.fav .fdir .d{font-size:14px;font-weight:700;}
+.fav .fdir .s{font-size:11px;}
+.fav .del{flex-shrink:0;color:var(--muted);font-size:16px;padding:2px 4px;}
+
+/* お気に入り追加ボタン（吹き出し内に出す用の見た目はpopup内インライン） */
+.addfav-btn{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:#1a1606;
+  background:var(--gong);border:none;border-radius:8px;padding:6px 12px;font-family:'Noto Sans JP',sans-serif;}
+
+/* ボトムタブ */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  height:60px;background:var(--panel);border-top:1px solid var(--line);display:flex;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--muted);}
+.tab.on{color:var(--gong);}
+.tab .ic{font-size:18px;}
+
+/* マーカー（divIcon）の見た目 */
+.poi-pin{display:flex;align-items:center;justify-content:center;border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);}
+.poi-pin span{transform:rotate(45deg);font-size:10px;font-weight:900;color:#fff;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="hd">
+    <div>
+      <div class="ttl">吉方位 ・ 地図</div>
+      <div class="sub">時盤 お散歩 / 検索モック</div>
+    </div>
+    <div style="font-size:12px;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 9px;background:var(--panel);">巳刻 9-11時</div>
+  </div>
+
+  <div class="note">家を中心に吉方位を扇で表示。<b style="color:var(--gong)">地図の中で施設を探せる</b>ようになった。出てきたピンは<b style="color:var(--gong)">その場所が入る方位の色</b>。色を見れば吉方位の店かひと目で分かる。どの店へ行くかは地図を見て自分で選ぶ。</div>
+
+  <div class="card">
+    <div class="row">
+      <div class="field">📍 現在地（GPS）<span class="act" id="gpsBtn">取得</span></div>
+      <div class="field">🏠 基準点を移動<span class="act">入力</span></div>
+    </div>
+    <div class="correction"><span>自然時補正</span><span id="corr">川口 +21分（仮）</span></div>
+  </div>
+
+  <!-- 施設検索 -->
+  <div class="searchbar">
+    <input id="q" type="text" placeholder="施設も住所も（コンビニ / 駅 / 川口市○○ …）" autocomplete="off">
+    <button class="go" id="goBtn">探す</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="searchstate" id="state">種別（コンビニ/駅…）は<b>今見えている範囲</b>を検索。<b>住所・地名</b>を打つとそこへ飛んでピンを立てます。</div>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="hint">地図を動かして「西の方」を見てから探すのもOK。ピンの色＝方位の吉凶。</div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--kichi-strong)"></i>大吉</span>
+    <span><i class="sw" style="background:var(--kichi-weak)"></i>小吉</span>
+    <span><i class="sw" style="background:var(--neutral)"></i>中立</span>
+    <span><i class="sw" style="background:var(--kyo)"></i>凶</span>
+  </div>
+
+  <div class="favs" id="favs"></div>
+  <div class="results" id="results"></div>
+</div>
+
+<div class="tabbar">
+  <div class="tab"><span class="ic">🀄</span>盤</div>
+  <div class="tab on"><span class="ic">🧭</span>吉方位</div>
+  <div class="tab"><span class="ic">⚙️</span>設定</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// === 検証用ダミーデータ（本番は scoreEngine の宮スコアを8方位へマップ） ===
+var DIRS = [
+  {name:'北',   deg:0,   level:'neutral', score:0},
+  {name:'北東', deg:45,  level:'kichi-weak', score:10},
+  {name:'東',   deg:90,  level:'kyo', score:-10},
+  {name:'南東', deg:135, level:'kichi-strong', score:30, best:true},
+  {name:'南',   deg:180, level:'kichi-weak', score:10},
+  {name:'南西', deg:225, level:'neutral', score:0},
+  {name:'西',   deg:270, level:'kyo', score:-10},
+  {name:'北西', deg:315, level:'kichi-strong', score:20}
+];
+var COLOR = {
+  'kichi-strong':'#185FA5', 'kichi-mid':'#378ADD', 'kichi-weak':'#85B7EB',
+  'neutral':'#6f6c5e', 'kyo':'#c2554f'
+};
+var LEVEL_LABEL = {'kichi-strong':'大吉','kichi-mid':'中吉','kichi-weak':'小吉','neutral':'中立','kyo':'凶'};
+var RADIUS_M = 500;
+var SECTOR_DEG = 45;
+
+// 起点：埼玉・川口あたり。実機ではGPSで上書き。
+var HOME = [35.8078, 139.7240];
+
+var map = L.map('map', {zoomControl:true, attributionControl:true}).setView(HOME, 14);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19, subdomains:'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO'
+}).addTo(map);
+
+var homeMarker = L.circleMarker(HOME, {radius:6, color:'#e6c34a', fillColor:'#e6c34a', fillOpacity:1, weight:2}).addTo(map)
+ .bindTooltip('基準点（家）', {permanent:false});
+
+function sectorPolygon(center, fromDeg, toDeg, outerM, innerM){
+  innerM = innerM || 0;
+  var steps = 18, pts = [];
+  for(var i=0;i<=steps;i++){ var d = fromDeg + (toDeg-fromDeg)*i/steps; pts.push(destPoint(center, d, outerM)); }
+  if(innerM>0){ for(var j=steps;j>=0;j--){ var d2 = fromDeg + (toDeg-fromDeg)*j/steps; pts.push(destPoint(center, d2, innerM)); } }
+  else{ pts.push(center); }
+  return pts;
+}
+function destPoint(center, deg, m){
+  var R = 6378137, brng = deg*Math.PI/180;
+  var lat1 = center[0]*Math.PI/180, lon1 = center[1]*Math.PI/180, dr = m/R;
+  var lat2 = Math.asin(Math.sin(lat1)*Math.cos(dr)+Math.cos(lat1)*Math.sin(dr)*Math.cos(brng));
+  var lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(dr)*Math.cos(lat1), Math.cos(dr)-Math.sin(lat1)*Math.sin(lat2));
+  return [lat2*180/Math.PI, lon2*180/Math.PI];
+}
+
+var sectorLayers = [];
+function drawSectors(){
+  sectorLayers.forEach(function(l){ map.removeLayer(l); });
+  sectorLayers = [];
+  DIRS.forEach(function(d){
+    var isKichi = (d.level.indexOf('kichi')===0);
+    var isKyo   = d.level==='kyo';
+    var from = d.deg - SECTOR_DEG/2, to = d.deg + SECTOR_DEG/2, col = COLOR[d.level];
+    var inner = L.polygon(sectorPolygon(HOME, from, to, RADIUS_M, 0), {
+      color: col, weight: d.best ? 3 : (isKichi||isKyo ? 1.5 : 1),
+      opacity: d.best ? 0.95 : (isKichi||isKyo ? 0.7 : 0.4),
+      fillColor: col, fillOpacity: d.best ? 0.45 : (isKichi ? 0.32 : (isKyo ? 0.30 : 0.14)),
+      dashArray: d.best ? null : (isKichi||isKyo ? null : '4 3'), interactive:false
+    }).addTo(map);
+    sectorLayers.push(inner);
+    if(isKichi || isKyo){
+      var base = isKyo ? 0.75 : 1;
+      [[RADIUS_M,RADIUS_M*2,0.30],[RADIUS_M*2,RADIUS_M*5,0.20],[RADIUS_M*5,RADIUS_M*10,0.12],[RADIUS_M*10,RADIUS_M*20,0.07]]
+      .forEach(function(b){
+        var band = L.polygon(sectorPolygon(HOME, from, to, b[1], b[0]), {
+          color: col, weight: 0.7, opacity: 0.4*base, fillColor: col, fillOpacity: b[2]*base, interactive:false
+        }).addTo(map);
+        sectorLayers.push(band);
+      });
+    }
+    var lbl = destPoint(HOME, d.deg, RADIUS_M*0.62);
+    var scoreColor = isKichi ? '#bfe0ff' : (isKyo ? '#ffc0bc' : '#d8d6cf');
+    var icon = L.divIcon({ className:'',
+      html:'<div style="font:700 12px Noto Sans JP;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap;text-align:center;">'
+        + d.name + '<br><span style="font-size:13px;font-weight:900;color:'+scoreColor+';">'+(d.score>0?'+':'')+d.score+'</span></div>',
+      iconSize:[40,30], iconAnchor:[20,15] });
+    sectorLayers.push(L.marker(lbl, {icon:icon, interactive:false}).addTo(map));
+  });
+  var ring = L.circle(HOME, {radius:RADIUS_M, color:'#e6c34a', weight:1.5, opacity:0.7, fill:false, dashArray:'3 5', interactive:false}).addTo(map);
+  sectorLayers.push(ring);
+}
+drawSectors();
+
+// === 方位判定：中心からの方位角で、その点がどの方位(扇)に入るか ===
+function bearing(from, to){
+  var lat1=from[0]*Math.PI/180, lat2=to[0]*Math.PI/180, dLon=(to[1]-from[1])*Math.PI/180;
+  var y=Math.sin(dLon)*Math.cos(lat2);
+  var x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  var b=Math.atan2(y,x)*180/Math.PI; return (b+360)%360;
+}
+function distM(from, to){
+  var R=6371000, dLat=(to[0]-from[0])*Math.PI/180, dLon=(to[1]-from[1])*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(from[0]*Math.PI/180)*Math.cos(to[0]*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function dirForPoint(latlng){
+  var b = bearing(HOME, latlng);
+  // 北=0を中心に±22.5度ずつで8分割
+  var idx = Math.round(b/45)%8;
+  return DIRS[idx];
+}
+
+// === 施設検索（Overpass API・無料・キー不要） ===
+// 自由入力の語を Overpass の amenity/shop/railway などにマッピング
+var KEYMAP = [
+  {kw:['コンビニ','convenience','セブン','ローソン','ファミマ'], q:'node["shop"="convenience"]'},
+  {kw:['駅','eki','station','電車'],                          q:'node["railway"="station"]'},
+  {kw:['カフェ','cafe','コーヒー','喫茶'],                     q:'node["amenity"="cafe"]'},
+  {kw:['レストラン','飲食','ごはん','食事','restaurant'],       q:'node["amenity"="restaurant"]'},
+  {kw:['スーパー','supermarket','スーパーマーケット'],          q:'node["shop"="supermarket"]'},
+  {kw:['神社','jinja','shrine'],                              q:'node["amenity"="place_of_worship"]["religion"="shinto"]'},
+  {kw:['寺','お寺','temple'],                                  q:'node["amenity"="place_of_worship"]["religion"="buddhist"]'},
+  {kw:['公園','park','こうえん'],                              q:'node["leisure"="park"]'},
+  {kw:['病院','hospital','クリニック'],                        q:'node["amenity"="hospital"]'},
+  {kw:['銀行','bank','atm'],                                  q:'node["amenity"="bank"]'},
+  {kw:['ホテル','旅館','hotel','宿'],                          q:'node["tourism"="hotel"]'},
+  {kw:['温泉','onsen','spa'],                                  q:'node["amenity"="public_bath"]'}
+];
+var CHIPS = ['コンビニ','駅','カフェ','スーパー','公園','神社'];
+
+function buildChips(){
+  var c = document.getElementById('chips'); c.innerHTML='';
+  CHIPS.forEach(function(t){
+    var el=document.createElement('div'); el.className='chip'; el.textContent=t;
+    el.onclick=function(){ document.getElementById('q').value=t; runSearch(t); };
+    c.appendChild(el);
+  });
+}
+buildChips();
+
+function mapKeyword(word){
+  word = (word||'').trim().toLowerCase();
+  for(var i=0;i<KEYMAP.length;i++){
+    for(var j=0;j<KEYMAP[i].kw.length;j++){
+      if(word.indexOf(KEYMAP[i].kw[j].toLowerCase())>=0) return KEYMAP[i].q;
+    }
+  }
+  return null; // マッピングできない語＝名前検索にフォールバック
+}
+
+var poiLayers = [];
+function clearPois(){ poiLayers.forEach(function(l){ map.removeLayer(l); }); poiLayers=[]; }
+var placeMarker = null;
+function clearPlace(){ if(placeMarker){ map.removeLayer(placeMarker); placeMarker=null; } }
+
+// 入口：打った言葉が「種別」か「住所・地名」かで振り分け
+function runSearch(word){
+  if(mapKeyword(word)){
+    searchFacilities(word);          // コンビニ/駅… → 範囲内の施設検索
+  }else{
+    geocodeJump(word);               // 住所・地名・固有名 → そこへ飛ぶ（保険つき）
+  }
+}
+
+// 種別の施設を「今見えている範囲」で検索（従来）
+function searchFacilities(word){
+  var b = map.getBounds();
+  var bbox = b.getSouth().toFixed(5)+','+b.getWest().toFixed(5)+','+b.getNorth().toFixed(5)+','+b.getEast().toFixed(5);
+  var mapped = mapKeyword(word);
+  var ql = '[out:json][timeout:20];('+mapped+'('+bbox+');'
+         + mapped.replace('node','way')+'('+bbox+'););out center 60;';
+  setState('「<b>'+word+'</b>」を地図の範囲で検索中…');
+  fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data='+encodeURIComponent(ql)})
+    .then(function(r){ return r.json(); })
+    .then(function(data){ renderPois(word, data.elements||[]); })
+    .catch(function(e){ setState('検索に失敗しました（'+e.message+'）。少し時間をおいて再度お試しください。'); });
+}
+
+// 住所・地名でその場所へ飛ぶ＋ピンを立てて方位も出す（Nominatim・無料・キー不要）
+function geocodeJump(word){
+  setState('「<b>'+word+'</b>」を探しています…');
+  // 日本に絞り、近場優先のためHOME周辺をヒントに
+  var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ja'
+          + '&countrycodes=jp&q='+encodeURIComponent(word);
+  fetch(url, {headers:{'Accept':'application/json'}})
+    .then(function(r){ return r.json(); })
+    .then(function(arr){
+      if(!arr || !arr.length){
+        // 住所として見つからない → 範囲内の名前検索で保険
+        return fallbackNameSearch(word);
+      }
+      var hit = arr[0];
+      var lat = parseFloat(hit.lat), lon = parseFloat(hit.lon);
+      var name = (hit.name && hit.name.length ? hit.name : (hit.display_name||word)).split(',')[0];
+      dropPlace(lat, lon, name, hit.display_name||'');
+    })
+    .catch(function(){ fallbackNameSearch(word); });
+}
+
+// 住所で見つからなかったとき、今の範囲の施設名で再検索（保険）
+function fallbackNameSearch(word){
+  var b = map.getBounds();
+  var bbox = b.getSouth().toFixed(5)+','+b.getWest().toFixed(5)+','+b.getNorth().toFixed(5)+','+b.getEast().toFixed(5);
+  var safe = (word||'').replace(/["\\]/g,'');
+  var ql = '[out:json][timeout:20];(node["name"~"'+safe+'"]('+bbox+');'
+         + 'way["name"~"'+safe+'"]('+bbox+'););out center 40;';
+  fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data='+encodeURIComponent(ql)})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var els = data.elements||[];
+      if(els.length){ renderPois(word, els); }
+      else { setState('「<b>'+word+'</b>」が見つかりませんでした。地名はもう少し詳しく（市区町村＋町名）、施設は地図を動かしてお試しを。'); }
+    })
+    .catch(function(){ setState('「<b>'+word+'</b>」が見つかりませんでした。'); });
+}
+
+// 飛んでピンを立てる＋方位・距離を出す
+function dropPlace(lat, lon, name, full){
+  clearPois(); clearPlace();
+  document.getElementById('results').innerHTML='';
+  var ll = [lat, lon];
+  var dir = dirForPoint(ll);
+  var d   = distM(HOME, ll);
+  var col = COLOR[dir.level];
+  var icon = L.divIcon({ className:'',
+    html:'<div class="poi-pin" style="width:26px;height:26px;background:'+col+';"><span style="font-size:12px;">'+(dir.score>0?'+':(dir.score<0?'−':'·'))+'</span></div>',
+    iconSize:[26,26], iconAnchor:[13,26], popupAnchor:[0,-24] });
+  placeMarker = L.marker(ll,{icon:icon}).addTo(map)
+    .bindPopup(popupHtml(name, dir, d, lat, lon))
+    .openPopup();
+  bindAddFav(placeMarker, {name:name, lat:lat, lon:lon});
+  // HOMEと目的地が両方入るように地図を合わせる
+  map.fitBounds(L.latLngBounds([HOME, ll]).pad(0.35), {maxZoom:15});
+  var sc = dir.score>0?'#bfe0ff':(dir.score<0?'#ffc0bc':'#d8d6cf');
+  setState('<b>'+name+'</b> ＝ 家から見て <span style="color:'+col+';font-weight:700">'+dir.name+'・'+LEVEL_LABEL[dir.level]+'（'+(dir.score>0?'+':'')+dir.score+'）</span> ／ 約'+fmtDist(d)+'。<br><span style="color:#7c7a70">続けて「カフェ」等を打つと、この辺りの施設を探せます。</span>');
+}
+
+function renderPois(word, els){
+  clearPois(); clearPlace();
+  var pts = [];
+  els.forEach(function(el){
+    var lat = el.lat || (el.center && el.center.lat);
+    var lon = el.lon || (el.center && el.center.lon);
+    if(lat==null||lon==null) return;
+    var name = (el.tags && (el.tags.name || el.tags['name:ja'])) || '(名称なし)';
+    pts.push({lat:lat, lon:lon, name:name});
+  });
+  if(!pts.length){ setState('「<b>'+word+'</b>」はこの範囲では見つかりませんでした。地図を動かす／別の言葉でお試しを。<br><span style="color:#7c7a70">※地図データ(OSM)に登録がある施設だけが出ます。</span>'); document.getElementById('results').innerHTML=''; return; }
+
+  pts.forEach(function(p){
+    var dir = dirForPoint([p.lat, p.lon]);
+    p.dir = dir;
+    p.dist = distM(HOME, [p.lat, p.lon]);
+    var col = COLOR[dir.level];
+    var icon = L.divIcon({ className:'',
+      html:'<div class="poi-pin" style="width:20px;height:20px;background:'+col+';"><span>'+(dir.score>0?'+':(dir.score<0?'−':'·'))+'</span></div>',
+      iconSize:[20,20], iconAnchor:[10,20], popupAnchor:[0,-18] });
+    var mk = L.marker([p.lat,p.lon],{icon:icon}).addTo(map)
+      .bindPopup(popupHtml(p.name, dir, p.dist, p.lat, p.lon));
+    bindAddFav(mk, {name:p.name, lat:p.lat, lon:p.lon});
+    poiLayers.push(mk);
+  });
+  setState('「<b>'+word+'</b>」を <b>'+pts.length+'件</b> 表示。ピンの色＝その場所の方位の吉凶。');
+  renderList(word, pts);
+}
+
+function fmtDist(m){ return m>=1000 ? (m/1000).toFixed(1)+'km' : Math.round(m)+'m'; }
+
+// === お気に入り（場所） ===
+// ※モック＝メモリ保存（閉じると消える）。本番Vercelは localStorage で永続化。
+var FAVS = [];
+function popupHtml(name, dir, d, lat, lon){
+  return '<b>'+name+'</b><br>'+dir.name+'・'+LEVEL_LABEL[dir.level]+'（'+(dir.score>0?'+':'')+dir.score+'）<br>家から約'+fmtDist(d)
+       + '<br><button class="addfav-btn" data-fav="1">★ お気に入りに追加</button>';
+}
+function bindAddFav(marker, place){
+  marker.on('popupopen', function(e){
+    var btn = e.popup.getElement().querySelector('[data-fav]');
+    if(!btn) return;
+    if(isFav(place)){ btn.textContent='★ 登録済み'; btn.style.opacity='0.6'; btn.disabled=true; return; }
+    btn.onclick = function(){ addFav(place); marker.closePopup(); };
+  });
+}
+function favKey(p){ return p.lat.toFixed(5)+','+p.lon.toFixed(5); }
+function isFav(p){ return FAVS.some(function(f){ return favKey(f)===favKey(p); }); }
+function addFav(p){ if(isFav(p)) return; FAVS.push({name:p.name, lat:p.lat, lon:p.lon}); saveFavs(); renderFavs(); }
+function delFav(key){ FAVS = FAVS.filter(function(f){ return favKey(f)!==key; }); saveFavs(); renderFavs(); }
+function saveFavs(){
+  // 本番：localStorage.setItem('kimon_favs', JSON.stringify(FAVS));
+  // モック：メモリのみ（環境制約）
+}
+
+function renderFavs(){
+  var el = document.getElementById('favs');
+  if(!FAVS.length){ el.innerHTML=''; return; }
+  var html = '<h4>★ お気に入りの場所（'+FAVS.length+'）</h4>';
+  FAVS.forEach(function(f){
+    var dir = dirForPoint([f.lat, f.lon]);   // 今日の盤で方位・吉凶を再計算
+    var dist = distM(HOME, [f.lat, f.lon]);
+    var col = COLOR[dir.level];
+    var sc = dir.score>0?'#bfe0ff':(dir.score<0?'#ffc0bc':'#d8d6cf');
+    html += '<div class="fav" data-key="'+favKey(f)+'">'
+      + '<span class="dot" style="background:'+col+'"></span>'
+      + '<div class="fmain"><div class="fname">'+f.name+'</div>'
+      + '<div class="fsub">家から約'+fmtDist(dist)+'</div></div>'
+      + '<div class="fdir"><div class="d" style="color:'+col+'">'+dir.name+'</div>'
+      + '<div class="s" style="color:'+sc+'">'+LEVEL_LABEL[dir.level]+' '+(dir.score>0?'+':'')+dir.score+'</div></div>'
+      + '<span class="del" data-del="'+favKey(f)+'">×</span>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+  // タップでその場所を地図に表示／×で削除
+  Array.prototype.forEach.call(el.querySelectorAll('.fav'), function(row){
+    row.onclick = function(ev){
+      if(ev.target.getAttribute('data-del')){ delFav(ev.target.getAttribute('data-del')); return; }
+      var f = FAVS.filter(function(x){ return favKey(x)===row.getAttribute('data-key'); })[0];
+      if(f) showFav(f);
+    };
+  });
+}
+function showFav(f){
+  clearPois(); clearPlace();
+  document.getElementById('q').value='';
+  dropPlace(f.lat, f.lon, f.name, '');
+}
+
+
+function renderList(word, pts){
+  // 吉い順→近い順で上位を一覧に
+  var sorted = pts.slice().sort(function(a,b){
+    if(b.dir.score!==a.dir.score) return b.dir.score-a.dir.score;
+    return a.dist-b.dist;
+  }).slice(0,8);
+  var html = '<h4>一覧（吉方位＆近い順・上位'+sorted.length+'件）</h4>';
+  sorted.forEach(function(p){
+    var col = COLOR[p.dir.level];
+    var sc = p.dir.score>0?'#bfe0ff':(p.dir.score<0?'#ffc0bc':'#d8d6cf');
+    html += '<div class="result">'
+      + '<span class="dot" style="background:'+col+'"></span>'
+      + '<div class="rmain"><div class="rname">'+p.name+'</div>'
+      + '<div class="rsub">家から約'+fmtDist(p.dist)+'</div></div>'
+      + '<div class="rdir"><div class="d" style="color:'+col+'">'+p.dir.name+'</div>'
+      + '<div class="s" style="color:'+sc+'">'+LEVEL_LABEL[p.dir.level]+' '+(p.dir.score>0?'+':'')+p.dir.score+'</div></div>'
+      + '</div>';
+  });
+  document.getElementById('results').innerHTML = html;
+}
+
+function setState(html){ document.getElementById('state').innerHTML = html; }
+
+document.getElementById('goBtn').onclick = function(){ var w=document.getElementById('q').value; if(w.trim()) runSearch(w.trim()); };
+document.getElementById('q').addEventListener('keydown', function(e){ if(e.key==='Enter'){ var w=this.value; if(w.trim()) runSearch(w.trim()); } });
+
+// GPS取得（実機HTTPS必須）
+document.getElementById('gpsBtn').onclick = function(){
+  if(!navigator.geolocation){ alert('Geolocation非対応'); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    HOME = [pos.coords.latitude, pos.coords.longitude];
+    map.removeLayer(homeMarker);
+    homeMarker = L.circleMarker(HOME, {radius:6, color:'#e6c34a', fillColor:'#e6c34a', fillOpacity:1, weight:2}).addTo(map).bindTooltip('基準点（家）');
+    var lng = pos.coords.longitude, corr = Math.round((lng-135)*4);
+    document.getElementById('corr').textContent = '経度'+lng.toFixed(2)+' → '+(corr>=0?'+':'')+corr+'分';
+    map.setView(HOME, 14); drawSectors(); clearPois(); renderFavs();
+  }, function(err){ alert('位置情報が取れません: '+err.message+'\n（実機はHTTPS=Vercelプレビューで確認）'); });
+};
+
+// === 初期サンプル（モックで動きを見せる用。本番は空スタート） ===
+FAVS = [
+  {name:'実家（例）',        lat:35.8550, lon:139.6480},
+  {name:'よく行くスーパー（例）', lat:35.8000, lon:139.7350}
+];
+renderFavs();
+
+</script>
+</body>
+</html>

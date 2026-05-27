@@ -101,31 +101,51 @@ export function bestKakkyoku(candidate) {
 }
 
 export function hachimonRank(candidate) {
-  return MON_RANK[candidate.hachimon] ?? 99;
+  return MON_RANK[candidate.hachimon || candidate.palaceData?.hachimon] ?? 99;
+}
+
+export function compareRankingCore(a, b) {
+  const scoreDiff = b.score - a.score;
+  if (scoreDiff !== 0) return scoreDiff;
+
+  const badDiff = Number(hasBadElement(a)) - Number(hasBadElement(b));
+  if (badDiff !== 0) return badDiff;
+
+  const monDiff = hachimonRank(a) - hachimonRank(b);
+  if (monDiff !== 0) return monDiff;
+
+  const aKaku = bestKakkyoku(a);
+  const bKaku = bestKakkyoku(b);
+  const kakuPresenceDiff = Number(!aKaku) - Number(!bKaku);
+  if (kakuPresenceDiff !== 0) return kakuPresenceDiff;
+  const kakuDiff = (KAKU_RANK[aKaku?.name] ?? 999) - (KAKU_RANK[bKaku?.name] ?? 999);
+  if (kakuDiff !== 0) return kakuDiff;
+
+  return 0;
 }
 
 export function sortRanking(candidates) {
   return [...candidates].sort((a, b) => {
-    const scoreDiff = b.score - a.score;
-    if (scoreDiff !== 0) return scoreDiff;
-
-    const badDiff = Number(hasBadElement(a)) - Number(hasBadElement(b));
-    if (badDiff !== 0) return badDiff;
-
-    const monDiff = hachimonRank(a) - hachimonRank(b);
-    if (monDiff !== 0) return monDiff;
-
-    const aKaku = bestKakkyoku(a);
-    const bKaku = bestKakkyoku(b);
-    const kakuPresenceDiff = Number(!aKaku) - Number(!bKaku);
-    if (kakuPresenceDiff !== 0) return kakuPresenceDiff;
-    const kakuDiff = (KAKU_RANK[aKaku?.name] ?? 999) - (KAKU_RANK[bKaku?.name] ?? 999);
-    if (kakuDiff !== 0) return kakuDiff;
+    const coreDiff = compareRankingCore(a, b);
+    if (coreDiff !== 0) return coreDiff;
 
     const dateDiff = a.date.localeCompare(b.date);
     if (dateDiff !== 0) return dateDiff;
 
     return PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace);
+  });
+}
+
+export function sortTimelineSlotsByScore(slots) {
+  return [...slots].sort((a, b) => {
+    if (!a.best && !b.best) return a.hour - b.hour;
+    if (!a.best) return 1;
+    if (!b.best) return -1;
+
+    const coreDiff = compareRankingCore(a.best, b.best);
+    if (coreDiff !== 0) return coreDiff;
+
+    return a.hour - b.hour;
   });
 }
 

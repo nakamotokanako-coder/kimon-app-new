@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildTimeline,
   buildDayReverseBoard,
   filterGoodRankings,
   getLongitudeCorrectionMinutes,
+  getMiniBoardToneClass,
   getScoreTone,
   getTimeSlotHour,
+  TIME_SLOTS,
 } from '../src/reverseDirection/reverseDirection.js';
 
 describe('reverse direction utilities', () => {
@@ -34,6 +37,25 @@ describe('reverse direction utilities', () => {
     expect(getScoreTone(0)).toBe('neutral');
     expect(getScoreTone(-10)).toBe('bad');
     expect(getScoreTone(-20)).toBe('bad-strong');
+  });
+
+  it('maps mini board color classes by score band', () => {
+    expect(getMiniBoardToneClass(40)).toBe('daikichi');
+    expect(getMiniBoardToneClass(39)).toBe('shokichi');
+    expect(getMiniBoardToneClass(0)).toBe('churitsu');
+    expect(getMiniBoardToneClass(-1)).toBe('kyo');
+  });
+
+  it('keeps full rankings on each timeline slot even when good-only is enabled', () => {
+    const timeline = buildTimeline({ date: '2026-06-01', purposeName: '仕事', goodOnly: true });
+    expect(timeline).toHaveLength(12);
+    expect(timeline[0].rankings).toHaveLength(8);
+    expect(timeline[0].rawBest).toBe(timeline[0].rankings[0]);
+  });
+
+  it('keeps timeline order in TIME_SLOTS order by default', () => {
+    const timeline = buildTimeline({ date: '2026-06-01', purposeName: '仕事', goodOnly: false });
+    expect(timeline.map((slot) => slot.hour)).toEqual(TIME_SLOTS.map((slot) => slot.hour));
   });
 
   it('builds day-board rankings from a selected date without an hour', () => {

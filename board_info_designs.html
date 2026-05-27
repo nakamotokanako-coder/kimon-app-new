@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#2b2b2b;padding:16px;}
+.case{margin-bottom:30px;}
+.case-label{color:#fff;font-size:14px;font-weight:700;margin-bottom:4px;}
+.case-desc{color:#aaa;font-size:11px;margin-bottom:10px;line-height:1.5;}
+.stage{background:#f3e3e0;border-radius:16px;padding:16px 14px;}
+
+/* 共通見出し */
+.sec-h{font-weight:700;font-size:15px;color:#8a4a5a;margin:0 0 10px;display:flex;align-items:center;gap:7px;}
+.sec-h::before{content:"";width:4px;height:16px;background:#c98a9a;border-radius:2px;}
+
+/* ===== 案1：チップ／タグ型（柔らかカード） ===== */
+.c1-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.c1-item{background:#fdf8f7;border-radius:11px;padding:9px 11px;}
+.c1-item .k{font-size:10.5px;color:#b08a92;font-weight:500;margin-bottom:2px;}
+.c1-item .v{font-size:16px;color:#3a2a2e;font-weight:700;}
+
+/* ===== 案2：すっきり罫線リスト型 ===== */
+.c2{background:#fdf8f7;border-radius:12px;padding:6px 14px;}
+.c2-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #efdfdc;}
+.c2-row:last-child{border-bottom:none;}
+.c2-row .k{font-size:13px;color:#a87f87;}
+.c2-row .v{font-size:15px;color:#3a2a2e;font-weight:700;}
+
+/* ===== 案3：ラベルピル型（一番可愛い） ===== */
+.c3{display:flex;flex-direction:column;gap:7px;}
+.c3-row{display:flex;align-items:center;gap:9px;}
+.c3-row .k{flex:0 0 auto;font-size:11px;color:#fff;background:#c98a9a;padding:3px 11px;border-radius:20px;font-weight:500;min-width:74px;text-align:center;}
+.c3-row .v{font-size:16px;color:#3a2a2e;font-weight:700;}
+
+/* ===== 案4：2カラム密集グリッド（情報量優先・コンパクト） ===== */
+.c4{background:#fdf8f7;border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto 1fr;gap:7px 12px;align-items:center;}
+.c4 .k{font-size:11px;color:#a87f87;white-space:nowrap;}
+.c4 .v{font-size:15px;color:#3a2a2e;font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- 案1 -->
+<div class="case">
+  <div class="case-label">案1：柔らかカード型</div>
+  <div class="case-desc">各項目を小さな白カードに。2列で並べて余白を詰める。優しくて今っぽい。</div>
+  <div class="stage">
+    <div class="sec-h">盤情報</div>
+    <div class="c1-grid">
+      <div class="c1-item"><div class="k">盤種</div><div class="v">日盤</div></div>
+      <div class="c1-item"><div class="k">局数</div><div class="v">陽5局</div></div>
+      <div class="c1-item"><div class="k">キー干支</div><div class="v">壬辰</div></div>
+      <div class="c1-item"><div class="k">旬首</div><div class="v">庚</div></div>
+      <div class="c1-item"><div class="k">直符</div><div class="v">天柱</div></div>
+      <div class="c1-item"><div class="k">直使</div><div class="v">驚門</div></div>
+      <div class="c1-item"><div class="k">空亡</div><div class="v">午未</div></div>
+      <div class="c1-item"><div class="k">旬首・天盤宮</div><div class="v">離</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 案2 -->
+<div class="case">
+  <div class="case-label">案2：すっきり罫線リスト型</div>
+  <div class="case-desc">薄いピンクの罫線で項目を区切る。シンプルで読みやすい。大人っぽい。</div>
+  <div class="stage">
+    <div class="sec-h">盤情報</div>
+    <div class="c2">
+      <div class="c2-row"><span class="k">盤種</span><span class="v">日盤</span></div>
+      <div class="c2-row"><span class="k">局数</span><span class="v">陽5局</span></div>
+      <div class="c2-row"><span class="k">キー干支</span><span class="v">壬辰</span></div>
+      <div class="c2-row"><span class="k">旬首</span><span class="v">庚</span></div>
+      <div class="c2-row"><span class="k">直符</span><span class="v">天柱</span></div>
+      <div class="c2-row"><span class="k">直使</span><span class="v">驚門</span></div>
+      <div class="c2-row"><span class="k">空亡</span><span class="v">午未</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 案3 -->
+<div class="case">
+  <div class="case-label">案3：ラベルピル型（一番可愛い）</div>
+  <div class="case-desc">項目名を丸いピンクのタグに。ぱっと見で項目が分かる。一番ポップで可愛い。</div>
+  <div class="stage">
+    <div class="sec-h">盤情報</div>
+    <div class="c3">
+      <div class="c3-row"><span class="k">盤種</span><span class="v">日盤</span></div>
+      <div class="c3-row"><span class="k">局数</span><span class="v">陽5局</span></div>
+      <div class="c3-row"><span class="k">キー干支</span><span class="v">壬辰</span></div>
+      <div class="c3-row"><span class="k">旬首</span><span class="v">庚</span></div>
+      <div class="c3-row"><span class="k">直符</span><span class="v">天柱</span></div>
+      <div class="c3-row"><span class="k">直使</span><span class="v">驚門</span></div>
+      <div class="c3-row"><span class="k">空亡</span><span class="v">午未</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 案4 -->
+<div class="case">
+  <div class="case-label">案4：コンパクト2カラム型</div>
+  <div class="case-desc">項目を2列ぎっしり。余白を最小化して情報を一覧。スクロール減って見やすい。</div>
+  <div class="stage">
+    <div class="sec-h">盤情報</div>
+    <div class="c4">
+      <span class="k">盤種</span><span class="v">日盤</span>
+      <span class="k">局数</span><span class="v">陽5局</span>
+      <span class="k">キー干支</span><span class="v">壬辰</span>
+      <span class="k">旬首</span><span class="v">庚</span>
+      <span class="k">直符</span><span class="v">天柱</span>
+      <span class="k">直使</span><span class="v">驚門</span>
+      <span class="k">空亡</span><span class="v">午未</span>
+      <span class="k">天盤宮</span><span class="v">離</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
