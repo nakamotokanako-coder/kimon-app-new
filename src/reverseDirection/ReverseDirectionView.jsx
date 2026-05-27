@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
+import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
+import { sortTimelineSlotsByScore } from './strongestRanking.js';
 import {
   buildDayReverseBoard,
   buildReverseBoard,
@@ -42,6 +44,8 @@ export default function ReverseDirectionView() {
   const [mode, setMode] = useState('time');
   const [dayDate, setDayDate] = useState(getTodayJst());
   const [status, setStatus] = useState('');
+  const [openTimelineHour, setOpenTimelineHour] = useState(null);
+  const [timelineSortMode, setTimelineSortMode] = useState('time');
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -72,6 +76,9 @@ export default function ReverseDirectionView() {
   const timeline = useMemo(() => (
     buildTimeline({ date, purposeName: purpose, goodOnly })
   ), [date, purpose, goodOnly]);
+  const displayedTimeline = useMemo(() => (
+    timelineSortMode === 'score' ? sortTimelineSlotsByScore(timeline) : timeline
+  ), [timeline, timelineSortMode]);
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -135,14 +142,32 @@ export default function ReverseDirectionView() {
           </button>
         ))}
       </div>
-      <label className="reverse-toggle-row">
-        <span>吉のみ表示</span>
-        <input
-          type="checkbox"
-          checked={goodOnly}
-          onChange={(e) => setGoodOnly(e.target.checked)}
-        />
-      </label>
+      <div className="reverse-filter-controls">
+        <label className="reverse-toggle-row">
+          <span>吉のみ表示</span>
+          <input
+            type="checkbox"
+            checked={goodOnly}
+            onChange={(e) => setGoodOnly(e.target.checked)}
+          />
+        </label>
+        <div className="reverse-sort-toggle" role="group" aria-label="時間帯ベストの並び順">
+          <button
+            type="button"
+            className={timelineSortMode === 'time' ? 'is-active' : ''}
+            onClick={() => setTimelineSortMode('time')}
+          >
+            時間順
+          </button>
+          <button
+            type="button"
+            className={timelineSortMode === 'score' ? 'is-active' : ''}
+            onClick={() => setTimelineSortMode('score')}
+          >
+            点数順
+          </button>
+        </div>
+      </div>
     </div>
   );
 
@@ -254,16 +279,28 @@ export default function ReverseDirectionView() {
 
           <div className="reverse-timeline">
             <h3>本日の時間帯別ベスト</h3>
-            {timeline.map((slot) => (
-              <div key={slot.hour} className={`reverse-tl-item ${slot.hour === slotHour ? 'is-now' : ''}`}>
+            {displayedTimeline.map((slot) => (
+              <div key={slot.hour} className="reverse-tl-block">
+                <button
+                  type="button"
+                  className={`reverse-tl-item ${slot.hour === slotHour ? 'is-now' : ''} ${openTimelineHour === slot.hour ? 'is-expanded' : ''}`}
+                  onClick={() => setOpenTimelineHour((current) => (current === slot.hour ? null : slot.hour))}
+                  aria-expanded={openTimelineHour === slot.hour}
+                >
                 <span className="reverse-tl-time">{slot.label}</span>
-                <div className="reverse-tl-main">
+                <span className="reverse-tl-main">
                   <strong>{slot.best?.label || '該当なし'}</strong>
                   <span>{slot.best?.reasons.slice(0, 2).join('・') || '凶を除外中'}</span>
-                </div>
-                <span className={`reverse-tl-score ${(slot.best?.score || 0) < 0 ? 'is-bad' : ''}`}>
-                  {slot.best ? `${slot.best.score > 0 ? '+' : ''}${slot.best.score}` : '-'}
                 </span>
+                  <span className={`reverse-tl-score ${(slot.best?.score || 0) < 0 ? 'is-bad' : ''}`}>
+                    {slot.best ? `${slot.best.score > 0 ? '+' : ''}${slot.best.score}` : '-'}
+                  </span>
+                </button>
+                {openTimelineHour === slot.hour && (
+                  <div className="reverse-tl-panel">
+                    <MiniBoardGrid rankings={slot.rankings} />
+                  </div>
+                )}
               </div>
             ))}
           </div>

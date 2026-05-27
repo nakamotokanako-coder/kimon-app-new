@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  KAKU_RANK,
+  MON_RANK,
   buildMonthlyBest,
   buildPeriodRange,
   formatDateForOrigin,
   formatPeriodLabel,
   scanStrongestRanking,
   sortRanking,
+  sortTimelineSlotsByScore,
 } from '../src/reverseDirection/strongestRanking.js';
 
 function candidate(patch) {
@@ -19,6 +22,15 @@ function candidate(patch) {
       detected_kakkyoku: [],
     },
     ...patch,
+  };
+}
+
+function slot(hour, bestPatch) {
+  return {
+    hour,
+    label: `${hour}`,
+    best: candidate(bestPatch),
+    rankings: [candidate(bestPatch)],
   };
 }
 
@@ -68,6 +80,47 @@ describe('strongest ranking sort', () => {
       candidate({ palace: 'early', date: '2026-06-01' }),
     ]);
     expect(rows[0].palace).toBe('early');
+  });
+
+  it('sorts timeline slots by best score first', () => {
+    const rows = sortTimelineSlotsByScore([
+      slot(8, { palace: 'low', score: 20 }),
+      slot(2, { palace: 'high', score: 50 }),
+    ]);
+    expect(rows.map((row) => row.hour)).toEqual([2, 8]);
+  });
+
+  it('breaks tied timeline scores by bad elements, hachimon, kichi kakkyoku, then hour', () => {
+    const mon = Object.keys(MON_RANK);
+    const kaku = Object.keys(KAKU_RANK);
+
+    expect(sortTimelineSlotsByScore([
+      slot(2, { palace: 'bad', palaceScore: { breakdown: { hachimon: -40 }, detected_kakkyoku: [] } }),
+      slot(8, { palace: 'safe', palaceScore: { breakdown: {}, detected_kakkyoku: [] } }),
+    ])[0].hour).toBe(8);
+
+    expect(sortTimelineSlotsByScore([
+      slot(2, { palace: 'weak-mon', hachimon: mon[3] }),
+      slot(8, { palace: 'strong-mon', hachimon: mon[0] }),
+    ])[0].hour).toBe(8);
+
+    expect(sortTimelineSlotsByScore([
+      slot(2, {
+        palace: 'weak-kaku',
+        hachimon: mon[0],
+        palaceScore: { breakdown: {}, detected_kakkyoku: [{ name: kaku[5], kichi_kyo: 'kichi' }] },
+      }),
+      slot(8, {
+        palace: 'strong-kaku',
+        hachimon: mon[0],
+        palaceScore: { breakdown: {}, detected_kakkyoku: [{ name: kaku[0], kichi_kyo: 'kichi' }] },
+      }),
+    ])[0].hour).toBe(8);
+
+    expect(sortTimelineSlotsByScore([
+      slot(8, { palace: 'late', hachimon: mon[0] }),
+      slot(2, { palace: 'early', hachimon: mon[0] }),
+    ])[0].hour).toBe(2);
   });
 });
 

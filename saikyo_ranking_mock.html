@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>最強ランキング モック</title>
+<style>
+  :root{
+    --bg:#0f0d08;
+    --bg-grad-1:#141109;
+    --board-border:#b8923a;     /* 金 */
+    --gold-soft:#d8b75a;
+    --card:#17150f;             /* カード背景 */
+    --card-hi:#1d1a11;
+    --line:#3a3628;
+    --gong:#e6c34a;             /* 見出し黄金 */
+    --txt:#e8e6df;
+    --dim:#9a978b;
+    --dim2:#74715f;
+    --blue:#4472C4;             /* 吉ベタ */
+    --red:#d23b3b;              /* 凶ベタ */
+    --blue-tx:#7fb0f0;          /* 吉文字 */
+    --red-tx:#ff7a7a;           /* 凶文字 */
+    --green:#6cd06c;            /* プラス点 */
+    --rank-gold:#f0cf63;
+    --rank-silver:#cfd4dc;
+    --rank-bronze:#d09a5e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);}
+  body{
+    font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif;
+    color:var(--txt);
+    max-width:430px;margin:0 auto;
+    min-height:100vh;
+    background:
+      radial-gradient(120% 60% at 50% -10%, #1c1709 0%, var(--bg) 55%),
+      var(--bg);
+    padding:0 0 90px;
+    position:relative;
+  }
+  /* 微かな和紙テクスチャ */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.035;z-index:0;
+    background-image:repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 4px);
+  }
+
+  /* ===== ヘッダー ===== */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(180deg,#15120a 0%,rgba(21,18,10,.92) 100%);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(6px);
+    padding:14px 18px 12px;
+  }
+  .brand{display:flex;align-items:baseline;gap:8px;}
+  .brand .mark{
+    font-family:'Noto Serif JP',serif;font-weight:700;font-size:13px;
+    color:var(--board-border);letter-spacing:.18em;
+  }
+  .title{
+    font-family:'Noto Serif JP',serif;font-weight:700;
+    font-size:21px;color:var(--gong);letter-spacing:.04em;margin-top:2px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .title .crown{font-size:18px;filter:drop-shadow(0 0 6px rgba(240,207,99,.5));}
+  .subtitle{font-size:11px;color:var(--dim);margin-top:3px;letter-spacing:.02em;}
+
+  /* ===== 基準点 / 盤バー ===== */
+  .basis{
+    display:flex;gap:8px;align-items:center;
+    margin:12px 18px 0;
+    font-size:12px;color:var(--dim);
+  }
+  .basis .pin{color:var(--gold-soft);}
+  .basis b{color:var(--txt);font-weight:700;}
+  .badge-mode{
+    margin-left:auto;
+    background:rgba(180,146,58,.14);border:1px solid rgba(180,146,58,.5);
+    color:var(--gold-soft);font-size:10.5px;padding:3px 9px;border-radius:999px;
+    letter-spacing:.04em;
+  }
+
+  /* ===== 期間プリセット ===== */
+  .period-wrap{margin:13px 18px 0;}
+  .period-label{font-size:10.5px;color:var(--dim2);letter-spacing:.1em;margin-bottom:6px;}
+  .period{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+  .period::-webkit-scrollbar{display:none;}
+  .pchip{
+    flex:0 0 auto;
+    background:var(--card);border:1px solid var(--line);
+    color:var(--dim);font-size:13px;padding:8px 15px;border-radius:11px;
+    font-weight:500;transition:.18s;cursor:pointer;white-space:nowrap;
+  }
+  .pchip.active{
+    background:linear-gradient(180deg,#2a2210,#1d1809);
+    border-color:var(--board-border);color:var(--gong);
+    box-shadow:0 0 0 1px rgba(180,146,58,.3),0 4px 14px -6px rgba(180,146,58,.5);
+    font-weight:700;
+  }
+
+  /* ===== セクション見出し ===== */
+  .sec{margin:20px 18px 9px;display:flex;align-items:center;gap:9px;}
+  .sec .dot{width:6px;height:6px;background:var(--board-border);transform:rotate(45deg);}
+  .sec h2{font-family:'Noto Serif JP',serif;font-size:15px;color:var(--gong);font-weight:700;letter-spacing:.03em;}
+  .sec .hint{font-size:10.5px;color:var(--dim2);margin-left:auto;}
+
+  /* ===== ランキングカード ===== */
+  .list{margin:0 14px;display:flex;flex-direction:column;gap:9px;}
+  .card{
+    position:relative;
+    background:linear-gradient(165deg,var(--card-hi),var(--card));
+    border:1px solid var(--line);border-radius:15px;
+    padding:13px 14px 12px 13px;
+    display:flex;gap:12px;align-items:flex-start;
+    overflow:hidden;
+    cursor:pointer;transition:.15s;
+  }
+  .card:active{transform:scale(.992);}
+  .card.top1{border-color:rgba(240,207,99,.55);box-shadow:0 0 0 1px rgba(240,207,99,.25),0 6px 22px -10px rgba(240,207,99,.45);}
+  .card.top1::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 100% 0%,rgba(240,207,99,.10),transparent 55%);
+  }
+  /* 左：順位 */
+  .rank{flex:0 0 38px;text-align:center;padding-top:2px;}
+  .rank .num{
+    font-family:'Noto Serif JP',serif;font-weight:700;font-size:27px;line-height:1;
+    color:var(--dim);
+  }
+  .top1 .rank .num{color:var(--rank-gold);text-shadow:0 0 12px rgba(240,207,99,.45);}
+  .top2 .rank .num{color:var(--rank-silver);}
+  .top3 .rank .num{color:var(--rank-bronze);}
+  .rank .pos{font-size:9px;color:var(--dim2);letter-spacing:.1em;margin-top:1px;}
+
+  /* 中：本体 */
+  .body{flex:1 1 auto;min-width:0;}
+  .row1{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+  .dir{
+    font-family:'Noto Serif JP',serif;font-weight:700;font-size:20px;color:var(--txt);
+    letter-spacing:.05em;
+  }
+  .date{font-size:12.5px;color:var(--dim);}
+  .date .wd{color:var(--dim2);font-size:11px;margin-left:1px;}
+  .date .wd.sat{color:#7fb0f0;}
+  .date .wd.sun{color:#ff7a7a;}
+
+  .badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+  .bdg{
+    font-size:10.5px;padding:3px 8px;border-radius:7px;font-weight:600;letter-spacing:.02em;
+    border:1px solid transparent;line-height:1.3;
+  }
+  .bdg.mon{background:var(--blue);color:#fff;}          /* 八門 吉ベタ */
+  .bdg.mon.kei{background:#3a5a8c;color:#dce8fb;}        /* 景門は少し淡く */
+  .bdg.kaku{background:rgba(127,176,240,.13);border-color:rgba(127,176,240,.5);color:var(--blue-tx);}
+  .bdg.shin{background:rgba(108,208,108,.1);border-color:rgba(108,208,108,.42);color:#8ee08e;}
+  .bdg.safe{background:rgba(154,151,139,.1);border-color:rgba(154,151,139,.4);color:var(--dim);}
+  .bdg.warn{background:rgba(210,59,59,.13);border-color:rgba(210,59,59,.55);color:var(--red-tx);}
+
+  /* 右：点数 */
+  .score{flex:0 0 auto;text-align:right;padding-top:1px;}
+  .score .val{
+    font-family:'Noto Serif JP',serif;font-weight:700;font-size:26px;line-height:1;
+    color:var(--green);
+  }
+  .score .val.neg{color:var(--red-tx);}
+  .score .unit{font-size:10px;color:var(--dim2);margin-top:3px;}
+  .score .chev{font-size:11px;color:var(--dim2);margin-top:7px;}
+
+  /* 同点グループの注記 */
+  .tiegroup{
+    margin:3px 16px 0;font-size:10px;color:var(--dim2);
+    display:flex;align-items:center;gap:6px;
+  }
+  .tiegroup .ln{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);}
+
+  /* もっと見る */
+  .more{
+    margin:14px 18px 0;text-align:center;
+    background:transparent;border:1px solid var(--line);color:var(--dim);
+    padding:11px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .more:active{background:var(--card);}
+
+  /* ===== 月別ベスト（長期用） ===== */
+  .monthly{margin:0 14px;display:none;}
+  .monthly.show{display:block;}
+  .mgrid{display:flex;flex-direction:column;gap:7px;}
+  .mrow{
+    display:flex;align-items:center;gap:11px;
+    background:var(--card);border:1px solid var(--line);border-radius:11px;
+    padding:10px 13px;
+  }
+  .mrow .mon-name{font-family:'Noto Serif JP',serif;font-weight:700;font-size:15px;color:var(--gold-soft);flex:0 0 42px;}
+  .mrow .mdir{font-weight:700;font-size:14px;color:var(--txt);flex:0 0 26px;}
+  .mrow .mdate{font-size:11.5px;color:var(--dim);}
+  .mrow .mbdg{font-size:10px;color:var(--blue-tx);background:rgba(127,176,240,.12);padding:2px 7px;border-radius:6px;}
+  .mrow .mscore{margin-left:auto;font-family:'Noto Serif JP',serif;font-weight:700;font-size:17px;color:var(--green);}
+
+  /* ===== ルール凡例（折りたたみ） ===== */
+  .legend{margin:18px 14px 0;background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden;}
+  .legend summary{
+    list-style:none;cursor:pointer;padding:13px 15px;
+    font-size:12.5px;color:var(--gold-soft);font-weight:600;
+    display:flex;align-items:center;gap:8px;
+  }
+  .legend summary::-webkit-details-marker{display:none;}
+  .legend summary .tw{margin-left:auto;color:var(--dim2);font-size:11px;transition:.2s;}
+  .legend[open] summary .tw{transform:rotate(180deg);}
+  .legend .inner{padding:2px 16px 15px;font-size:11.5px;color:var(--dim);line-height:1.7;}
+  .legend ol{margin:6px 0 0 2px;padding-left:0;list-style:none;counter-reset:r;}
+  .legend ol li{counter-increment:r;padding-left:26px;position:relative;margin-bottom:5px;}
+  .legend ol li::before{
+    content:counter(r);position:absolute;left:0;top:1px;
+    width:18px;height:18px;border-radius:50%;background:rgba(180,146,58,.16);
+    border:1px solid rgba(180,146,58,.5);color:var(--gold-soft);
+    font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .legend ol li b{color:var(--txt);}
+  .legend .fix{color:var(--gold-soft);}
+  .legend .note{margin-top:9px;font-size:10.5px;color:var(--dim2);}
+
+  .footnote{margin:16px 22px 0;font-size:10px;color:var(--dim2);line-height:1.6;text-align:center;}
+
+  /* ===== ボトムタブ（飾り）===== */
+  .tabbar{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;
+    display:flex;background:linear-gradient(0deg,#120f08,rgba(18,15,8,.95));
+    border-top:1px solid var(--line);z-index:30;backdrop-filter:blur(6px);
+  }
+  .tabbar .tab{flex:1;text-align:center;padding:9px 0 12px;font-size:10px;color:var(--dim2);}
+  .tabbar .tab .ic{font-size:18px;display:block;margin-bottom:2px;}
+  .tabbar .tab.on{color:var(--gong);}
+  .tabbar .tab.on .ic{filter:drop-shadow(0 0 6px rgba(230,195,74,.5));}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><span class="mark">奇門遁甲</span></div>
+    <div class="title"><span class="crown">👑</span>最強ランキング</div>
+    <div class="subtitle">指定期間で、いつ・どの方位が一番強いか</div>
+  </div>
+
+  <div class="basis">
+    <span class="pin">📍</span>基準点：<b>現在地</b>（東京・新宿）
+    <span class="badge-mode">日盤 / 遠出 50km〜</span>
+  </div>
+
+  <div class="period-wrap">
+    <div class="period-label">期間</div>
+    <div class="period" id="period">
+      <button class="pchip" data-p="week">今週</button>
+      <button class="pchip active" data-p="month">今月</button>
+      <button class="pchip" data-p="q">3ヶ月</button>
+      <button class="pchip" data-p="half">半年</button>
+      <button class="pchip" data-p="year">1年</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <span class="dot"></span><h2>総合トップ<span id="topN">10</span></h2>
+    <span class="hint" id="periodHint">2026年6月</span>
+  </div>
+
+  <div class="list" id="list"></div>
+  <button class="more" id="moreBtn">もっと見る（+10件）</button>
+
+  <!-- 月別ベスト（長期のみ表示） -->
+  <div class="monthly" id="monthly">
+    <div class="sec" style="margin-left:4px;margin-right:4px;">
+      <span class="dot"></span><h2>月別ベスト</h2>
+      <span class="hint">各月の最強日</span>
+    </div>
+    <div class="mgrid" id="mgrid"></div>
+  </div>
+
+  <!-- 並べ替えルール凡例 -->
+  <details class="legend">
+    <summary>同点の並べ方ルール（5段階）<span class="tw">▼</span></summary>
+    <div class="inner">
+      点数は<b class="fix">先生の配点そのまま</b>。点数が並んだ時だけ、下の順で序列をつけています。
+      <ol>
+        <li><b>合計スコア</b>（先生配点・降順）<span class="fix">※不変</span></li>
+        <li><b>凶要素なし</b>を上に（凶門・庚・凶神・空亡など）</li>
+        <li><b>八門の格</b>：休 &gt; 生 &gt; 開 &gt; 景</li>
+        <li><b>吉格局あり</b>を上に（青龍返首・飛鳥跌穴 ほか）</li>
+        <li><b>日付が早い</b>順（直近で行ける日を優先）</li>
+      </ol>
+      <div class="note">※バッジは各日が上位にいる理由。タップで日盤の地図（反転フェード・50km金リング）へ。</div>
+    </div>
+  </details>
+
+  <div class="footnote">※ これは見た目確認用のモックです。表示データはダミー（実エンジン未接続）。</div>
+
+  <div class="tabbar">
+    <div class="tab"><span class="ic">▦</span>盤</div>
+    <div class="tab on"><span class="ic">🧭</span>吉方位</div>
+    <div class="tab"><span class="ic">⚙</span>設定</div>
+  </div>
+
+<script>
+/* ===== ダミーデータ生成 ===== */
+const DIRS = ["北","北東","東","南東","南","南西","西","北西"];
+const MON = {休:"休門",生:"生門",開:"開門",景:"景門"};
+const MON_RANK = {休:0,生:1,開:2,景:3};
+const KAKU = ["青龍返首","飛鳥跌穴","天遁","地遁","玉女守門","乙奇得使"];
+
+// 乱数シード（再現性のため固定）
+let seed=20260526;
+function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+function pick(a){return a[Math.floor(rnd()*a.length)];}
+
+function genDays(start, count){
+  const out=[];
+  const base=new Date(start);
+  for(let i=0;i<count;i++){
+    const d=new Date(base); d.setDate(base.getDate()+i);
+    // 各日の最強方位を1つ生成（点数は10刻みに寄せる＝同点を意図的に多発させる）
+    const tier = pick([40,40,40,40,50,50,60,30,40,50]); // +40多め
+    const monKey = pick(["休","生","開","景","休","生"]);
+    const hasKyo = rnd()<0.18;            // 一部に凶要素
+    const hasKaku = rnd()<0.4;            // 吉格局あり
+    const kakuName = hasKaku?pick(KAKU):null;
+    out.push({
+      date:d,
+      dir:pick(DIRS),
+      score: hasKyo? tier-50 : tier,      // 凶ありは大きく下げる
+      mon:monKey,
+      kyo:hasKyo,
+      kaku:kakuName,
+    });
+  }
+  return out;
+}
+
+/* ===== 5段階ソート ===== */
+function sortRanking(arr){
+  return arr.slice().sort((a,b)=>{
+    if(b.score!==a.score) return b.score-a.score;          // ① 合計スコア
+    if(a.kyo!==b.kyo) return a.kyo?1:-1;                    // ② 凶要素なしを上
+    if(MON_RANK[a.mon]!==MON_RANK[b.mon]) return MON_RANK[a.mon]-MON_RANK[b.mon]; // ③ 八門の格
+    const ak=a.kaku?0:1, bk=b.kaku?0:1;
+    if(ak!==bk) return ak-bk;                              // ④ 吉格局あり
+    return a.date-b.date;                                  // ⑤ 日付早い順
+  });
+}
+
+const WD=["日","月","火","水","木","金","土"];
+function fmtDate(d){
+  const w=d.getDay();
+  let cls=""; if(w===0)cls="sun"; if(w===6)cls="sat";
+  return `${d.getMonth()+1}/${d.getDate()}<span class="wd ${cls}">(${WD[w]})</span>`;
+}
+
+function badges(it){
+  let h="";
+  // ②凶 or 安全
+  if(it.kyo) h+=`<span class="bdg warn">⚠ 凶要素あり</span>`;
+  else h+=`<span class="bdg safe">凶なし</span>`;
+  // ③八門
+  h+=`<span class="bdg mon ${it.mon==='景'?'kei':''}">${MON[it.mon]}</span>`;
+  // ④格局
+  if(it.kaku) h+=`<span class="bdg kaku">${it.kaku}</span>`;
+  return h;
+}
+
+function rankClass(i){return i===0?'top1':i===1?'top2':i===2?'top3':'';}
+
+/* ===== レンダリング ===== */
+const PERIOD={
+  week:{label:"2026年6月 第1週",days:7,topN:10,monthly:false},
+  month:{label:"2026年6月",days:30,topN:10,monthly:false},
+  q:{label:"2026年6〜8月",days:92,topN:10,monthly:true},
+  half:{label:"2026年6〜11月",days:183,topN:10,monthly:true},
+  year:{label:"2026年6月〜2027年5月",days:365,topN:10,monthly:true},
+};
+
+let state={p:"month",shown:10};
+
+function render(){
+  seed=20260526; // 毎回同じダミー
+  const cfg=PERIOD[state.p];
+  const all=sortRanking(genDays("2026-06-01",cfg.days));
+  document.getElementById("periodHint").textContent=cfg.label;
+  document.getElementById("topN").textContent=cfg.topN;
+
+  // ランキング本体
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  const show=all.slice(0,state.shown);
+  let prevScore=null;
+  show.forEach((it,i)=>{
+    // 同点グループの区切り線（点数が変わる手前で）
+    if(prevScore!==null && it.score!==prevScore){
+      const t=document.createElement("div");
+      t.className="tiegroup";
+      t.innerHTML=`<span class="ln"></span><span>${it.score>=0?'+':''}${it.score}点グループ</span><span class="ln"></span>`;
+      list.appendChild(t);
+    }
+    prevScore=it.score;
+
+    const c=document.createElement("div");
+    c.className=`card ${rankClass(i)}`;
+    c.innerHTML=`
+      <div class="rank"><div class="num">${i+1}</div><div class="pos">位</div></div>
+      <div class="body">
+        <div class="row1">
+          <span class="dir">${it.dir}</span>
+          <span class="date">${fmtDate(it.date)}</span>
+        </div>
+        <div class="badges">${badges(it)}</div>
+      </div>
+      <div class="score">
+        <div class="val ${it.score<0?'neg':''}">${it.score>=0?'+':''}${it.score}</div>
+        <div class="unit">点</div>
+        <div class="chev">›</div>
+      </div>`;
+    list.appendChild(c);
+  });
+
+  // もっと見る
+  const moreBtn=document.getElementById("moreBtn");
+  if(state.shown>=Math.min(all.length,30)){moreBtn.style.display="none";}
+  else{moreBtn.style.display="block";
+    moreBtn.textContent=state.shown<20?"もっと見る（+10件 → 20件）":"もっと見る（+10件 → 30件）";}
+
+  // 月別ベスト（長期のみ）
+  const monthly=document.getElementById("monthly");
+  if(cfg.monthly){
+    monthly.classList.add("show");
+    const mg=document.getElementById("mgrid");
+    mg.innerHTML="";
+    // 月ごとに最強1日を抽出
+    const byMonth={};
+    all.forEach(it=>{
+      const k=`${it.date.getFullYear()}-${it.date.getMonth()}`;
+      if(!byMonth[k]) byMonth[k]=[];
+      byMonth[k].push(it);
+    });
+    // 月順（時系列）に並べる：year-month を時間順にソート
+    const monthKeys=Object.keys(byMonth).sort((a,b)=>{
+      const [ya,ma]=a.split("-").map(Number), [yb,mb]=b.split("-").map(Number);
+      return ya!==yb? ya-yb : ma-mb;
+    });
+    monthKeys.slice(0,12).forEach(k=>{
+      const best=sortRanking(byMonth[k])[0];
+      const mn=best.date.getMonth()+1;
+      const r=document.createElement("div");
+      r.className="mrow";
+      r.innerHTML=`
+        <span class="mon-name">${mn}月</span>
+        <span class="mdir">${best.dir}</span>
+        <span class="mdate">${best.date.getMonth()+1}/${best.date.getDate()}</span>
+        <span class="mbdg">${MON[best.mon]}${best.kaku?'・'+best.kaku:''}</span>
+        <span class="mscore">${best.score>=0?'+':''}${best.score}</span>`;
+      mg.appendChild(r);
+    });
+  } else {
+    monthly.classList.remove("show");
+  }
+}
+
+/* ===== イベント ===== */
+document.getElementById("period").addEventListener("click",e=>{
+  const b=e.target.closest(".pchip"); if(!b)return;
+  document.querySelectorAll(".pchip").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  state.p=b.dataset.p; state.shown=10;
+  render();
+});
+document.getElementById("moreBtn").addEventListener("click",()=>{
+  state.shown=Math.min(state.shown+10,30); render();
+});
+
+render();
+</script>
+</body>
+</html>

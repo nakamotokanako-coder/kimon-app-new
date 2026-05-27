@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>簡易グリッド サイズ比較</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0d08; --panel:#15140f; --panel2:#100e09; --line:#3a372c;
+  --gong:#e6c34a; --txt:#e8e8ea; --muted:#9aa0ab;
+  --kichi-strong:#185FA5; --kichi-weak:#85B7EB; --neutral:#6f6c5e; --kyo:#c2554f; --best-ring:#e6c34a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#050400;font-family:'Noto Sans JP',sans-serif;color:var(--txt);padding:20px 0 60px;
+  display:flex;justify-content:center;}
+.wrap{width:100%;max-width:430px;padding:0 14px;}
+.intro{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px;text-align:center;}
+.intro b{color:var(--gong);}
+
+.block{margin-bottom:26px;}
+.block-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.block-hd .tag{font-size:11px;font-weight:700;color:#070600;background:var(--gong);padding:2px 10px;border-radius:999px;}
+.block-hd .lbl{font-size:12px;color:var(--muted);}
+
+/* 時間帯の行 */
+.tr{background:#0c0b07;border:1px solid var(--gong);border-radius:11px 11px 0 0;border-bottom:none;
+  padding:11px 13px;display:flex;align-items:center;gap:10px;}
+.tr .time{font-size:12px;color:var(--muted);width:44px;flex-shrink:0;}
+.tr .dir{font-size:15px;font-weight:700;}
+.tr .meta{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px;}
+.tr .mid{flex:1;}
+.tr .pt{font-size:15px;font-weight:800;color:#2e9e5b;}
+.tr .chev{font-size:10px;color:var(--gong);margin-left:6px;}
+
+.exp{background:#100e09;border:1px solid var(--gong);border-top:none;border-radius:0 0 11px 11px;padding:12px;}
+
+/* グリッド本体（サイズはCSS変数で切替） */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap,5px);max-width:var(--gw,260px);margin:0 auto;}
+.gc{aspect-ratio:1;border-radius:var(--rad,7px);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid transparent;gap:1px;line-height:1.05;overflow:hidden;}
+.gc .gd{font-size:var(--fd,11px);font-weight:700;}
+.gc .gp{font-size:var(--fp,16px);font-weight:900;}
+.gc .gm{font-size:var(--fm,9px);opacity:.85;}
+.gc.center{background:#0a0905;border:1px dashed var(--line);color:var(--muted);}
+.gc.center .gd{font-size:var(--fd,11px);}
+.gc.best{outline:2px solid var(--best-ring);box-shadow:0 0 8px rgba(230,195,74,.45);}
+.daikichi{background:var(--kichi-strong);color:#fff;}
+.shokichi{background:var(--kichi-weak);color:#0a1626;}
+.churitsu{background:var(--neutral);color:#fff;}
+.kyo{background:var(--kyo);color:#fff;}
+
+/* サイズ別変数 */
+.size-L{--gw:280px;--gap:6px;--rad:8px;--fd:12px;--fp:18px;--fm:9px;}
+.size-M{--gw:215px;--gap:5px;--rad:7px;--fd:11px;--fp:15px;--fm:8px;}
+.size-S{--gw:165px;--gap:4px;--rad:6px;--fd:10px;--fp:13px;--fm:0px;} /* S は八門非表示 */
+.size-S .gm{display:none;}
+.size-SS{--gw:130px;--gap:3px;--rad:5px;--fd:8px;--fp:11px;}
+.size-SS .gm{display:none;}
+.size-SS .gd{font-weight:600;}
+
+.foot{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    「本日の時間帯別ベスト」の行をタップ → 下に出る<b>簡易グリッド</b>のサイズ感。<br>
+    本物の盤は作盤タブで見れる前提＝ここは<b>「どこに何があるか」だけ分かる簡易版</b>。<br>1-3時（北＋100）の盤で4サイズ比較。
+  </div>
+
+  <!-- L -->
+  <div class="block">
+    <div class="block-hd"><span class="tag">L 大きめ</span><span class="lbl">前回モックのサイズ。八門も余裕。けど存在感大</span></div>
+    <div class="tr"><div class="time">1-3時</div><div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div><div class="pt">+100</div><div class="chev">▲</div></div>
+    <div class="exp"><div class="grid size-L" id="gL"></div></div>
+  </div>
+
+  <!-- M -->
+  <div class="block">
+    <div class="block-hd"><span class="tag">M 中</span><span class="lbl">八門入る・コンパクト。比較しやすい折衷</span></div>
+    <div class="tr"><div class="time">1-3時</div><div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div><div class="pt">+100</div><div class="chev">▲</div></div>
+    <div class="exp"><div class="grid size-M" id="gM"></div></div>
+  </div>
+
+  <!-- S -->
+  <div class="block">
+    <div class="block-hd"><span class="tag">S 小（八門なし）</span><span class="lbl">点数だけ。一覧の流れを邪魔しない最小</span></div>
+    <div class="tr"><div class="time">1-3時</div><div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div><div class="pt">+100</div><div class="chev">▲</div></div>
+    <div class="exp"><div class="grid size-S" id="gS"></div></div>
+  </div>
+
+  <!-- SS -->
+  <div class="block">
+    <div class="block-hd"><span class="tag">SS 極小</span><span class="lbl">サムネ感覚。形がパッと分かるだけ</span></div>
+    <div class="tr"><div class="time">1-3時</div><div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div><div class="pt">+100</div><div class="chev">▲</div></div>
+    <div class="exp"><div class="grid size-SS" id="gSS"></div></div>
+  </div>
+
+  <div class="foot">※色：濃青=大吉(40+) / 水色=小吉(1〜39) / 灰=中立(0) / 赤=凶 / 金枠=最大吉</div>
+</div>
+
+<script>
+// 1-3時の盤（画像②の実数字を流用）
+const board={best:'北',
+  cells:{'北':100,'北東':10,'東':60,'南東':70,'南':-40,'南西':-65,'西':0,'北西':-20},
+  mon:{'北':'開門','東':'休門','南東':'生門','北東':'生門'}};
+function cls(v){ if(v>=40)return'daikichi'; if(v>0)return'shokichi'; if(v===0)return'churitsu'; return'kyo'; }
+function sign(v){ return v>0?'+'+v:(''+v); }
+const GRID=[['北西','北','北東'],['西','中','東'],['南西','南','南東']];
+function gridHTML(b){
+  return GRID.flat().map(d=>{
+    if(d==='中') return `<div class="gc center"><div class="gd">基準</div></div>`;
+    const v=b.cells[d], m=b.mon[d]?`<div class="gm">${b.mon[d]}</div>`:'';
+    const best=(d===b.best)?' best':'';
+    return `<div class="gc ${cls(v)}${best}"><div class="gd">${d}</div><div class="gp">${sign(v)}</div>${m}</div>`;
+  }).join('');
+}
+['gL','gM','gS','gSS'].forEach(id=>document.getElementById(id).innerHTML=gridHTML(board));
+</script>
+</body>
+</html>

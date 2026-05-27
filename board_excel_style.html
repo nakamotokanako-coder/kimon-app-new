@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#0f0d08;padding:14px;}
+.board-outer{border:2px solid #b8923a;border-radius:14px;padding:30px 26px;position:relative;max-width:560px;margin:0 auto;}
+.zod{position:absolute;font-size:17px;color:#c2c8d2;font-weight:500;}
+.zt1{top:8px;left:24%;}.zt2{top:8px;left:48%;}.zt3{top:8px;left:72%;}
+.zl1{left:9px;top:27%;}.zl2{left:9px;top:49%;}.zl3{left:9px;top:71%;}
+.zr1{right:9px;top:27%;}.zr2{right:9px;top:49%;}.zr3{right:9px;top:71%;}
+.zb1{bottom:8px;left:24%;}.zb2{bottom:8px;left:48%;}.zb3{bottom:8px;left:72%;}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.cell{aspect-ratio:1/1.12;background:#15140f;border:1px solid #4a4636;border-radius:14px;padding:8px 9px;display:flex;flex-direction:column;}
+.cell.junri{border:2.5px solid #4472C4;}
+.cell.empty{background:#100e09;align-items:center;justify-content:center;}
+
+/* ヘッダー：宮名(黄明朝)＋五行 / 点数(右) */
+.hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
+.gn{font-family:'Noto Serif JP',serif;font-weight:700;font-size:16px;color:#e6c34a;}
+.gn .el{font-size:8px;color:#8a8678;margin-left:1px;}
+.sc{font-size:18px;font-weight:900;line-height:1;}
+.sc.g{color:#6cd06c;}.sc.b{color:#ff7a7a;}
+
+/* ★元エクセル配置：上段=天盤干｜八神 九星（横）, 中段=地盤干｜八門 */
+/* 全要素 同サイズ(14px) */
+.r1,.r2{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px;}
+.r1{margin-bottom:1px;}
+.kan{font-size:14px;font-weight:900;line-height:1.2;color:#e8e8ea;}
+.kan.s{color:#7fb0f0;}
+.kan .dim{color:#9aa0ab;}
+.sd{display:flex;justify-content:flex-end;gap:5px;}
+.sd .hasshin,.sd .kyusei{font-size:14px;font-weight:700;line-height:1.2;}
+.good{color:#7fb0f0;}.bad{color:#ff7a7a;}
+.mon-wrap{display:flex;justify-content:flex-end;}
+.mon{display:inline-block;font-weight:900;font-size:14px;color:#fff;border-radius:6px;padding:2px 9px;line-height:1.2;}
+.mon.blue{background:#4472C4;}.mon.red{background:#FF0000;}
+
+/* 点線区切り＋象意 */
+.divider{border-top:1px dotted #4a4636;margin:5px 0 4px;}
+.info{margin-top:auto;font-size:10px;line-height:1.45;}
+.info div{white-space:nowrap;}
+.info .k{color:#ff7a7a;}.info .g{color:#7fb0f0;}.info .n{color:#8a8678;}
+
+/* 中宮 */
+.center-info{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;height:100%;}
+.center-info div{color:#ff7a7a;font-weight:700;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="board-outer">
+  <span class="zod zt1">巳</span><span class="zod zt2">午</span><span class="zod zt3">未</span>
+  <span class="zod zl1">辰</span><span class="zod zl2">卯</span><span class="zod zl3">寅</span>
+  <span class="zod zr1">申</span><span class="zod zr2">酉</span><span class="zod zr3">戌</span>
+  <span class="zod zb1">丑</span><span class="zod zb2">子</span><span class="zod zb3">亥</span>
+
+  <div class="grid">
+
+    <div class="cell">
+      <div class="hd"><div><span class="gn">巽<span class="el">木</span></span></div><div class="sc g">5</div></div>
+      <div class="r1"><span class="kan s">丁</span><div class="sd"><span class="hasshin good">九天</span><span class="kyusei bad">天芮</span></div></div>
+      <div class="r2"><span class="kan s">乙</span><div class="mon-wrap"><span class="mon red">傷門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="g">○人遁吉格</div><div class="n">△青龍合霊</div><div class="g">○丁奇得使</div></div>
+    </div>
+
+    <div class="cell">
+      <div class="hd"><div><span class="gn">離<span class="el">火</span></span></div><div class="sc b">-80</div></div>
+      <div class="r1"><span class="kan"><span class="dim">(庚)</span></span><div class="sd"><span class="hasshin good">直符</span><span class="kyusei bad">天柱</span></div></div>
+      <div class="r2"><span class="kan">壬</span><div class="mon-wrap"><span class="mon red">杜門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="k">×金華水流</div><div class="k">×日格</div><div class="k">×伏干</div></div>
+    </div>
+
+    <div class="cell">
+      <div class="hd"><div><span class="gn">坤<span class="el">土</span></span></div><div class="sc b">-10</div></div>
+      <div class="r1"><span class="kan">己 <span class="s">丁</span></span><div class="sd"><span class="hasshin good">螣蛇</span><span class="kyusei good">天心</span></div></div>
+      <div class="r2"><span class="kan">戊</span><div class="mon-wrap"><span class="mon blue">景門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="n">△朱雀入墓</div><div class="n">△犬遇青龍</div><div class="k">×六儀撃刑格</div></div>
+    </div>
+
+    <div class="cell junri">
+      <div class="hd"><div><span class="gn">震<span class="el">木</span></span></div><div class="sc g">50</div></div>
+      <div class="r1"><span class="kan">壬</span><div class="sd"><span class="hasshin good">九地</span><span class="kyusei bad">天英</span></div></div>
+      <div class="r2"><span class="kan s">丙</span><div class="mon-wrap"><span class="mon blue">生門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="k">×水蛇入火</div></div>
+    </div>
+
+    <div class="cell empty">
+      <div class="center-info"><div>干伏吟</div><div>門伏吟</div><div>星伏吟</div></div>
+    </div>
+
+    <div class="cell">
+      <div class="hd"><div><span class="gn">兌<span class="el">金</span></span></div><div class="sc b">-30</div></div>
+      <div class="r1"><span class="kan">癸</span><div class="sd"><span class="hasshin good">太陰</span><span class="kyusei bad">天蓬</span></div></div>
+      <div class="r2"><span class="kan"><span class="dim">(庚)</span></span><div class="mon-wrap"><span class="mon red">死門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="k">×太白入網</div></div>
+    </div>
+
+    <div class="cell">
+      <div class="hd"><div><span class="gn">艮<span class="el">土</span></span></div><div class="sc g">40</div></div>
+      <div class="r1"><span class="kan s">乙</span><div class="sd"><span class="hasshin bad">朱雀</span><span class="kyusei good">天輔</span></div></div>
+      <div class="r2"><span class="kan">辛</span><div class="mon-wrap"><span class="mon blue">休門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="k">×青龍逃走</div><div class="g">○雲遁</div><div class="g">○虎遁</div><div class="k">×青龍逃走</div></div>
+    </div>
+
+    <div class="cell junri">
+      <div class="hd"><div><span class="gn">坎<span class="el">水</span></span></div><div class="sc g">40</div></div>
+      <div class="r1"><span class="kan s">丙</span><div class="sd"><span class="hasshin bad">勾陳</span><span class="kyusei bad">天冲</span></div></div>
+      <div class="r2"><span class="kan">癸</span><div class="mon-wrap"><span class="mon blue">開門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="k">×華蓋孛師</div><div class="g">○丙奇得使</div></div>
+    </div>
+
+    <div class="cell">
+      <div class="hd"><div><span class="gn">乾<span class="el">金</span></span></div><div class="sc b">-20</div></div>
+      <div class="r1"><span class="kan">辛</span><div class="sd"><span class="hasshin good">六合</span><span class="kyusei good">天任</span></div></div>
+      <div class="r2"><span class="kan">己</span><div class="mon-wrap"><span class="mon red">驚門</span></div></div>
+      <div class="divider"></div>
+      <div class="info"><div class="k">×入獄自刑</div></div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

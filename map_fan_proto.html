@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>地図連動 技術検証（扇＋円）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#0f0d08; --panel:#15140f; --panel2:#100e09; --line:#3a372c;
+  --gong:#e6c34a; --txt:#e8e8ea; --muted:#9aa0ab;
+  --kichi-strong:#185FA5; --kichi-mid:#378ADD; --kichi-weak:#85B7EB;
+  --neutral:#6f6c5e; --kyo:#c2554f; --best-ring:#e6c34a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#070600;font-family:'Noto Sans JP',sans-serif;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;min-height:100vh;background:var(--bg);color:var(--txt);
+  display:flex;flex-direction:column;position:relative;padding-bottom:68px;}
+.hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;}
+.hd .ttl{font-size:17px;font-weight:700;color:var(--gong);font-family:'Noto Serif JP',serif;}
+.hd .sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.note{font-size:11px;color:var(--muted);padding:0 16px 8px;line-height:1.5;}
+
+/* 基準点カード */
+.card{margin:0 16px 10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;}
+.row{display:flex;gap:8px;align-items:center;}
+.field{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--txt);display:flex;justify-content:space-between;align-items:center;}
+.field .act{font-size:11px;color:var(--gong);}
+.correction{font-size:11px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;}
+
+/* 地図 */
+.map-wrap{margin:0 16px 10px;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+#map{width:100%;height:340px;background:#1a1a1a;}
+
+/* 凡例 */
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:11px;color:var(--muted);padding:6px 16px 4px;}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block;opacity:.5;}
+
+/* コントロール */
+.ctrl{margin:6px 16px 10px;display:flex;gap:8px;flex-wrap:wrap;}
+.btn{flex:1;min-width:120px;text-align:center;font-size:12px;padding:9px 0;border-radius:10px;border:1px solid var(--line);color:var(--muted);background:var(--panel);}
+.btn.on{color:var(--gong);border-color:var(--gong);background:#1c1a12;font-weight:700;}
+
+/* 1位カード */
+.best-card{margin:0 16px 10px;background:#16223a;border:1px solid var(--kichi-strong);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:12px;}
+.best-no{width:38px;height:38px;border-radius:50%;background:var(--kichi-strong);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;flex-shrink:0;}
+.best-main{flex:1;}
+.best-dir{font-size:16px;font-weight:700;color:#fff;}
+.best-dir small{font-size:12px;color:var(--kichi-weak);font-weight:400;margin-left:6px;}
+.best-note{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ボトムタブ */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  height:60px;background:var(--panel);border-top:1px solid var(--line);display:flex;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--muted);}
+.tab.on{color:var(--gong);}
+.tab .ic{font-size:18px;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="hd">
+    <div>
+      <div class="ttl">吉方位 ・ 地図</div>
+      <div class="sub">時盤 お散歩 / 検証モック</div>
+    </div>
+    <div style="font-size:12px;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 9px;background:var(--panel);">巳刻 9-11時</div>
+  </div>
+
+  <div class="note">技術検証：家を中心に吉方位を扇で表示。<b style="color:var(--gong)">500mまでは濃い色＝確定ライン</b>、その先は薄くフェードして「同じ吉方位が遠出でも続く」のを示す。方角が吉でも歩ける道があるかは別問題なので範囲を示すまで。</div>
+
+  <div class="card">
+    <div class="row">
+      <div class="field">📍 現在地（GPS）<span class="act" id="gpsBtn">取得</span></div>
+      <div class="field">🔍 場所検索<span class="act">入力</span></div>
+    </div>
+    <div class="correction"><span>自然時補正</span><span id="corr">東京 +19分（仮）</span></div>
+  </div>
+
+  <div class="map-wrap"><div id="map"></div></div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--kichi-strong)"></i>大吉</span>
+    <span><i class="sw" style="background:var(--kichi-weak)"></i>小吉</span>
+    <span><i class="sw" style="background:var(--neutral)"></i>中立</span>
+    <span><i class="sw" style="background:var(--kyo)"></i>凶</span>
+  </div>
+
+  <div class="best-card">
+    <div class="best-no">1</div>
+    <div class="best-main">
+      <div class="best-dir">南東 <small>生門・六合 +30</small></div>
+      <div class="best-note">この時刻のベスト方位。500m以上＋5分滞在で吉を取る。</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab"><span class="ic">🀄</span>盤</div>
+  <div class="tab on"><span class="ic">🧭</span>吉方位</div>
+  <div class="tab"><span class="ic">⚙️</span>設定</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// === 検証用ダミーデータ（本番は scoreEngine の宮スコアを8方位へマップ） ===
+// 8方位：北=0度から時計回り。score: 吉凶の段階。
+var DIRS = [
+  {name:'北',   deg:0,   level:'neutral', score:0},
+  {name:'北東', deg:45,  level:'kichi-weak', score:10},
+  {name:'東',   deg:90,  level:'kyo', score:-10},
+  {name:'南東', deg:135, level:'kichi-strong', score:30, best:true},
+  {name:'南',   deg:180, level:'kichi-weak', score:10},
+  {name:'南西', deg:225, level:'neutral', score:0},
+  {name:'西',   deg:270, level:'kyo', score:-10},
+  {name:'北西', deg:315, level:'kichi-strong', score:20}
+];
+var COLOR = {
+  'kichi-strong':'#185FA5', 'kichi-mid':'#378ADD', 'kichi-weak':'#85B7EB',
+  'neutral':'#6f6c5e', 'kyo':'#c2554f'
+};
+var RADIUS_M = 500;      // 徒歩距離の円（時盤=500m仮置き）
+var SECTOR_DEG = 45;     // 8方位均等
+
+// 起点：東京（皇居あたり）。実機ではGPSで上書き。
+var HOME = [35.6850, 139.7528];
+
+var map = L.map('map', {zoomControl:true, attributionControl:true}).setView(HOME, 13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19, subdomains:'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO'
+}).addTo(map);
+
+// 中心ピン（家）
+L.circleMarker(HOME, {radius:6, color:'#e6c34a', fillColor:'#e6c34a', fillOpacity:1, weight:2}).addTo(map)
+ .bindTooltip('基準点（家）', {permanent:false});
+
+// 扇（セクター）をポリゴンで描く。innerM=0なら中心から、>0ならリング（弧帯）になる
+function sectorPolygon(center, fromDeg, toDeg, outerM, innerM){
+  innerM = innerM || 0;
+  var steps = 18;
+  var pts = [];
+  // 外周（fromDeg→toDeg）
+  for(var i=0;i<=steps;i++){
+    var d = fromDeg + (toDeg-fromDeg)*i/steps;
+    pts.push(destPoint(center, d, outerM));
+  }
+  if(innerM>0){
+    // 内周を逆向きに（toDeg→fromDeg）でリングを閉じる
+    for(var j=steps;j>=0;j--){
+      var d2 = fromDeg + (toDeg-fromDeg)*j/steps;
+      pts.push(destPoint(center, d2, innerM));
+    }
+  }else{
+    pts.push(center);
+  }
+  return pts;
+}
+// 中心から方位角deg・距離mの地点（簡易・近距離で十分な精度）
+function destPoint(center, deg, m){
+  var R = 6378137;
+  var brng = deg*Math.PI/180;
+  var lat1 = center[0]*Math.PI/180, lon1 = center[1]*Math.PI/180;
+  var dr = m/R;
+  var lat2 = Math.asin(Math.sin(lat1)*Math.cos(dr)+Math.cos(lat1)*Math.sin(dr)*Math.cos(brng));
+  var lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(dr)*Math.cos(lat1), Math.cos(dr)-Math.sin(lat1)*Math.sin(lat2));
+  return [lat2*180/Math.PI, lon2*180/Math.PI];
+}
+
+var sectorLayers = [];
+function drawSectors(){
+  sectorLayers.forEach(function(l){ map.removeLayer(l); });
+  sectorLayers = [];
+  DIRS.forEach(function(d){
+    var isKichi = (d.level==='kichi-strong'||d.level==='kichi-mid'||d.level==='kichi-weak');
+    var isKyo   = d.level==='kyo';
+    var from = d.deg - SECTOR_DEG/2;
+    var to   = d.deg + SECTOR_DEG/2;
+    var col  = COLOR[d.level];
+
+    // ① 0〜500m：確定ゾーン。吉=青ははっきり、凶=赤もはっきり、中立=グレーは控えめ
+    var inner = L.polygon(sectorPolygon(HOME, from, to, RADIUS_M, 0), {
+      color: col,
+      weight: d.best ? 3 : (isKichi||isKyo ? 1.5 : 1),
+      opacity: d.best ? 0.95 : (isKichi||isKyo ? 0.7 : 0.4),
+      fillColor: col,
+      fillOpacity: d.best ? 0.45 : (isKichi ? 0.32 : (isKyo ? 0.30 : 0.14)),
+      dashArray: d.best ? null : (isKichi||isKyo ? null : '4 3')
+    }).addTo(map);
+    sectorLayers.push(inner);
+
+    // ② 500m〜遠方：その方位が遠出でも続くフェード帯。中立は出さない（うるさくしない）
+    if(isKichi || isKyo){
+      var base = isKyo ? 0.75 : 1;   // 凶のフェードは吉よりやや控えめ
+      var fadeBands = [
+        {from:RADIUS_M,    to:RADIUS_M*2,  op:0.30*base},
+        {from:RADIUS_M*2,  to:RADIUS_M*5,  op:0.20*base},
+        {from:RADIUS_M*5,  to:RADIUS_M*10, op:0.12*base},
+        {from:RADIUS_M*10, to:RADIUS_M*20, op:0.07*base}
+      ];
+      fadeBands.forEach(function(b){
+        var band = L.polygon(sectorPolygon(HOME, from, to, b.to, b.from), {
+          color: col, weight: 0.7, opacity: 0.4*base,   // 薄い輪郭で境界を見せる
+          fillColor: col, fillOpacity: b.op, interactive:false
+        }).addTo(map);
+        sectorLayers.push(band);
+      });
+    }
+
+    // 方位ラベル＋点数（確定ゾーン内に置く）
+    var lbl = destPoint(HOME, d.deg, RADIUS_M*0.62);
+    var scoreColor = isKichi ? '#bfe0ff' : (isKyo ? '#ffc0bc' : '#d8d6cf');
+    var icon = L.divIcon({
+      className:'',
+      html:'<div style="font:700 12px Noto Sans JP;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap;text-align:center;">'
+           + d.name + '<br><span style="font-size:13px;font-weight:900;color:'+scoreColor+';">'+(d.score>0?'+':'')+d.score+'</span></div>',
+      iconSize:[40,30], iconAnchor:[20,15]
+    });
+    var m = L.marker(lbl, {icon:icon, interactive:false}).addTo(map);
+    sectorLayers.push(m);
+  });
+  // 確定ラインの円（500m）＝「ここまではしっかり」の境界
+  var ring = L.circle(HOME, {radius:RADIUS_M, color:'#e6c34a', weight:1.5, opacity:0.7, fill:false, dashArray:'3 5'}).addTo(map);
+  ring.bindTooltip('500m（確定ライン）', {permanent:false, direction:'top'});
+  sectorLayers.push(ring);
+}
+drawSectors();
+
+// （凡例の青/赤/グレーで吉凶を判別。トグルは廃止＝全方位を常に表示）
+
+// GPS取得（実機HTTPS必須）
+document.getElementById('gpsBtn').onclick = function(){
+  if(!navigator.geolocation){ alert('Geolocation非対応'); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    HOME = [pos.coords.latitude, pos.coords.longitude];
+    var lng = pos.coords.longitude;
+    var corr = Math.round((lng-135)*4);
+    document.getElementById('corr').textContent = '経度'+lng.toFixed(2)+' → '+(corr>=0?'+':'')+corr+'分';
+    map.setView(HOME, 13);
+    drawSectors();
+  }, function(err){ alert('位置情報が取れません: '+err.message+'\n（実機はHTTPS=Vercelプレビューで確認）'); });
+};
+</script>
+</body>
+</html>

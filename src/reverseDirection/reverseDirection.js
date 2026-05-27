@@ -90,6 +90,14 @@ export function getScoreTone(score) {
   return 'bad';
 }
 
+export function getMiniBoardToneClass(score) {
+  const tone = getScoreTone(score);
+  if (tone === 'great') return 'daikichi';
+  if (tone === 'good' || tone === 'weak') return 'shokichi';
+  if (tone === 'neutral') return 'churitsu';
+  return 'kyo';
+}
+
 export function getMainReasons(palaceData, palaceScore, matches = []) {
   const reasons = [
     palaceData?.hachimon,
@@ -147,6 +155,7 @@ export function buildTimeline({ date, purposeName, goodOnly }) {
       ...slot,
       best: visible[0] || null,
       rawBest: result.rankings[0] || null,
+      rankings: result.rankings,
     };
   });
 }

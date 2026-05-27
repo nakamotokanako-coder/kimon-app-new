@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>逆引き方位検索（スマホ版イメージ）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0d08; --panel:#15140f; --panel2:#100e09; --line:#3a372c;
+  --gong:#e6c34a; --txt:#e8e8ea; --muted:#9aa0ab;
+  --kichi-strong:#185FA5;  /* 大吉=濃い青 */
+  --kichi-mid:#378ADD;     /* 中吉 */
+  --kichi-weak:#85B7EB;    /* 小吉=淡い青 */
+  --neutral:#6f6c5e;       /* 中立=グレー */
+  --kyo:#c2554f;           /* 凶=赤 */
+  --kyo-strong:#a3302a;    /* 大凶 */
+  --best-ring:#e6c34a;     /* 1位の枠=金 */
+  --good:#6cd06c; --bad:#ff7a7a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#070600;font-family:'Noto Sans JP',sans-serif;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;min-height:100vh;background:var(--bg);color:var(--txt);
+  display:flex;flex-direction:column;position:relative;padding-bottom:68px;}
+
+/* ヘッダー */
+.hd{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 10px;}
+.hd .ttl{font-size:18px;font-weight:700;color:var(--gong);font-family:'Noto Serif JP',serif;}
+.hd .sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.chip-time{font-size:12px;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 10px;background:var(--panel);}
+
+/* モードタブ */
+.mode-tabs{display:flex;gap:8px;padding:0 16px 12px;}
+.mode-tab{flex:1;text-align:center;font-size:13px;padding:9px 0;border-radius:10px;border:1px solid var(--line);color:var(--muted);background:var(--panel);}
+.mode-tab.active{color:var(--gong);border-color:var(--gong);background:#1c1a12;font-weight:700;}
+.mode-tab small{display:block;font-size:10px;color:var(--muted);margin-top:2px;font-weight:400;}
+
+/* 基準点 */
+.card{margin:0 16px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+.card-h{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;}
+.row{display:flex;gap:8px;}
+.field{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--txt);display:flex;justify-content:space-between;align-items:center;}
+.field .act{font-size:11px;color:var(--gong);}
+.correction{font-size:11px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;}
+
+/* 円盤 */
+.compass-wrap{margin:0 16px 10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 10px 6px;}
+.seg{stroke:var(--bg);stroke-width:2;}
+.kichi-s{fill:var(--kichi-strong);}
+.kichi-w{fill:var(--kichi-weak);}
+.neutral{fill:var(--neutral);}
+.kyo{fill:var(--kyo);}
+.best{fill:var(--kichi-strong);}
+.seg-best{stroke:var(--best-ring);stroke-width:4;filter:drop-shadow(0 0 6px rgba(230,195,74,.8));}
+.seg-score{font-size:14px;font-weight:900;fill:#fff;text-anchor:middle;dominant-baseline:central;}
+.dir-name{font-size:14px;font-weight:700;fill:var(--txt);text-anchor:middle;dominant-baseline:central;}
+.center-c{fill:var(--panel2);stroke:var(--line);stroke-width:1;}
+.center-t{font-size:11px;fill:var(--muted);text-anchor:middle;dominant-baseline:central;}
+
+/* 凡例 */
+.legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;color:var(--muted);padding:8px 0 2px;}
+.legend span{display:inline-flex;align-items:center;gap:4px;}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
+
+/* 1位カード */
+.best-card{margin:0 16px 10px;background:#16223a;border:1px solid var(--kichi-strong);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.best-no{width:40px;height:40px;border-radius:50%;background:var(--kichi-strong);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;}
+.best-main{flex:1;}
+.best-dir{font-size:17px;font-weight:700;color:#fff;}
+.best-dir small{font-size:12px;color:var(--kichi-weak);font-weight:400;margin-left:6px;}
+.best-note{font-size:11px;color:var(--muted);margin-top:2px;}
+.best-score{font-size:22px;font-weight:900;color:var(--kichi-weak);}
+
+/* 目的フィルタ */
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 12px;}
+.f-chip{font-size:12px;padding:6px 12px;border-radius:18px;border:1px solid var(--line);color:var(--muted);background:var(--panel);}
+.f-chip.on{background:var(--gong);color:#1a1606;border-color:var(--gong);font-weight:700;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:0 18px 12px;font-size:13px;color:var(--txt);}
+.toggle{width:42px;height:24px;border-radius:12px;background:var(--gong);position:relative;}
+.toggle::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#1a1606;top:3px;right:3px;}
+
+/* 時間帯一覧 */
+.tl-h{font-size:13px;font-weight:700;padding:4px 18px 8px;color:var(--txt);}
+.tl-item{display:flex;align-items:center;gap:10px;margin:0 16px 6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;}
+.tl-item.now{border-color:var(--gong);background:#1c1a12;}
+.tl-time{font-size:11px;color:var(--muted);width:50px;flex-shrink:0;}
+.tl-dir{flex:1;font-size:14px;font-weight:700;}
+.tl-dir small{font-size:11px;color:var(--muted);font-weight:400;margin-left:5px;}
+.tl-score{font-size:15px;font-weight:900;}
+.s-good{color:var(--good);} .s-bad{color:var(--bad);}
+
+/* ボトムタブ */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  display:flex;justify-content:space-around;background:var(--panel);border-top:1px solid var(--line);padding:8px 0 10px;}
+.tab{text-align:center;font-size:11px;color:var(--muted);flex:1;}
+.tab .ic{font-size:20px;display:block;line-height:1.4;}
+.tab.active{color:var(--gong);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="hd">
+    <div>
+      <div class="ttl">お散歩吉方位</div>
+      <div class="sub">時盤・東京 +19分補正 / 経度139.69</div>
+    </div>
+    <div class="chip-time">11-13時</div>
+  </div>
+
+  <div class="mode-tabs">
+    <div class="mode-tab active">時盤 お散歩<small>2時間ごと・累積</small></div>
+    <div class="mode-tab">日盤 遠出<small>日付単位・出張旅行</small></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">基準点</div>
+    <div class="row">
+      <div class="field">現在地<span class="act">切替</span></div>
+      <div class="field">場所検索<span class="act">🔍</span></div>
+    </div>
+    <div class="correction"><span>自然時補正：東京 +19分</span><span>経度 139.69</span></div>
+  </div>
+
+  <div class="compass-wrap">
+    <svg width="100%" viewBox="0 0 350 350" role="img" xmlns="http://www.w3.org/2000/svg">
+      <title>円形方位盤・8方位45度区画</title>
+      <desc>真北を上にした円を45度ずつ8区画に分割し吉凶を色分け。最大吉の南東を金枠で強調。</desc>
+      <path class="seg kichi-s" d="M175 175 L119.5 41.0 A145 145 0 0 1 230.5 41.0 Z"/>
+      <path class="seg kichi-s" d="M175 175 L230.5 41.0 A145 145 0 0 1 309.0 119.5 Z"/>
+      <path class="seg kichi-w" d="M175 175 L309.0 119.5 A145 145 0 0 1 309.0 230.5 Z"/>
+      <path class="seg best seg-best" d="M175 175 L309.0 230.5 A145 145 0 0 1 230.5 309.0 Z"/>
+      <path class="seg kyo" d="M175 175 L230.5 309.0 A145 145 0 0 1 119.5 309.0 Z"/>
+      <path class="seg kyo" d="M175 175 L119.5 309.0 A145 145 0 0 1 41.0 230.5 Z"/>
+      <path class="seg kichi-w" d="M175 175 L41.0 230.5 A145 145 0 0 1 41.0 119.5 Z"/>
+      <path class="seg neutral" d="M175 175 L41.0 119.5 A145 145 0 0 1 119.5 41.0 Z"/>
+      <text class="seg-score" x="175" y="85">+20</text>
+      <text class="dir-name" x="175" y="15">北</text>
+      <text class="seg-score" x="239" y="111">+20</text>
+      <text class="dir-name" x="288" y="62">北東</text>
+      <text class="seg-score" x="265" y="175">+10</text>
+      <text class="dir-name" x="335" y="175">東</text>
+      <text class="seg-score" x="239" y="239">+30</text>
+      <text class="dir-name" x="288" y="288">南東</text>
+      <text class="seg-score" x="175" y="265">-20</text>
+      <text class="dir-name" x="175" y="335">南</text>
+      <text class="seg-score" x="111" y="239">-10</text>
+      <text class="dir-name" x="62" y="288">南西</text>
+      <text class="seg-score" x="85" y="175">+10</text>
+      <text class="dir-name" x="15" y="175">西</text>
+      <text class="seg-score" x="111" y="111">0</text>
+      <text class="dir-name" x="62" y="62">北西</text>
+      <circle class="center-c" cx="175" cy="175" r="26"/>
+      <text class="center-t" x="175" y="175">基準点</text>
+    </svg>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--kichi-strong)"></span>大吉</span>
+      <span><span class="sw" style="background:var(--kichi-weak)"></span>小吉</span>
+      <span><span class="sw" style="background:var(--neutral)"></span>中立</span>
+      <span><span class="sw" style="background:var(--kyo)"></span>凶</span>
+      <span><span class="sw" style="background:var(--best-ring)"></span>最大吉</span>
+    </div>
+  </div>
+
+  <div class="best-card">
+    <div class="best-no">1</div>
+    <div class="best-main">
+      <div class="best-dir">南東<small>生門・六合</small></div>
+      <div class="best-note">今の時盤で最大吉 / 目的:仕事 +10</div>
+    </div>
+    <div class="best-score">+30</div>
+  </div>
+
+  <div class="filters">
+    <span class="f-chip on">仕事</span>
+    <span class="f-chip">金運</span>
+    <span class="f-chip">恋愛</span>
+    <span class="f-chip">出会い</span>
+    <span class="f-chip">健康</span>
+    <span class="f-chip">投資</span>
+  </div>
+  <div class="toggle-row"><span>吉のみ表示</span><span class="toggle"></span></div>
+
+  <div class="tl-h">本日の時間帯別ベスト</div>
+  <div class="tl-item"><span class="tl-time">23-1時</span><span class="tl-dir">北<small>休門・太陰</small></span><span class="tl-score s-good">+20</span></div>
+  <div class="tl-item"><span class="tl-time">1-3時</span><span class="tl-dir">南東<small>生門・六合</small></span><span class="tl-score s-good">+30</span></div>
+  <div class="tl-item"><span class="tl-time">3-5時</span><span class="tl-dir">東<small>開門・九天</small></span><span class="tl-score s-good">+20</span></div>
+  <div class="tl-item now"><span class="tl-time">11-13時</span><span class="tl-dir">南東<small>現在時刻・最大候補</small></span><span class="tl-score s-good">+30</span></div>
+  <div class="tl-item"><span class="tl-time">13-15時</span><span class="tl-dir">西<small>景門・丁奇得使</small></span><span class="tl-score s-good">+10</span></div>
+  <div class="tl-item"><span class="tl-time">15-17時</span><span class="tl-dir">該当なし<small>凶を除外中</small></span><span class="tl-score s-bad">-10</span></div>
+
+  <div class="tabbar">
+    <div class="tab"><span class="ic">▦</span>盤</div>
+    <div class="tab active"><span class="ic">✦</span>吉方位</div>
+    <div class="tab"><span class="ic">⚙</span>設定</div>
+  </div>
+
+</div>
+</body>
+</html>

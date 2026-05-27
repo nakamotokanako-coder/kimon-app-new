@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>逆引き方位検索 スマホ/タブレット確認モック</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #090804;
+  --app: #0f0d08;
+  --panel: #17150f;
+  --panel2: #11100b;
+  --panel3: #1d1a12;
+  --line: #3b382d;
+  --line2: #4b4637;
+  --gold: #e6c34a;
+  --gold2: #f1d36e;
+  --txt: #ececef;
+  --muted: #9ba0aa;
+  --blue1: #185fa5;
+  --blue2: #378add;
+  --blue3: #85b7eb;
+  --neutral: #6f6c5e;
+  --bad: #c2554f;
+  --bad2: #a3302a;
+  --green: #6cd06c;
+  --tab-h: 76px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(230, 195, 74, 0.16), transparent 32rem),
+    var(--bg);
+  color: var(--txt);
+  font-family: "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app {
+  width: 100%;
+  max-width: 760px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--app);
+  position: relative;
+  padding-bottom: calc(var(--tab-h) + 28px);
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: linear-gradient(180deg, rgba(15, 13, 8, 0.98), rgba(15, 13, 8, 0.9));
+  border-bottom: 1px solid rgba(230, 195, 74, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 10px;
+}
+
+.title {
+  min-width: 0;
+}
+
+.title h1 {
+  margin: 0;
+  color: var(--gold);
+  font-family: "Yu Mincho", "Noto Serif JP", serif;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.title p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.time-chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--txt);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.inner-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.inner-tab {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 9px 4px 8px;
+  text-align: center;
+}
+
+.inner-tab strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.inner-tab span {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.inner-tab.active {
+  border-color: var(--gold);
+  background: #1d1a12;
+  color: var(--gold);
+}
+
+.content {
+  padding: 12px 16px calc(var(--tab-h) + 34px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.card.pad {
+  padding: 13px 14px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.card-title h2 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.card-title small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.source-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.field {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel2);
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--txt);
+}
+
+.field b {
+  font-weight: 700;
+}
+
+.field span {
+  color: var(--gold);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.correction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.compass-card {
+  padding: 14px 10px 8px;
+}
+
+.compass-frame {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.seg {
+  stroke: var(--app);
+  stroke-width: 2;
+}
+
+.kichi-strong {
+  fill: var(--blue1);
+}
+
+.kichi-mid {
+  fill: var(--blue2);
+}
+
+.kichi-weak {
+  fill: var(--blue3);
+}
+
+.neutral {
+  fill: var(--neutral);
+}
+
+.kyo {
+  fill: var(--bad);
+}
+
+.kyo-strong {
+  fill: var(--bad2);
+}
+
+.best-seg {
+  stroke: var(--gold);
+  stroke-width: 4;
+  filter: drop-shadow(0 0 7px rgba(230, 195, 74, 0.82));
+}
+
+.dir-text {
+  fill: var(--txt);
+  font-size: 14px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.score-text {
+  fill: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.center-circle {
+  fill: var(--panel2);
+  stroke: var(--line2);
+  stroke-width: 1.5;
+}
+
+.center-text {
+  fill: var(--muted);
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px 12px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.best-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  background: #16223a;
+  border-color: var(--blue1);
+}
+
+.best-no {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue1);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.best-main {
+  min-width: 0;
+}
+
+.best-main strong {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.best-main small {
+  margin-left: 6px;
+  color: var(--blue3);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.best-main p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.best-score {
+  color: var(--blue3);
+  font-size: 23px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.filter-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.filter-chip.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1606;
+  font-weight: 800;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+  color: var(--txt);
+  font-size: 13px;
+}
+
+.toggle {
+  width: 44px;
+  height: 25px;
+  border-radius: 999px;
+  background: var(--gold);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #1a1606;
+}
+
+.timeline-title {
+  padding: 2px 2px 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.timeline {
+  display: grid;
+  gap: 7px;
+}
+
+.tl-item {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 50px;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 9px 12px;
+}
+
+.tl-item.now {
+  border-color: var(--gold);
+  background: var(--panel3);
+}
+
+.tl-time {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tl-main {
+  min-width: 0;
+}
+
+.tl-main strong {
+  display: inline;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.tl-main span {
+  margin-left: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.tl-score {
+  text-align: right;
+  font-size: 15px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.good {
+  color: var(--green);
+}
+
+.bad {
+  color: #ff7a7a;
+}
+
+.day-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel2);
+  padding: 9px 10px;
+}
+
+.rank-row.top {
+  border-color: var(--gold);
+  background: #1d1a12;
+}
+
+.rank-no {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #2b2a24;
+  color: var(--txt);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.rank-row.top .rank-no {
+  background: var(--gold);
+  color: #1a1606;
+}
+
+.rank-main {
+  min-width: 0;
+}
+
+.rank-main strong {
+  font-size: 14px;
+}
+
+.rank-main span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.note-list li {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.bottom-space {
+  height: 80px;
+}
+
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 100%;
+  max-width: 760px;
+  height: var(--tab-h);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: rgba(23, 21, 15, 0.98);
+  border-top: 1px solid var(--line);
+  padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.38);
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  font-size: 11px;
+  min-width: 0;
+}
+
+.tab-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.tab.active {
+  color: var(--gold);
+  font-weight: 800;
+}
+
+@media (min-width: 620px) {
+  .app {
+    border-left: 1px solid rgba(230, 195, 74, 0.12);
+    border-right: 1px solid rgba(230, 195, 74, 0.12);
+  }
+
+  .content {
+    padding-left: 22px;
+    padding-right: 22px;
+    gap: 14px;
+  }
+
+  .tablet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .tablet-grid .card {
+    min-height: 100%;
+  }
+}
+
+@media (max-width: 370px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .time-chip {
+    align-self: flex-start;
+  }
+
+  .inner-tab strong {
+    font-size: 12px;
+  }
+
+  .best-card {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .best-score {
+    grid-column: 2;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <header class="header">
+      <div class="title">
+        <h1>吉方位</h1>
+        <p>逆引き方位検索 / 時盤・日盤・期間検索</p>
+      </div>
+      <div class="time-chip">11-13時</div>
+    </header>
+
+    <nav class="inner-tabs" aria-label="吉方位内タブ">
+      <button class="inner-tab active" type="button">
+        <strong>時盤 お散歩</strong>
+        <span>今と本日</span>
+      </button>
+      <button class="inner-tab" type="button">
+        <strong>日盤 遠出</strong>
+        <span>日付指定</span>
+      </button>
+      <button class="inner-tab" type="button">
+        <strong>期間検索</strong>
+        <span>将来拡張</span>
+      </button>
+    </nav>
+  </div>
+
+  <main class="content">
+    <section class="card pad" aria-label="基準点">
+      <div class="card-title">
+        <h2>基準点</h2>
+        <small>GPS / 場所検索</small>
+      </div>
+      <div class="source-grid">
+        <div class="field"><b>現在地</b><span>切替</span></div>
+        <div class="field"><b>東京駅</b><span>検索</span></div>
+      </div>
+      <div class="correction">
+        <span>自然時補正：東京 +19分</span>
+        <span>経度 139.69</span>
+      </div>
+    </section>
+
+    <section class="card compass-card" aria-label="円形方位盤">
+      <div class="compass-frame">
+        <svg width="100%" viewBox="0 0 350 350" role="img" xmlns="http://www.w3.org/2000/svg">
+          <title>円形方位盤・45度8区画</title>
+          <desc>基準点を中心に8方位を45度ずつ分割し、吉凶の強さを色で表示。最大吉は南東。</desc>
+          <path class="seg kichi-mid" d="M175 175 L119.5 41.0 A145 145 0 0 1 230.5 41.0 Z"></path>
+          <path class="seg kichi-mid" d="M175 175 L230.5 41.0 A145 145 0 0 1 309.0 119.5 Z"></path>
+          <path class="seg kichi-weak" d="M175 175 L309.0 119.5 A145 145 0 0 1 309.0 230.5 Z"></path>
+          <path class="seg kichi-strong best-seg" d="M175 175 L309.0 230.5 A145 145 0 0 1 230.5 309.0 Z"></path>
+          <path class="seg kyo-strong" d="M175 175 L230.5 309.0 A145 145 0 0 1 119.5 309.0 Z"></path>
+          <path class="seg kyo" d="M175 175 L119.5 309.0 A145 145 0 0 1 41.0 230.5 Z"></path>
+          <path class="seg kichi-weak" d="M175 175 L41.0 230.5 A145 145 0 0 1 41.0 119.5 Z"></path>
+          <path class="seg neutral" d="M175 175 L41.0 119.5 A145 145 0 0 1 119.5 41.0 Z"></path>
+
+          <text class="score-text" x="175" y="86">+20</text>
+          <text class="dir-text" x="175" y="18">北</text>
+          <text class="score-text" x="239" y="111">+20</text>
+          <text class="dir-text" x="288" y="62">北東</text>
+          <text class="score-text" x="265" y="175">+10</text>
+          <text class="dir-text" x="333" y="175">東</text>
+          <text class="score-text" x="239" y="239">+30</text>
+          <text class="dir-text" x="288" y="288">南東</text>
+          <text class="score-text" x="175" y="265">-20</text>
+          <text class="dir-text" x="175" y="333">南</text>
+          <text class="score-text" x="111" y="239">-10</text>
+          <text class="dir-text" x="62" y="288">南西</text>
+          <text class="score-text" x="85" y="175">+10</text>
+          <text class="dir-text" x="17" y="175">西</text>
+          <text class="score-text" x="111" y="111">0</text>
+          <text class="dir-text" x="62" y="62">北西</text>
+
+          <circle class="center-circle" cx="175" cy="175" r="27"></circle>
+          <text class="center-text" x="175" y="175">基準点</text>
+        </svg>
+      </div>
+      <div class="legend" aria-label="色分け凡例">
+        <span><i class="swatch" style="background: var(--blue1)"></i>大吉</span>
+        <span><i class="swatch" style="background: var(--blue3)"></i>小吉</span>
+        <span><i class="swatch" style="background: var(--neutral)"></i>中立</span>
+        <span><i class="swatch" style="background: var(--bad)"></i>凶</span>
+        <span><i class="swatch" style="background: var(--gold)"></i>最大吉</span>
+      </div>
+    </section>
+
+    <section class="card best-card" aria-label="今のベスト方位">
+      <div class="best-no">1</div>
+      <div class="best-main">
+        <strong>南東<small>生門・六合</small></strong>
+        <p>今の時盤で最大吉 / 目的: 仕事 +10</p>
+      </div>
+      <div class="best-score">+30</div>
+    </section>
+
+    <section class="card pad" aria-label="目的フィルタ">
+      <div class="card-title">
+        <h2>目的フィルタ</h2>
+        <small>共通設定</small>
+      </div>
+      <div class="filters">
+        <span class="filter-chip active">仕事</span>
+        <span class="filter-chip">金運</span>
+        <span class="filter-chip">恋愛</span>
+        <span class="filter-chip">出会い</span>
+        <span class="filter-chip">健康</span>
+        <span class="filter-chip">投資</span>
+      </div>
+      <div class="toggle-row">
+        <span>吉のみ表示</span>
+        <span class="toggle" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <div class="tablet-grid">
+      <section aria-label="本日の時間帯別ベスト">
+        <div class="timeline-title">本日の時間帯別ベスト</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <span class="tl-time">23-1時</span>
+            <div class="tl-main"><strong>北</strong><span>休門・太陰</span></div>
+            <span class="tl-score good">+20</span>
+          </div>
+          <div class="tl-item">
+            <span class="tl-time">1-3時</span>
+            <div class="tl-main"><strong>南東</strong><span>生門・六合</span></div>
+            <span class="tl-score good">+30</span>
+          </div>
+          <div class="tl-item">
+            <span class="tl-time">3-5時</span>
+            <div class="tl-main"><strong>東</strong><span>開門・九天</span></div>
+            <span class="tl-score good">+20</span>
+          </div>
+          <div class="tl-item now">
+            <span class="tl-time">11-13時</span>
+            <div class="tl-main"><strong>南東</strong><span>現在時刻・最大候補</span></div>
+            <span class="tl-score good">+30</span>
+          </div>
+          <div class="tl-item">
+            <span class="tl-time">13-15時</span>
+            <div class="tl-main"><strong>西</strong><span>景門・丁奇得使</span></div>
+            <span class="tl-score good">+10</span>
+          </div>
+          <div class="tl-item">
+            <span class="tl-time">15-17時</span>
+            <div class="tl-main"><strong>該当なし</strong><span>凶を除外中</span></div>
+            <span class="tl-score bad">-10</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card pad" aria-label="日盤モードプレビュー">
+        <div class="card-title">
+          <h2>日盤 遠出</h2>
+          <small>2026-06-01</small>
+        </div>
+        <div class="day-preview">
+          <div class="rank-row top">
+            <span class="rank-no">1</span>
+            <div class="rank-main"><strong>東</strong><span>飛鳥跌穴・開門</span></div>
+            <span class="tl-score good">+40</span>
+          </div>
+          <div class="rank-row">
+            <span class="rank-no">2</span>
+            <div class="rank-main"><strong>南東</strong><span>人遁・休門</span></div>
+            <span class="tl-score good">+30</span>
+          </div>
+          <div class="rank-row">
+            <span class="rank-no">3</span>
+            <div class="rank-main"><strong>北</strong><span>天乙会合</span></div>
+            <span class="tl-score good">+20</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card pad" aria-label="設計メモ">
+      <div class="card-title">
+        <h2>メニュー構成</h2>
+        <small>§4-3 反映</small>
+      </div>
+      <ul class="note-list">
+        <li>ボトムタブは「盤」「吉方位」「設定」の3つに固定。</li>
+        <li>吉方位の中で「時盤 お散歩」「日盤 遠出」「期間検索」を画面内タブで切り替える。</li>
+        <li>このHTMLは確認用モックです。`src/` と既存エンジンには接続していません。</li>
+      </ul>
+    </section>
+
+    <div class="bottom-space" aria-hidden="true"></div>
+  </main>
+
+  <nav class="tabbar" aria-label="アプリ全体メニュー">
+    <button class="tab" type="button">
+      <span class="tab-icon">▦</span>
+      <span>盤</span>
+    </button>
+    <button class="tab active" type="button">
+      <span class="tab-icon">✦</span>
+      <span>吉方位</span>
+    </button>
+    <button class="tab" type="button">
+      <span class="tab-icon">⚙</span>
+      <span>設定</span>
+    </button>
+  </nav>
+</div>
+</body>
+</html>

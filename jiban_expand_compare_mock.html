@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>時間帯ベスト タップ展開 3パターン比較</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0d08; --panel:#15140f; --panel2:#100e09; --line:#3a372c;
+  --gong:#e6c34a; --txt:#e8e8ea; --muted:#9aa0ab;
+  --kichi-strong:#185FA5; --kichi-mid:#378ADD; --kichi-weak:#85B7EB;
+  --neutral:#6f6c5e; --kyo:#c2554f; --best-ring:#e6c34a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#050400;font-family:'Noto Sans JP',sans-serif;color:var(--txt);
+  display:flex;flex-wrap:wrap;gap:24px;justify-content:center;padding:24px 12px 60px;}
+.col{width:100%;max-width:420px;}
+.col-hd{text-align:center;margin-bottom:10px;}
+.col-hd .pat{display:inline-block;font-size:12px;font-weight:700;color:#070600;background:var(--gong);
+  padding:3px 12px;border-radius:999px;}
+.col-hd .desc{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.phone{background:var(--bg);border-radius:18px;border:1px solid var(--line);overflow:hidden;}
+
+/* セクション見出し */
+.sec{font-size:14px;font-weight:700;color:var(--txt);padding:14px 16px 8px;}
+
+/* 時間帯の行 */
+.tr{margin:0 12px 8px;background:#0c0b07;border:1px solid var(--line);border-radius:12px;
+  padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.15s;}
+.tr:hover{border-color:#544f3c;}
+.tr.open{border-color:var(--gong);background:#13110a;border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0;}
+.tr .time{font-size:12px;color:var(--muted);width:48px;flex-shrink:0;line-height:1.3;}
+.tr .dir{font-size:16px;font-weight:700;color:var(--txt);}
+.tr .meta{font-size:12px;color:var(--muted);font-weight:400;margin-left:7px;}
+.tr .mid{flex:1;}
+.tr .pt{font-size:16px;font-weight:800;}
+.tr .pt.g{color:#2e9e5b;}
+.tr .chev{font-size:11px;color:var(--muted);margin-left:8px;transition:.2s;}
+.tr.open .chev{transform:rotate(180deg);color:var(--gong);}
+
+/* 展開パネル共通 */
+.exp{margin:0 12px 8px;background:#100e09;border:1px solid var(--gong);border-top:none;
+  border-bottom-left-radius:12px;border-bottom-right-radius:12px;padding:14px;display:none;}
+.exp.show{display:block;}
+.exp-lbl{font-size:11px;color:var(--gong);text-align:center;margin-bottom:10px;font-weight:700;}
+
+/* ===== パターン①：中サイズ扇（フル6.5割） ===== */
+.fan-wrap{display:flex;justify-content:center;}
+.legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:10px;}
+.legend span{display:inline-flex;align-items:center;gap:4px;}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
+.more-link{text-align:center;font-size:11px;color:var(--gong);margin-top:10px;text-decoration:underline;}
+
+/* ===== パターン②：色扇＋数字リスト ===== */
+.p2{display:flex;gap:14px;align-items:center;}
+.p2 .fan-mini{flex-shrink:0;}
+.p2 .list{flex:1;display:flex;flex-direction:column;gap:5px;}
+.p2 .li{display:flex;justify-content:space-between;align-items:center;font-size:13px;
+  padding:4px 8px;border-radius:7px;background:#0c0b07;}
+.p2 .li.best{background:#16223a;border:1px solid var(--kichi-strong);}
+.p2 .li .ld{font-weight:700;}
+.p2 .li .lm{font-size:10px;color:var(--muted);font-weight:400;margin-left:5px;}
+.p2 .li .lp{font-weight:800;}
+
+/* ===== パターン③：3×3グリッド ===== */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.gc{aspect-ratio:1;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid transparent;gap:1px;padding:2px;}
+.gc .gd{font-size:12px;font-weight:700;line-height:1.1;}
+.gc .gp{font-size:18px;font-weight:900;line-height:1.1;}
+.gc .gm{font-size:9px;opacity:.85;line-height:1.1;}
+.gc.center{background:#0a0905;border:1px dashed var(--line);color:var(--muted);}
+.gc.center .gd{font-size:11px;}
+.gc.best{outline:2px solid var(--best-ring);box-shadow:0 0 12px rgba(230,195,74,.5);}
+
+/* 色クラス（点数帯） */
+.daikichi{background:var(--kichi-strong);color:#fff;}
+.shokichi{background:var(--kichi-weak);color:#0a1626;}
+.churitsu{background:var(--neutral);color:#fff;}
+.kyo{background:var(--kyo);color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- ============ パターン① 中サイズ扇 ============ -->
+<div class="col">
+  <div class="col-hd">
+    <span class="pat">パターン① 中サイズ扇</span>
+    <div class="desc">見た目は今の扇マップそのまま。フルの約6.5割で開く。<br>円が綺麗・最大吉ハイライトも出せる。やや縦を食う。</div>
+  </div>
+  <div class="phone">
+    <div class="sec">本日の時間帯別ベスト</div>
+
+    <div class="tr open" onclick="toggle(this,'e1')">
+      <div class="time">1-3時</div>
+      <div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div>
+      <div class="pt g">+100</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp show" id="e1">
+      <div class="exp-lbl">1-3時の盤</div>
+      <div class="fan-wrap" id="fan1"></div>
+      <div class="legend">
+        <span><i class="sw daikichi"></i>大吉</span>
+        <span><i class="sw shokichi"></i>小吉</span>
+        <span><i class="sw churitsu"></i>中立</span>
+        <span><i class="sw kyo"></i>凶</span>
+        <span><i class="sw" style="background:var(--best-ring)"></i>最大吉</span>
+      </div>
+      <div class="more-link">この盤を地図で見る →</div>
+    </div>
+
+    <div class="tr" onclick="toggle(this,'e1b')">
+      <div class="time">23-1時</div>
+      <div class="mid"><span class="dir">北西</span><span class="meta">生門・太陰</span></div>
+      <div class="pt g">+60</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp" id="e1b"><div class="exp-lbl">23-1時の盤</div><div class="fan-wrap" id="fan1b"></div></div>
+
+    <div class="tr" onclick="toggle(this,'e1c')">
+      <div class="time">3-5時</div>
+      <div class="mid"><span class="dir">北東</span><span class="meta">景門・九地</span></div>
+      <div class="pt g">+50</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp" id="e1c"><div class="exp-lbl">3-5時の盤</div><div class="fan-wrap" id="fan1c"></div></div>
+  </div>
+</div>
+
+<!-- ============ パターン② 色扇＋数字リスト ============ -->
+<div class="col">
+  <div class="col-hd">
+    <span class="pat">パターン② 色扇＋数字リスト</span>
+    <div class="desc">扇は色だけ（形担当）、横にテキストで点数。<br>小さくても数字くっきり。情報量バランス型。</div>
+  </div>
+  <div class="phone">
+    <div class="sec">本日の時間帯別ベスト</div>
+
+    <div class="tr open" onclick="toggle(this,'e2')">
+      <div class="time">1-3時</div>
+      <div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div>
+      <div class="pt g">+100</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp show" id="e2">
+      <div class="exp-lbl">1-3時の盤</div>
+      <div class="p2">
+        <div class="fan-mini" id="fan2"></div>
+        <div class="list">
+          <div class="li best"><span><span class="ld">北</span><span class="lm">開門</span></span><span class="lp" style="color:#85B7EB">+100</span></div>
+          <div class="li"><span><span class="ld">東</span><span class="lm">休門</span></span><span class="lp" style="color:#85B7EB">+60</span></div>
+          <div class="li"><span><span class="ld">北東</span><span class="lm">生門</span></span><span class="lp" style="color:#85B7EB">+10</span></div>
+          <div class="li"><span><span class="ld">西</span></span><span class="lp" style="color:var(--muted)">0</span></div>
+          <div class="li"><span><span class="ld">北西</span></span><span class="lp" style="color:#d98a85">-20</span></div>
+        </div>
+      </div>
+      <div class="more-link">残り3方位を見る ／ 地図で見る →</div>
+    </div>
+
+    <div class="tr" onclick="toggle(this,'e2b')">
+      <div class="time">23-1時</div>
+      <div class="mid"><span class="dir">北西</span><span class="meta">生門・太陰</span></div>
+      <div class="pt g">+60</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp" id="e2b"><div class="exp-lbl">23-1時の盤</div><div class="p2"><div class="fan-mini" id="fan2b"></div><div class="list" id="list2b"></div></div></div>
+
+    <div class="tr" onclick="toggle(this,'e2c')">
+      <div class="time">3-5時</div>
+      <div class="mid"><span class="dir">北東</span><span class="meta">景門・九地</span></div>
+      <div class="pt g">+50</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp" id="e2c"><div class="exp-lbl">3-5時の盤</div><div class="p2"><div class="fan-mini" id="fan2c"></div><div class="list" id="list2c"></div></div></div>
+  </div>
+</div>
+
+<!-- ============ パターン③ 3×3グリッド ============ -->
+<div class="col">
+  <div class="col-hd">
+    <span class="pat">パターン③ 3×3グリッド（盤型）</span>
+    <div class="desc">円やめて9宮の四角配置。四角は数字スペースが広い。<br>小さくても潰れず、方位＋点数＋八門まで入る。一番読みやすい。</div>
+  </div>
+  <div class="phone">
+    <div class="sec">本日の時間帯別ベスト</div>
+
+    <div class="tr open" onclick="toggle(this,'e3')">
+      <div class="time">1-3時</div>
+      <div class="mid"><span class="dir">北</span><span class="meta">開門・九地</span></div>
+      <div class="pt g">+100</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp show" id="e3">
+      <div class="exp-lbl">1-3時の盤</div>
+      <div class="grid" id="grid3"></div>
+      <div class="more-link">この盤を地図で見る →</div>
+    </div>
+
+    <div class="tr" onclick="toggle(this,'e3b')">
+      <div class="time">23-1時</div>
+      <div class="mid"><span class="dir">北西</span><span class="meta">生門・太陰</span></div>
+      <div class="pt g">+60</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp" id="e3b"><div class="exp-lbl">23-1時の盤</div><div class="grid" id="grid3b"></div></div>
+
+    <div class="tr" onclick="toggle(this,'e3c')">
+      <div class="time">3-5時</div>
+      <div class="mid"><span class="dir">北東</span><span class="meta">景門・九地</span></div>
+      <div class="pt g">+50</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="exp" id="e3c"><div class="exp-lbl">3-5時の盤</div><div class="grid" id="grid3c"></div></div>
+  </div>
+</div>
+
+<script>
+// --- サンプル盤データ（画像②の「今の時盤」の実数字を1-3時用に流用） ---
+// 8方位：北・北東・東・南東・南・南西・西・北西
+const boards = {
+  '1-3':  {best:'北', cells:{'北':100,'北東':10,'東':60,'南東':70,'南':-40,'南西':-65,'西':0,'北西':-20},
+           mon:{'北':'開門','東':'休門','南東':'生門','北東':'生門'}},
+  '23-1': {best:'北西', cells:{'北':-25,'北東':30,'東':20,'南東':-40,'南':10,'南西':-30,'西':-10,'北西':60},
+           mon:{'北西':'生門','北東':'開門','南':'景門'}},
+  '3-5':  {best:'北東', cells:{'北':10,'北東':50,'東':-20,'南東':-30,'南':-50,'南西':0,'西':30,'北西':-15},
+           mon:{'北東':'景門','西':'休門','北':'生門'}},
+};
+
+function cls(v){
+  if(v>=50) return 'daikichi';
+  if(v>0)   return 'shokichi';
+  if(v===0) return 'churitsu';
+  return 'kyo';
+}
+function sign(v){ return v>0?'+'+v:(''+v); }
+
+// 扇の角度割り当て（画像準拠：北=上、時計回り）
+const DIRS=['北','北東','東','南東','南','南西','西','北西'];
+const START=-112.5; // 北を真上に置くため
+
+// ---- 扇SVG生成 ----
+function fanSVG(b, size, withNum){
+  const R=size/2, cx=R, cy=R, inner=R*0.26;
+  let paths='', labels='', best='';
+  DIRS.forEach((d,i)=>{
+    const a0=(START+i*45)*Math.PI/180, a1=(START+(i+1)*45)*Math.PI/180;
+    const x0=cx+R*Math.cos(a0), y0=cy+R*Math.sin(a0);
+    const x1=cx+R*Math.cos(a1), y1=cy+R*Math.sin(a1);
+    const ix0=cx+inner*Math.cos(a0), iy0=cy+inner*Math.sin(a0);
+    const ix1=cx+inner*Math.cos(a1), iy1=cy+inner*Math.sin(a1);
+    const v=b.cells[d];
+    const colMap={daikichi:'#185FA5',shokichi:'#85B7EB',churitsu:'#6f6c5e',kyo:'#c2554f'};
+    const fill=colMap[cls(v)];
+    const isBest=(d===b.best);
+    paths+=`<path d="M${ix0} ${iy0} L${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1} L${ix1} ${iy1} A${inner} ${inner} 0 0 0 ${ix0} ${iy0} Z" fill="${fill}" stroke="${isBest?'#e6c34a':'#000'}" stroke-width="${isBest?2.5:1}"/>`;
+    if(isBest) best+=`<path d="M${ix0} ${iy0} L${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1} L${ix1} ${iy1} A${inner} ${inner} 0 0 0 ${ix0} ${iy0} Z" fill="none" stroke="#e6c34a" stroke-width="2.5" filter="url(#glow)"/>`;
+    if(withNum){
+      const am=(START+i*45+22.5)*Math.PI/180;
+      const rt=(R+inner)/2;
+      const tx=cx+rt*Math.cos(am), ty=cy+rt*Math.sin(am);
+      const fs=size>200?15:13;
+      labels+=`<text x="${tx}" y="${ty}" fill="#fff" font-size="${fs}" font-weight="800" text-anchor="middle" dominant-baseline="central">${sign(v)}</text>`;
+    }
+  });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <defs><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${paths}${best}${labels}
+    <circle cx="${cx}" cy="${cy}" r="${inner}" fill="#0a0905" stroke="#3a372c"/>
+    <text x="${cx}" y="${cy}" fill="#9aa0ab" font-size="${size>200?11:9}" text-anchor="middle" dominant-baseline="central">基準点</text>
+  </svg>`;
+}
+
+// ---- 3x3グリッド生成 ----
+const GRID=[['北西','北','北東'],['西','中','東'],['南西','南','南東']];
+function gridHTML(b){
+  let h='';
+  GRID.flat().forEach(d=>{
+    if(d==='中'){ h+=`<div class="gc center"><div class="gd">基準点</div></div>`; return; }
+    const v=b.cells[d];
+    const m=b.mon[d]?`<div class="gm">${b.mon[d]}</div>`:'';
+    const isBest=(d===b.best)?' best':'';
+    h+=`<div class="gc ${cls(v)}${isBest}"><div class="gd">${d}</div><div class="gp">${sign(v)}</div>${m}</div>`;
+  });
+  return h;
+}
+
+// ---- リスト生成（パターン②の他時辰用） ----
+function listHTML(b){
+  const arr=DIRS.map(d=>({d,v:b.cells[d],m:b.mon[d]})).sort((a,b)=>b.v-a.v).slice(0,5);
+  return arr.map(o=>{
+    const col=o.v>0?'#85B7EB':(o.v===0?'var(--muted)':'#d98a85');
+    const best=(o.d===b.best)?' best':'';
+    const m=o.m?`<span class="lm">${o.m}</span>`:'';
+    return `<div class="li${best}"><span><span class="ld">${o.d}</span>${m}</span><span class="lp" style="color:${col}">${sign(o.v)}</span></div>`;
+  }).join('');
+}
+
+// 描画
+function render(){
+  document.getElementById('fan1').innerHTML=fanSVG(boards['1-3'],260,true);
+  document.getElementById('fan1b').innerHTML=fanSVG(boards['23-1'],260,true);
+  document.getElementById('fan1c').innerHTML=fanSVG(boards['3-5'],260,true);
+
+  document.getElementById('fan2').innerHTML=fanSVG(boards['1-3'],120,false);
+  document.getElementById('fan2b').innerHTML=fanSVG(boards['23-1'],120,false);
+  document.getElementById('fan2c').innerHTML=fanSVG(boards['3-5'],120,false);
+  document.getElementById('list2b').innerHTML=listHTML(boards['23-1']);
+  document.getElementById('list2c').innerHTML=listHTML(boards['3-5']);
+
+  document.getElementById('grid3').innerHTML=gridHTML(boards['1-3']);
+  document.getElementById('grid3b').innerHTML=gridHTML(boards['23-1']);
+  document.getElementById('grid3c').innerHTML=gridHTML(boards['3-5']);
+}
+render();
+
+function toggle(row,id){
+  const exp=document.getElementById(id);
+  const open=exp.classList.contains('show');
+  // 同じphone内を閉じる
+  const phone=row.closest('.phone');
+  phone.querySelectorAll('.tr').forEach(t=>t.classList.remove('open'));
+  phone.querySelectorAll('.exp').forEach(e=>e.classList.remove('show'));
+  if(!open){ row.classList.add('open'); exp.classList.add('show'); }
+}
+</script>
+</body>
+</html>

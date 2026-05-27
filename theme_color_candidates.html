@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#2b2b2b;padding:14px;}
+.swatches{display:flex;flex-direction:column;gap:18px;}
+.swatch{border-radius:14px;overflow:hidden;border:1px solid #444;}
+.label{padding:10px 14px;color:#fff;font-size:13px;font-weight:700;background:#1f1f1f;display:flex;justify-content:space-between;align-items:center;}
+.label .hex{font-weight:400;color:#bbb;font-size:11px;}
+/* 盤の縮小サンプル：背景キャンバス＋外周十二支＋宮セル2つ */
+.mini{padding:22px 18px;position:relative;}
+.mini .zod{position:absolute;font-size:15px;font-weight:500;}
+.zt1{top:5px;left:24%;}.zt2{top:5px;left:52%;}
+.zl1{left:4px;top:42%;}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 8px;}
+.cell{aspect-ratio:1/1.05;border-radius:13px;padding:8px 9px;display:flex;flex-direction:column;border:1px solid rgba(0,0,0,0.12);}
+.cell.junri{border:2.5px solid #4472C4;}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
+.gn{font-family:'Noto Serif JP',serif;font-weight:700;font-size:16px;color:#c79a2e;}
+.gn .el{font-size:9px;color:#9a8f78;margin-left:2px;}
+.sc{font-size:18px;font-weight:900;line-height:1;}
+.sc.g{color:#3aa53a;}.sc.b{color:#d83a3a;}
+.km{display:grid;grid-template-columns:1fr 1fr;align-items:center;row-gap:1px;}
+.kan{font-size:16px;font-weight:900;line-height:1.1;}
+.kan.w{color:#222;}.kan.s{color:#2a6ad0;}
+.mt{font-size:12px;font-weight:700;text-align:right;line-height:1.1;}
+.mt.g{color:#2a6ad0;}.mt.b{color:#d83a3a;}
+.mon{margin-top:5px;text-align:center;}
+.mon span{display:inline-block;font-weight:900;font-size:15px;color:#fff;padding:3px 11px;border-radius:7px;line-height:1;}
+.mon .blue{background:#4472C4;}.mon .red{background:#FF0000;}
+.note{padding:8px 14px 12px;font-size:11px;color:#ccc;background:#1f1f1f;line-height:1.5;}
+.note b{color:#fff;}
+</style>
+</head>
+<body>
+<div class="swatches">
+
+<!-- ===== くすみピンク 系 ===== -->
+
+<div class="swatch">
+  <div class="label"><span>A. くすみピンク（淡・優しい）</span><span class="hex">背景 #f3e3e0 / 十二支 #b08a82</span></div>
+  <div class="mini" style="background:#f3e3e0;">
+    <span class="zod zt1" style="color:#b08a82;">巳</span><span class="zod zt2" style="color:#b08a82;">午</span><span class="zod zl1" style="color:#b08a82;">辰</span>
+    <div class="mini-grid">
+      <div class="cell" style="background:#fdf8f7;">
+        <div class="hd"><div><span class="gn">巽<span class="el">木</span></span></div><div class="sc g">5</div></div>
+        <div class="km"><div class="kan s">丁</div><div class="mt g">九天</div><div class="kan s">乙</div><div class="mt b">天芮</div></div>
+        <div class="mon"><span class="red">傷門</span></div>
+      </div>
+      <div class="cell junri" style="background:#fdf8f7;">
+        <div class="hd"><div><span class="gn">震<span class="el">木</span></span></div><div class="sc g">50</div></div>
+        <div class="km"><div class="kan w">壬</div><div class="mt g">九地</div><div class="kan s">丙</div><div class="mt b">天英</div></div>
+        <div class="mon"><span class="blue">生門</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>淡くて優しい。</b>女性らしさ◎。白カードとの差が小さめなので上品だが、ぼやけ気味にも。十二支は赤みグレー(#b08a82)で背景と馴染む。</div>
+</div>
+
+<div class="swatch">
+  <div class="label"><span>B. くすみピンク（中・大人っぽい）</span><span class="hex">背景 #ecd2cd / 十二支 #9c6f66</span></div>
+  <div class="mini" style="background:#ecd2cd;">
+    <span class="zod zt1" style="color:#9c6f66;">巳</span><span class="zod zt2" style="color:#9c6f66;">午</span><span class="zod zl1" style="color:#9c6f66;">辰</span>
+    <div class="mini-grid">
+      <div class="cell" style="background:#fdf9f8;">
+        <div class="hd"><div><span class="gn">巽<span class="el">木</span></span></div><div class="sc g">5</div></div>
+        <div class="km"><div class="kan s">丁</div><div class="mt g">九天</div><div class="kan s">乙</div><div class="mt b">天芮</div></div>
+        <div class="mon"><span class="red">傷門</span></div>
+      </div>
+      <div class="cell junri" style="background:#fdf9f8;">
+        <div class="hd"><div><span class="gn">震<span class="el">木</span></span></div><div class="sc g">50</div></div>
+        <div class="km"><div class="kan w">壬</div><div class="mt g">九地</div><div class="kan s">丙</div><div class="mt b">天英</div></div>
+        <div class="mon"><span class="blue">生門</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>少し濃くて大人っぽい。</b>白カードが浮き立ち盤がはっきり見える。十二支は焦げ茶ピンク(#9c6f66)でくっきり。一番バランス良いかも。</div>
+</div>
+
+<div class="swatch">
+  <div class="label"><span>C. グレージュピンク（くすみ・上品）</span><span class="hex">背景 #e8ddd9 / 十二支 #8f7d77</span></div>
+  <div class="mini" style="background:#e8ddd9;">
+    <span class="zod zt1" style="color:#8f7d77;">巳</span><span class="zod zt2" style="color:#8f7d77;">午</span><span class="zod zl1" style="color:#8f7d77;">辰</span>
+    <div class="mini-grid">
+      <div class="cell" style="background:#fdfbfa;">
+        <div class="hd"><div><span class="gn">巽<span class="el">木</span></span></div><div class="sc g">5</div></div>
+        <div class="km"><div class="kan s">丁</div><div class="mt g">九天</div><div class="kan s">乙</div><div class="mt b">天芮</div></div>
+        <div class="mon"><span class="red">傷門</span></div>
+      </div>
+      <div class="cell junri" style="background:#fdfbfa;">
+        <div class="hd"><div><span class="gn">震<span class="el">木</span></span></div><div class="sc g">50</div></div>
+        <div class="km"><div class="kan w">壬</div><div class="mt g">九地</div><div class="kan s">丙</div><div class="mt b">天英</div></div>
+        <div class="mon"><span class="blue">生門</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>グレーがかったくすみピンク。</b>洗練・上品系。十二支グレー(#8f7d77)が自然に合う＝今のグレー問題が一番ラクに解決。</div>
+</div>
+
+<!-- ===== 和・白寄り 系 ===== -->
+
+<div class="swatch">
+  <div class="label"><span>D. 和・生成り（白寄り・しみったれ解消）</span><span class="hex">背景 #f7f3ea / 十二支 #a89a7d</span></div>
+  <div class="mini" style="background:#f7f3ea;">
+    <span class="zod zt1" style="color:#a89a7d;">巳</span><span class="zod zt2" style="color:#a89a7d;">午</span><span class="zod zl1" style="color:#a89a7d;">辰</span>
+    <div class="mini-grid">
+      <div class="cell" style="background:#fffefb;">
+        <div class="hd"><div><span class="gn">巽<span class="el">木</span></span></div><div class="sc g">5</div></div>
+        <div class="km"><div class="kan s">丁</div><div class="mt g">九天</div><div class="kan s">乙</div><div class="mt b">天芮</div></div>
+        <div class="mon"><span class="red">傷門</span></div>
+      </div>
+      <div class="cell junri" style="background:#fffefb;">
+        <div class="hd"><div><span class="gn">震<span class="el">木</span></span></div><div class="sc g">50</div></div>
+        <div class="km"><div class="kan w">壬</div><div class="mt g">九地</div><div class="kan s">丙</div><div class="mt b">天英</div></div>
+        <div class="mon"><span class="blue">生門</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>今のベージュより明るい生成り（きなり）。</b>黄ばみを抜いて白寄りに。和を保ちつつ清潔感UP。十二支は少し明るめグレージュ(#a89a7d)。</div>
+</div>
+
+<div class="swatch">
+  <div class="label"><span>E. 和・白磁（ほぼ白・最も明るい）</span><span class="hex">背景 #faf7f2 / 十二支 #9e9484</span></div>
+  <div class="mini" style="background:#faf7f2;">
+    <span class="zod zt1" style="color:#9e9484;">巳</span><span class="zod zt2" style="color:#9e9484;">午</span><span class="zod zl1" style="color:#9e9484;">辰</span>
+    <div class="mini-grid">
+      <div class="cell" style="background:#ffffff;">
+        <div class="hd"><div><span class="gn">巽<span class="el">木</span></span></div><div class="sc g">5</div></div>
+        <div class="km"><div class="kan s">丁</div><div class="mt g">九天</div><div class="kan s">乙</div><div class="mt b">天芮</div></div>
+        <div class="mon"><span class="red">傷門</span></div>
+      </div>
+      <div class="cell junri" style="background:#ffffff;">
+        <div class="hd"><div><span class="gn">震<span class="el">木</span></span></div><div class="sc g">50</div></div>
+        <div class="km"><div class="kan w">壬</div><div class="mt g">九地</div><div class="kan s">丙</div><div class="mt b">天英</div></div>
+        <div class="mon"><span class="blue">生門</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>ほぼ白の白磁色。</b>最も明るく清潔。和の上品さは残る。白カードとの差がほぼ無いので、宮セルに薄い枠線を付けると締まる。</div>
+</div>
+
+</div>
+</body>
+</html>

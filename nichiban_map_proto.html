@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>日盤 地図 検証モック</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f0d08; --panel:#15140f; --panel2:#100e09; --line:#3a372c;
+    --gong:#e6c34a; --txt:#e8e8ea; --muted:#9aa0ab;
+    --kichi-strong:#185FA5;  /* 大吉=濃い青 */
+    --kichi-mid:#378ADD;     /* 中吉 */
+    --kichi-weak:#85B7EB;    /* 小吉=淡い青 */
+    --neutral:#6f6c5e;       /* 中立=グレー */
+    --kyo:#c2554f;           /* 凶=赤 */
+    --kyo-strong:#a3302a;    /* 大凶 */
+    --best-ring:#e6c34a;     /* 1位の枠=金 */
+    --good:#6cd06c; --bad:#ff7a7a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#070600;font-family:'Noto Sans JP',sans-serif;display:flex;justify-content:center;}
+  .phone{width:100%;max-width:430px;min-height:100vh;background:var(--bg);color:var(--txt);padding-bottom:80px;}
+
+  /* ヘッダ */
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;}
+  .hd .ttl{font-size:18px;font-weight:700;color:var(--gong);font-family:'Noto Serif JP',serif;}
+  .hd .sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .chip-time{font-size:12px;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 10px;background:var(--panel);}
+
+  /* モード比較トグル（検証用） */
+  .mode-row{display:flex;gap:8px;padding:0 16px 12px;}
+  .mode-tab{flex:1;text-align:center;font-size:13px;padding:9px 0;border-radius:10px;border:1px solid var(--line);color:var(--muted);background:var(--panel);cursor:pointer;}
+  .mode-tab.active{color:var(--gong);border-color:var(--gong);background:#1c1a12;font-weight:700;}
+  .mode-tab small{display:block;font-size:10px;color:var(--muted);margin-top:2px;font-weight:400;}
+  .mode-tab.active small{color:var(--gong);}
+
+  /* 基準点・日付カード */
+  .card{margin:0 16px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .card-h{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;}
+  .src-row{display:flex;gap:8px;}
+  .field{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--txt);display:flex;justify-content:space-between;align-items:center;}
+  .field .act{font-size:11px;color:var(--gong);}
+  .date-row{margin-top:8px;display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+  .date-row .pill{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;color:var(--txt);}
+
+  /* 地図 */
+  .map-wrap{margin:0 16px 8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;}
+  #map{width:100%;height:340px;background:#0b0a06;}
+  .map-cap{font-size:11px;color:var(--muted);padding:8px 14px 0;line-height:1.5;}
+  .expand-btn{position:absolute;top:10px;right:10px;z-index:600;background:rgba(21,20,15,.9);border:1px solid var(--gong);color:var(--gong);font-size:12px;padding:6px 12px;border-radius:8px;}
+
+  /* 距離スケールの説明バー */
+  .scalebar{margin:10px 16px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .scalebar h3{font-size:12px;color:var(--gong);font-weight:700;margin-bottom:10px;font-family:'Noto Serif JP',serif;}
+  .ruler{position:relative;height:42px;border-radius:8px;overflow:hidden;border:1px solid var(--line);}
+  .ruler .lab{position:absolute;top:4px;font-size:10px;color:#fff;font-weight:700;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.7);}
+  .ruler .lab.bot{top:auto;bottom:4px;font-weight:400;color:#e8e8ea;}
+  .scale-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
+  .scale-note b{color:var(--kichi-weak);}
+
+  /* ランキング */
+  .best-card{margin:0 16px 10px;background:#16223a;border:1px solid var(--kichi-strong);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+  .best-no{width:40px;height:40px;border-radius:50%;background:var(--kichi-strong);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0;}
+  .best-dir{font-size:17px;font-weight:700;color:#fff;}
+  .best-dir small{font-size:12px;color:var(--kichi-weak);font-weight:400;margin-left:6px;}
+  .best-note{font-size:11px;color:var(--muted);margin-top:2px;}
+  .best-score{font-size:22px;font-weight:900;color:var(--kichi-weak);margin-left:auto;}
+
+  .rank-h{font-size:13px;font-weight:700;padding:4px 18px 8px;color:var(--txt);}
+  .rk-item{display:flex;align-items:center;gap:10px;margin:0 16px 6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;}
+  .rk-no{width:22px;color:var(--muted);font-weight:700;text-align:center;}
+  .rk-dir{font-weight:700;color:var(--txt);}
+  .rk-tag{font-size:11px;color:var(--muted);margin-left:4px;}
+  .rk-sc{margin-left:auto;font-weight:900;}
+  .rk-sc.k{color:var(--kichi-weak);} .rk-sc.x{color:var(--bad);} .rk-sc.n{color:var(--muted);}
+
+  /* 凡例 */
+  .legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:11px;color:var(--muted);padding:8px 16px 4px;}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
+
+  /* 補助バー */
+  .aux{margin:8px 16px 0;font-size:11px;color:var(--muted);background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:9px 12px;line-height:1.6;}
+  .aux b{color:var(--gong);}
+
+  /* ボトムタブ */
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:flex;background:var(--panel);border-top:1px solid var(--line);}
+  .tab{flex:1;text-align:center;padding:10px 0 12px;font-size:11px;color:var(--muted);}
+  .tab.on{color:var(--gong);}
+  .tab .ic{font-size:18px;display:block;margin-bottom:2px;}
+
+  /* Leaflet微調整 */
+  .leaflet-container{background:#0b0a06;}
+  .dir-label{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000,0 0 4px #000;white-space:nowrap;}
+  .ring-label{font-size:10px;font-weight:700;color:var(--gong);text-shadow:0 1px 3px #000,0 0 4px #000;background:none;border:none;}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="hd">
+    <div>
+      <div class="ttl">遠出 吉方位（日盤）</div>
+      <div class="sub">出張・旅行・1日がかりの遠方</div>
+    </div>
+    <div class="chip-time">2026/06/01</div>
+  </div>
+
+  <!-- 検証用：時盤と日盤を切り替えて見比べる -->
+  <div class="mode-row">
+    <div class="mode-tab" id="tabJi" onclick="setMode('ji')">時盤 お散歩<small>確定500m・徒歩圏</small></div>
+    <div class="mode-tab active" id="tabNi" onclick="setMode('ni')">日盤 遠出<small>確定50km・遠いほど強</small></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">基準点・日付</div>
+    <div class="src-row">
+      <div class="field"><b>📍 東京駅</b><span class="act">変更</span></div>
+    </div>
+    <div class="date-row">
+      <span style="color:var(--muted)">📅 行く日</span>
+      <span class="pill">2026年6月1日（月）</span>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <button class="expand-btn">⤢ 拡大</button>
+  </div>
+  <div class="map-cap" id="mapCap"></div>
+
+  <!-- 距離スケールの見える化（時盤との違いの主役） -->
+  <div class="scalebar">
+    <h3 id="scaleTitle"></h3>
+    <div class="ruler" id="ruler"></div>
+    <div class="scale-note" id="scaleNote"></div>
+  </div>
+
+  <div class="best-card">
+    <div class="best-no">1</div>
+    <div>
+      <div class="best-dir">東 <small>生門・飛鳥跌穴</small></div>
+      <div class="best-note">この日いちばん強い吉方位</div>
+    </div>
+    <div class="best-score">+40</div>
+  </div>
+
+  <div class="rank-h">🏆 この日の方位ランキング</div>
+  <div class="rk-item"><span class="rk-no">2</span><span class="rk-dir">南東<span class="rk-tag">開門・六合</span></span><span class="rk-sc k">+30</span></div>
+  <div class="rk-item"><span class="rk-no">3</span><span class="rk-dir">北<span class="rk-tag">休門</span></span><span class="rk-sc k">+20</span></div>
+  <div class="rk-item"><span class="rk-no">4</span><span class="rk-dir">北東<span class="rk-tag">景門</span></span><span class="rk-sc k">+10</span></div>
+
+  <div class="legend">
+    <span><i style="background:var(--kichi-strong)"></i>吉（濃いほど高得点）</span>
+    <span><i style="background:var(--kyo)"></i>凶</span>
+    <span><i style="background:var(--neutral)"></i>中立</span>
+    <span><i style="background:none;border:2px solid var(--gong)"></i>1位</span>
+  </div>
+
+  <div class="aux">
+    <b>補助</b>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。<br>
+    ※出発時刻の時盤併用を出すかは先生確認事項。
+  </div>
+
+</div>
+
+<div class="tabbar">
+  <div class="tab"><span class="ic">⊞</span>盤</div>
+  <div class="tab on"><span class="ic">🧭</span>吉方位</div>
+  <div class="tab"><span class="ic">⚙</span>設定</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// 東京駅
+const ORIGIN = [35.681, 139.767];
+
+// 8方位（真北基準・45度均等）と仮スコア
+const DIRS = [
+  {name:'北',   bearing:0,   score:20,  level:'k2'},
+  {name:'北東', bearing:45,  score:10,  level:'k1'},
+  {name:'東',   bearing:90,  score:40,  level:'k3', best:true},
+  {name:'南東', bearing:135, score:30,  level:'k3'},
+  {name:'南',   bearing:180, score:-20, level:'x1'},
+  {name:'南西', bearing:225, score:-10, level:'x1'},
+  {name:'西',   bearing:270, score:0,   level:'n'},
+  {name:'北西', bearing:315, score:20,  level:'k2'},
+];
+
+const COL = {
+  k3:'#185FA5', k2:'#378ADD', k1:'#85B7EB',
+  n:'#6f6c5e', x1:'#c2554f', x2:'#a3302a'
+};
+function colorOf(d){
+  if(d.score>=40) return COL.k3;
+  if(d.score>=20) return COL.k2;
+  if(d.score>0)   return COL.k1;
+  if(d.score===0) return COL.n;
+  if(d.score>-20) return COL.x1;
+  return COL.x2;
+}
+
+let map, layer;
+
+function initMap(){
+  map = L.map('map',{zoomControl:false,attributionControl:false,scrollWheelZoom:false}).setView(ORIGIN, 7);
+  // 淡色タイル（CartoDB Positron・キー不要）。地図に色が負けないように。
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+  layer = L.layerGroup().addTo(map);
+}
+
+// 方位角→緯度経度（簡易・平面近似で十分。検証用）
+function destPoint(lat, lng, bearingDeg, distKm){
+  const R = 6371;
+  const br = bearingDeg*Math.PI/180;
+  const lat1 = lat*Math.PI/180, lng1 = lng*Math.PI/180;
+  const dr = distKm/R;
+  const lat2 = Math.asin(Math.sin(lat1)*Math.cos(dr)+Math.cos(lat1)*Math.sin(dr)*Math.cos(br));
+  const lng2 = lng1 + Math.atan2(Math.sin(br)*Math.sin(dr)*Math.cos(lat1), Math.cos(dr)-Math.sin(lat1)*Math.sin(lat2));
+  return [lat2*180/Math.PI, lng2*180/Math.PI];
+}
+
+// 扇（セクター）のポリゴン頂点を作る
+function sector(centerLat, centerLng, bearing, halfAngle, innerKm, outerKm){
+  const pts = [];
+  const step = 3;
+  // 外周（時計回り）
+  for(let a=-halfAngle; a<=halfAngle; a+=step){
+    pts.push(destPoint(centerLat,centerLng,bearing+a,outerKm));
+  }
+  // 内周（反時計回り）
+  for(let a=halfAngle; a>=-halfAngle; a-=step){
+    pts.push(destPoint(centerLat,centerLng,bearing+a,innerKm));
+  }
+  return pts;
+}
+
+// ===== 2モードの距離設定（ここが時盤と日盤の違いの核） =====
+const CONFIG = {
+  ji: {
+    label:'時盤（お散歩）',
+    zoom: 13,
+    confirmKm: 0.5,            // 確定ライン=500m
+    fadeMaxKm: 10,             // 10kmまでフェード
+    fadeBands: [               // 内ほど濃い → 外ほど薄い（徒歩圏を出ると不確か）
+      {from:0,    to:0.5,  op:0.55},
+      {from:0.5,  to:2,    op:0.40},
+      {from:2,    to:4,    op:0.28},
+      {from:4,    to:7,    op:0.18},
+      {from:7,    to:10,   op:0.10},
+    ],
+    rings:[{km:0.5,txt:'500m 確定'},{km:10,txt:'10km'}],
+    cap:'家を中心に徒歩圏。<b>500m以上＋5分滞在</b>で効果（効果5日）。500mの確定ゾーンが濃く、遠いほど薄くフェード＝徒歩圏を出ると効果が続くか不確かなことを表す。',
+    scaleTitle:'時盤の距離：内が濃い → 外が薄い',
+    ruler:[
+      {x:0,   w:5,  op:0.9, lab:'0',     bot:'起点'},
+      {x:5,   w:20, op:0.7, lab:'500m',  bot:'確定ライン'},
+      {x:25,  w:75, op:0.3, lab:'',      bot:'10kmへフェード'},
+    ],
+    scaleNote:'徒歩5分≒400m。<b>500m未満は近すぎ</b>。確定ゾーンを出ると効果が薄れる＝外ほど淡く。',
+  },
+  ni: {
+    label:'日盤（遠出）',
+    zoom: 7,
+    confirmKm: 50,             // 確定ライン=50km（先生講座・一般通説とも一致）
+    fadeMaxKm: 250,            // 表示上限。実際は「遠いほど良い」
+    // ★反転：内（50km未満）が薄い → 外（遠方）ほど濃い
+    fadeBands: [
+      {from:0,   to:50,  op:0.10},   // 50km未満＝近すぎ・効果弱
+      {from:50,  to:100, op:0.28},   // 有効ゾーン入口
+      {from:100, to:160, op:0.42},
+      {from:160, to:250, op:0.55},   // 遠いほど濃い＝強い
+    ],
+    rings:[{km:50,txt:'50km 有効ライン'},{km:100,txt:'100km'},{km:200,txt:'200km'}],
+    cap:'家を中心に遠方。<b>50km以上＋3時間滞在</b>で効果（効果60日）。50km未満は近すぎ＝薄く、<b>遠いほど効果が増す</b>ので外ほど濃い（時盤と逆）。',
+    scaleTitle:'日盤の距離：内が薄い → 外が濃い（時盤と逆！）',
+    ruler:[
+      {x:0,  w:20, op:0.12, lab:'0',     bot:'近すぎ'},
+      {x:20, w:20, op:0.30, lab:'50km',  bot:'有効ライン'},
+      {x:40, w:30, op:0.45, lab:'100km', bot:''},
+      {x:70, w:30, op:0.6,  lab:'200km〜',bot:'遠いほど強'},
+    ],
+    scaleNote:'日帰り行軍≒39km、<b>50kmで無難</b>、50〜100km以上が理想。直線距離で測る。数百km・海外は球面方位で見当が変わる点に注意（引き方トグル対応済み）。',
+  }
+};
+
+let MODE = 'ni';
+
+function drawFans(){
+  layer.clearLayers();
+  const cfg = CONFIG[MODE];
+
+  // 起点マーカー
+  L.circleMarker(ORIGIN,{radius:5,color:'#fff',weight:2,fillColor:cfg===CONFIG.ni?'#e6c34a':'#fff',fillOpacity:1}).addTo(layer);
+
+  // 各方位の扇を、距離バンドごとに不透明度を変えて描く
+  DIRS.forEach(d=>{
+    const baseColor = colorOf(d);
+    cfg.fadeBands.forEach(b=>{
+      const poly = sector(ORIGIN[0],ORIGIN[1],d.bearing,22.5,b.from,b.to);
+      L.polygon(poly,{
+        stroke:false,
+        fillColor:baseColor,
+        fillOpacity:b.op,
+      }).addTo(layer);
+    });
+    // 最外周だけ薄い輪郭（地図に負けないように）
+    const edge = sector(ORIGIN[0],ORIGIN[1],d.bearing,22.5,cfg.confirmKm,cfg.fadeMaxKm);
+    L.polygon(edge,{stroke:true,color:baseColor,weight:1,opacity:d.best?0:0.35,fill:false}).addTo(layer);
+
+    // ベスト方位は金枠
+    if(d.best){
+      const bestPoly = sector(ORIGIN[0],ORIGIN[1],d.bearing,22.5,cfg.confirmKm,cfg.fadeMaxKm);
+      L.polygon(bestPoly,{stroke:true,color:'#e6c34a',weight:2.5,opacity:0.95,fill:false}).addTo(layer);
+    }
+
+    // 方位ラベル
+    const lp = destPoint(ORIGIN[0],ORIGIN[1],d.bearing, cfg.fadeMaxKm*0.72);
+    L.marker(lp,{icon:L.divIcon({className:'dir-label',html:`${d.name} ${d.score>0?'+':''}${d.score}`,iconSize:[44,16]})}).addTo(layer);
+  });
+
+  // 距離リング（確定ライン・目盛り）
+  cfg.rings.forEach(r=>{
+    const isConfirm = r.km===cfg.confirmKm;
+    // 確定ラインは下地の太い半透明＋上に金線でグロー風に強調
+    if(isConfirm){
+      L.circle(ORIGIN,{radius:r.km*1000,stroke:true,color:'#e6c34a',weight:6,opacity:0.25,fill:false}).addTo(layer);
+    }
+    L.circle(ORIGIN,{
+      radius:r.km*1000,
+      stroke:true,
+      color: isConfirm ? '#e6c34a' : '#c9c4b0',
+      weight: isConfirm ? 2.5 : 1,
+      dashArray: isConfirm ? null : '4 6',
+      opacity:0.85,
+      fill:false,
+    }).addTo(layer);
+    const labP = destPoint(ORIGIN[0],ORIGIN[1],65,r.km); // 北東寄りにラベル
+    L.marker(labP,{icon:L.divIcon({className:'ring-label',html:r.txt,iconSize:[80,14]})}).addTo(layer);
+  });
+
+  map.setView(ORIGIN, cfg.zoom);
+}
+
+function renderScale(){
+  const cfg = CONFIG[MODE];
+  document.getElementById('scaleTitle').textContent = cfg.scaleTitle;
+  document.getElementById('scaleNote').innerHTML = cfg.scaleNote;
+  document.getElementById('mapCap').innerHTML = cfg.cap;
+
+  // ルーラー（青のグラデで距離スケールを表現）
+  const ruler = document.getElementById('ruler');
+  ruler.innerHTML = '';
+  cfg.ruler.forEach(seg=>{
+    const div = document.createElement('div');
+    div.style.position='absolute';
+    div.style.left=seg.x+'%';
+    div.style.width=seg.w+'%';
+    div.style.top='0'; div.style.bottom='0';
+    div.style.background=`rgba(24,95,165,${seg.op})`;
+    ruler.appendChild(div);
+    if(seg.lab){
+      const l=document.createElement('span'); l.className='lab'; l.style.left=(seg.x+1)+'%'; l.textContent=seg.lab; ruler.appendChild(l);
+    }
+    if(seg.bot){
+      const b=document.createElement('span'); b.className='lab bot'; b.style.left=(seg.x+1)+'%'; b.textContent=seg.bot; ruler.appendChild(b);
+    }
+  });
+}
+
+function setMode(m){
+  MODE = m;
+  document.getElementById('tabJi').classList.toggle('active', m==='ji');
+  document.getElementById('tabNi').classList.toggle('active', m==='ni');
+  document.querySelector('.hd .ttl').textContent = m==='ni' ? '遠出 吉方位（日盤）' : 'お散歩 吉方位（時盤）';
+  document.querySelector('.hd .sub').textContent = m==='ni' ? '出張・旅行・1日がかりの遠方' : '日々の短距離・吉運の累積';
+  drawFans();
+  renderScale();
+}
+
+initMap();
+setMode('ni');
+</script>
+</body>
+</html>
