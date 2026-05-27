@@ -1958,10 +1958,13 @@ body {
   position: fixed;
   inset: 0;
   z-index: 500;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto auto;
+  height: 100vh;
+  height: 100dvh;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   gap: 10px;
   padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   background: var(--bg-main);
+  overflow: hidden;
 }
 
 .direction-map-header {
@@ -2120,7 +2123,14 @@ body {
 .direction-map-wrap.is-fullscreen .direction-map {
   height: 100%;
   min-height: 0;
+  align-self: stretch;
   border-radius: 10px;
+}
+
+.direction-map-wrap.is-fullscreen .direction-place-panel,
+.direction-map-wrap.is-fullscreen .direction-map-caption,
+.direction-map-wrap.is-fullscreen .direction-scale-card {
+  display: none;
 }
 
 .direction-map .leaflet-control-attribution {
