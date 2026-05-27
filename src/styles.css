@@ -1995,6 +1995,12 @@ body {
   font-weight: 800;
 }
 
+.direction-map-live-action.is-active {
+  border-color: #2e9e5b;
+  background: #2e9e5b;
+  color: #fff;
+}
+
 .direction-map-controls {
   display: flex;
   align-items: center;
@@ -2104,6 +2110,11 @@ body {
   color: var(--text-secondary);
   font-size: 0.7rem;
   line-height: 1.45;
+}
+
+.direction-map-status.is-live {
+  color: var(--text-primary);
+  font-weight: 800;
 }
 
 .direction-map {

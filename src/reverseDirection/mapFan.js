@@ -162,6 +162,13 @@ export function isNegativeTone(tone) {
   return tone === 'bad' || tone === 'bad-strong';
 }
 
+export function liveLineColor(liveDir, bestPalace) {
+  if (!liveDir) return '#8a8a8a';
+  if (liveDir.palace === bestPalace) return '#2e9e5b';
+  if (isPositiveTone(liveDir.tone)) return '#2e9e5b';
+  return '#8a8a8a';
+}
+
 export function directionIndexFor(item) {
   if (Number.isFinite(item?.angle)) return Math.round(item.angle / MAP_FAN.sectorDeg) % 8;
   return 0;

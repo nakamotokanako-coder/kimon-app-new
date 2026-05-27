@@ -11,6 +11,7 @@ import {
   getDistanceProfile,
   isNegativeTone,
   isPositiveTone,
+  liveLineColor,
   sectorPolygon,
 } from './mapFan.js';
 import {
@@ -20,6 +21,7 @@ import {
   buildOverpassQuery,
   decoratePlaces,
   deleteFavorite,
+  distanceMeters,
   favoriteKey,
   favoriteDisplayName,
   findFacilityPreset,
@@ -32,6 +34,9 @@ const LABEL_MODE = {
   compact: { className: 'is-compact', showScore: true },
   fullscreen: { className: 'is-fullscreen', showScore: true },
 };
+
+const LIVE_LOCATION_STORAGE_KEY = 'kimon_map_live_on_v1';
+const LIVE_WATCH_OPTIONS = { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 };
 
 function scoreText(score) {
   return `${score > 0 ? '+' : ''}${score}`;
@@ -98,6 +103,17 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [editingFavoriteKey, setEditingFavoriteKey] = useState(null);
   const [favoriteLabelDraft, setFavoriteLabelDraft] = useState('');
+  const [liveOn, setLiveOn] = useState(false);
+  const [livePos, setLivePos] = useState(null);
+  const [liveStatus, setLiveStatus] = useState(() => {
+    try {
+      return window.localStorage.getItem(LIVE_LOCATION_STORAGE_KEY) === 'true'
+        ? '現在地は手動でONにすると表示します。'
+        : '';
+    } catch {
+      return '';
+    }
+  });
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = window.localStorage.getItem(MAP_SEARCH_STORAGE_KEY);
@@ -109,6 +125,8 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const mapRef = useRef(null);
   const mapNodeRef = useRef(null);
   const layerGroupRef = useRef(null);
+  const liveLayerRef = useRef(null);
+  const watchIdRef = useRef(null);
   const viewKeyRef = useRef('');
   const center = useMemo(() => [location.latitude, location.longitude], [location.latitude, location.longitude]);
   const bearingOptions = useMemo(
@@ -178,6 +196,44 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const clearPlaceMarkers = () => {
     setSearchResults([]);
     setSelectedPlace(null);
+  };
+
+  const clearLiveLayer = () => {
+    liveLayerRef.current?.clearLayers();
+  };
+
+  const stopLiveLocation = () => {
+    if (watchIdRef.current !== null && typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+    watchIdRef.current = null;
+    setLiveOn(false);
+    setLivePos(null);
+    setLiveStatus('');
+    clearLiveLayer();
+    try {
+      window.localStorage.setItem(LIVE_LOCATION_STORAGE_KEY, 'false');
+    } catch {
+      // localStorage is only a convenience for the toggle state.
+    }
+  };
+
+  const toggleLiveLocation = () => {
+    if (liveOn) {
+      stopLiveLocation();
+      return;
+    }
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLiveStatus('この端末では現在地を取得できません。');
+      return;
+    }
+    setLiveOn(true);
+    setLiveStatus('現在地を取得しています。');
+    try {
+      window.localStorage.setItem(LIVE_LOCATION_STORAGE_KEY, 'true');
+    } catch {
+      // localStorage is only a convenience for the toggle state.
+    }
   };
 
   const runFacilitySearch = async (word, preset) => {
@@ -291,7 +347,80 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
       attribution: '&copy; OpenStreetMap &copy; CARTO',
     }).addTo(mapRef.current);
     layerGroupRef.current = L.layerGroup().addTo(mapRef.current);
+    liveLayerRef.current = L.layerGroup().addTo(mapRef.current);
   }, [center, profile.initialZoom]);
+
+  useEffect(() => {
+    if (!liveOn) return undefined;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLiveStatus('この端末では現在地を取得できません。');
+      setLiveOn(false);
+      return undefined;
+    }
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        setLivePos([pos.coords.latitude, pos.coords.longitude]);
+      },
+      () => {
+        setLiveStatus('現在地を取得できませんでした。端末の位置情報設定を確認してください。');
+      },
+      LIVE_WATCH_OPTIONS,
+    );
+    watchIdRef.current = id;
+    return () => {
+      navigator.geolocation.clearWatch(id);
+      if (watchIdRef.current === id) watchIdRef.current = null;
+    };
+  }, [liveOn]);
+
+  useEffect(() => () => {
+    if (watchIdRef.current !== null && typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    clearLiveLayer();
+    setLivePos(null);
+  }, [center]);
+
+  useEffect(() => {
+    const live = liveLayerRef.current;
+    if (!live) return;
+    live.clearLayers();
+    if (!liveOn || !livePos) {
+      if (!liveOn) setLiveStatus('');
+      return;
+    }
+
+    const livePlace = decoratePlaces([{
+      id: 'live-location',
+      name: '現在地',
+      latitude: livePos[0],
+      longitude: livePos[1],
+    }], center, rankings, bearingOptions)[0];
+    const lineColor = liveLineColor(livePlace?.direction, bestPalace);
+    const distance = distanceMeters(center, livePos);
+    const distanceLabel = formatDistance(distance);
+    const directionLabel = livePlace?.direction?.label || '-';
+    const score = livePlace?.direction?.score ?? 0;
+    setLiveStatus(`現在地: ${directionLabel} ${scoreText(score)} / 家から約${distanceLabel}`);
+
+    L.polyline([center, livePos], {
+      color: lineColor,
+      weight: 3,
+      opacity: 0.9,
+      interactive: false,
+    }).addTo(live);
+
+    L.circleMarker(livePos, {
+      radius: 7,
+      color: '#fff',
+      weight: 2,
+      fillColor: lineColor,
+      fillOpacity: 1,
+    }).bindTooltip(`現在地 / 家から約${distanceLabel}`, { permanent: false }).addTo(live);
+  }, [bearingOptions, bestPalace, center, liveOn, livePos, rankings]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -438,6 +567,14 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         >
           {isFullscreen ? '閉じる' : '拡大'}
         </button>
+        <button
+          type="button"
+          className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
+          onClick={toggleLiveLocation}
+          aria-pressed={liveOn}
+        >
+          {liveOn ? '現在地ON' : '現在地'}
+        </button>
       </div>
 
       {isFullscreen && (
@@ -493,6 +630,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
           ))}
         </div>
         {mapStatus && <p className="direction-map-status">{mapStatus}</p>}
+        {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
       </div>
 
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
