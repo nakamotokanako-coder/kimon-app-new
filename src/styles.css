@@ -1958,10 +1958,13 @@ body {
   position: fixed;
   inset: 0;
   z-index: 500;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto auto;
+  height: 100vh;
+  height: 100dvh;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   gap: 10px;
   padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
   background: var(--bg-main);
+  overflow: hidden;
 }
 
 .direction-map-header {
@@ -2105,18 +2108,29 @@ body {
 
 .direction-map {
   width: 100%;
-  height: min(72vw, 360px);
-  min-height: 300px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   overflow: hidden;
   background: var(--bg-elevated);
 }
 
+.direction-map-wrap:not(.is-fullscreen) .direction-map {
+  /* Favorite-list growth must not resize the normal map; tune these bounds after device checks if needed. */
+  height: clamp(320px, 50vh, 560px);
+  min-height: 320px;
+}
+
 .direction-map-wrap.is-fullscreen .direction-map {
-  height: auto;
+  height: 100%;
   min-height: 0;
+  align-self: stretch;
   border-radius: 10px;
+}
+
+.direction-map-wrap.is-fullscreen .direction-place-panel,
+.direction-map-wrap.is-fullscreen .direction-map-caption,
+.direction-map-wrap.is-fullscreen .direction-scale-card {
+  display: none;
 }
 
 .direction-map .leaflet-control-attribution {
@@ -2181,6 +2195,20 @@ body {
   margin: 0;
   color: var(--text-accent);
   font-size: 0.78rem;
+}
+
+.direction-scroll-window {
+  display: grid;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.direction-favorites-window {
+  padding-right: 2px;
 }
 
 .direction-place-row {

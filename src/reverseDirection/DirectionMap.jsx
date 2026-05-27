@@ -79,6 +79,14 @@ function placeMarkerHtml(item, favorite = false) {
   return `<div class="direction-poi-pin ${toneClass(tone)} ${favorite ? 'is-favorite' : ''}"><span>${sign}</span></div>`;
 }
 
+function ScrollWindow({ children, className = '' }) {
+  return (
+    <div className={`direction-scroll-window ${className}`.trim()}>
+      {children}
+    </div>
+  );
+}
+
 export default function DirectionMap({ location, rankings, bestPalace, profileKey = 'jiban', showScale = false }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bearingMode, setBearingMode] = useState(MAP_FAN.defaultBearingMode);
@@ -493,28 +501,30 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         <div className="direction-place-panel">
           {decoratedFavorites.length > 0 && (
             <div className="direction-place-section">
-              <h3>お気に入り</h3>
-              {decoratedFavorites.map((item) => (
-                <div key={favoriteKey(item)} className="direction-place-row is-editable">
-                  <button type="button" className="direction-place-main" onClick={() => showPlace(item)}>
-                    <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
-                    <span>
-                      <strong>{favoriteDisplayName(item)}</strong>
-                      <small>{item.name} ・ 家から約{formatDistance(item.distanceM)}</small>
-                    </span>
-                    <b>{item.direction?.label || '-'} {scoreText(item.direction?.score || 0)}</b>
-                  </button>
-                  <button
-                    type="button"
-                    className="direction-place-edit"
-                    aria-label={`${favoriteDisplayName(item)}の名前を編集`}
-                    title="名前を編集"
-                    onClick={() => openFavoriteEditor(item)}
-                  >
-                    ✎
-                  </button>
-                </div>
-              ))}
+              <h3>お気に入り（{decoratedFavorites.length}）</h3>
+              <ScrollWindow className="direction-favorites-window">
+                {decoratedFavorites.map((item) => (
+                  <div key={favoriteKey(item)} className="direction-place-row is-editable">
+                    <button type="button" className="direction-place-main" onClick={() => showPlace(item)}>
+                      <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                      <span>
+                        <strong>{favoriteDisplayName(item)}</strong>
+                        <small>{item.name} ・ 家から約{formatDistance(item.distanceM)}</small>
+                      </span>
+                      <b>{item.direction?.label || '-'} {scoreText(item.direction?.score || 0)}</b>
+                    </button>
+                    <button
+                      type="button"
+                      className="direction-place-edit"
+                      aria-label={`${favoriteDisplayName(item)}の名前を編集`}
+                      title="名前を編集"
+                      onClick={() => openFavoriteEditor(item)}
+                    >
+                      ✎
+                    </button>
+                  </div>
+                ))}
+              </ScrollWindow>
             </div>
           )}
           {(selectedPlace || searchResults.length > 0) && (
