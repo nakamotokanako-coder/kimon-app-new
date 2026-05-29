@@ -1939,6 +1939,20 @@ body {
   white-space: nowrap;
 }
 
+.base-point-trigger-text {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.base-point-trigger-text i {
+  color: var(--text-accent);
+  font-style: normal;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
 .base-point-trigger small,
 .base-point-menu small {
   overflow: hidden;

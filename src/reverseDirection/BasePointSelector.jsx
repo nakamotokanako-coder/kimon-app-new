@@ -12,19 +12,10 @@ export default function BasePointSelector({
   onSelectMode,
 }) {
   const [open, setOpen] = useState(false);
-  const hasFavorites = favorites.length > 0;
   const selectedFavorite = favorites.find((favorite) => favorite.id === selectedFavoriteId) || null;
   const triggerName = currentMode === 'favorite' && selectedFavorite
     ? displayName(selectedFavorite)
     : '現在地';
-
-  if (!hasFavorites) {
-    return (
-      <button type="button" onClick={() => onSelectMode('gps')}>
-        現在地
-      </button>
-    );
-  }
 
   const select = (mode, favoriteId) => {
     setOpen(false);
@@ -40,8 +31,11 @@ export default function BasePointSelector({
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        <span>{triggerName || currentBaseName || '現在地'}</span>
-        <small>{selectedFavorite?.name || 'GPS'}</small>
+        <span className="base-point-trigger-text">
+          <span>{triggerName || currentBaseName || '現在地'}</span>
+          <i aria-hidden="true">▼</i>
+        </span>
+        <small>{selectedFavorite?.name || 'GPSで取得'}</small>
       </button>
       {open && (
         <div className="base-point-menu" role="menu">
@@ -49,7 +43,7 @@ export default function BasePointSelector({
             <span>現在地</span>
             <small>GPSで取得</small>
           </button>
-          <div className="base-point-menu-label">お気に入り</div>
+          {favorites.length > 0 && <div className="base-point-menu-label">お気に入り</div>}
           {favorites.map((favorite) => (
             <button
               key={favorite.id}
