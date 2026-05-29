@@ -16,6 +16,7 @@ import {
 } from './mapFan.js';
 import {
   FACILITY_PRESETS,
+  MAP_SEARCH_CHANGED_EVENT,
   MAP_SEARCH_STORAGE_KEY,
   buildOverpassQuery,
   classifyQuery,
@@ -150,6 +151,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     setFavorites(nextFavorites);
     try {
       window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify(nextFavorites));
+      window.dispatchEvent(new CustomEvent(MAP_SEARCH_CHANGED_EVENT, { detail: nextFavorites }));
     } catch {
       setMapStatus('お気に入りを端末に保存できませんでした。');
     }

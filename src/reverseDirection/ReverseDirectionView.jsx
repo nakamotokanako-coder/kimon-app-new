@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import BasePointSelector from './BasePointSelector.jsx';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
@@ -16,7 +17,13 @@ import {
   getTimeSlotLabel,
   getPurposeNames,
 } from './reverseDirection.js';
-import { pickNearestAddressCandidate } from './mapSearch.js';
+import {
+  MAP_SEARCH_CHANGED_EVENT,
+  MAP_SEARCH_STORAGE_KEY,
+  favoriteDisplayName,
+  favoriteKey,
+  pickNearestAddressCandidate,
+} from './mapSearch.js';
 
 const DEFAULT_LOCATIONS = [
   { name: '東京', latitude: 35.6812, longitude: 139.7671 },
@@ -37,8 +44,36 @@ function formatCorrection(minutes) {
   return `${minutes > 0 ? '+' : ''}${minutes}分`;
 }
 
+function normalizeFavoriteBasePoint(favorite) {
+  const latitude = Number(favorite?.latitude ?? favorite?.lat);
+  const longitude = Number(favorite?.longitude ?? favorite?.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    ...favorite,
+    name: favorite?.name || favorite?.address || 'お気に入り',
+    latitude,
+    longitude,
+  };
+}
+
+function readStoredFavorites() {
+  try {
+    if (typeof window === 'undefined') return [];
+    const saved = window.localStorage.getItem(MAP_SEARCH_STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : [];
+    return (Array.isArray(parsed) ? parsed : [])
+      .map(normalizeFavoriteBasePoint)
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export default function ReverseDirectionView() {
   const [location, setLocation] = useState(DEFAULT_LOCATIONS[0]);
+  const [currentMode, setCurrentMode] = useState('search');
+  const [selectedFavoriteId, setSelectedFavoriteId] = useState(null);
+  const [favorites, setFavorites] = useState(() => readStoredFavorites());
   const [query, setQuery] = useState('');
   const [purpose, setPurpose] = useState('仕事');
   const [goodOnly, setGoodOnly] = useState(true);
@@ -81,7 +116,9 @@ export default function ReverseDirectionView() {
     timelineSortMode === 'score' ? sortTimelineSlotsByScore(timeline) : timeline
   ), [timeline, timelineSortMode]);
 
-  const useCurrentLocation = () => {
+  const useCurrentLocation = useCallback(() => {
+    setCurrentMode('gps');
+    setSelectedFavoriteId(null);
     if (!navigator.geolocation) {
       setStatus('この端末では現在地を取得できません。地域リストを使ってください。');
       return;
@@ -99,6 +136,64 @@ export default function ReverseDirectionView() {
       () => setStatus('現在地を取得できませんでした。地域リストを使ってください。'),
       { timeout: 8000, enableHighAccuracy: false },
     );
+  }, []);
+
+  const refreshFavorites = useCallback(() => {
+    setFavorites(readStoredFavorites());
+  }, []);
+
+  useEffect(() => {
+    refreshFavorites();
+    const handleFavoritesChanged = () => refreshFavorites();
+    const handleStorage = (event) => {
+      if (event.key === MAP_SEARCH_STORAGE_KEY) refreshFavorites();
+    };
+    window.addEventListener(MAP_SEARCH_CHANGED_EVENT, handleFavoritesChanged);
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', handleFavoritesChanged);
+    return () => {
+      window.removeEventListener(MAP_SEARCH_CHANGED_EVENT, handleFavoritesChanged);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', handleFavoritesChanged);
+    };
+  }, [refreshFavorites]);
+
+  useEffect(() => {
+    if (currentMode !== 'favorite' || !selectedFavoriteId) return;
+    const favorite = favorites.find((item) => favoriteKey(item) === selectedFavoriteId);
+    if (!favorite) {
+      useCurrentLocation();
+      return;
+    }
+    const nextName = favoriteDisplayName(favorite);
+    if (
+      location.name !== nextName
+      || location.latitude !== favorite.latitude
+      || location.longitude !== favorite.longitude
+    ) {
+      setLocation({
+        name: nextName,
+        latitude: favorite.latitude,
+        longitude: favorite.longitude,
+      });
+    }
+  }, [currentMode, favorites, location, selectedFavoriteId, useCurrentLocation]);
+
+  const selectBasePointMode = (nextMode, favoriteId) => {
+    if (nextMode === 'gps') {
+      useCurrentLocation();
+      return;
+    }
+    const favorite = favorites.find((item) => favoriteKey(item) === favoriteId);
+    if (!favorite) return;
+    setLocation({
+      name: favoriteDisplayName(favorite),
+      latitude: favorite.latitude,
+      longitude: favorite.longitude,
+    });
+    setCurrentMode('favorite');
+    setSelectedFavoriteId(favoriteId);
+    setStatus(`${favoriteDisplayName(favorite)}を基準点にしました。`);
   };
 
   const searchPlace = async () => {
@@ -119,6 +214,8 @@ export default function ReverseDirectionView() {
         longitude: Number(coords[0]),
         latitude: Number(coords[1]),
       });
+      setCurrentMode('search');
+      setSelectedFavoriteId(null);
       setStatus('検索した場所を基準点にしました。');
     } catch {
       setStatus('場所検索に失敗しました。地域リストを使ってください。');
@@ -214,14 +311,24 @@ export default function ReverseDirectionView() {
           <span>GPS / 場所検索 / 手動選択</span>
         </div>
         <div className="reverse-location-actions">
-          <button type="button" onClick={useCurrentLocation}>現在地</button>
+          <BasePointSelector
+            currentMode={currentMode}
+            currentBaseName={location.name}
+            selectedFavoriteId={selectedFavoriteId}
+            favorites={favorites}
+            onSelectMode={selectBasePointMode}
+          />
           <label>
             地域
             <select
               value={location.name}
               onChange={(e) => {
                 const next = DEFAULT_LOCATIONS.find((item) => item.name === e.target.value);
-                if (next) setLocation(next);
+                if (next) {
+                  setLocation(next);
+                  setCurrentMode('search');
+                  setSelectedFavoriteId(null);
+                }
               }}
             >
               {DEFAULT_LOCATIONS.map((item) => (
