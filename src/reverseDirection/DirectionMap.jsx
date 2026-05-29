@@ -35,6 +35,7 @@ const LABEL_MODE = {
   fullscreen: { className: 'is-fullscreen', showScore: true },
 };
 
+const MAP_SEARCH_CHANGED_EVENT = 'kimon-map-favorites-changed';
 const LIVE_LOCATION_STORAGE_KEY = 'kimon_map_live_on_v1';
 const LIVE_WATCH_OPTIONS = { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 };
 
@@ -144,6 +145,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     setFavorites(nextFavorites);
     try {
       window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify(nextFavorites));
+      window.dispatchEvent(new CustomEvent(MAP_SEARCH_CHANGED_EVENT, { detail: nextFavorites }));
     } catch {
       setMapStatus('お気に入りを端末に保存できませんでした。');
     }
