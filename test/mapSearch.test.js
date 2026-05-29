@@ -1,18 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
+  boundsToNominatimViewbox,
   buildOverpassNameQuery,
   buildOverpassQuery,
+  classifyQuery,
   decoratePlaces,
   deleteFavorite,
   directionForPoint,
   favoriteDisplayName,
   favoriteKey,
   findFacilityPreset,
+  nominatimSearch,
+  NOMINATIM_PROXY_PATH,
+  normalizeNominatimResults,
   normalizeOverpassElements,
   overpassFetch,
   OVERPASS_PROXY_PATH,
   pickNearestAddressCandidate,
   renameFavorite,
+  sanitizeQuery,
   sanitizeOverpassRegex,
 } from '../src/reverseDirection/mapSearch.js';
 
@@ -44,6 +50,23 @@ describe('map search helpers', () => {
     expect(query).toContain('out center 60');
   });
 
+  it('builds Nominatim viewboxes in lon-lat order', () => {
+    expect(boundsToNominatimViewbox(bounds)).toBe('139.10000,35.20000,139.20000,35.10000');
+  });
+
+  it('sanitizes pasted map queries without stripping address block numbers', () => {
+    expect(sanitizeQuery('〒115-0055　東京都北区赤羽西4丁目35-6')).toBe('東京都北区赤羽西4丁目35-6');
+    expect(sanitizeQuery('  1150055 東京都北区赤羽西4-35-6  ')).toBe('東京都北区赤羽西4-35-6');
+    expect(sanitizeQuery('赤羽西4-35-6')).toBe('赤羽西4-35-6');
+  });
+
+  it('classifies addresses and poi search terms', () => {
+    expect(classifyQuery('東京都北区赤羽西4丁目35-6')).toBe('address');
+    expect(classifyQuery('赤羽西4-35-6')).toBe('address');
+    expect(classifyQuery('図書館')).toBe('poi');
+    expect(classifyQuery('ライフ仲宿店')).toBe('poi');
+  });
+
   it('sanitizes name searches before building Overpass regex queries', () => {
     expect(sanitizeOverpassRegex('A"B\\C')).toBe('ABC');
     expect(buildOverpassNameQuery('東京駅', bounds)).toContain('node["name"~"東京駅"]');
@@ -57,6 +80,18 @@ describe('map search helpers', () => {
     ]);
     expect(places).toHaveLength(2);
     expect(places[1]).toMatchObject({ id: 'way-2', name: 'B', latitude: 35.12, longitude: 139.12 });
+  });
+
+  it('normalizes Nominatim results into internal places', () => {
+    const places = normalizeNominatimResults([
+      { osm_type: 'node', osm_id: 10, lat: '35.12', lon: '139.13', name: '図書館' },
+      { osm_type: 'way', osm_id: 11, lat: 'bad', lon: '139.14', display_name: 'missing' },
+      { lat: '35.15', lon: '139.16', display_name: 'カフェ, 東京都' },
+    ]);
+    expect(places).toEqual([
+      { id: 'nominatim-node-10', name: '図書館', latitude: 35.12, longitude: 139.13 },
+      { id: 'nominatim-poi-35.15,139.16', name: 'カフェ', latitude: 35.15, longitude: 139.16 },
+    ]);
   });
 
   it('returns the same direction bucket as the map fan angles', () => {
@@ -141,6 +176,31 @@ describe('map search helpers', () => {
     const fetchImpl = async () => ({ ok: false, status: 502 });
 
     await expect(overpassFetch('[out:json];node(1);out;', fetchImpl)).rejects.toThrow('HTTP 502');
+  });
+
+  it('searches Nominatim through the same-origin proxy', async () => {
+    const calls = [];
+    const fetchImpl = async (url) => {
+      calls.push(url);
+      return {
+        ok: true,
+        json: async () => [{ osm_type: 'node', osm_id: 1, lat: '35.1', lon: '139.1', name: '図書館' }],
+      };
+    };
+
+    const data = await nominatimSearch('〒115-0055 図書館', bounds, fetchImpl);
+
+    expect(data[0]).toMatchObject({ name: '図書館', latitude: 35.1, longitude: 139.1 });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].startsWith(`${NOMINATIM_PROXY_PATH}?`)).toBe(true);
+    expect(calls[0]).toContain('q=%E5%9B%B3%E6%9B%B8%E9%A4%A8');
+    expect(calls[0]).toContain('viewbox=139.10000%2C35.20000%2C139.20000%2C35.10000');
+  });
+
+  it('throws when the Nominatim proxy returns an error', async () => {
+    const fetchImpl = async () => ({ ok: false, status: 502 });
+
+    await expect(nominatimSearch('図書館', bounds, fetchImpl)).rejects.toThrow('HTTP 502');
   });
 
   it('picks the address search candidate nearest to the home point', () => {
