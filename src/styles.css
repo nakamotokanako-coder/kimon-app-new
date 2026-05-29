@@ -2123,6 +2123,24 @@ body {
   background: var(--bg-elevated);
 }
 
+.direction-area-search {
+  justify-self: center;
+  z-index: 3;
+  margin-top: -54px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(46, 38, 15, 0.2);
+  border-radius: 999px;
+  padding: 9px 16px;
+  background: rgba(255, 250, 232, 0.96);
+  color: var(--text-primary);
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(39, 31, 11, 0.18);
+}
+
+.direction-area-search:disabled {
+  opacity: 0.6;
+}
+
 .direction-map-wrap:not(.is-fullscreen) .direction-map {
   /* Favorite-list growth must not resize the normal map; tune these bounds after device checks if needed. */
   height: clamp(320px, 50vh, 560px);
@@ -3115,9 +3133,10 @@ body {
 }
 
 .kakkyoku-practical {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.55;
 }
 
 .kakkyoku-result-score {

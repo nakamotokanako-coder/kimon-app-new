@@ -3,6 +3,41 @@ import { bearingFor, directionIndexFor, initialBearing } from './mapFan.js';
 export const MAP_SEARCH_STORAGE_KEY = 'kimon_map_favorites_v1';
 
 export const OVERPASS_PROXY_PATH = '/api/overpass';
+export const NOMINATIM_PROXY_PATH = '/api/nominatim';
+
+const PREFECTURES = [
+  '北海道',
+  '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
+  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県',
+  '岐阜県', '静岡県', '愛知県', '三重県',
+  '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県',
+  '鳥取県', '島根県', '岡山県', '広島県', '山口県',
+  '徳島県', '香川県', '愛媛県', '高知県',
+  '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県',
+];
+
+const ADDRESS_COMPONENT_RE = /(丁目|番地|[0-9０-９]+番([0-9０-９]+号)?|[0-9０-９]+号|郡|区|市|町|村)/;
+const ADDRESS_BLOCK_RE = /[0-9０-９]+[-－ー][0-9０-９]+/;
+const ADDRESS_LIKE_RE = /^[0-9０-９\s 　\-－ー]+$/;
+
+export function sanitizeQuery(raw) {
+  return String(raw ?? '')
+    .replace(/〒/g, '')
+    .replace(/^\s*\d{3}[-－ー]?\d{4}\s*/, '')
+    .replace(/\u3000/g, ' ')
+    .trim();
+}
+
+export function classifyQuery(text) {
+  const query = sanitizeQuery(text);
+  if (!query) return 'poi';
+  if (PREFECTURES.some((prefecture) => query.includes(prefecture))) return 'address';
+  if (ADDRESS_COMPONENT_RE.test(query)) return 'address';
+  if (ADDRESS_BLOCK_RE.test(query)) return 'address';
+  if (ADDRESS_LIKE_RE.test(query)) return 'address';
+  return 'poi';
+}
 
 export const FACILITY_PRESETS = [
   {
@@ -63,6 +98,15 @@ export function buildOverpassQuery(selectors, bounds, limit = 60) {
   return `[out:json][timeout:15];(${body});out center ${limit};`;
 }
 
+export function boundsToNominatimViewbox(bounds) {
+  return [
+    bounds.getWest(),
+    bounds.getNorth(),
+    bounds.getEast(),
+    bounds.getSouth(),
+  ].map((value) => Number(value).toFixed(5)).join(',');
+}
+
 export function buildOverpassNameQuery(word, bounds, limit = 40) {
   const safe = sanitizeOverpassRegex(word);
   const bbox = [
@@ -111,6 +155,35 @@ export async function overpassFetch(query, fetchImpl = fetch) {
     throw new Error(`Overpass proxy error: HTTP ${response.status}`);
   }
   return response.json();
+}
+
+export function normalizeNominatimResults(results) {
+  return (results || [])
+    .map((item) => {
+      const latitude = Number(item.lat);
+      const longitude = Number(item.lon);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+      const displayName = item.name || String(item.display_name || '').split(',')[0].trim();
+      return {
+        id: `nominatim-${item.osm_type || item.type || 'poi'}-${item.osm_id || `${latitude},${longitude}`}`,
+        name: displayName || '名称なし',
+        latitude,
+        longitude,
+      };
+    })
+    .filter(Boolean);
+}
+
+export async function nominatimSearch(query, bounds, fetchImpl = fetch) {
+  const text = sanitizeQuery(query);
+  if (!text) return [];
+  const params = new URLSearchParams({ q: text });
+  if (bounds) params.set('viewbox', boundsToNominatimViewbox(bounds));
+  const response = await fetchImpl(`${NOMINATIM_PROXY_PATH}?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Nominatim proxy error: HTTP ${response.status}`);
+  }
+  return normalizeNominatimResults(await response.json());
 }
 
 export function pickNearestAddressCandidate(candidates, home) {

@@ -17,17 +17,20 @@ import {
 import {
   FACILITY_PRESETS,
   MAP_SEARCH_STORAGE_KEY,
-  buildOverpassNameQuery,
   buildOverpassQuery,
+  classifyQuery,
   decoratePlaces,
   deleteFavorite,
   distanceMeters,
   favoriteKey,
   favoriteDisplayName,
   findFacilityPreset,
+  nominatimSearch,
   normalizeOverpassElements,
   overpassFetch,
+  pickNearestAddressCandidate,
   renameFavorite,
+  sanitizeQuery,
 } from './mapSearch.js';
 
 const LABEL_MODE = {
@@ -99,6 +102,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
   const [mapSearching, setMapSearching] = useState(false);
+  const [needsAreaSearch, setNeedsAreaSearch] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [editingFavoriteKey, setEditingFavoriteKey] = useState(null);
@@ -128,6 +132,8 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const liveLayerRef = useRef(null);
   const watchIdRef = useRef(null);
   const viewKeyRef = useRef('');
+  const lastAreaSearchRef = useRef(null);
+  const suppressAreaPromptRef = useRef(false);
   const center = useMemo(() => [location.latitude, location.longitude], [location.latitude, location.longitude]);
   const bearingOptions = useMemo(
     () => buildBearingOptions(center, bearingMode, useDeclination),
@@ -239,6 +245,9 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const runFacilitySearch = async (word, preset) => {
     const map = mapRef.current;
     if (!map) return;
+    const text = sanitizeQuery(word);
+    lastAreaSearchRef.current = { type: 'preset', word: text, preset };
+    setNeedsAreaSearch(false);
     setMapStatus(`${preset.label}を表示中の地図範囲で検索しています。`);
     const query = buildOverpassQuery(preset.selectors, map.getBounds());
     const data = await overpassFetch(query);
@@ -251,71 +260,101 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     setSelectedPlace(null);
     setSearchResults(decorated);
     setMapStatus(decorated.length
-      ? `${word}を${decorated.length}件表示しました。ピンの色はその場所の方位評価です。`
-      : `${word}はこの地図範囲では見つかりませんでした。地図を動かして再検索してください。`);
+      ? `${text}を${decorated.length}件表示しました。ピンの色はその場所の方位評価です。`
+      : `${text}はこの地図範囲では見つかりませんでした。地図を動かして再検索してください。`);
   };
 
-  const runNameFallbackSearch = async (word) => {
+  const runPoiSearch = async (word) => {
     const map = mapRef.current;
-    if (!map) return false;
-    const query = buildOverpassNameQuery(word, map.getBounds());
-    let data;
-    try {
-      data = await overpassFetch(query);
-    } catch {
-      return false;
-    }
+    if (!map) return [];
+    const text = sanitizeQuery(word);
+    lastAreaSearchRef.current = { type: 'poi', word: text };
+    setNeedsAreaSearch(false);
+    setMapStatus(`${text}を表示中の地図範囲で検索しています。`);
+    const places = await nominatimSearch(text, map.getBounds());
     const decorated = decoratePlaces(
-      normalizeOverpassElements(data.elements).slice(0, 40),
+      places.slice(0, 40),
       center,
       rankings,
       bearingOptions,
     );
-    if (!decorated.length) return false;
     setSelectedPlace(null);
     setSearchResults(decorated);
-    setMapStatus(`${word}を地図範囲内の名称から${decorated.length}件表示しました。`);
-    return true;
+    setMapStatus(decorated.length
+      ? `${text}を${decorated.length}件表示しました。ピンの色はその場所の方位評価です。`
+      : `${text}はこの地図範囲では見つかりませんでした。地図を動かして再検索してください。`);
+    return decorated;
   };
 
-  const runPlaceSearch = async (word) => {
-    setMapStatus(`${word}を住所・地名として検索しています。`);
-    const response = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(word)}`);
+  const runAddressSearch = async (word) => {
+    const text = sanitizeQuery(word);
+    setMapStatus(`${text}を住所・地名として検索しています。`);
+    const response = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(text)}`);
     const data = await response.json();
-    const first = data?.[0];
+    const first = pickNearestAddressCandidate(data, center);
     const coords = first?.geometry?.coordinates;
     if (!coords) {
-      const foundByName = await runNameFallbackSearch(word);
-      if (!foundByName) setMapStatus(`${word}は見つかりませんでした。市区町村名などを足して再検索してください。`);
-      return;
+      return null;
     }
     const place = decoratePlaces([{
       id: `place-${coords[1]}-${coords[0]}`,
-      name: first.properties?.title || word,
+      name: first.properties?.title || text,
       latitude: Number(coords[1]),
       longitude: Number(coords[0]),
     }], center, rankings, bearingOptions)[0];
     setSearchResults([]);
     setSelectedPlace(place);
+    lastAreaSearchRef.current = null;
+    setNeedsAreaSearch(false);
     const map = mapRef.current;
     if (map) {
+      suppressAreaPromptRef.current = true;
       map.fitBounds(L.latLngBounds([center, [place.latitude, place.longitude]]).pad(0.35), {
         maxZoom: profile.initialZoom + 2,
       });
     }
     setMapStatus(`${place.name}を表示しました。家から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
+    return place;
   };
 
   const runMapSearch = async (word = mapQuery) => {
-    const text = word.trim();
+    const text = sanitizeQuery(word);
     if (!text || mapSearching) return;
     setMapQuery(text);
     clearPlaceMarkers();
     setMapSearching(true);
     try {
       const preset = findFacilityPreset(text);
-      if (preset) await runFacilitySearch(text, preset);
-      else await runPlaceSearch(text);
+      if (preset) {
+        await runFacilitySearch(text, preset);
+      } else if (classifyQuery(text) === 'address') {
+        const place = await runAddressSearch(text);
+        if (!place) {
+          const poiResults = await runPoiSearch(text);
+          if (!poiResults.length) setMapStatus(`${text}は見つかりませんでした。市区町村名や施設名を足して再検索してください。`);
+        }
+      } else {
+        const poiResults = await runPoiSearch(text);
+        if (!poiResults.length) {
+          const place = await runAddressSearch(text);
+          if (!place) setMapStatus(`${text}は見つかりませんでした。市区町村名や施設名を足して再検索してください。`);
+        }
+      }
+    } catch (error) {
+      setMapStatus(`検索に失敗しました。時間をおいて再検索してください。${error.message ? ` (${error.message})` : ''}`);
+    } finally {
+      setMapSearching(false);
+    }
+  };
+
+  const runAreaSearch = async () => {
+    const last = lastAreaSearchRef.current;
+    if (!last || mapSearching) return;
+    setMapSearching(true);
+    try {
+      clearPlaceMarkers();
+      if (last.type === 'preset') await runFacilitySearch(last.word, last.preset);
+      else await runPoiSearch(last.word);
     } catch (error) {
       setMapStatus(`検索に失敗しました。時間をおいて再検索してください。${error.message ? ` (${error.message})` : ''}`);
     } finally {
@@ -349,6 +388,22 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     layerGroupRef.current = L.layerGroup().addTo(mapRef.current);
     liveLayerRef.current = L.layerGroup().addTo(mapRef.current);
   }, [center, profile.initialZoom]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return undefined;
+    const handleMoveEnd = () => {
+      if (suppressAreaPromptRef.current) {
+        suppressAreaPromptRef.current = false;
+        return;
+      }
+      if (lastAreaSearchRef.current) setNeedsAreaSearch(true);
+    };
+    map.on('moveend zoomend', handleMoveEnd);
+    return () => {
+      map.off('moveend zoomend', handleMoveEnd);
+    };
+  }, []);
 
   useEffect(() => {
     if (!liveOn) return undefined;
@@ -634,6 +689,16 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
       </div>
 
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
+      {needsAreaSearch && lastAreaSearchRef.current && (
+        <button
+          type="button"
+          className="direction-area-search"
+          disabled={mapSearching}
+          onClick={runAreaSearch}
+        >
+          このエリアを検索
+        </button>
+      )}
 
       {(decoratedFavorites.length > 0 || searchResults.length > 0 || selectedPlace) && (
         <div className="direction-place-panel">
