@@ -381,7 +381,7 @@ export default function ReverseDirectionView() {
               {best ? (
                 <>
                   <strong>{best.label}<small>{best.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                  <p>今の時盤で最大吉 / 目的: {purpose} +{best.purposeBonus}</p>
+                  <p>今の時盤で最大吉 / 目的: {purpose}</p>
                 </>
               ) : (
                 <>
@@ -469,7 +469,7 @@ export default function ReverseDirectionView() {
                   {dayBest ? (
                     <>
                       <strong>{dayBest.label}<small>{dayBest.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                      <p>この日の最大吉 / 目的: {purpose} +{dayBest.purposeBonus}</p>
+                      <p>この日の最大吉 / 目的: {purpose}</p>
                     </>
                   ) : (
                     <>
