@@ -5,6 +5,8 @@ import {
   scoreBoard,
   getPurposeTags,
   USABLE_THRESHOLD,
+  MAX_SCORE,
+  JUNRI_BONUS,
   SCORE_KAN,
   SCORE_MON,
   SCORE_KYUSEI,
@@ -75,6 +77,11 @@ describe('スコア定数', () => {
 
   it('USABLE_THRESHOLD は40', () => {
     expect(USABLE_THRESHOLD).toBe(40);
+  });
+
+  it('順利ボーナスと最終スコア上限の定数', () => {
+    expect(JUNRI_BONUS).toBe(20);
+    expect(MAX_SCORE).toBe(120);
   });
 });
 
@@ -514,6 +521,69 @@ describe('scoreBoard: ◎順利フラグ (Phase 3-C)', () => {
     expect(r.palaces.shin.score).toBeGreaterThanOrEqual(40);
     expect(r.palaces.shin.is_junri).toBe(true);
     expect(r.junri_palaces).toContain('shin');
+  });
+});
+
+// ============================================================
+// Phase 3-D: 120点上限と順利ボーナス
+// ============================================================
+
+describe('scoreBoard: 120点上限と順利ボーナス (Phase 3-D)', () => {
+  function makeJunriBonusBoard(kanTenban = '戊') {
+    return {
+      meta: makeBoardMeta({ eto_day: '戊申', junshu: '壬' }),
+      palaces: {
+        kan: palace({ tenban: kanTenban, chiban: '丙', kyusei: '天輔', hasshin: '直符', hachimon: '休門' }),
+        gon: palace({ tenban: '丁', chiban: '丁', kyusei: '天任', hasshin: '太陰', hachimon: '杜門' }),
+        shin: palace({ tenban: '己', chiban: '己', kyusei: '天衝', hasshin: '九地', hachimon: '驚門' }),
+        son: palace({ tenban: '癸', chiban: '癸', kyusei: '天蓬', hasshin: '螣蛇', hachimon: '傷門' }),
+        ri: palace({ tenban: '丙', chiban: '丙', kyusei: '天英', hasshin: '朱雀', hachimon: '驚門' }),
+        kun: palace({ tenban: '辛', chiban: '辛', kyusei: '天芮', hasshin: '九天', hachimon: '杜門' }),
+        da: palace({ tenban: '辛', chiban: '', kyusei: '天柱', hasshin: '勾陳', hachimon: '休門' }),
+        ken: palace({ tenban: '乙', chiban: '癸', kyusei: '天心', hasshin: '直符', hachimon: '死門' }),
+      },
+    };
+  }
+
+  it('順利該当の宮に +20 ボーナスが加算される', () => {
+    const r = scoreBoard(makeJunriBonusBoard('戊'));
+    expect(r.palaces.kan.is_junri).toBe(true);
+    expect(r.palaces.kan.breakdown.raw_score).toBe(80);
+    expect(r.palaces.kan.breakdown.junri_bonus).toBe(20);
+    expect(r.palaces.kan.score).toBe(100);
+    expect(r.palaces.kan.usable).toBe(true);
+  });
+
+  it('順利非該当の宮はボーナス0で元スコアを維持する', () => {
+    const r = scoreBoard(makeJunriBonusBoard('戊'));
+    expect(r.palaces.da.is_junri).toBe(false);
+    expect(r.palaces.da.breakdown.raw_score).toBe(20);
+    expect(r.palaces.da.breakdown.junri_bonus).toBe(0);
+    expect(r.palaces.da.score).toBe(20);
+    expect(r.palaces.da.breakdown.clipped).toBe(false);
+  });
+
+  it('元スコア100 + 順利+20 で120点に到達する', () => {
+    const r = scoreBoard(makeJunriBonusBoard('戊乙'));
+    expect(r.palaces.kan.breakdown.raw_score).toBe(100);
+    expect(r.palaces.kan.breakdown.junri_bonus).toBe(20);
+    expect(r.palaces.kan.score).toBe(120);
+    expect(r.palaces.kan.breakdown.clipped).toBe(false);
+  });
+
+  it('元スコア110 + 順利+20 は120点にクリップされる', () => {
+    const r = scoreBoard(makeJunriBonusBoard('戊丁丙'));
+    expect(r.palaces.kan.breakdown.raw_score).toBe(110);
+    expect(r.palaces.kan.breakdown.junri_bonus).toBe(20);
+    expect(r.palaces.kan.score).toBe(120);
+    expect(r.palaces.kan.breakdown.clipped).toBe(true);
+  });
+
+  it('best_overall と usable_palaces は順利ボーナス後のスコアで決まる', () => {
+    const r = scoreBoard(makeJunriBonusBoard('戊'));
+    expect(r.best_overall).toBe('kan');
+    expect(r.usable_palaces).toContain('kan');
+    expect(r.palaces[r.best_overall].score).toBe(100);
   });
 });
 
