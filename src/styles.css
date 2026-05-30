@@ -2103,6 +2103,20 @@ body {
   font-weight: 800;
 }
 
+.direction-kichi-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.direction-kichi-filter input {
+  accent-color: var(--text-accent);
+}
+
 .direction-map-status {
   margin: 0;
   color: var(--text-secondary);

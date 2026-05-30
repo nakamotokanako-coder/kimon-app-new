@@ -7,6 +7,7 @@ import {
   directionForPoint,
   favoriteDisplayName,
   favoriteKey,
+  filterKichiPlaces,
   findFacilityPreset,
   normalizeOverpassElements,
   overpassFetch,
@@ -74,6 +75,18 @@ describe('map search helpers', () => {
     expect(decorated[0].name).toBe('good north');
     expect(decorated[0].direction.score).toBe(70);
     expect(decorated[0].distanceM).toBeGreaterThan(0);
+  });
+
+  it('filters places to positive direction scores only when enabled', () => {
+    const places = [
+      { name: 'good', direction: { score: 80 } },
+      { name: 'neutral', direction: { score: 0 } },
+      { name: 'bad', direction: { score: -15 } },
+      { name: 'missing' },
+    ];
+
+    expect(filterKichiPlaces(places, false)).toBe(places);
+    expect(filterKichiPlaces(places, true).map((place) => place.name)).toEqual(['good']);
   });
 
   it('uses rounded coordinates as favorite identity', () => {

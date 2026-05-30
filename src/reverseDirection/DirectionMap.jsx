@@ -24,6 +24,7 @@ import {
   distanceMeters,
   favoriteKey,
   favoriteDisplayName,
+  filterKichiPlaces,
   findFacilityPreset,
   normalizeOverpassElements,
   overpassFetch,
@@ -100,6 +101,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const [mapStatus, setMapStatus] = useState('');
   const [mapSearching, setMapSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [kichiOnlyPlaces, setKichiOnlyPlaces] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [editingFavoriteKey, setEditingFavoriteKey] = useState(null);
   const [favoriteLabelDraft, setFavoriteLabelDraft] = useState('');
@@ -138,6 +140,10 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const decoratedFavorites = useMemo(
     () => decoratePlaces(favorites, center, rankings, bearingOptions),
     [bearingOptions, center, favorites, rankings],
+  );
+  const visibleSearchResults = useMemo(
+    () => filterKichiPlaces(searchResults, kichiOnlyPlaces),
+    [kichiOnlyPlaces, searchResults],
   );
 
   const saveFavorites = (nextFavorites) => {
@@ -500,7 +506,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     });
 
     [
-      ...searchResults.map((item) => ({ item, favorite: false })),
+      ...visibleSearchResults.map((item) => ({ item, favorite: false })),
       ...(selectedPlace ? [{ item: selectedPlace, favorite: false }] : []),
       ...decoratedFavorites.map((item) => ({ item, favorite: true })),
     ].forEach(({ item, favorite }) => {
@@ -544,6 +550,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     rankings,
     searchResults,
     selectedPlace,
+    visibleSearchResults,
   ]);
 
   useEffect(() => {
@@ -629,13 +636,21 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
             </button>
           ))}
         </div>
-        {mapStatus && <p className="direction-map-status">{mapStatus}</p>}
+        <label className="direction-kichi-filter">
+          <input
+            type="checkbox"
+            checked={kichiOnlyPlaces}
+            onChange={(event) => setKichiOnlyPlaces(event.target.checked)}
+          />
+          吉方位だけ
+        </label>
+        {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
         {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
       </div>
 
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
 
-      {(decoratedFavorites.length > 0 || searchResults.length > 0 || selectedPlace) && (
+      {(decoratedFavorites.length > 0 || visibleSearchResults.length > 0 || selectedPlace) && (
         <div className="direction-place-panel">
           {decoratedFavorites.length > 0 && (
             <div className="direction-place-section">
@@ -665,10 +680,10 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
               </ScrollWindow>
             </div>
           )}
-          {(selectedPlace || searchResults.length > 0) && (
+          {(selectedPlace || visibleSearchResults.length > 0) && (
             <div className="direction-place-section">
               <h3>{selectedPlace ? '検索した場所' : '検索結果'}</h3>
-              {(selectedPlace ? [selectedPlace] : searchResults.slice(0, 8)).map((item) => (
+              {(selectedPlace ? [selectedPlace] : visibleSearchResults.slice(0, 8)).map((item) => (
                 <button key={favoriteKey(item)} type="button" className="direction-place-row" onClick={() => showPlace(item)}>
                   <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
                   <span>

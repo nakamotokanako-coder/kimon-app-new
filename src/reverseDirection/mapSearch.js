@@ -166,6 +166,12 @@ export function decoratePlaces(places, center, rankings, bearingOptions = {}) {
     });
 }
 
+export function filterKichiPlaces(places, enabled) {
+  const list = places || [];
+  if (!enabled) return list;
+  return list.filter((place) => Number(place.direction?.score ?? 0) > 0);
+}
+
 export function favoriteKey(place) {
   return `${Number(place.latitude).toFixed(5)},${Number(place.longitude).toFixed(5)}`;
 }
