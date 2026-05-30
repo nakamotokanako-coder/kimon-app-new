@@ -115,12 +115,12 @@ function buildRankings(board, purposeName) {
     const palaceData = board.palaces[direction.palace];
     const palaceScore = score.palaces[direction.palace];
     const purpose = getPurposeBonus(palaceData, palaceScore, purposeName);
-    const finalScore = (palaceScore?.score || 0) + purpose.bonus;
+    const finalScore = palaceScore?.score || 0;
     return {
       ...direction,
       score: finalScore,
-      baseScore: palaceScore?.score || 0,
-      purposeBonus: purpose.bonus,
+      baseScore: finalScore,
+      purposeBonus: 0,
       purposeMatches: purpose.matches,
       tone: getScoreTone(finalScore),
       reasons: getMainReasons(palaceData, palaceScore, purpose.matches),
