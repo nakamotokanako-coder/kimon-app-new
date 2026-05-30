@@ -52,6 +52,8 @@ const SCORE_HASSHIN = {
 
 /** 使用可能判定の閾値 */
 export const USABLE_THRESHOLD = 40;
+export const MAX_SCORE = 120;
+export const JUNRI_BONUS = 20;
 
 // ============================================================
 // 目的別ルール（講座p79）
@@ -277,19 +279,52 @@ export function scoreBoard(board) {
     });
   }
 
-  // 使用可能な宮
+  // Phase 3-C (2026-05-22): ◎順利判定。
+  // 日干のある宮（無ければ旬首の宮）を起点に、対象宮テーブル上の宮で
+  // 「吉門（休/生/開/景）かつ score >= 40」を満たす宮を ◎順利 とする。
+  // 評価ランク決定（Phase 3-B）への入力として、各宮に is_junri フラグを付与。
+  // detectJunri は順利ボーナス加算前の元スコアで判定する。
+  const junri = detectJunri(board, palaceScores);
+  for (const palName of PALACE_NAMES) {
+    if (palaceScores[palName]) {
+      palaceScores[palName].is_junri = junri.junri_palaces.includes(palName);
+    }
+  }
+
+  // Phase 3-D: 順利ボーナス+20と120点上限クリップ。
+  // scorePalace の元スコアは breakdown.raw_score に保持する。
+  for (const palName of PALACE_NAMES) {
+    const ps = palaceScores[palName];
+    if (!ps) continue;
+
+    const rawScore = ps.score;
+    const junriBonus = ps.is_junri ? JUNRI_BONUS : 0;
+    const withBonus = rawScore + junriBonus;
+    const clippedScore = Math.min(withBonus, MAX_SCORE);
+
+    ps.breakdown = {
+      ...ps.breakdown,
+      junri_bonus: junriBonus,
+      raw_score: rawScore,
+      clipped: withBonus > MAX_SCORE,
+    };
+    ps.score = clippedScore;
+    ps.usable = clippedScore >= USABLE_THRESHOLD;
+  }
+
+  // 使用可能な宮（順利ボーナスとクリップ後のスコアで判定）
   const usablePalaces = Object.entries(palaceScores)
     .filter(([_, s]) => s.usable)
     .map(([name, _]) => name);
 
-  // 最高スコアの宮
+  // 最高スコアの宮（順利ボーナスとクリップ後のスコアで判定）
   const bestOverall = Object.entries(palaceScores)
     .reduce((best, [name, s]) => {
       if (!best || s.score > palaceScores[best].score) return name;
       return best;
     }, null);
 
-  // 目的別ベスト宮
+  // 目的別ベスト宮（順利ボーナスとクリップ後のスコアで判定）
   const bestByPurpose = {};
   for (const purpose of Object.keys(PURPOSE_RULES)) {
     let best = null;
@@ -303,18 +338,6 @@ export function scoreBoard(board) {
       }
     }
     bestByPurpose[purpose] = best;
-  }
-
-  // Phase 3-C (2026-05-22): ◎順利判定。
-  // 日干のある宮（無ければ旬首の宮）を起点に、対象宮テーブル上の宮で
-  // 「吉門（休/生/開/景）かつ score >= 40」を満たす宮を ◎順利 とする。
-  // 評価ランク決定（Phase 3-B）への入力として、各宮に is_junri フラグを付与。
-  // 点数計算自体は変更しない。
-  const junri = detectJunri(board, palaceScores);
-  for (const palName of PALACE_NAMES) {
-    if (palaceScores[palName]) {
-      palaceScores[palName].is_junri = junri.junri_palaces.includes(palName);
-    }
   }
 
   return {
