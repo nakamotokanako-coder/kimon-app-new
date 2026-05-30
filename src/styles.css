@@ -292,6 +292,43 @@ select {
   opacity: 0.68;
 }
 
+.ctrl-hour .ctrl-hour-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.ctrl-hour .ctrl-hour-row select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ctrl-now-btn {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ctrl-now-btn:hover:not(:disabled),
+.ctrl-now-btn:focus-visible {
+  border-color: var(--border-main);
+  box-shadow: var(--shadow-glow);
+  outline: none;
+}
+
+.ctrl-now-btn:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
 .board-type {
   flex-direction: row;
   align-items: center;

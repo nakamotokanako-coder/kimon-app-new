@@ -1,9 +1,19 @@
 import React from 'react';
+import { JISHIN_LABELS, getJishinSlotHour, getTodayJst } from '../utils/jishinLabels';
 
 const HOURS = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
 const BOARD_TYPES = ['日', '時'];
 
 export default function InputControls({ date, hour, boardType, onChange }) {
+  const handleNow = () => {
+    const slotHour = getJishinSlotHour(new Date());
+    const todayJst = getTodayJst();
+    const patch = {};
+    if (hour !== slotHour) patch.hour = slotHour;
+    if (date !== todayJst) patch.date = todayJst;
+    if (Object.keys(patch).length > 0) onChange(patch);
+  };
+
   return (
     <div className="input-controls">
       <label className="ctrl">
@@ -15,17 +25,29 @@ export default function InputControls({ date, hour, boardType, onChange }) {
         />
       </label>
 
-      <label className="ctrl">
+      <label className="ctrl ctrl-hour">
         <span>時刻</span>
-        <select
-          value={hour}
-          onChange={(e) => onChange({ hour: Number(e.target.value) })}
-          disabled={boardType !== '時'}
-        >
-          {HOURS.map((h) => (
-            <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>
-          ))}
-        </select>
+        <div className="ctrl-hour-row">
+          <select
+            value={hour}
+            onChange={(e) => onChange({ hour: Number(e.target.value) })}
+            disabled={boardType !== '時'}
+          >
+            {HOURS.map((h) => (
+              <option key={h} value={h}>{JISHIN_LABELS[h]}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="ctrl-now-btn"
+            onClick={handleNow}
+            disabled={boardType !== '時'}
+            aria-label="現在の時辰と今日に合わせる"
+            title="現在の時辰と今日に合わせる"
+          >
+            いま
+          </button>
+        </div>
       </label>
 
       <fieldset className="ctrl board-type">
