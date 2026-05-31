@@ -2271,6 +2271,70 @@ body {
   font-weight: 800;
 }
 
+.direction-map-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.direction-map-error {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(220, 110, 90, 0.55);
+  border-radius: 8px;
+  background: rgba(220, 110, 90, 0.08);
+}
+
+.direction-map-error-main {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.direction-map-error-hint {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.direction-map-error-detail {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  line-height: 1.4;
+  opacity: 0.7;
+  word-break: break-word;
+}
+
+.leaflet-control-fit-search a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  line-height: 1;
+  text-decoration: none;
+  color: #333;
+  background: #fff;
+}
+
+.leaflet-control-fit-search a:hover {
+  background: #f4f4f4;
+}
+
+.direction-map .leaflet-tile-pane {
+  filter: saturate(0.92);
+}
+
 .direction-map {
   width: 100%;
   border: 1px solid var(--border-subtle);

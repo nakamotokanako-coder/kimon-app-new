@@ -103,6 +103,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
+  const [mapError, setMapError] = useState(null);
   const [mapSearching, setMapSearching] = useState(false);
   const [needsAreaSearch, setNeedsAreaSearch] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -138,6 +139,8 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const lastAreaSearchRef = useRef(null);
   const suppressAreaPromptRef = useRef(false);
   const center = useMemo(() => [location.latitude, location.longitude], [location.latitude, location.longitude]);
+  const centerRef = useRef(center);
+  useEffect(() => { centerRef.current = center; }, [center]);
   const bearingOptions = useMemo(
     () => buildBearingOptions(center, bearingMode, useDeclination),
     [bearingMode, center, useDeclination],
@@ -325,11 +328,18 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
     return place;
   };
 
+  const buildSearchError = (error) => ({
+    main: '検索範囲が広すぎる可能性があります。',
+    hint: '地図右上の 🔍 ボタンで検索可能な範囲に合わせられます。（時間をおいて再試行も有効）',
+    detail: error?.message || '',
+  });
+
   const runMapSearch = async (word = mapQuery) => {
     const text = sanitizeQuery(word);
     if (!text || mapSearching) return;
     setMapQuery(text);
     clearPlaceMarkers();
+    setMapError(null);
     setMapSearching(true);
     try {
       const preset = findFacilityPreset(text);
@@ -349,7 +359,8 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         }
       }
     } catch (error) {
-      setMapStatus(`検索に失敗しました。時間をおいて再検索してください。${error.message ? ` (${error.message})` : ''}`);
+      setMapError(buildSearchError(error));
+      setMapStatus('');
     } finally {
       setMapSearching(false);
     }
@@ -358,13 +369,15 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
   const runAreaSearch = async () => {
     const last = lastAreaSearchRef.current;
     if (!last || mapSearching) return;
+    setMapError(null);
     setMapSearching(true);
     try {
       clearPlaceMarkers();
       if (last.type === 'preset') await runFacilitySearch(last.word, last.preset);
       else await runPoiSearch(last.word);
     } catch (error) {
-      setMapStatus(`検索に失敗しました。時間をおいて再検索してください。${error.message ? ` (${error.message})` : ''}`);
+      setMapError(buildSearchError(error));
+      setMapStatus('');
     } finally {
       setMapSearching(false);
     }
@@ -384,17 +397,54 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
 
   useEffect(() => {
     if (!mapNodeRef.current || mapRef.current) return;
-    mapRef.current = L.map(mapNodeRef.current, {
+    const map = L.map(mapNodeRef.current, {
       zoomControl: true,
       attributionControl: true,
     }).setView(center, profile.initialZoom);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd',
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-    }).addTo(mapRef.current);
-    layerGroupRef.current = L.layerGroup().addTo(mapRef.current);
-    liveLayerRef.current = L.layerGroup().addTo(mapRef.current);
+    mapRef.current = map;
+
+    const gsiAttribution = '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">国土地理院</a>';
+    const gsiPale = L.tileLayer(
+      'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+      { maxZoom: 18, attribution: gsiAttribution },
+    );
+    const gsiPhoto = L.tileLayer(
+      'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
+      { maxZoom: 18, attribution: gsiAttribution },
+    );
+    gsiPale.addTo(map);
+    L.control.layers(
+      { '🗺 地図': gsiPale, '📷 航空写真': gsiPhoto },
+      null,
+      { position: 'bottomright', collapsed: false },
+    ).addTo(map);
+
+    // 「検索範囲に合わせる」カスタムコントロール（ズームボタンの並びに追加）
+    const FitSearchControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: () => {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-fit-search');
+        const button = L.DomUtil.create('a', '', container);
+        button.href = '#';
+        button.title = '検索可能な範囲に合わせる';
+        button.setAttribute('role', 'button');
+        button.setAttribute('aria-label', '検索可能な範囲に合わせる');
+        button.innerHTML = '🔍';
+        L.DomEvent.on(button, 'click', (event) => {
+          L.DomEvent.preventDefault(event);
+          L.DomEvent.stopPropagation(event);
+          const m = mapRef.current;
+          if (!m) return;
+          if (m.getZoom() >= 10) return; // 既に検索可能ズーム以上なら何もしない
+          m.flyTo(centerRef.current, 10, { duration: 0.5 });
+        });
+        return container;
+      },
+    });
+    new FitSearchControl().addTo(map);
+
+    layerGroupRef.current = L.layerGroup().addTo(map);
+    liveLayerRef.current = L.layerGroup().addTo(map);
   }, [center, profile.initialZoom]);
 
   useEffect(() => {
@@ -701,6 +751,14 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
           />
           吉方位だけ
         </label>
+        <p className="direction-map-hint">🔍 検索したい時は地図を拡大してください（広範囲だと検索結果が出ないことがあります）</p>
+        {mapError && (
+          <div className="direction-map-error" role="alert">
+            <p className="direction-map-error-main">{mapError.main}</p>
+            <p className="direction-map-error-hint">{mapError.hint}</p>
+            {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
+          </div>
+        )}
         {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
         {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
       </div>
