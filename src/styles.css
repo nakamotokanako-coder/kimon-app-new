@@ -3401,6 +3401,12 @@ body {
   font-weight: 900;
 }
 
+.reverse-gate-icon {
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
 .reverse-dir-text {
   fill: var(--text-primary);
   font-size: 14px;
@@ -3458,6 +3464,13 @@ body {
   border-color: var(--first-rank-border);
 }
 
+.reverse-best-card[type='button'] {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .reverse-best-no {
   width: 42px;
   height: 42px;
@@ -3502,6 +3515,41 @@ body {
   display: grid;
   justify-items: center;
   gap: 10px;
+}
+
+.reverse-list-panel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: var(--bg-card);
+}
+
+.reverse-full-board-button,
+.board-return-button {
+  border: 1px solid var(--border-main);
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-accent);
+  font-weight: 800;
+}
+
+.board-return-button {
+  margin-bottom: 10px;
+}
+
+.saikyo-card-wrap,
+.kakkyoku-result-wrap {
+  display: grid;
+}
+
+.saikyo-card-wrap .saikyo-card[aria-expanded='true'],
+.kakkyoku-result-wrap .kakkyoku-result-card[aria-expanded='true'] {
+  border-radius: 12px 12px 0 0;
 }
 
 .mini-board-grid {
@@ -3695,6 +3743,9 @@ body {
 }
 
 .reverse-tl-panel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
   padding: 12px;
   border: 1px solid #e6c34a;
   border-top: 0;

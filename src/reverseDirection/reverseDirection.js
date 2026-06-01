@@ -109,21 +109,20 @@ export function getMainReasons(palaceData, palaceScore, matches = []) {
   return [...new Set(reasons)].slice(0, 4);
 }
 
-function buildRankings(board, purposeName) {
+function buildRankings(board) {
   const score = scoreBoard(board);
   const rankings = PALACE_DIRECTIONS.map((direction) => {
     const palaceData = board.palaces[direction.palace];
     const palaceScore = score.palaces[direction.palace];
-    const purpose = getPurposeBonus(palaceData, palaceScore, purposeName);
     const finalScore = palaceScore?.score || 0;
     return {
       ...direction,
       score: finalScore,
       baseScore: finalScore,
       purposeBonus: 0,
-      purposeMatches: purpose.matches,
+      purposeMatches: [],
       tone: getScoreTone(finalScore),
-      reasons: getMainReasons(palaceData, palaceScore, purpose.matches),
+      reasons: getMainReasons(palaceData, palaceScore),
       palaceData,
       palaceScore,
     };
@@ -132,14 +131,14 @@ function buildRankings(board, purposeName) {
   return { board: { ...board, score }, rankings };
 }
 
-export function buildReverseBoard({ date, hour, purposeName = '仕事' }) {
+export function buildReverseBoard({ date, hour }) {
   const board = buildBoard({ date, hour, boardType: TIME_BOARD_TYPE });
-  return buildRankings(board, purposeName);
+  return buildRankings(board);
 }
 
-export function buildDayReverseBoard({ date, purposeName = '仕事' }) {
+export function buildDayReverseBoard({ date }) {
   const board = buildBoard({ date, boardType: DAY_BOARD_TYPE });
-  return buildRankings(board, purposeName);
+  return buildRankings(board);
 }
 
 export function filterGoodRankings(rankings, goodOnly) {
@@ -147,9 +146,9 @@ export function filterGoodRankings(rankings, goodOnly) {
   return rankings.filter((item) => item.score > 0);
 }
 
-export function buildTimeline({ date, purposeName, goodOnly }) {
+export function buildTimeline({ date, goodOnly }) {
   return TIME_SLOTS.map((slot) => {
-    const result = buildReverseBoard({ date, hour: slot.hour, purposeName });
+    const result = buildReverseBoard({ date, hour: slot.hour });
     const visible = filterGoodRankings(result.rankings, goodOnly);
     return {
       ...slot,

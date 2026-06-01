@@ -3,6 +3,12 @@ import { PALACE_DIRECTIONS } from './reverseDirection.js';
 
 const CENTER = 175;
 const RADIUS = 145;
+export const GATE_ICONS = {
+  '生門': '🌱',
+  '開門': '🚪',
+  '休門': '❤️',
+  '景門': '☀️',
+};
 
 function polarPoint(angleDeg) {
   const rad = (angleDeg - 90) * Math.PI / 180;
@@ -37,6 +43,7 @@ export default function CompassWheel({ rankings, bestPalace }) {
         {PALACE_DIRECTIONS.map((direction) => {
           const item = byPalace[direction.palace];
           const scorePoint = textPoint(direction.angle, 92);
+          const iconPoint = textPoint(direction.angle, 112);
           const labelPoint = textPoint(direction.angle, 162);
           const isBest = direction.palace === bestPalace;
           return (
@@ -48,6 +55,11 @@ export default function CompassWheel({ rankings, bestPalace }) {
               <text className="reverse-score-text" x={scorePoint.x} y={scorePoint.y}>
                 {item ? `${item.score > 0 ? '+' : ''}${item.score}` : '0'}
               </text>
+              {GATE_ICONS[item?.palaceData?.hachimon] && (
+                <text className="reverse-gate-icon" x={iconPoint.x} y={iconPoint.y}>
+                  {GATE_ICONS[item.palaceData.hachimon]}
+                </text>
+              )}
               <text className="reverse-dir-text" x={labelPoint.x} y={labelPoint.y}>
                 {direction.label}
               </text>

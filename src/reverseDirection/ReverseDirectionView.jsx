@@ -16,7 +16,6 @@ import {
   applyNaturalTime,
   getTimeSlotHour,
   getTimeSlotLabel,
-  getPurposeNames,
 } from './reverseDirection.js';
 import {
   MAP_SEARCH_STORAGE_KEY,
@@ -75,30 +74,28 @@ function readStoredFavorites() {
   }
 }
 
-export default function ReverseDirectionView() {
+export default function ReverseDirectionView({ onOpenBoard }) {
   const [location, setLocation] = useState(DEFAULT_LOCATIONS[0]);
   const [currentMode, setCurrentMode] = useState('search');
   const [selectedFavoriteId, setSelectedFavoriteId] = useState(null);
   const [favorites, setFavorites] = useState(() => readStoredFavorites());
   const [query, setQuery] = useState('');
-  const [purpose, setPurpose] = useState('仕事');
   const [goodOnly, setGoodOnly] = useState(true);
   const [mode, setMode] = useState('time');
   const [dayDate, setDayDate] = useState(getTodayJst());
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
-  const [timeViewOverride, setTimeViewOverride] = useState(null);
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
   const today = getTodayJst();
-  const slotHour = timeViewOverride?.hour ?? getTimeSlotHour(naturalNow);
-  const date = timeViewOverride?.date ?? today;
+  const slotHour = getTimeSlotHour(naturalNow);
+  const date = today;
 
   const reverse = useMemo(() => (
-    buildReverseBoard({ date, hour: slotHour, purposeName: purpose })
-  ), [date, slotHour, purpose]);
+    buildReverseBoard({ date, hour: slotHour })
+  ), [date, slotHour]);
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   const best = visibleRankings[0] || null;
@@ -106,20 +103,20 @@ export default function ReverseDirectionView() {
   const dayReverseState = useMemo(() => {
     try {
       return {
-        result: buildDayReverseBoard({ date: dayDate, purposeName: purpose }),
+        result: buildDayReverseBoard({ date: dayDate }),
         error: null,
       };
     } catch (error) {
       return { result: null, error: error.message };
     }
-  }, [dayDate, purpose]);
+  }, [dayDate]);
   const dayReverse = dayReverseState.result;
   const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
   const dayBest = dayVisibleRankings[0] || null;
 
   const timeline = useMemo(() => (
-    buildTimeline({ date, purposeName: purpose, goodOnly })
-  ), [date, purpose, goodOnly]);
+    buildTimeline({ date, goodOnly })
+  ), [date, goodOnly]);
   const displayedTimeline = useMemo(() => (
     timelineSortMode === 'score' ? sortTimelineSlotsByScore(timeline) : timeline
   ), [timeline, timelineSortMode]);
@@ -232,22 +229,6 @@ export default function ReverseDirectionView() {
 
   const filterCard = (
     <div className="reverse-card reverse-filter-card">
-      <div className="reverse-card-title">
-        <h3>目的フィルタ</h3>
-        <span>目的別の加点</span>
-      </div>
-      <div className="reverse-filter-list">
-        {getPurposeNames().map((name) => (
-          <button
-            key={name}
-            type="button"
-            className={purpose === name ? 'is-active' : ''}
-            onClick={() => setPurpose(name)}
-          >
-            {name}
-          </button>
-        ))}
-      </div>
       <div className="reverse-filter-controls">
         <label className="reverse-toggle-row">
           <span>吉のみ表示</span>
@@ -286,7 +267,7 @@ export default function ReverseDirectionView() {
             {mode === 'kakkyoku'
               ? `時盤・格局検索 / ${location.name}`
               : mode === 'ranking'
-              ? `日盤・最強ランキング / ${location.name}`
+              ? `日盤・日盤ランキング / ${location.name}`
               : mode === 'day'
               ? `日盤・遠出 / ${location.name}`
               : mode === 'range'
@@ -298,7 +279,7 @@ export default function ReverseDirectionView() {
           <div className="reverse-time-chip">
             {mode === 'day' || mode === 'ranking'
               ? dayDate
-              : `${timeViewOverride ? `${date} ` : ''}${getTimeSlotLabel(slotHour)}`}
+              : getTimeSlotLabel(slotHour)}
           </div>
         )}
       </div>
@@ -308,7 +289,6 @@ export default function ReverseDirectionView() {
           className={mode === 'time' ? 'is-active' : ''}
           type="button"
           onClick={() => {
-            setTimeViewOverride(null);
             setMode('time');
           }}
         >
@@ -318,7 +298,7 @@ export default function ReverseDirectionView() {
           日盤 遠出
         </button>
         <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
-          最強ランキング
+          日盤ランキング
         </button>
         <button className={mode === 'kakkyoku' ? 'is-active' : ''} type="button" onClick={() => setMode('kakkyoku')}>
           格局を探す
@@ -393,13 +373,17 @@ export default function ReverseDirectionView() {
             <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
           </div>
 
-          <div className="reverse-card reverse-best-card">
+          <button
+            type="button"
+            className="reverse-card reverse-best-card"
+            onClick={() => onOpenBoard({ date, hour: slotHour, boardType: '時' })}
+          >
             <div className="reverse-best-no">1</div>
             <div className="reverse-best-main">
               {best ? (
                 <>
                   <strong>{best.label}<small>{best.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                  <p>今の時盤で最大吉 / 目的: {purpose}</p>
+                  <p>今の時盤で最大吉</p>
                 </>
               ) : (
                 <>
@@ -409,7 +393,7 @@ export default function ReverseDirectionView() {
               )}
             </div>
             <div className="reverse-best-score">{best ? `${best.score > 0 ? '+' : ''}${best.score}` : '-'}</div>
-          </div>
+          </button>
 
           {filterCard}
 
@@ -435,6 +419,13 @@ export default function ReverseDirectionView() {
                 {openTimelineHour === slot.hour && (
                   <div className="reverse-tl-panel">
                     <MiniBoardGrid rankings={slot.rankings} />
+                    <button
+                      type="button"
+                      className="reverse-full-board-button"
+                      onClick={() => onOpenBoard({ date, hour: slot.hour, boardType: '時' })}
+                    >
+                      フル盤を見る
+                    </button>
                   </div>
                 )}
               </div>
@@ -487,7 +478,7 @@ export default function ReverseDirectionView() {
                   {dayBest ? (
                     <>
                       <strong>{dayBest.label}<small>{dayBest.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                      <p>この日の最大吉 / 目的: {purpose}</p>
+                      <p>この日の最大吉</p>
                     </>
                   ) : (
                     <>
@@ -531,10 +522,7 @@ export default function ReverseDirectionView() {
           startDate={today}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
-          onSelectDate={(nextDate) => {
-            setDayDate(nextDate);
-            setMode('day');
-          }}
+          onOpenBoard={onOpenBoard}
         />
       )}
 
@@ -543,6 +531,7 @@ export default function ReverseDirectionView() {
           location={location}
           startDate={today}
           correctionLabel={`${location.name} ${formatCorrection(correction)}`}
+          onOpenBoard={onOpenBoard}
         />
       )}
 
@@ -554,8 +543,7 @@ export default function ReverseDirectionView() {
             correctionMinutes={correction}
             correctionLabel={`${location.name} ${formatCorrection(correction)}`}
             onSelectRoute={(route) => {
-              setTimeViewOverride({ date: route.date, hour: route.slots[0].hour });
-              setMode('time');
+              onOpenBoard({ date: route.date, hour: route.slots[0].hour, boardType: '時' });
             }}
           />
         </div>

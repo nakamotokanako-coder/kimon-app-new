@@ -1,11 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import {
   buildMonthlyBest,
+  buildDayCandidates,
   formatDateForOrigin,
   formatPeriodLabel,
   scanStrongestRanking,
+  sortRanking,
 } from './strongestRanking.js';
 import { PALACE_DIRECTIONS } from './reverseDirection.js';
+import MiniBoardGrid from './MiniBoardGrid.jsx';
 
 const PERIODS = [
   { key: 'week', label: '1週間', days: 7, long: false },
@@ -43,34 +46,50 @@ function RankingBadges({ item }) {
   );
 }
 
-function RankingCard({ item, index, startDate, onSelect }) {
+function RankingCard({ item, index, startDate, isOpen, onToggle, onOpenBoard }) {
   const rank = index + 1;
   const dateLabel = formatDateForOrigin(item.date, startDate);
+  const rankings = isOpen ? sortRanking(buildDayCandidates(item.date)) : [];
   return (
-    <button
-      type="button"
-      className={`saikyo-card ${rank === 1 ? 'is-top1' : ''} ${rank === 2 ? 'is-top2' : ''} ${rank === 3 ? 'is-top3' : ''}`}
-      onClick={() => onSelect(item.date)}
-    >
-      <span className="saikyo-rank">
-        <strong>{rank}</strong>
-        <small>位</small>
-      </span>
-      <span className="saikyo-main">
-        <span className="saikyo-row">
-          <strong>{item.label}</strong>
-          <span>
-            {dateLabel.displayText}
-            <small className={weekdayClass(item.weekday)}>({item.weekday})</small>
-          </span>
+    <div className="saikyo-card-wrap">
+      <button
+        type="button"
+        className={`saikyo-card ${rank === 1 ? 'is-top1' : ''} ${rank === 2 ? 'is-top2' : ''} ${rank === 3 ? 'is-top3' : ''}`}
+        onClick={onToggle}
+        aria-expanded={isOpen}
+      >
+        <span className="saikyo-rank">
+          <strong>{rank}</strong>
+          <small>位</small>
         </span>
-        <RankingBadges item={item} />
-      </span>
-      <span className={`saikyo-score ${item.score < 0 ? 'is-bad' : ''}`}>
-        {scoreText(item.score)}
-        <small>点</small>
-      </span>
-    </button>
+        <span className="saikyo-main">
+          <span className="saikyo-row">
+            <strong>{item.label}</strong>
+            <span>
+              {dateLabel.displayText}
+              <small className={weekdayClass(item.weekday)}>({item.weekday})</small>
+            </span>
+          </span>
+          <RankingBadges item={item} />
+        </span>
+        <span className={`saikyo-score ${item.score < 0 ? 'is-bad' : ''}`}>
+          {scoreText(item.score)}
+          <small>点</small>
+        </span>
+      </button>
+      {isOpen && (
+        <div className="reverse-list-panel">
+          <MiniBoardGrid rankings={rankings} />
+          <button
+            type="button"
+            className="reverse-full-board-button"
+            onClick={() => onOpenBoard({ date: item.date, boardType: '日' })}
+          >
+            フル盤を見る
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -79,11 +98,12 @@ export default function SaikyoRankingView({
   startDate,
   goodOnly,
   onGoodOnlyChange,
-  onSelectDate,
+  onOpenBoard,
 }) {
   const [periodKey, setPeriodKey] = useState('month');
   const [directionKey, setDirectionKey] = useState('all');
   const [visibleCount, setVisibleCount] = useState(10);
+  const [openDate, setOpenDate] = useState(null);
   const period = PERIODS.find((item) => item.key === periodKey) || PERIODS[1];
   const direction = DIRECTION_OPTIONS.find((item) => item.key === directionKey) || DIRECTION_OPTIONS[0];
 
@@ -116,7 +136,7 @@ export default function SaikyoRankingView({
       <div className="saikyo-top">
         <div>
           <p className="saikyo-kicker">奇門遁甲</p>
-          <h3>最強ランキング</h3>
+          <h3>日盤ランキング</h3>
           <p>指定期間で、いつ・どの方位が一番強いか</p>
         </div>
         <span>日盤 / 遠出 50km〜</span>
@@ -189,7 +209,14 @@ export default function SaikyoRankingView({
                 <span />
               </div>
             )}
-            <RankingCard item={item} index={index} startDate={startDate} onSelect={onSelectDate} />
+            <RankingCard
+              item={item}
+              index={index}
+              startDate={startDate}
+              isOpen={openDate === item.date}
+              onToggle={() => setOpenDate((current) => (current === item.date ? null : item.date))}
+              onOpenBoard={onOpenBoard}
+            />
           </React.Fragment>
         ))}
       </div>
@@ -212,7 +239,7 @@ export default function SaikyoRankingView({
           </div>
           <div className="saikyo-monthly">
             {monthly.map((item) => (
-              <button key={item.monthKey} type="button" onClick={() => onSelectDate(item.date)}>
+              <button key={item.monthKey} type="button" onClick={() => onOpenBoard({ date: item.date, boardType: '日' })}>
                 <strong>{formatDateForOrigin(item.date, startDate).monthDisplay}</strong>
                 <span>{item.label}</span>
                 <small>{formatDateForOrigin(item.date, startDate).displayText}({item.weekday})</small>
