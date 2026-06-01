@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { buildBoard } from './kimon/buildBoard.js';
 import { scoreBoard } from './kimon/scoreEngine.js';
 import InputControls from './components/InputControls.jsx';
@@ -51,6 +51,7 @@ export default function App() {
   const [hasVisitedDirection, setHasVisitedDirection] = useState(false);
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
+  const [boardScrollRequest, setBoardScrollRequest] = useState(0);
 
   const board = useMemo(() => {
     try {
@@ -73,6 +74,7 @@ export default function App() {
     setState({ date, hour, boardType });
     setBoardReturnTab(activeTab);
     setActiveTab('board');
+    setBoardScrollRequest((current) => current + 1);
   };
   const returnFromFullBoard = () => {
     if (!boardReturnTab) return;
@@ -90,6 +92,20 @@ export default function App() {
       // Theme persistence is optional when storage is unavailable.
     }
   };
+
+  useEffect(() => {
+    if (activeTab !== 'board' || boardScrollRequest === 0 || !board) return undefined;
+    let secondFrame = null;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      });
+    });
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
+    };
+  }, [activeTab, board, boardScrollRequest]);
 
   const boardView = (
     <>

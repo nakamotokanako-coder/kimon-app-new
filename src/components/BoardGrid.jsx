@@ -61,6 +61,10 @@ function getItems(direction) {
   return NB_ITEMS.map((it) => ({ ...it, row: 6 - it.row, col: 6 - it.col }));
 }
 
+export function getZodiacLabelClass(zodiac, kuubou) {
+  return `zodiac-label${isKuubouZodiac(zodiac, kuubou) ? ' is-kuubou' : ''}`;
+}
+
 /** Build the board-level alert labels shown in the center palace. */
 function buildCenterAlerts(banLevel) {
   if (!banLevel) return [];
@@ -97,7 +101,7 @@ export default function BoardGrid({
           return (
             <div
               key={`Z-${idx}`}
-              className={`zodiac-label${isKuubou ? ' is-kuubou' : ''}`}
+              className={getZodiacLabelClass(it.zodiac, kuubou)}
               style={style}
               aria-label={isKuubou ? `${it.zodiac}（空亡）` : it.zodiac}
             >
