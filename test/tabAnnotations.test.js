@@ -15,31 +15,25 @@ const sanbanRouteViewSrc = fs.readFileSync(
   'utf-8',
 );
 
-describe('5タブ注釈リネーム（指示書 §2）', () => {
-  it('「時盤 お散歩」の注釈が「今すぐ・近場」になっている', () => {
-    expect(reverseDirectionViewSrc).toMatch(/時盤 お散歩<small>今すぐ・近場<\/small>/);
+describe('5タブ注釈撤廃', () => {
+  it.each([
+    '時盤 お散歩',
+    '日盤 遠出',
+    '最強ランキング',
+    '格局を探す',
+    '奇門三盤ルート 🔒',
+  ])('「%s」タブが表示される', (label) => {
+    expect(reverseDirectionViewSrc).toContain(label);
   });
 
-  it('「日盤 遠出」の注釈が「日を決めて遠出」になっている', () => {
-    expect(reverseDirectionViewSrc).toMatch(/日盤 遠出<small>日を決めて遠出<\/small>/);
-  });
-
-  it('「最強ランキング」の注釈が「期間内で最強の日」になっている', () => {
-    expect(reverseDirectionViewSrc).toMatch(/最強ランキング<small>期間内で最強の日<\/small>/);
-  });
-
-  it('「格局を探す」の注釈が「強い時間帯を探す」になっている', () => {
-    expect(reverseDirectionViewSrc).toMatch(/格局を探す<small>強い時間帯を探す<\/small>/);
-  });
-
-  it('「奇門三盤ルート 🔒」タブが存在し注釈は「1日3方位ルート」', () => {
-    expect(reverseDirectionViewSrc).toMatch(/奇門三盤ルート 🔒<small>1日3方位ルート<\/small>/);
-  });
-
-  it('旧開発用語の注釈が残っていない', () => {
-    expect(reverseDirectionViewSrc).not.toMatch(/<small>今と本日<\/small>/);
-    expect(reverseDirectionViewSrc).not.toMatch(/<small>本実装<\/small>/);
-    expect(reverseDirectionViewSrc).not.toMatch(/<small>将来<\/small>/);
+  it.each([
+    '今すぐ・近場',
+    '日を決めて遠出',
+    '期間内で最強の日',
+    '強い時間帯を探す',
+    '1日3方位ルート',
+  ])('注釈「%s」が表示されない', (annotation) => {
+    expect(reverseDirectionViewSrc).not.toContain(annotation);
   });
 });
 
