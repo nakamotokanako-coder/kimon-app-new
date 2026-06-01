@@ -436,7 +436,7 @@ select {
 
 /* 空亡対象の十二支は赤字・太字・不透明で明示（先生指示 2026-05-21） */
 .zodiac-label.is-kuubou {
-  color: #c2c8d2;
+  color: #ff5f5f;
   opacity: 1;
   font-weight: 500;
 }
@@ -1456,7 +1456,7 @@ body {
 }
 
 .zodiac-label.is-kuubou {
-  color: var(--zodiac-color);
+  color: #ff5f5f;
   font-weight: 500;
 }
 
