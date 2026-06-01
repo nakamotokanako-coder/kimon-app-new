@@ -5,6 +5,7 @@ import {
   formatPeriodLabel,
   scanStrongestRanking,
 } from './strongestRanking.js';
+import { PALACE_DIRECTIONS } from './reverseDirection.js';
 
 const PERIODS = [
   { key: 'week', label: '1週間', days: 7, long: false },
@@ -12,6 +13,12 @@ const PERIODS = [
   { key: 'q', label: '3ヶ月', days: 92, long: true },
   { key: 'half', label: '半年', days: 183, long: true },
   { key: 'year', label: '1年', days: 365, long: true },
+];
+
+// 方位フィルタの選択肢。先頭「全方位」（palace=null）固定、後ろは時計回り（北→...→北西）。
+const DIRECTION_OPTIONS = [
+  { key: 'all', label: '全方位', palace: null },
+  ...PALACE_DIRECTIONS.map((d) => ({ key: d.palace, label: d.label, palace: d.palace })),
 ];
 
 function scoreText(score) {
@@ -75,19 +82,32 @@ export default function SaikyoRankingView({
   onSelectDate,
 }) {
   const [periodKey, setPeriodKey] = useState('month');
+  const [directionKey, setDirectionKey] = useState('all');
   const [visibleCount, setVisibleCount] = useState(10);
   const period = PERIODS.find((item) => item.key === periodKey) || PERIODS[1];
+  const direction = DIRECTION_OPTIONS.find((item) => item.key === directionKey) || DIRECTION_OPTIONS[0];
 
   const result = useMemo(() => (
-    scanStrongestRanking({ startDate, days: period.days, goodOnly })
-  ), [goodOnly, period.days, startDate]);
+    scanStrongestRanking({
+      startDate,
+      days: period.days,
+      goodOnly,
+      directionPalace: direction.palace,
+    })
+  ), [direction.palace, goodOnly, period.days, startDate]);
 
   const visibleRows = result.rows.slice(0, visibleCount);
   const monthly = useMemo(() => buildMonthlyBest(result.rows), [result.rows]);
   const periodLabel = formatPeriodLabel(result.range);
+  const topSectionTitle = direction.palace ? `${direction.label} トップ` : '総合トップ';
 
   const handlePeriodChange = (key) => {
     setPeriodKey(key);
+    setVisibleCount(10);
+  };
+
+  const handleDirectionChange = (key) => {
+    setDirectionKey(key);
     setVisibleCount(10);
   };
 
@@ -115,6 +135,23 @@ export default function SaikyoRankingView({
       </div>
 
       <div className="saikyo-period">
+        <p>方位</p>
+        <div>
+          {DIRECTION_OPTIONS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={directionKey === item.key ? 'is-active' : ''}
+              onClick={() => handleDirectionChange(item.key)}
+              aria-pressed={directionKey === item.key}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="saikyo-period">
         <p>期間</p>
         <div>
           {PERIODS.map((item) => (
@@ -138,7 +175,7 @@ export default function SaikyoRankingView({
       )}
 
       <div className="saikyo-section">
-        <h3>総合トップ</h3>
+        <h3>{topSectionTitle}</h3>
         <span>{periodLabel} / {result.rows.length}件</span>
       </div>
 

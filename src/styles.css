@@ -3750,6 +3750,79 @@ body {
   line-height: 1.6;
 }
 
+.sanban-route-card {
+  padding: 28px 18px;
+}
+
+.sanban-route-view {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 14px;
+  color: var(--text-primary);
+}
+
+.sanban-route-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.sanban-route-title {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.sanban-route-lead {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 0.85rem;
+}
+
+.sanban-route-status {
+  margin: 4px 0 0;
+  padding: 4px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+
+.sanban-route-divider {
+  width: 60%;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  margin: 6px 0 2px;
+}
+
+.sanban-route-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  text-align: left;
+  max-width: 320px;
+}
+
+.sanban-route-features li::before {
+  content: '・';
+  color: var(--text-secondary);
+}
+
+.sanban-route-footer {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
 @media (max-width: 640px) {
   .app-with-tabs {
     width: min(100% - 20px, 760px);

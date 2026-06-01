@@ -174,15 +174,28 @@ export function buildDayCandidates(date) {
   });
 }
 
-export function scanStrongestRanking({ startDate, days, goodOnly = true }) {
+/**
+ * 期間内の最強日を抽出する。
+ * directionPalace を指定すると、各日の指定方位スコアだけで日付ランキングを作る。
+ * 未指定（null）の場合は従来通り各日の最高スコア方位を採用する。
+ */
+export function scanStrongestRanking({
+  startDate,
+  days,
+  goodOnly = true,
+  directionPalace = null,
+}) {
   const rows = [];
   const errors = [];
   const range = buildPeriodRange(startDate, days);
   for (let i = 0; i < range.days; i += 1) {
     const date = addDays(startDate, i);
     try {
-      const best = sortRanking(buildDayCandidates(date))[0];
-      if (best && (!goodOnly || best.score > 0)) rows.push(best);
+      const candidates = buildDayCandidates(date);
+      const pick = directionPalace
+        ? candidates.find((c) => c.palace === directionPalace)
+        : sortRanking(candidates)[0];
+      if (pick && (!goodOnly || pick.score > 0)) rows.push(pick);
     } catch (error) {
       errors.push({ date, message: error.message });
     }

@@ -3,6 +3,7 @@ import BasePointSelector from './BasePointSelector.jsx';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
+import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import { sortTimelineSlotsByScore } from './strongestRanking.js';
@@ -286,27 +287,31 @@ export default function ReverseDirectionView() {
               ? `日盤・最強ランキング / ${location.name}`
               : mode === 'day'
               ? `日盤・遠出 / ${location.name}`
+              : mode === 'range'
+              ? '奇門三盤ルート（準備中）'
               : `時盤・自然時補正 ${formatCorrection(correction)} / ${location.name}`}
           </p>
         </div>
-        <div className="reverse-time-chip">{mode === 'day' || mode === 'ranking' ? dayDate : getTimeSlotLabel(slotHour)}</div>
+        {mode !== 'range' && (
+          <div className="reverse-time-chip">{mode === 'day' || mode === 'ranking' ? dayDate : getTimeSlotLabel(slotHour)}</div>
+        )}
       </div>
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
         <button className={mode === 'time' ? 'is-active' : ''} type="button" onClick={() => setMode('time')}>
-          時盤 お散歩<small>今と本日</small>
+          時盤 お散歩<small>今すぐ・近場</small>
         </button>
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
-          日盤 遠出<small>本実装</small>
+          日盤 遠出<small>日を決めて遠出</small>
         </button>
         <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
-          最強ランキング<small>期間</small>
+          最強ランキング<small>期間内で最強の日</small>
         </button>
         <button className={mode === 'kakkyoku' ? 'is-active' : ''} type="button" onClick={() => setMode('kakkyoku')}>
-          格局を探す<small>時盤</small>
+          格局を探す<small>強い時間帯を探す</small>
         </button>
         <button className={mode === 'range' ? 'is-active' : ''} type="button" onClick={() => setMode('range')}>
-          期間検索<small>将来</small>
+          奇門三盤ルート 🔒<small>1日3方位ルート</small>
         </button>
       </div>
 
@@ -529,9 +534,8 @@ export default function ReverseDirectionView() {
       )}
 
       {mode === 'range' && (
-        <div className="reverse-card reverse-placeholder">
-          <h3>期間検索</h3>
-          <p>期間検索は将来拡張タブです。</p>
+        <div className="reverse-card sanban-route-card">
+          <SanbanRouteView />
         </div>
       )}
     </section>
