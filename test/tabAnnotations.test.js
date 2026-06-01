@@ -37,7 +37,7 @@ describe('5タブ注釈撤廃', () => {
   });
 });
 
-describe('奇門三盤ルート 準備中画面（指示書 §3）', () => {
+describe('奇門三盤ルート 本実装画面', () => {
   it('SanbanRouteView コンポーネントが存在し export されている', () => {
     expect(sanbanRouteViewSrc).toMatch(/export default function SanbanRouteView/);
   });
@@ -46,22 +46,22 @@ describe('奇門三盤ルート 準備中画面（指示書 §3）', () => {
     expect(sanbanRouteViewSrc).toMatch(/奇門三盤ルート</);
   });
 
-  it('「準備中」の文言がある', () => {
-    expect(sanbanRouteViewSrc).toMatch(/準備中/);
+  it('準備中表示が撤廃されている', () => {
+    expect(sanbanRouteViewSrc).not.toMatch(/準備中/);
   });
 
-  it('機能説明（3項目）が含まれている', () => {
-    expect(sanbanRouteViewSrc).toMatch(/吉方位が3つ揃う日を検索/);
-    expect(sanbanRouteViewSrc).toMatch(/3スポット巡回ルートを地図に表示/);
-    expect(sanbanRouteViewSrc).toMatch(/時盤ベース/);
+  it('期間・足切り点数・検索ボタンが含まれている', () => {
+    expect(sanbanRouteViewSrc).toMatch(/1ヶ月/);
+    expect(sanbanRouteViewSrc).toMatch(/足切り点数/);
+    expect(sanbanRouteViewSrc).toMatch(/検索する/);
   });
 
-  it('鍵マーク 🔒 がアイコンとして含まれる', () => {
+  it('鍵マーク 🔒 は飾りとして含まれる', () => {
     expect(sanbanRouteViewSrc).toMatch(/🔒/);
   });
 
   it('ReverseDirectionView が SanbanRouteView を import し mode=range で描画', () => {
     expect(reverseDirectionViewSrc).toMatch(/import SanbanRouteView from '\.\/SanbanRouteView\.jsx'/);
-    expect(reverseDirectionViewSrc).toMatch(/<SanbanRouteView \/>/);
+    expect(reverseDirectionViewSrc).toMatch(/<SanbanRouteView/);
   });
 });
