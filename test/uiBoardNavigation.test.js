@@ -45,6 +45,12 @@ describe('共通フル盤導線', () => {
     expect(appSrc).toContain("hidden={activeTab !== 'direction'}");
   });
 
+  it('フル盤描画後に次フレームでページ先頭へスクロールする', () => {
+    expect(appSrc).toContain("if (activeTab !== 'board' || boardScrollRequest === 0 || !board)");
+    expect(appSrc).toContain('requestAnimationFrame');
+    expect(appSrc).toContain("window.scrollTo({ top: 0, left: 0, behavior: 'auto' })");
+  });
+
   it('1位カードと時間帯別ベストから時盤を開ける', () => {
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slotHour, boardType: '時' })");
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slot.hour, boardType: '時' })");
