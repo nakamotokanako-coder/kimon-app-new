@@ -16,7 +16,7 @@ export default function MiniBoardGrid({ rankings }) {
   const bestPalace = rankings?.[0]?.palace;
 
   return (
-    <div className="mini-board-grid" aria-label="時盤簡易グリッド">
+    <div className="mini-board-grid" aria-label="簡易3×3グリッド">
       {MINI_BOARD_LAYOUT.flat().map((palace, index) => {
         if (!palace) {
           return (

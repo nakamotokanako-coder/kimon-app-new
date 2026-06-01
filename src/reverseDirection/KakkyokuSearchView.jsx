@@ -4,6 +4,8 @@ import {
   SPECIAL_KAKKYOKU_NAMES,
   scanSpecialKakkyoku,
 } from './kakkyokuSearch.js';
+import MiniBoardGrid from './MiniBoardGrid.jsx';
+import { buildReverseBoard } from './reverseDirection.js';
 
 const PERIODS = [
   { key: 'week', label: '7日', days: 7 },
@@ -17,35 +19,50 @@ function weekdayClass(weekday) {
   return '';
 }
 
-function KakkyokuResultCard({ item }) {
+function KakkyokuResultCard({ item, isOpen, onToggle, onOpenBoard }) {
+  const rankings = isOpen ? buildReverseBoard({ date: item.date, hour: item.hour }).rankings : [];
   return (
-    <button type="button" className="kakkyoku-result-card">
-      <span className="kakkyoku-result-dir">
-        <strong>{item.label}</strong>
-        <small>{item.short}</small>
-      </span>
-      <span className="kakkyoku-result-main">
-        <span className="kakkyoku-result-date">
-          {item.text}<small className={weekdayClass(item.weekday)}>({item.weekday})</small>
-          <b>{item.timeLabel}</b>
+    <div className="kakkyoku-result-wrap">
+      <button type="button" className="kakkyoku-result-card" onClick={onToggle} aria-expanded={isOpen}>
+        <span className="kakkyoku-result-dir">
+          <strong>{item.label}</strong>
+          <small>{item.short}</small>
         </span>
-        <span className="kakkyoku-badges">
-          {item.matches.map((name) => (
-            <em key={name}>{name}</em>
-          ))}
-          {item.hachimon && <i>{item.hachimon}</i>}
-        </span>
-        {item.practicals.length > 0 && (
-          <span className="kakkyoku-practical">
-            {item.practicals.map((entry) => `${entry.name}: ${entry.text}`).join(' / ')}
+        <span className="kakkyoku-result-main">
+          <span className="kakkyoku-result-date">
+            {item.text}<small className={weekdayClass(item.weekday)}>({item.weekday})</small>
+            <b>{item.timeLabel}</b>
           </span>
-        )}
-      </span>
-      <span className={`kakkyoku-result-score ${item.score < 0 ? 'is-bad' : ''}`}>
-        {item.scoreText}
-        <small>点</small>
-      </span>
-    </button>
+          <span className="kakkyoku-badges">
+            {item.matches.map((name) => (
+              <em key={name}>{name}</em>
+            ))}
+            {item.hachimon && <i>{item.hachimon}</i>}
+          </span>
+          {item.practicals.length > 0 && (
+            <span className="kakkyoku-practical">
+              {item.practicals.map((entry) => `${entry.name}: ${entry.text}`).join(' / ')}
+            </span>
+          )}
+        </span>
+        <span className={`kakkyoku-result-score ${item.score < 0 ? 'is-bad' : ''}`}>
+          {item.scoreText}
+          <small>点</small>
+        </span>
+      </button>
+      {isOpen && (
+        <div className="reverse-list-panel">
+          <MiniBoardGrid rankings={rankings} />
+          <button
+            type="button"
+            className="reverse-full-board-button"
+            onClick={() => onOpenBoard({ date: item.date, hour: item.hour, boardType: '時' })}
+          >
+            フル盤を見る
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -53,12 +70,14 @@ export default function KakkyokuSearchView({
   location,
   startDate,
   correctionLabel,
+  onOpenBoard,
 }) {
   const [selectedNames, setSelectedNames] = useState(['青龍返首', '飛鳥跌穴']);
   const [periodKey, setPeriodKey] = useState('month');
   const [sortMode, setSortMode] = useState('date');
   const [hasSearched, setHasSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(null);
+  const [openResultKey, setOpenResultKey] = useState(null);
 
   const selectedSet = useMemo(() => new Set(selectedNames), [selectedNames]);
   const period = PERIODS.find((item) => item.key === periodKey) || PERIODS[2];
@@ -203,12 +222,18 @@ export default function KakkyokuSearchView({
           )}
 
           <div className="kakkyoku-result-list">
-            {result.rows.map((item) => (
+            {result.rows.map((item) => {
+              const key = `${item.date}-${item.hour}-${item.palace}-${item.matches.join('-')}`;
+              return (
               <KakkyokuResultCard
-                key={`${item.date}-${item.hour}-${item.palace}-${item.matches.join('-')}`}
+                key={key}
                 item={item}
+                isOpen={openResultKey === key}
+                onToggle={() => setOpenResultKey((current) => (current === key ? null : key))}
+                onOpenBoard={onOpenBoard}
               />
-            ))}
+              );
+            })}
           </div>
         </>
       )}

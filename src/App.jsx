@@ -48,7 +48,9 @@ export default function App() {
   const [theme, setTheme] = useState(INITIAL_THEME);
   const [direction, setDirection] = useState('north_bottom');
   const [activeTab, setActiveTab] = useState('board');
+  const [hasVisitedDirection, setHasVisitedDirection] = useState(false);
   const [error, setError] = useState(null);
+  const [boardReturnTab, setBoardReturnTab] = useState(null);
 
   const board = useMemo(() => {
     try {
@@ -67,6 +69,16 @@ export default function App() {
   }, [state.date, state.hour, state.boardType]);
 
   const handleChange = (patch) => setState((s) => ({ ...s, ...patch }));
+  const openFullBoard = ({ date, hour = 0, boardType }) => {
+    setState({ date, hour, boardType });
+    setBoardReturnTab(activeTab);
+    setActiveTab('board');
+  };
+  const returnFromFullBoard = () => {
+    if (!boardReturnTab) return;
+    setActiveTab(boardReturnTab);
+    setBoardReturnTab(null);
+  };
   const handleThemeChange = (name) => {
     setTheme(name);
     if (typeof document !== 'undefined') {
@@ -94,6 +106,11 @@ export default function App() {
       </header>
 
       <main className="app-main">
+        {boardReturnTab && (
+          <button type="button" className="board-return-button" onClick={returnFromFullBoard}>
+            ← 戻る
+          </button>
+        )}
         <InputControls
           date={state.date}
           hour={state.hour}
@@ -181,7 +198,11 @@ export default function App() {
   return (
     <div className="app app-with-tabs">
       {activeTab === 'board' && boardView}
-      {activeTab === 'direction' && <ReverseDirectionView />}
+      {hasVisitedDirection && (
+        <div hidden={activeTab !== 'direction'}>
+          <ReverseDirectionView onOpenBoard={openFullBoard} />
+        </div>
+      )}
       {activeTab === 'settings' && settingsView}
 
       <nav className="bottom-tabbar" aria-label="アプリメニュー">
@@ -196,7 +217,10 @@ export default function App() {
         <button
           type="button"
           className={activeTab === 'direction' ? 'is-active' : ''}
-          onClick={() => setActiveTab('direction')}
+          onClick={() => {
+            setHasVisitedDirection(true);
+            setActiveTab('direction');
+          }}
         >
           <span className="bottom-tab-icon">✦</span>
           <span>吉方位</span>
