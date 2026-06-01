@@ -1894,27 +1894,21 @@ body {
 
 .reverse-mode-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.8fr) minmax(0, 1.15fr) minmax(0, 0.95fr) minmax(0, 1.35fr);
+  gap: 4px;
 }
 
 .reverse-mode-tabs button {
   min-width: 0;
-  padding: 9px 4px;
+  padding: 7px 2px;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: var(--bg-cell);
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: clamp(0.56rem, 2.3vw, 0.78rem);
   font-weight: 700;
   line-height: 1.25;
-}
-
-.reverse-mode-tabs button small {
-  display: block;
-  margin-top: 3px;
-  font-size: 0.64rem;
-  font-weight: 500;
+  white-space: nowrap;
 }
 
 .reverse-mode-tabs button.is-active {
