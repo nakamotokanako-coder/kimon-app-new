@@ -299,19 +299,19 @@ export default function ReverseDirectionView() {
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
         <button className={mode === 'time' ? 'is-active' : ''} type="button" onClick={() => setMode('time')}>
-          時盤 お散歩<small>今すぐ・近場</small>
+          時盤 お散歩
         </button>
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
-          日盤 遠出<small>日を決めて遠出</small>
+          日盤 遠出
         </button>
         <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
-          最強ランキング<small>期間内で最強の日</small>
+          最強ランキング
         </button>
         <button className={mode === 'kakkyoku' ? 'is-active' : ''} type="button" onClick={() => setMode('kakkyoku')}>
-          格局を探す<small>強い時間帯を探す</small>
+          格局を探す
         </button>
         <button className={mode === 'range' ? 'is-active' : ''} type="button" onClick={() => setMode('range')}>
-          奇門三盤ルート 🔒<small>1日3方位ルート</small>
+          奇門三盤ルート 🔒
         </button>
       </div>
 
