@@ -4,10 +4,10 @@ import { PALACE_DIRECTIONS } from './reverseDirection.js';
 const CENTER = 175;
 const RADIUS = 145;
 export const GATE_ICONS = {
-  '生門': '🌱',
-  '開門': '🚪',
-  '休門': '❤️',
-  '景門': '☀️',
+  '生門': '\u{1F4B0}',
+  '開門': '\u{1F3E2}',
+  '休門': '\u{2764}\u{FE0F}',
+  '景門': '\u{1F58A}\u{FE0F}',
 };
 
 function polarPoint(angleDeg) {
