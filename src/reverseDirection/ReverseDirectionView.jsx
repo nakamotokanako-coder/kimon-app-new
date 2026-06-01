@@ -88,11 +88,13 @@ export default function ReverseDirectionView() {
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
+  const [timeViewOverride, setTimeViewOverride] = useState(null);
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
-  const slotHour = getTimeSlotHour(naturalNow);
-  const date = getTodayJst();
+  const today = getTodayJst();
+  const slotHour = timeViewOverride?.hour ?? getTimeSlotHour(naturalNow);
+  const date = timeViewOverride?.date ?? today;
 
   const reverse = useMemo(() => (
     buildReverseBoard({ date, hour: slotHour, purposeName: purpose })
@@ -288,17 +290,28 @@ export default function ReverseDirectionView() {
               : mode === 'day'
               ? `日盤・遠出 / ${location.name}`
               : mode === 'range'
-              ? '奇門三盤ルート（準備中）'
+              ? `時盤・奇門三盤ルート / ${location.name}`
               : `時盤・自然時補正 ${formatCorrection(correction)} / ${location.name}`}
           </p>
         </div>
         {mode !== 'range' && (
-          <div className="reverse-time-chip">{mode === 'day' || mode === 'ranking' ? dayDate : getTimeSlotLabel(slotHour)}</div>
+          <div className="reverse-time-chip">
+            {mode === 'day' || mode === 'ranking'
+              ? dayDate
+              : `${timeViewOverride ? `${date} ` : ''}${getTimeSlotLabel(slotHour)}`}
+          </div>
         )}
       </div>
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
-        <button className={mode === 'time' ? 'is-active' : ''} type="button" onClick={() => setMode('time')}>
+        <button
+          className={mode === 'time' ? 'is-active' : ''}
+          type="button"
+          onClick={() => {
+            setTimeViewOverride(null);
+            setMode('time');
+          }}
+        >
           時盤 お散歩
         </button>
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
@@ -356,7 +369,7 @@ export default function ReverseDirectionView() {
           />
           <button type="button" onClick={searchPlace}>検索</button>
         </div>
-        {mode === 'time' || mode === 'kakkyoku' ? (
+        {mode === 'time' || mode === 'kakkyoku' || mode === 'range' ? (
           <div className="reverse-correction">
             <span>自然時補正：{location.name} {formatCorrection(correction)}</span>
             <span>経度 {location.longitude.toFixed(2)}</span>
@@ -515,7 +528,7 @@ export default function ReverseDirectionView() {
       {mode === 'ranking' && (
         <SaikyoRankingView
           location={location}
-          startDate={date}
+          startDate={today}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
           onSelectDate={(nextDate) => {
@@ -528,14 +541,23 @@ export default function ReverseDirectionView() {
       {mode === 'kakkyoku' && (
         <KakkyokuSearchView
           location={location}
-          startDate={date}
+          startDate={today}
           correctionLabel={`${location.name} ${formatCorrection(correction)}`}
         />
       )}
 
       {mode === 'range' && (
         <div className="reverse-card sanban-route-card">
-          <SanbanRouteView />
+          <SanbanRouteView
+            location={location}
+            startDate={today}
+            correctionMinutes={correction}
+            correctionLabel={`${location.name} ${formatCorrection(correction)}`}
+            onSelectRoute={(route) => {
+              setTimeViewOverride({ date: route.date, hour: route.slots[0].hour });
+              setMode('time');
+            }}
+          />
         </div>
       )}
     </section>
