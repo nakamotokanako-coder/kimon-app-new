@@ -3,6 +3,7 @@ import BasePointSelector from './BasePointSelector.jsx';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
+import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
@@ -15,6 +16,7 @@ import {
   getLongitudeCorrectionMinutes,
   applyNaturalTime,
   getTimeSlotHour,
+  getTimeSlotIndex,
   getTimeSlotLabel,
 } from './reverseDirection.js';
 import {
@@ -86,6 +88,8 @@ export default function ReverseDirectionView({ onOpenBoard }) {
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
+  const [selectedTimePalace, setSelectedTimePalace] = useState(null);
+  const [selectedDayPalace, setSelectedDayPalace] = useState(null);
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -96,6 +100,7 @@ export default function ReverseDirectionView({ onOpenBoard }) {
   const reverse = useMemo(() => (
     buildReverseBoard({ date, hour: slotHour })
   ), [date, slotHour]);
+  const timeOmamoriSeed = `${date}#${getTimeSlotIndex(slotHour)}`;
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   const best = visibleRankings[0] || null;
@@ -113,6 +118,8 @@ export default function ReverseDirectionView({ onOpenBoard }) {
   const dayReverse = dayReverseState.result;
   const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
   const dayBest = dayVisibleRankings[0] || null;
+  const selectedTimeRanking = reverse.rankings.find((item) => item.palace === selectedTimePalace) || null;
+  const selectedDayRanking = dayReverse?.rankings.find((item) => item.palace === selectedDayPalace) || null;
 
   const timeline = useMemo(() => (
     buildTimeline({ date, goodOnly })
@@ -370,8 +377,18 @@ export default function ReverseDirectionView({ onOpenBoard }) {
           </div>
 
           <div className="reverse-card reverse-compass-card">
-            <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
+            <CompassWheel
+              rankings={reverse.rankings}
+              bestPalace={best?.palace}
+              selectedPalace={selectedTimePalace}
+              onSelectPalace={setSelectedTimePalace}
+            />
           </div>
+          <LuckyOmamoriBar
+            selectedRanking={selectedTimeRanking}
+            bestPalace={reverse.board.score.best_overall}
+            seed={timeOmamoriSeed}
+          />
 
           <button
             type="button"
@@ -469,8 +486,18 @@ export default function ReverseDirectionView({ onOpenBoard }) {
               </div>
 
               <div className="reverse-card reverse-compass-card">
-                <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
+                <CompassWheel
+                  rankings={dayReverse.rankings}
+                  bestPalace={dayBest?.palace}
+                  selectedPalace={selectedDayPalace}
+                  onSelectPalace={setSelectedDayPalace}
+                />
               </div>
+              <LuckyOmamoriBar
+                selectedRanking={selectedDayRanking}
+                bestPalace={dayReverse.board.score.best_overall}
+                seed={dayDate}
+              />
 
               <div className="reverse-card reverse-best-card">
                 <div className="reverse-best-no">1</div>

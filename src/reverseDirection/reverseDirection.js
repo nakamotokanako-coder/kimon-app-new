@@ -57,6 +57,10 @@ export function getTimeSlotLabel(slotHour) {
   return TIME_SLOTS.find((slot) => slot.hour === slotHour)?.label || `${slotHour}:00`;
 }
 
+export function getTimeSlotIndex(slotHour) {
+  return TIME_SLOTS.findIndex((slot) => slot.hour === slotHour);
+}
+
 function countMatches(values, targets) {
   if (!Array.isArray(targets) || targets.length === 0) return 0;
   return values.filter((value) => targets.includes(value)).length;

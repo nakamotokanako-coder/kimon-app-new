@@ -3376,6 +3376,17 @@ body {
   stroke-width: 2;
 }
 
+.reverse-seg-group {
+  cursor: pointer;
+  outline: none;
+}
+
+.reverse-seg-group:focus-visible .reverse-seg,
+.reverse-seg.is-selected {
+  stroke: var(--text-accent);
+  stroke-width: 5;
+}
+
 .reverse-seg.tone-great { fill: #185fa5; }
 .reverse-seg.tone-good { fill: #378add; }
 .reverse-seg.tone-weak { fill: #85b7eb; }
@@ -3440,6 +3451,69 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+}
+
+.omamori-wrap {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.omamori-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  padding: 11px 13px;
+  background: color-mix(in srgb, var(--text-accent) 10%, var(--bg-elevated));
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.omamori-bar strong {
+  font-size: 0.82rem;
+}
+
+.omamori-bar-arrow {
+  color: var(--text-accent);
+  font-size: 0.66rem;
+}
+
+.omamori-card {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border-top: 1px solid var(--border-subtle);
+  animation: omamori-slide-up 180ms ease-out;
+}
+
+.omamori-card p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.65;
+}
+
+.omamori-card small {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+@keyframes omamori-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .legend-swatch {
