@@ -3442,6 +3442,103 @@ body {
   gap: 5px;
 }
 
+.omamori-wrap {
+  font-family: 'Zen Maru Gothic', sans-serif;
+}
+
+.omamori-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  overflow: hidden;
+  border: 1.5px solid #9c7d1c;
+  border-radius: 13px;
+  padding: 13px 16px;
+  background: linear-gradient(135deg, #1d1812, #16130d);
+  box-shadow: 0 0 14px rgba(201, 162, 39, 0.16), inset 0 1px 0 rgba(255, 235, 180, 0.08);
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  text-align: left;
+  transition: 180ms;
+}
+
+.omamori-bar::after {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 12% 30%, rgba(201, 162, 39, 0.08) 0 2px, transparent 3px);
+  background-size: 46px 46px;
+  content: "";
+  pointer-events: none;
+}
+
+.omamori-bar:hover,
+.omamori-bar:focus-visible {
+  border-color: #c9a227;
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+  outline: none;
+}
+
+.omamori-bar-icon {
+  flex: none;
+  font-size: 20px;
+  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.4));
+  animation: omamori-sway 2.4s ease-in-out infinite;
+}
+
+.omamori-bar-text {
+  flex: 1;
+}
+
+.omamori-bar-text strong,
+.omamori-bar-text small {
+  display: block;
+}
+
+.omamori-bar-text strong {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.omamori-bar-text small {
+  color: #c9a227;
+  font-size: 11px;
+}
+
+.omamori-bar-plus {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid #c9a227;
+  border-radius: 50%;
+  color: #c9a227;
+  font-size: 16px;
+  font-weight: 900;
+  transition: 200ms;
+}
+
+.omamori-bar.is-open .omamori-bar-plus {
+  transform: rotate(45deg);
+}
+
+.omamori-sheet {
+  max-height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  transition: max-height 400ms ease, margin-top 400ms ease;
+}
+
+.omamori-sheet.is-open {
+  max-height: 520px;
+  margin-top: 10px;
+}
+
 .omamori-pouch {
   position: relative;
   overflow: hidden;
@@ -3452,6 +3549,16 @@ body {
   box-shadow: 0 6px 20px rgba(192, 57, 43, 0.3);
   color: #fff;
   font-family: 'Zen Maru Gothic', sans-serif;
+}
+
+@keyframes omamori-sway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
 }
 
 .omamori-cord {
