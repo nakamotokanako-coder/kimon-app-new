@@ -110,6 +110,9 @@ export default function PalaceCell({
   ].filter(Boolean).join(' ');
 
   const monClass = `mon-pill ${toneClass(hachimonTone(data.hachimon))}`;
+  const infoItems = buildInfoItems(score?.detected_jukkan, score?.detected_kakkyoku);
+  const overflowItem = infoItems.find((it) => it.kind === 'overflow');
+  const visibleInfoItems = infoItems.filter((it) => it.kind !== 'overflow');
 
   return (
     <div className={cellClass}>
@@ -158,14 +161,15 @@ export default function PalaceCell({
       {/* ── info: 十干剋応(上) → 格局(下) の固定順 (Phase 2D 要件1) ── */}
       {(score?.detected_kakkyoku?.length > 0 || score?.detected_jukkan?.length > 0) && (
         <ul className="info-list">
-          {buildInfoItems(score.detected_jukkan, score.detected_kakkyoku).map((it, i) => {
-            if (it.kind === 'overflow') {
-              return (
-                <li key="overflow" className="info-item info-neutral">
-                  +{it.count}
-                </li>
-              );
-            }
+          {visibleInfoItems.map((it, i) => {
+            const overflowBadge = i === visibleInfoItems.length - 1 && overflowItem && (
+              <span
+                className="info-neutral"
+                style={{ marginLeft: 'auto', paddingLeft: '4px', fontSize: '0.85em', flexShrink: 0 }}
+              >
+                +{overflowItem.count}
+              </span>
+            );
             if (it.kind === 'jukkan') {
               const cls = it.kikkyo === '〇' ? 'info-kichi'
                 : it.kikkyo === '×' ? 'info-kyo' : 'info-neutral';
@@ -173,6 +177,7 @@ export default function PalaceCell({
                 <li key={`j-${i}-${it.name}`} className={`info-item ${cls}`}>
                   <span className="info-prefix">{it.kikkyo}</span>
                   <span className="info-name">{it.name}</span>
+                  {overflowBadge}
                 </li>
               );
             }
@@ -184,6 +189,7 @@ export default function PalaceCell({
               >
                 <span className="info-prefix">{kakkyokuPrefix(it.kichi_kyo)}</span>
                 <span className="info-name">{it.name}</span>
+                {overflowBadge}
               </li>
             );
           })}
