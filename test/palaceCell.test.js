@@ -2,7 +2,7 @@
 // Phase 2D 要件1 (表示順) と 要件2 (外枠色統一) のテスト
 
 import { describe, it, expect } from 'vitest';
-import { buildInfoItems } from '../src/components/palaceCellHelpers.js';
+import { buildInfoItems, sortPalaceShoui } from '../src/components/palaceCellHelpers.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,69 +16,93 @@ const cssText = fs.readFileSync(
 );
 
 // ============================================================
-// 要件1: セル内表示順の統一（上=十干剋応, 下=格局）
+// 要件1: セル内象意の優先順位・重複排除・4件制限
 // ============================================================
 
-describe('buildInfoItems: 十干剋応(上) → 格局(下) の固定順', () => {
-  it('jukkan が kakkyoku より先に並ぶ', () => {
+describe('sortPalaceShoui: 先生確定の優先順位', () => {
+  it('priority_order 通りに並ぶ', () => {
     const jukkan = [
-      { name: '官符刑格', kikkyo: '×', tenban: '庚', chiban: '己' },
+      { name: '金華水流', kikkyo: '〇' },
     ];
     const kakkyoku = [
-      { name: '刑格', kichi_kyo: 'kyo', score: -10 },
+      { name: '伏宮格', kichi_kyo: 'kyo', score: -10 },
     ];
-    const items = buildInfoItems(jukkan, kakkyoku);
+    expect(sortPalaceShoui(jukkan, kakkyoku).map((item) => item.name)).toEqual([
+      '金華水流',
+      '伏宮格',
+    ]);
+  });
+
+  it('同名は重複排除し、先に来る十干剋応側を残す', () => {
+    const items = sortPalaceShoui(
+      [{ name: '青龍返首', kikkyo: '〇', tenban: '戊', chiban: '丙' }],
+      [{ name: '青龍返首', kichi_kyo: 'kichi', score: 10 }],
+    );
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ kind: 'jukkan', name: '青龍返首' });
+  });
+
+  it('リスト外の象意は priority_order の後ろに来る', () => {
+    expect(sortPalaceShoui(
+      [{ name: 'リスト外', kikkyo: '×' }],
+      [{ name: '龍遁', kichi_kyo: 'kichi', score: 10 }],
+    ).map((item) => item.name)).toEqual([
+      '龍遁',
+      'リスト外',
+    ]);
+  });
+
+  it('リスト外同士は絶対値降順、同値なら凶を中立より先に並べる', () => {
+    expect(sortPalaceShoui(
+      [
+        { name: '中立', kikkyo: '△' },
+        { name: '凶10', kikkyo: '×' },
+      ],
+      [
+        { name: '凶20', kichi_kyo: 'kyo', score: -20 },
+      ],
+    ).map((item) => item.name)).toEqual([
+      '凶20',
+      '凶10',
+      '中立',
+    ]);
+  });
+});
+
+describe('buildInfoItems: 上位4件と +N 表示', () => {
+  it('5件以上は上位4件と残数を返す', () => {
+    const items = buildInfoItems([
+      { name: '青龍返首', kikkyo: '〇' },
+      { name: '飛鳥跌穴', kikkyo: '〇' },
+      { name: '青龍逃走', kikkyo: '×' },
+      { name: '焚入太白', kikkyo: '×' },
+      { name: '朱雀投江', kikkyo: '×' },
+      { name: '太白入熒', kikkyo: '×' },
+      { name: '官符刑格', kikkyo: '×' },
+    ], []);
+    expect(items).toHaveLength(5);
+    expect(items.slice(0, 4).map((item) => item.name)).toEqual([
+      '青龍返首',
+      '飛鳥跌穴',
+      '青龍逃走',
+      '焚入太白',
+    ]);
+    expect(items[4]).toEqual({ kind: 'overflow', count: 3 });
+  });
+
+  it('4件以下なら +N を返さない', () => {
+    const items = buildInfoItems([
+      { name: '青龍返首', kikkyo: '〇' },
+    ], [
+      { name: '天遁', kichi_kyo: 'kichi', score: 10 },
+    ]);
     expect(items).toHaveLength(2);
-    expect(items[0].kind).toBe('jukkan');
-    expect(items[0].name).toBe('官符刑格');
-    expect(items[1].kind).toBe('kakkyoku');
-    expect(items[1].name).toBe('刑格');
+    expect(items.some((item) => item.kind === 'overflow')).toBe(false);
   });
 
-  it('複数 jukkan + 複数 kakkyoku でも順序維持（全 jukkan が全 kakkyoku より前）', () => {
-    const jukkan = [
-      { name: '日格', kikkyo: '×' },
-      { name: '伏干', kikkyo: '△' },
-    ];
-    const kakkyoku = [
-      { name: '人遁吉格', kichi_kyo: 'kichi' },
-      { name: '朱雀入墓', kichi_kyo: 'kyo' },
-    ];
-    const items = buildInfoItems(jukkan, kakkyoku);
-    expect(items.map((x) => x.kind)).toEqual([
-      'jukkan', 'jukkan', 'kakkyoku', 'kakkyoku',
-    ]);
-  });
-
-  it('片方が空配列でも問題なく動く', () => {
-    expect(buildInfoItems([], [{ name: 'A', kichi_kyo: 'kichi' }])).toEqual([
-      { kind: 'kakkyoku', name: 'A', kichi_kyo: 'kichi' },
-    ]);
-    expect(buildInfoItems([{ name: 'B', kikkyo: '×' }], [])).toEqual([
-      { kind: 'jukkan', name: 'B', kikkyo: '×' },
-    ]);
-  });
-
-  it('両方 null/undefined でも空配列を返す', () => {
+  it('null/undefined でも空配列を返す', () => {
     expect(buildInfoItems(null, null)).toEqual([]);
     expect(buildInfoItems(undefined, undefined)).toEqual([]);
-  });
-
-  it('Phase 2A の坤宮 4 パターン例（2026-01-02 旬首=己 想定）', () => {
-    // 丙×丙, 丙×己, 己×丙, 己×己 の 4 パターン + 格局 1 件
-    const jukkan = [
-      { name: '月奇孛師', kikkyo: '×' },
-      { name: '太孛入刑', kikkyo: '△' },
-      { name: '火孛地戸', kikkyo: '×' },
-      { name: '地戸蓬鬼', kikkyo: '×' },
-    ];
-    const kakkyoku = [
-      { name: '六儀撃刑格', kichi_kyo: 'kyo' },
-    ];
-    const items = buildInfoItems(jukkan, kakkyoku);
-    expect(items).toHaveLength(5);
-    expect(items.slice(0, 4).every((x) => x.kind === 'jukkan')).toBe(true);
-    expect(items[4].kind).toBe('kakkyoku');
   });
 });
 
