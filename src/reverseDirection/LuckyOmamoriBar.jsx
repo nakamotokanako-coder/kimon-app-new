@@ -17,6 +17,15 @@ function getCategory(message) {
   return category ? category.slice(1) : ['🍀', '今日のお告げ'];
 }
 
+function splitOmamoriLines(message) {
+  if (!message) return [];
+  return message
+    .replace(/([。！？♪])/g, '$1\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
   const [isOpen, setIsOpen] = useState(false);
   const message = useMemo(
@@ -57,7 +66,11 @@ export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
               <span aria-hidden="true">{categoryIcon}</span>
               {categoryLabel}
             </div>
-            <p className="omamori-body">{message}</p>
+            <div className="omamori-body">
+              {splitOmamoriLines(message).map((line, index) => (
+                <span className="omamori-line" key={`${index}-${line}`}>{line}</span>
+              ))}
+            </div>
             {closing && (
               <>
                 <div className="omamori-separator" aria-hidden="true" />
