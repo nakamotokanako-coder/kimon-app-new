@@ -159,6 +159,13 @@ export default function PalaceCell({
       {(score?.detected_kakkyoku?.length > 0 || score?.detected_jukkan?.length > 0) && (
         <ul className="info-list">
           {buildInfoItems(score.detected_jukkan, score.detected_kakkyoku).map((it, i) => {
+            if (it.kind === 'overflow') {
+              return (
+                <li key="overflow" className="info-item info-neutral">
+                  +{it.count}
+                </li>
+              );
+            }
             if (it.kind === 'jukkan') {
               const cls = it.kikkyo === '〇' ? 'info-kichi'
                 : it.kikkyo === '×' ? 'info-kyo' : 'info-neutral';
