@@ -3,6 +3,7 @@ import BasePointSelector from './BasePointSelector.jsx';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
+import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
@@ -15,6 +16,7 @@ import {
   getLongitudeCorrectionMinutes,
   applyNaturalTime,
   getTimeSlotHour,
+  getTimeSlotIndex,
   getTimeSlotLabel,
 } from './reverseDirection.js';
 import {
@@ -96,6 +98,7 @@ export default function ReverseDirectionView({ onOpenBoard }) {
   const reverse = useMemo(() => (
     buildReverseBoard({ date, hour: slotHour })
   ), [date, slotHour]);
+  const timeOmamoriSeed = `${date}#${getTimeSlotIndex(slotHour)}`;
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   const best = visibleRankings[0] || null;
@@ -372,6 +375,10 @@ export default function ReverseDirectionView({ onOpenBoard }) {
           <div className="reverse-card reverse-compass-card">
             <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
           </div>
+          <LuckyOmamoriBar
+            bestPalace={reverse.board.score.best_overall}
+            seed={timeOmamoriSeed}
+          />
 
           <button
             type="button"
@@ -471,6 +478,10 @@ export default function ReverseDirectionView({ onOpenBoard }) {
               <div className="reverse-card reverse-compass-card">
                 <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
               </div>
+              <LuckyOmamoriBar
+                bestPalace={dayReverse.board.score.best_overall}
+                seed={dayDate}
+              />
 
               <div className="reverse-card reverse-best-card">
                 <div className="reverse-best-no">1</div>
