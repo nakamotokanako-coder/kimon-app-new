@@ -3376,17 +3376,6 @@ body {
   stroke-width: 2;
 }
 
-.reverse-seg-group {
-  cursor: pointer;
-  outline: none;
-}
-
-.reverse-seg-group:focus-visible .reverse-seg,
-.reverse-seg.is-selected {
-  stroke: var(--text-accent);
-  stroke-width: 5;
-}
-
 .reverse-seg.tone-great { fill: #185fa5; }
 .reverse-seg.tone-good { fill: #378add; }
 .reverse-seg.tone-weak { fill: #85b7eb; }
@@ -3453,67 +3442,100 @@ body {
   gap: 5px;
 }
 
-.omamori-wrap {
-  display: grid;
+.omamori-pouch {
+  position: relative;
   overflow: hidden;
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  background: var(--bg-card);
+  border: 1px solid #8e271c;
+  border-radius: 14px 14px 16px 16px;
+  padding: 0 0 16px;
+  background: linear-gradient(160deg, #c0392b, #9a2c20 55%, #7c1f17);
+  box-shadow: 0 6px 20px rgba(192, 57, 43, 0.3);
+  color: #fff;
+  font-family: 'Zen Maru Gothic', sans-serif;
 }
 
-.omamori-bar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  border: 0;
-  padding: 11px 13px;
-  background: color-mix(in srgb, var(--text-accent) 10%, var(--bg-elevated));
-  color: var(--text-primary);
-  text-align: left;
-  cursor: pointer;
+.omamori-cord {
+  position: relative;
+  height: 18px;
+  background: radial-gradient(circle at 50% 130%, #c9a227 0 18px, transparent 19px);
 }
 
-.omamori-bar strong {
-  font-size: 0.82rem;
+.omamori-cord::after {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 8px;
+  height: 14px;
+  border-radius: 0 0 4px 4px;
+  background: #c9a227;
+  content: "";
+  transform: translateX(-50%);
 }
 
-.omamori-bar-arrow {
-  color: var(--text-accent);
-  font-size: 0.66rem;
+.omamori-frame {
+  margin: 6px 12px 0;
+  border: 1.5px solid rgba(255, 235, 180, 0.5);
+  border-radius: 9px;
+  padding: 14px 14px 16px;
 }
 
-.omamori-card {
-  display: grid;
-  gap: 9px;
-  padding: 14px;
-  border-top: 1px solid var(--border-subtle);
-  animation: omamori-slide-up 180ms ease-out;
+.omamori-crest {
+  margin-bottom: 2px;
+  color: #c9a227;
+  font-size: 14px;
+  text-align: center;
 }
 
-.omamori-card p {
+.omamori-title {
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  opacity: 0.9;
+  text-align: center;
+}
+
+.omamori-category {
+  width: fit-content;
+  margin: 0 auto 11px;
+  border-radius: 14px;
+  padding: 3px 13px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffee;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.omamori-category span {
+  margin-right: 3px;
+  font-size: 15px;
+}
+
+.omamori-body {
+  min-height: 2.2em;
   margin: 0;
-  color: var(--text-primary);
-  font-size: 0.94rem;
-  font-weight: 800;
+  padding: 0 2px;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 900;
   line-height: 1.65;
+  text-align: center;
 }
 
-.omamori-card small {
-  color: var(--text-secondary);
-  font-size: 0.68rem;
+.omamori-separator {
+  width: 38px;
+  height: 1px;
+  margin: 13px auto 0;
+  background: rgba(255, 235, 180, 0.4);
 }
 
-@keyframes omamori-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.omamori-closing {
+  margin: 11px 0 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .legend-swatch {

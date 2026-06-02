@@ -1,38 +1,50 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { getOmamori } from '../kimon/luckyOmamori.js';
+import React, { useMemo } from 'react';
+import { getClosing, getOmamori } from '../kimon/luckyOmamori.js';
 
-export default function LuckyOmamoriBar({ selectedRanking, bestPalace, seed }) {
-  const [isOpen, setIsOpen] = useState(false);
+const CATEGORIES = [
+  ['アクション', '🚶', '開運アクション'],
+  ['フード', '🍣', '開運フード'],
+  ['ドリンク', '🍵', '開運ドリンク'],
+  ['カラー', '🎨', 'ラッキーカラー'],
+  ['アイテム', '💎', 'ラッキーアイテム'],
+  ['パーソン', '🧑', 'ラッキーパーソン'],
+  ['アニマル', '🐾', 'ラッキーアニマル'],
+];
+
+function getCategory(message) {
+  const heading = message.split('は')[0];
+  const category = CATEGORIES.find(([word]) => heading.includes(word));
+  return category ? category.slice(1) : ['🍀', '今日のお告げ'];
+}
+
+export default function LuckyOmamoriBar({ bestPalace, seed }) {
   const message = useMemo(
     () => getOmamori(bestPalace, seed),
     [bestPalace, seed],
   );
+  const closing = useMemo(() => getClosing(seed), [seed]);
+  const [categoryIcon, categoryLabel] = getCategory(message || '');
 
-  useEffect(() => {
-    setIsOpen(false);
-  }, [seed, selectedRanking?.palace]);
-
-  if (!selectedRanking || selectedRanking.score >= 0 || !message) return null;
+  if (!message) return null;
 
   return (
-    <div className="omamori-wrap">
-      <button
-        type="button"
-        className="omamori-bar"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((current) => !current)}
-      >
-        <span>🧭</span>
-        <strong>{selectedRanking.label}へ行くなら、今日のお守り</strong>
-        <span className="omamori-bar-arrow" aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
-      </button>
-      {isOpen && (
-        <div className="omamori-card">
-          <small>今日のお守り</small>
-          <p>{message}</p>
-          <small>効くかどうかは……知らんけどな😏</small>
+    <aside className="omamori-pouch" aria-label="今日のお守り">
+      <div className="omamori-cord" aria-hidden="true" />
+      <div className="omamori-frame">
+        <div className="omamori-crest" aria-hidden="true">❖</div>
+        <div className="omamori-title">今日のお守り</div>
+        <div className="omamori-category">
+          <span aria-hidden="true">{categoryIcon}</span>
+          {categoryLabel}
         </div>
-      )}
-    </div>
+        <p className="omamori-body">{message}</p>
+        {closing && (
+          <>
+            <div className="omamori-separator" aria-hidden="true" />
+            <p className="omamori-closing">{closing}</p>
+          </>
+        )}
+      </div>
+    </aside>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getOmamori } from '../src/kimon/luckyOmamori.js';
+import { getClosing, getOmamori } from '../src/kimon/luckyOmamori.js';
 
 describe('getOmamori', () => {
   it('returns the same message for the same palace and seed', () => {
@@ -36,5 +36,25 @@ describe('getOmamori', () => {
     expect(getOmamori('chuguu', '2026-06-02')).toBeNull();
     expect(getOmamori('xxx', '2026-06-02')).toBeNull();
     expect(getOmamori(undefined, '2026-06-02')).toBeNull();
+  });
+});
+
+describe('getClosing', () => {
+  it('returns the same message for the same seed', () => {
+    expect(getClosing('2026-06-02')).toBe(getClosing('2026-06-02'));
+    expect(typeof getClosing('2026-06-02')).toBe('string');
+  });
+
+  it('can change the message when the time slot changes', () => {
+    const messages = new Set();
+    for (let slot = 0; slot < 12; slot += 1) {
+      messages.add(getClosing(`2026-06-02#${slot}`));
+    }
+    expect(messages.size).toBeGreaterThan(1);
+  });
+
+  it('returns strings independently from the omamori pool', () => {
+    expect(typeof getOmamori('ri', '2026-06-02')).toBe('string');
+    expect(typeof getClosing('2026-06-02')).toBe('string');
   });
 });

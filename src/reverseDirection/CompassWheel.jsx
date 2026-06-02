@@ -34,7 +34,7 @@ function textPoint(angleDeg, distance) {
   };
 }
 
-export default function CompassWheel({ rankings, bestPalace, selectedPalace, onSelectPalace }) {
+export default function CompassWheel({ rankings, bestPalace }) {
   const byPalace = Object.fromEntries((rankings || []).map((item) => [item.palace, item]));
 
   return (
@@ -46,24 +46,10 @@ export default function CompassWheel({ rankings, bestPalace, selectedPalace, onS
           const iconPoint = textPoint(direction.angle, 112);
           const labelPoint = textPoint(direction.angle, 162);
           const isBest = direction.palace === bestPalace;
-          const isSelected = direction.palace === selectedPalace;
           return (
-            <g
-              key={direction.palace}
-              className="reverse-seg-group"
-              role="button"
-              tabIndex="0"
-              aria-label={`${direction.label} ${item?.score ?? 0}点`}
-              aria-pressed={isSelected}
-              onClick={() => onSelectPalace?.(direction.palace)}
-              onKeyDown={(event) => {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
-                event.preventDefault();
-                onSelectPalace?.(direction.palace);
-              }}
-            >
+            <g key={direction.palace}>
               <path
-                className={`reverse-seg tone-${item?.tone || 'neutral'} ${isBest ? 'is-best' : ''} ${isSelected ? 'is-selected' : ''}`}
+                className={`reverse-seg tone-${item?.tone || 'neutral'} ${isBest ? 'is-best' : ''}`}
                 d={wedgePath(direction.angle)}
               />
               <text className="reverse-score-text" x={scorePoint.x} y={scorePoint.y}>

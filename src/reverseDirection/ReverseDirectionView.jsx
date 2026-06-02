@@ -88,8 +88,6 @@ export default function ReverseDirectionView({ onOpenBoard }) {
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
-  const [selectedTimePalace, setSelectedTimePalace] = useState(null);
-  const [selectedDayPalace, setSelectedDayPalace] = useState(null);
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -118,8 +116,6 @@ export default function ReverseDirectionView({ onOpenBoard }) {
   const dayReverse = dayReverseState.result;
   const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
   const dayBest = dayVisibleRankings[0] || null;
-  const selectedTimeRanking = reverse.rankings.find((item) => item.palace === selectedTimePalace) || null;
-  const selectedDayRanking = dayReverse?.rankings.find((item) => item.palace === selectedDayPalace) || null;
 
   const timeline = useMemo(() => (
     buildTimeline({ date, goodOnly })
@@ -377,15 +373,9 @@ export default function ReverseDirectionView({ onOpenBoard }) {
           </div>
 
           <div className="reverse-card reverse-compass-card">
-            <CompassWheel
-              rankings={reverse.rankings}
-              bestPalace={best?.palace}
-              selectedPalace={selectedTimePalace}
-              onSelectPalace={setSelectedTimePalace}
-            />
+            <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
           </div>
           <LuckyOmamoriBar
-            selectedRanking={selectedTimeRanking}
             bestPalace={reverse.board.score.best_overall}
             seed={timeOmamoriSeed}
           />
@@ -486,15 +476,9 @@ export default function ReverseDirectionView({ onOpenBoard }) {
               </div>
 
               <div className="reverse-card reverse-compass-card">
-                <CompassWheel
-                  rankings={dayReverse.rankings}
-                  bestPalace={dayBest?.palace}
-                  selectedPalace={selectedDayPalace}
-                  onSelectPalace={setSelectedDayPalace}
-                />
+                <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
               </div>
               <LuckyOmamoriBar
-                selectedRanking={selectedDayRanking}
                 bestPalace={dayReverse.board.score.best_overall}
                 seed={dayDate}
               />
