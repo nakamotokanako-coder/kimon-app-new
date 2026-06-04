@@ -41,7 +41,9 @@ describe('共通フル盤導線', () => {
     expect(appSrc).toContain('const openFullBoard =');
     expect(appSrc).toContain("setActiveTab('board')");
     expect(appSrc).toContain('← 戻る');
-    expect(appSrc).toContain('<ReverseDirectionView onOpenBoard={openFullBoard} />');
+    expect(appSrc).toContain('<ReverseDirectionView');
+    expect(appSrc).toContain("isActive={activeTab === 'direction'}");
+    expect(appSrc).toContain('onOpenBoard={openFullBoard}');
     expect(appSrc).toContain("hidden={activeTab !== 'direction'}");
   });
 

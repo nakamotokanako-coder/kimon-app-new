@@ -250,7 +250,10 @@ export default function App() {
       {activeTab === 'board' && boardView}
       {hasVisitedDirection && (
         <div hidden={activeTab !== 'direction'}>
-          <ReverseDirectionView onOpenBoard={openFullBoard} />
+          <ReverseDirectionView
+            isActive={activeTab === 'direction'}
+            onOpenBoard={openFullBoard}
+          />
         </div>
       )}
       {activeTab === 'settings' && settingsView}

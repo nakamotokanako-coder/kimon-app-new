@@ -76,7 +76,7 @@ function readStoredFavorites() {
   }
 }
 
-export default function ReverseDirectionView({ onOpenBoard }) {
+export default function ReverseDirectionView({ isActive, onOpenBoard }) {
   const [location, setLocation] = useState(DEFAULT_LOCATIONS[0]);
   const [currentMode, setCurrentMode] = useState('search');
   const [selectedFavoriteId, setSelectedFavoriteId] = useState(null);
@@ -376,6 +376,7 @@ export default function ReverseDirectionView({ onOpenBoard }) {
             <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
           </div>
           <LuckyOmamoriBar
+            isActive={isActive}
             bestPalace={reverse.board.score.best_overall}
             seed={timeOmamoriSeed}
           />
@@ -479,6 +480,7 @@ export default function ReverseDirectionView({ onOpenBoard }) {
                 <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
               </div>
               <LuckyOmamoriBar
+                isActive={isActive}
                 bestPalace={dayReverse.board.score.best_overall}
                 seed={dayDate}
               />
