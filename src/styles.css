@@ -3817,14 +3817,29 @@ body {
 }
 
 .omamori-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   min-height: 2.2em;
-  margin: 0;
   padding: 0 2px;
   color: #fff;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 900;
-  line-height: 1.65;
+  line-height: 1.6;
   text-align: center;
+}
+
+.omamori-body,
+.omamori-line,
+.omamori-closing {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  line-break: strict;
+}
+
+.omamori-line {
+  display: block;
 }
 
 .omamori-separator {
@@ -3840,6 +3855,20 @@ body {
   font-size: 13px;
   font-weight: 700;
   text-align: center;
+}
+
+@media (max-width: 480px) {
+  .omamori-body {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+}
+
+@media (max-width: 360px) {
+  .omamori-body {
+    font-size: 15px;
+    line-height: 1.5;
+  }
 }
 
 .legend-swatch {
