@@ -1647,14 +1647,17 @@ body {
   opacity: 1;
 }
 
-/* 吉宮ハイライト: 既存の usable フラグ（使用可能な宮）に発光枠を付与。
-   判定は据え置き、見た目だけ刷新（モック .cell.kichi 相当）。 */
+/* 盤画面では「使用可能宮（cell-usable）」を強調しない方針。
+   吉宮ハイライト（--kichi-bd / --kichi-sh）は撤去し base .cell と同一に統一する。
+   吉方位の優劣は最強ランキング/吉方位画面に委ねる。
+   ※ 順利宮（cell-junri）は Phase 3-C「◎◎効果最大」の最上位吉（正式仕様）
+     のため別格として強調を維持する（下記）。 */
 .cell.cell-usable {
-  border-color: var(--kichi-bd);
-  box-shadow: var(--kichi-sh), var(--cell-sh);
+  border-color: var(--cell-bd);
+  box-shadow: var(--cell-sh);
 }
 
-/* 順利の宮: 最も強いアクセント発光（既存の強調を踏襲） */
+/* 順利の宮: 最上位吉として最も強いアクセント発光で強調（盤上で唯一光らせる宮） */
 .cell-junri {
   border: 1.5px solid var(--accent);
   outline: none;
