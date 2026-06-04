@@ -14,7 +14,7 @@ const CATEGORIES = [
 function getCategory(message) {
   const heading = message.split('は')[0];
   const category = CATEGORIES.find(([word]) => heading.includes(word));
-  return category ? category.slice(1) : ['🍀', '今日のお告げ'];
+  return category ? category.slice(1) : ['🍀', 'お告げ'];
 }
 
 export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
