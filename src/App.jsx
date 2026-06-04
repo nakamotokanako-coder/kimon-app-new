@@ -5,7 +5,6 @@ import InputControls from './components/InputControls.jsx';
 import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
-import Stars from './components/Stars.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 
 const DEFAULT_THEME = 'void';
@@ -246,7 +245,7 @@ export default function App() {
 
   return (
     <div className="app app-with-tabs">
-      <Stars />
+      <div className="vig" aria-hidden="true" />
       {activeTab === 'board' && boardView}
       {hasVisitedDirection && (
         <div hidden={activeTab !== 'direction'}>
