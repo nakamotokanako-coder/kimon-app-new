@@ -5,16 +5,25 @@ import InputControls from './components/InputControls.jsx';
 import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
+import Stars from './components/Stars.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 
-const DEFAULT_THEME = 'dark-gold';
+const DEFAULT_THEME = 'void';
 const THEMES = [
-  { name: 'dark-gold', label: '黒金' },
-  { name: 'navy-silver', label: '紺銀' },
-  { name: 'washi-vermillion', label: '和' },
-  { name: 'dusty-pink', label: '桜' },
+  { name: 'void', label: '漆黒', dot: '#ffd368' },
+  { name: 'blue', label: '深海', dot: '#46e8ff' },
+  { name: 'purple', label: '星雲', dot: '#c98bff' },
+  { name: 'pearl', label: 'パール', dot: 'linear-gradient(135deg,#fff,#f0e6ee 55%,#e6eef7)' },
+  { name: 'pink', label: 'ピンク', dot: '#ef8fb4' },
 ];
 const THEME_NAMES = new Set(THEMES.map((theme) => theme.name));
+/** 旧テーマ名 → 宇宙テーマ名（既存ユーザーの localStorage 互換） */
+const LEGACY_THEME_MAP = {
+  'dark-gold': 'void',
+  'navy-silver': 'blue',
+  'washi-vermillion': 'pearl',
+  'dusty-pink': 'pink',
+};
 
 function getTodayJst() {
   const now = new Date();
@@ -31,6 +40,7 @@ function applyInitialTheme() {
   } catch {
     theme = DEFAULT_THEME;
   }
+  if (LEGACY_THEME_MAP[theme]) theme = LEGACY_THEME_MAP[theme];
   if (!THEME_NAMES.has(theme)) theme = DEFAULT_THEME;
 
   document.documentElement.dataset.theme = theme;
@@ -122,6 +132,29 @@ export default function App() {
       </header>
 
       <main className="app-main">
+        <div className="theme-chips" role="group" aria-label="背景テーマ切替">
+          {THEMES.map((item) => (
+            <button
+              key={item.name}
+              type="button"
+              className={`theme-chip${theme === item.name ? ' is-active' : ''}`}
+              aria-pressed={theme === item.name}
+              onClick={() => handleThemeChange(item.name)}
+            >
+              <span
+                className="theme-chip-dot"
+                style={{
+                  background: item.dot,
+                  boxShadow: item.dot.startsWith('linear')
+                    ? '0 0 0 1px rgba(0,0,0,.12)'
+                    : `0 0 7px ${item.dot}`,
+                }}
+                aria-hidden="true"
+              />
+              {item.label}
+            </button>
+          ))}
+        </div>
         {boardReturnTab && (
           <button type="button" className="board-return-button" onClick={returnFromFullBoard}>
             ← 戻る
@@ -213,6 +246,7 @@ export default function App() {
 
   return (
     <div className="app app-with-tabs">
+      <Stars />
       {activeTab === 'board' && boardView}
       {hasVisitedDirection && (
         <div hidden={activeTab !== 'direction'}>

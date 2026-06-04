@@ -1,75 +1,8 @@
+/* ベース変数（フォント等のテーマ非依存値 + フォールバック）。
+   配色は後段「宇宙テック・5テーマ」ブロックで data-theme ごとに上書きする。 */
 :root {
-  --theme-name: 'dark-gold';
-  --bg-main: #0a0a0a;
-  --bg-cell: #1a1a1a;
-  --bg-elevated: #222222;
-  --border-main: #d4af37;
-  --border-subtle: #3a3a3a;
-  --text-primary: #f0f0f0;
-  --text-secondary: #888888;
-  --text-accent: #d4af37;
-  --text-danger: #e74c3c;  /* 凶赤（先生指示 Phase 2B：ダーク背景でも視認性確保） */
-  --text-info:   #5ab1ff;   /* 吉青（先生指示 Phase 2B） */
-  --text-success: #6bcf7f;
-  --shadow-glow: 0 0 8px rgba(212, 175, 55, 0.3);
-  --zodiac-color: #c2c8d2;
   --font-heading: 'Noto Sans JP', sans-serif;
   --font-body: 'Noto Sans JP', sans-serif;
-}
-
-:root[data-theme="dark-gold"] {
-  --theme-name: 'dark-gold';
-}
-
-:root[data-theme="navy-silver"] {
-  --theme-name: 'navy-silver';
-  --bg-main: #0d1b2a;
-  --bg-cell: #1b263b;
-  --bg-elevated: #243447;
-  --border-main: #a8b8c8;
-  --border-subtle: #3a4a5c;
-  --text-primary: #e8eef5;
-  --text-secondary: #8a9bb0;
-  --text-accent: #7dd3fc;
-  --text-danger: #ff8a8a;
-  --text-info:   #5ab1ff;
-  --text-success: #6bcf7f;
-  --shadow-glow: 0 0 8px rgba(125, 211, 252, 0.4);
-  --zodiac-color: #c2c8d2;
-}
-
-:root[data-theme="washi-vermillion"] {
-  --theme-name: 'washi-vermillion';
-  --bg-main: #f7f3ea;
-  --bg-cell: #fffefb;
-  --bg-elevated: #ebe0c5;
-  --border-main: #2d2d2d;
-  --border-subtle: #c8b896;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b6450;
-  --text-accent: #b8860b;
-  --text-danger: #c5302e;
-  --text-info:   #1f6fb3;
-  --text-success: #2d7a3e;
-  --shadow-glow: 0 0 8px rgba(197, 48, 46, 0.25);
-  --zodiac-color: #2b2b2b;
-}
-
-:root[data-theme="dusty-pink"] {
-  --theme-name: 'dusty-pink';
-  --bg-main: #f3e3e0;
-  --bg-cell: #fdf8f7;
-  --bg-elevated: #ead0cb;
-  --border-main: #6b3f3a;
-  --border-subtle: #c8aaa4;
-  --text-primary: #261817;
-  --text-secondary: #73534f;
-  --text-accent: #9a5c53;
-  --text-danger: #c5302e;
-  --text-info:   #1f6fb3;
-  --text-success: #2d7a3e;
-  --shadow-glow: 0 0 8px rgba(107, 63, 58, 0.22);
-  --zodiac-color: #6b3f3a;
 }
 
 * {
@@ -274,8 +207,8 @@ select {
   outline: none;
 }
 
-:root:not([data-theme="washi-vermillion"]):not([data-theme="dusty-pink"]) .ctrl input[type="date"],
-:root:not([data-theme="washi-vermillion"]):not([data-theme="dusty-pink"]) .ctrl select {
+:root:not([data-theme="pearl"]):not([data-theme="pink"]) .ctrl input[type="date"],
+:root:not([data-theme="pearl"]):not([data-theme="pink"]) .ctrl select {
   color-scheme: dark;
 }
 
@@ -1315,21 +1248,39 @@ select {
    セル外形は aspect-ratio で固定し、内容量で高さを変えない。
    ============================================================ */
 
+/* ============================================================
+   宇宙テック・5テーマ（void/blue/purple/pearl/pink）
+   モック board_cosmos_genkou.html のCSS変数をそのまま移植。
+   各ブロックは「既存コンポーネント用のレガシー変数」＋「盤刷新用の
+   宇宙変数（--accent / --cell-bg / --frame ... ）」の両方を定義する。
+   ============================================================ */
+
+/* テーマ非依存（八門バッジ色・ぷるんイージング） */
+:root {
+  --bounce: cubic-bezier(.34, 1.56, .64, 1);
+  --kichi-mon-bg: linear-gradient(180deg, #3a6fe0, #2a55c4);
+  --kichi-mon-sh: 0 0 12px -2px rgba(70, 130, 255, .7), inset 0 1px 0 rgba(255, 255, 255, .25);
+  --kyo-mon-bg: linear-gradient(180deg, #e23a52, #c42a40);
+  --kyo-mon-sh: 0 0 12px -2px rgba(255, 70, 90, .7), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+/* ── 漆黒（void）= デフォルト ── */
 :root,
-:root[data-theme="dark-gold"] {
-  --bg-main: #0f0d08;
-  --bg-cell: #15140f;
-  --bg-elevated: #100e09;
-  --border-main: #b8923a;
-  --border-subtle: #4a4636;
-  --text-primary: #e8e8ea;
-  --text-secondary: #8a8678;
-  --text-accent: #e6c34a;
-  --text-danger: #ff7a7a;
-  --text-info: #7fb0f0;
-  --text-success: #6cd06c;
-  --shadow-glow: 0 0 8px rgba(184, 146, 58, 0.28);
-  --zodiac-color: #c2c8d2;
+:root[data-theme="void"] {
+  /* レガシー変数（既存UIの再テーマ用） */
+  --bg-main: #08080c;
+  --bg-cell: #14141c;
+  --bg-elevated: #100e16;
+  --border-main: #c9a24a;
+  --border-subtle: rgba(255, 255, 255, .12);
+  --text-primary: #eceaf2;
+  --text-secondary: #8b8a98;
+  --text-accent: #ffd368;
+  --text-danger: #ff7a8a;
+  --text-info: #7fd4ff;
+  --text-success: #54f0a8;
+  --shadow-glow: 0 0 8px rgba(255, 211, 104, .3);
+  --zodiac-color: #9b8f72;
   --first-rank-bg: #16223a;
   --first-rank-border: #185fa5;
   --first-rank-badge-bg: #185fa5;
@@ -1338,22 +1289,56 @@ select {
   --first-rank-sub: #85b7eb;
   --first-rank-body: #c2c8d2;
   --first-rank-score: #85b7eb;
+  /* 宇宙変数 */
+  --page-bg: radial-gradient(ellipse 120% 70% at 50% 16%, #0c0c14, #070709 60%, #030304);
+  --is-dark: 1;
+  --accent: #ffd368;
+  --accent-soft: #ffe6a6;
+  --dim: #8b8a98;
+  --frame: rgba(255, 211, 104, .5);
+  --frame-glow: 0 0 34px -6px rgba(255, 211, 104, .45), inset 0 0 46px -22px rgba(255, 211, 104, .35);
+  --frame-fill: linear-gradient(160deg, rgba(15, 15, 22, .86), rgba(6, 6, 10, .93));
+  --cell-bg: linear-gradient(160deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .022));
+  --cell-bd: rgba(255, 255, 255, .09);
+  --cell-sh: 0 12px 30px -16px rgba(0, 0, 0, .85), inset 0 1px 0 rgba(255, 255, 255, .05);
+  --kichi-bd: rgba(255, 211, 104, .5);
+  --kichi-sh: 0 0 0 1px rgba(255, 211, 104, .22), 0 0 22px -3px rgba(255, 211, 104, .4);
+  --kamei: #fff;
+  --gogyo: #c9b07a;
+  --kan: #f3f1ea;
+  --kan-glow: none;
+  --shin: #7fd4ff;
+  --sei: #cfe6ff;
+  --plus: #54f0a8;
+  --plus-g: 0 0 12px rgba(84, 240, 168, .5);
+  --minus: #ff7a8a;
+  --minus-g: 0 0 12px rgba(255, 95, 114, .4);
+  --zero: #cfcfe0;
+  --shoui-x: #ff6f7e;
+  --dir: #9b8f72;
+  --bar-bg: rgba(14, 13, 18, .62);
+  --bar-bd: rgba(255, 211, 104, .16);
+  --chip-bg: rgba(255, 255, 255, .05);
+  --star1: rgba(255, 247, 224, .95);
+  --star2: rgba(255, 224, 170, .85);
+  --star3: rgba(255, 247, 224, .85);
 }
 
-:root[data-theme="navy-silver"] {
-  --bg-main: #0d1b2a;
-  --bg-cell: #15140f;
-  --bg-elevated: #172235;
-  --border-main: #a8b8c8;
-  --border-subtle: #3a4a5c;
-  --text-primary: #e8eef5;
-  --text-secondary: #8a9bb0;
-  --text-accent: #7dd3fc;
-  --text-danger: #ff8a8a;
-  --text-info: #7fb0f0;
-  --text-success: #6cd06c;
-  --shadow-glow: 0 0 8px rgba(125, 211, 252, 0.34);
-  --zodiac-color: #c2c8d2;
+/* ── 深海（blue） ── */
+:root[data-theme="blue"] {
+  --bg-main: #070f26;
+  --bg-cell: #0c1530;
+  --bg-elevated: #0b1430;
+  --border-main: #6fc6e0;
+  --border-subtle: rgba(255, 255, 255, .12);
+  --text-primary: #eaeefb;
+  --text-secondary: #92a0bd;
+  --text-accent: #46e8ff;
+  --text-danger: #ff7a8a;
+  --text-info: #7fd4ff;
+  --text-success: #54f0a8;
+  --shadow-glow: 0 0 8px rgba(70, 232, 255, .34);
+  --zodiac-color: #7d8aa6;
   --first-rank-bg: #3a2a0d;
   --first-rank-border: #d6b85a;
   --first-rank-badge-bg: #d6b85a;
@@ -1362,22 +1347,118 @@ select {
   --first-rank-sub: #f5d878;
   --first-rank-body: #d9e2ec;
   --first-rank-score: #ffe28a;
+  --page-bg:
+    radial-gradient(circle at 22% 8%, rgba(70, 232, 255, .14), transparent 44%),
+    radial-gradient(circle at 84% 88%, rgba(80, 120, 255, .16), transparent 50%),
+    radial-gradient(ellipse 130% 78% at 50% 18%, #0c1838, #070f26 58%, #03050f);
+  --is-dark: 1;
+  --accent: #46e8ff;
+  --accent-soft: #9af3ff;
+  --dim: #92a0bd;
+  --frame: rgba(70, 232, 255, .45);
+  --frame-glow: 0 0 34px -6px rgba(70, 232, 255, .45), inset 0 0 46px -22px rgba(70, 232, 255, .3);
+  --frame-fill: linear-gradient(160deg, rgba(11, 20, 42, .84), rgba(6, 11, 26, .92));
+  --cell-bg: linear-gradient(160deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .025));
+  --cell-bd: rgba(255, 255, 255, .1);
+  --cell-sh: 0 12px 30px -16px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .06);
+  --kichi-bd: rgba(70, 232, 255, .5);
+  --kichi-sh: 0 0 0 1px rgba(70, 232, 255, .22), 0 0 22px -3px rgba(70, 232, 255, .42);
+  --kamei: #fff;
+  --gogyo: #8fd6e8;
+  --kan: #f5f9ff;
+  --kan-glow: 0 0 12px rgba(154, 243, 255, .35);
+  --shin: #7fd4ff;
+  --sei: #cfe9ff;
+  --plus: #54f0a8;
+  --plus-g: 0 0 12px rgba(84, 240, 168, .5);
+  --minus: #ff7a8a;
+  --minus-g: 0 0 12px rgba(255, 95, 114, .4);
+  --zero: #cfd6e8;
+  --shoui-x: #ff7a8a;
+  --dir: #7d8aa6;
+  --bar-bg: rgba(12, 18, 36, .6);
+  --bar-bd: rgba(70, 232, 255, .16);
+  --chip-bg: rgba(255, 255, 255, .06);
+  --star1: rgba(220, 245, 255, .95);
+  --star2: rgba(150, 210, 255, .85);
+  --star3: rgba(220, 245, 255, .85);
 }
 
-:root[data-theme="washi-vermillion"] {
-  --bg-main: #f7f3ea;
+/* ── 星雲（purple） ── */
+:root[data-theme="purple"] {
+  --bg-main: #100823;
+  --bg-cell: #190f30;
+  --bg-elevated: #160e2c;
+  --border-main: #b07fd6;
+  --border-subtle: rgba(255, 255, 255, .12);
+  --text-primary: #efeafb;
+  --text-secondary: #a99cc6;
+  --text-accent: #c98bff;
+  --text-danger: #ff8aa0;
+  --text-info: #c9a3ff;
+  --text-success: #7ef0c0;
+  --shadow-glow: 0 0 8px rgba(201, 139, 255, .4);
+  --zodiac-color: #9a8fb0;
+  --first-rank-bg: #2a1640;
+  --first-rank-border: #9b5fd6;
+  --first-rank-badge-bg: #9b5fd6;
+  --first-rank-badge-text: #fff;
+  --first-rank-title: #f3e8ff;
+  --first-rank-sub: #d0a7f0;
+  --first-rank-body: #d9c8ec;
+  --first-rank-score: #e0c2ff;
+  --page-bg:
+    radial-gradient(circle at 80% 10%, rgba(201, 139, 255, .2), transparent 46%),
+    radial-gradient(circle at 16% 88%, rgba(255, 90, 180, .12), transparent 52%),
+    radial-gradient(ellipse 130% 78% at 50% 18%, #1a1038, #100823 58%, #070314);
+  --is-dark: 1;
+  --accent: #c98bff;
+  --accent-soft: #e6c4ff;
+  --dim: #a99cc6;
+  --frame: rgba(201, 139, 255, .45);
+  --frame-glow: 0 0 34px -6px rgba(201, 139, 255, .5), inset 0 0 46px -22px rgba(201, 139, 255, .32);
+  --frame-fill: linear-gradient(160deg, rgba(22, 14, 44, .84), rgba(10, 6, 22, .92));
+  --cell-bg: linear-gradient(160deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .025));
+  --cell-bd: rgba(255, 255, 255, .1);
+  --cell-sh: 0 12px 30px -16px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .06);
+  --kichi-bd: rgba(201, 139, 255, .5);
+  --kichi-sh: 0 0 0 1px rgba(201, 139, 255, .22), 0 0 22px -3px rgba(201, 139, 255, .42);
+  --kamei: #fff;
+  --gogyo: #cdb0e8;
+  --kan: #faf5ff;
+  --kan-glow: 0 0 12px rgba(230, 196, 255, .4);
+  --shin: #c9a3ff;
+  --sei: #e6d4ff;
+  --plus: #7ef0c0;
+  --plus-g: 0 0 12px rgba(126, 240, 192, .5);
+  --minus: #ff8aa0;
+  --minus-g: 0 0 12px rgba(255, 110, 150, .4);
+  --zero: #dcd2ec;
+  --shoui-x: #ff8aa0;
+  --dir: #9a8fb0;
+  --bar-bg: rgba(26, 16, 40, .6);
+  --bar-bd: rgba(201, 139, 255, .16);
+  --chip-bg: rgba(255, 255, 255, .06);
+  --star1: rgba(245, 230, 255, .95);
+  --star2: rgba(210, 170, 255, .85);
+  --star3: rgba(245, 230, 255, .85);
+}
+
+/* ── パール（pearl）= 明るい白背景 ── */
+:root[data-theme="pearl"] {
+  --bg-main: #f3efe8;
   --bg-cell: #fffefb;
   --bg-elevated: #ebe0c5;
-  --border-main: #2d2d2d;
-  --border-subtle: #c8b896;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b6450;
-  --text-accent: #b8860b;
-  --text-danger: #c5302e;
-  --text-info: #1f6fb3;
-  --text-success: #2d7a3e;
-  --shadow-glow: 0 0 8px rgba(45, 45, 45, 0.16);
-  --zodiac-color: #2b2b2b;
+  --border-main: #c79248;
+  --border-subtle: rgba(160, 140, 110, .42);
+  --text-primary: #3b3833;
+  --text-secondary: #8a7d6a;
+  --text-accent: #c79248;
+  --text-danger: #d6394f;
+  --text-info: #2f6fa8;
+  --text-success: #0e9a60;
+  --shadow-glow: 0 0 8px rgba(199, 146, 72, .25);
+  --zodiac-color: #9a8d76;
   --first-rank-bg: #1f3a2d;
   --first-rank-border: #8a6a2f;
   --first-rank-badge-bg: #8a6a2f;
@@ -1386,22 +1467,60 @@ select {
   --first-rank-sub: #d9b66a;
   --first-rank-body: #eadfc7;
   --first-rank-score: #f0c66e;
+  --page-bg:
+    radial-gradient(circle at 18% 14%, rgba(255, 226, 238, .5), transparent 46%),
+    radial-gradient(circle at 84% 18%, rgba(218, 234, 255, .48), transparent 46%),
+    radial-gradient(circle at 72% 86%, rgba(255, 246, 220, .58), transparent 50%),
+    radial-gradient(circle at 24% 90%, rgba(236, 228, 255, .42), transparent 48%),
+    linear-gradient(160deg, #fdfbf7, #f3efe8);
+  --is-dark: 0;
+  --accent: #c79248;
+  --accent-soft: #a9743a;
+  --dim: #8a7d6a;
+  --frame: rgba(199, 146, 72, .55);
+  --frame-glow: 0 0 22px -8px rgba(199, 146, 72, .32), inset 0 0 32px -22px rgba(199, 146, 72, .18);
+  --frame-fill: transparent;
+  --cell-bg: linear-gradient(160deg, rgba(255, 252, 247, .92), rgba(252, 246, 238, .72));
+  --cell-bd: rgba(255, 255, 255, .95);
+  --cell-sh: 0 14px 28px -12px rgba(120, 110, 130, .42), 0 3px 8px -3px rgba(120, 110, 130, .28), inset 0 1px 0 rgba(255, 255, 255, .96);
+  --kichi-bd: rgba(199, 146, 72, .7);
+  --kichi-sh: 0 0 0 1.5px rgba(199, 146, 72, .4), 0 10px 22px -10px rgba(168, 120, 52, .5);
+  --kamei: #332f28;
+  --gogyo: #8a8174;
+  --kan: #2b2820;
+  --kan-glow: none;
+  --shin: #2f6fa8;
+  --sei: #4a86bc;
+  --plus: #0e9a60;
+  --plus-g: none;
+  --minus: #d6394f;
+  --minus-g: none;
+  --zero: #7a7468;
+  --shoui-x: #c4424f;
+  --dir: #9a8d76;
+  --bar-bg: rgba(255, 252, 245, .72);
+  --bar-bd: rgba(199, 146, 72, .3);
+  --chip-bg: rgba(255, 255, 255, .55);
+  --star1: rgba(255, 255, 255, .9);
+  --star2: rgba(255, 255, 255, .7);
+  --star3: rgba(255, 255, 255, .8);
 }
 
-:root[data-theme="dusty-pink"] {
-  --bg-main: #f3e3e0;
-  --bg-cell: #fdf8f7;
-  --bg-elevated: #ead0cb;
-  --border-main: #6b3f3a;
-  --border-subtle: #c8aaa4;
-  --text-primary: #261817;
-  --text-secondary: #73534f;
-  --text-accent: #9a5c53;
-  --text-danger: #c5302e;
-  --text-info: #1f6fb3;
-  --text-success: #2d7a3e;
-  --shadow-glow: 0 0 8px rgba(107, 63, 58, 0.22);
-  --zodiac-color: #6b3f3a;
+/* ── ピンク（pink）= 明るいピンク背景 ── */
+:root[data-theme="pink"] {
+  --bg-main: #fce2e7;
+  --bg-cell: #fffafc;
+  --bg-elevated: #f7d9e0;
+  --border-main: #c25d7e;
+  --border-subtle: rgba(180, 120, 140, .42);
+  --text-primary: #3f343a;
+  --text-secondary: #9c7e88;
+  --text-accent: #c25d7e;
+  --text-danger: #d6394f;
+  --text-info: #3a6fa0;
+  --text-success: #0e9a60;
+  --shadow-glow: 0 0 8px rgba(194, 93, 126, .25);
+  --zodiac-color: #a08890;
   --first-rank-bg: #4a1d2c;
   --first-rank-border: #9b4058;
   --first-rank-badge-bg: #8f2f49;
@@ -1410,11 +1529,49 @@ select {
   --first-rank-sub: #f0a7b8;
   --first-rank-body: #f3c8d0;
   --first-rank-score: #ffc2d0;
+  --page-bg:
+    radial-gradient(circle at 22% 10%, rgba(255, 233, 240, .97), transparent 52%),
+    radial-gradient(circle at 86% 88%, rgba(255, 226, 208, .92), transparent 54%),
+    linear-gradient(160deg, #fdeef2, #fce2e7);
+  --is-dark: 0;
+  --accent: #c25d7e;
+  --accent-soft: #a83e63;
+  --dim: #9c7e88;
+  --frame: rgba(194, 93, 126, .55);
+  --frame-glow: 0 0 22px -8px rgba(194, 93, 126, .3), inset 0 0 32px -22px rgba(194, 93, 126, .16);
+  --frame-fill: transparent;
+  --cell-bg: linear-gradient(160deg, rgba(255, 250, 252, .92), rgba(255, 243, 247, .72));
+  --cell-bd: rgba(255, 255, 255, .95);
+  --cell-sh: 0 14px 28px -12px rgba(200, 90, 124, .34), 0 3px 8px -3px rgba(200, 90, 124, .24), inset 0 1px 0 rgba(255, 255, 255, .96);
+  --kichi-bd: rgba(194, 93, 126, .7);
+  --kichi-sh: 0 0 0 1.5px rgba(194, 93, 126, .4), 0 10px 22px -10px rgba(200, 90, 124, .5);
+  --kamei: #3a323a;
+  --gogyo: #8f7e86;
+  --kan: #2e2730;
+  --kan-glow: none;
+  --shin: #3a6fa0;
+  --sei: #5a86b8;
+  --plus: #0e9a60;
+  --plus-g: none;
+  --minus: #d6394f;
+  --minus-g: none;
+  --zero: #7d7378;
+  --shoui-x: #c4424f;
+  --dir: #a08890;
+  --bar-bg: rgba(255, 250, 252, .74);
+  --bar-bd: rgba(194, 93, 126, .3);
+  --chip-bg: rgba(255, 255, 255, .55);
+  --star1: rgba(255, 255, 255, .9);
+  --star2: rgba(255, 255, 255, .7);
+  --star3: rgba(255, 255, 255, .8);
 }
 
 body {
-  background: var(--bg-main);
+  background: var(--page-bg, var(--bg-main));
+  background-attachment: fixed;
   font-family: var(--font-body);
+  color: var(--text-primary);
+  transition: background .5s ease, color .4s ease;
 }
 
 .board-area {
@@ -1424,6 +1581,9 @@ body {
   gap: 18px;
 }
 
+/* ── 外枠フレーム（発光 + 星よけ暗幕）──
+   モック .frame + .board-area を兼ねる。--frame-fill が内側を覆い、
+   背景の星が盤エリアに重ならないようにする（ダーク3テーマ）。 */
 .board-grid {
   width: min(480px, calc(100vw - 20px));
   max-width: calc(100vw - 20px);
@@ -1432,12 +1592,15 @@ body {
   grid-template-columns: 22px repeat(3, minmax(0, 1fr)) 22px;
   grid-template-rows: 22px repeat(3, auto) 22px;
   gap: 9px;
-  padding: 14px;
-  border: 2px solid var(--border-main);
-  border-radius: 16px;
-  background: var(--bg-main);
-  box-shadow: var(--shadow-glow), 0 18px 48px rgba(0, 0, 0, 0.36);
+  padding: 14px 12px;
+  border: 1.5px solid var(--frame);
+  border-radius: 20px;
+  background: var(--frame-fill);
+  box-shadow: var(--frame-glow);
   justify-self: center;
+  position: relative;
+  z-index: 1;
+  transition: border-color .5s, box-shadow .5s, background .5s;
 }
 
 .board-grid > div {
@@ -1446,12 +1609,12 @@ body {
 
 .zodiac-label {
   padding: 0;
-  color: var(--zodiac-color);
+  color: var(--dir);
   opacity: 1;
   font-family: var(--font-body);
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   line-height: 1;
 }
 
@@ -1460,6 +1623,7 @@ body {
   font-weight: 500;
 }
 
+/* ── セル（すりガラス + 発光枠 + 落ち影）── */
 .cell {
   aspect-ratio: 1 / 1.12;
   min-height: 0;
@@ -1468,22 +1632,33 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 8px 9px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  background: var(--bg-cell);
-  box-shadow: none;
+  padding: 8px 9px 7px;
+  border: 1px solid var(--cell-bd);
+  border-radius: 13px;
+  background: var(--cell-bg);
+  box-shadow: var(--cell-sh);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background .5s, border-color .5s, box-shadow .5s;
 }
 
 .cell-center {
-  background: var(--bg-elevated);
+  background: var(--cell-bg);
   opacity: 1;
 }
 
+/* 吉宮ハイライト: 既存の usable フラグ（使用可能な宮）に発光枠を付与。
+   判定は据え置き、見た目だけ刷新（モック .cell.kichi 相当）。 */
+.cell.cell-usable {
+  border-color: var(--kichi-bd);
+  box-shadow: var(--kichi-sh), var(--cell-sh);
+}
+
+/* 順利の宮: 最も強いアクセント発光（既存の強調を踏襲） */
 .cell-junri {
-  border: 3px solid #4472C4;
+  border: 1.5px solid var(--accent);
   outline: none;
-  box-shadow: none;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 22px -4px var(--accent), var(--cell-sh);
 }
 
 .junri-badge {
@@ -1506,7 +1681,7 @@ body {
 }
 
 .palace-label {
-  color: #e6c34a;
+  color: var(--kamei);
   font-family: var(--font-heading);
   font-size: 16px;
   font-weight: 700;
@@ -1515,7 +1690,7 @@ body {
 
 .palace-element {
   margin-left: 2px;
-  color: var(--text-secondary);
+  color: var(--gogyo);
   opacity: 1;
   font-family: var(--font-body);
   font-size: 10px;
@@ -1535,9 +1710,9 @@ body {
   line-height: 1;
 }
 
-.score-positive { color: #6cd06c; }
-.score-neutral  { color: var(--text-secondary); }
-.score-negative { color: #ff7a7a; }
+.score-positive { color: var(--plus); text-shadow: var(--plus-g); }
+.score-neutral  { color: var(--zero); }
+.score-negative { color: var(--minus); text-shadow: var(--minus-g); }
 
 .kanmeta,
 .cell-excel-row {
@@ -1554,7 +1729,8 @@ body {
 
 .kan {
   min-width: 0;
-  color: var(--text-primary);
+  color: var(--kan);
+  text-shadow: var(--kan-glow);
   font-family: var(--font-body);
   font-size: 12.5px;
   font-weight: 900;
@@ -1565,7 +1741,7 @@ body {
 
 .kan-tenban,
 .kan-chiban {
-  color: var(--text-primary);
+  color: var(--kan);
   font-family: var(--font-body);
   font-size: 12.5px;
   font-weight: 900;
@@ -1596,11 +1772,11 @@ body {
   line-height: inherit;
 }
 
-.tone-kichi { color: #7fb0f0; }
-.tone-kyo   { color: #ff7a7a; }
+.tone-kichi { color: var(--shin); }
+.tone-kyo   { color: var(--minus); }
 
 .kan-bracket {
-  color: #9aa0ab;
+  color: var(--dim);
   opacity: 0.55;
 }
 
@@ -1614,16 +1790,24 @@ body {
 }
 
 .mon-pill {
+  display: inline-block;
   min-width: 0;
-  padding: 1px 8px;
+  padding: 2px 10px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 999px;
   color: #fff;
   font-family: var(--font-body);
   font-size: 12.5px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0;
-  line-height: 1;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: transform .35s var(--bounce);
+}
+
+/* ぷるん（tap時に縮んでオーバーシュート戻り） */
+.mon-pill:active {
+  transform: scale(.86);
 }
 
 .cell-info-divider {
@@ -1633,12 +1817,14 @@ body {
 }
 
 .mon-pill.tone-kichi {
-  background: #4472C4;
+  background: var(--kichi-mon-bg);
+  box-shadow: var(--kichi-mon-sh);
   color: #fff;
 }
 
 .mon-pill.tone-kyo {
-  background: #FF0000;
+  background: var(--kyo-mon-bg);
+  box-shadow: var(--kyo-mon-sh);
   color: #fff;
 }
 
@@ -1663,14 +1849,15 @@ body {
   text-overflow: clip;
 }
 
-.info-kichi   { color: #7fb0f0; }
-.info-kyo     { color: #ff7a7a; }
-.info-neutral { color: var(--text-secondary); }
+.info-kichi   { color: var(--shin); }
+.info-kyo     { color: var(--shoui-x); }
+.info-neutral { color: var(--dim); }
 
 .center-alerts {
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 700;
+  color: var(--shoui-x);
 }
 
 .cell-empty {
@@ -1746,8 +1933,8 @@ body {
   }
 
   .mon-pill {
-    padding: 1px 6px;
-    border-radius: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
     font-size: 10px;
   }
 
@@ -1771,42 +1958,69 @@ body {
    ============================================================ */
 
 .app-with-tabs {
-  padding-bottom: 116px;
+  padding-bottom: 110px;
 }
 
+/* ── フローティング下バー（すりガラス + 発光 + ぷるん）── */
 .bottom-tabbar {
   position: fixed;
   left: 50%;
-  bottom: 0;
+  bottom: calc(14px + env(safe-area-inset-bottom));
   z-index: 100;
-  width: min(100%, 760px);
+  width: min(calc(100% - 24px), 436px);
   transform: translateX(-50%);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  min-height: 76px;
-  padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--bg-cell) 98%, transparent);
-  box-shadow: 0 -14px 32px rgba(0, 0, 0, 0.42);
+  gap: 2px;
+  min-height: 0;
+  padding: 8px 7px;
+  border: 1px solid var(--bar-bd);
+  border-radius: 22px;
+  background: var(--bar-bg);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: 0 16px 38px -16px rgba(0, 0, 0, 0.6);
+  transition: background .5s, border-color .5s;
 }
 
 .bottom-tabbar button {
+  position: relative;
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
+  padding: 7px 0 5px;
   border: 0;
+  border-radius: 14px;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--dim);
   cursor: pointer;
   font-family: var(--font-body);
   font-size: 0.72rem;
+  transition: transform .35s var(--bounce), color .25s;
+}
+
+.bottom-tabbar button:active {
+  transform: scale(.88);
 }
 
 .bottom-tabbar button.is-active {
-  color: var(--text-accent);
+  color: var(--accent-soft);
   font-weight: 800;
+}
+
+.bottom-tabbar button.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px var(--bar-bd), 0 0 14px -4px var(--accent);
+  z-index: -1;
+}
+
+.bottom-tabbar button.is-active .bottom-tab-icon {
+  filter: drop-shadow(0 0 5px var(--accent));
 }
 
 .bottom-tab-icon {
@@ -4103,4 +4317,95 @@ body {
   .reverse-time-chip {
     align-self: flex-start;
   }
+}
+
+/* ============================================================
+   宇宙レイヤー（星空 + ヴィネット）+ テーマチップ
+   星はダーク3テーマのみ。明るい2テーマ（pearl/pink）では消す。
+   z-index: -1 で body 背景の上・アプリ内容の下に敷く（盤の暗幕で内側は隠れる）。
+   ============================================================ */
+.sky,
+.vig {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 1;
+  transition: opacity .5s ease;
+}
+
+:root[data-theme="pearl"] .sky,
+:root[data-theme="pearl"] .vig,
+:root[data-theme="pink"] .sky,
+:root[data-theme="pink"] .vig {
+  opacity: 0;
+}
+
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1.5px;
+  height: 1.5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.stars.s1 { animation: tw1 5s ease-in-out infinite alternate; }
+.stars.s2 { animation: tw2 7s ease-in-out infinite alternate; }
+.stars.s3 { animation: tw3 4s ease-in-out infinite alternate; }
+
+@keyframes tw1 { from { opacity: .22; } to { opacity: .8; } }
+@keyframes tw2 { from { opacity: .55; } to { opacity: .18; } }
+@keyframes tw3 { from { opacity: .85; } to { opacity: .35; } }
+
+.vig {
+  box-shadow: inset 0 0 110px 26px rgba(0, 0, 0, .6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stars { animation: none !important; }
+}
+
+/* ── テーマチップ（盤上部の5テーマ切替） ── */
+.theme-chips {
+  display: flex;
+  gap: 6px;
+  margin: 0 auto 4px;
+  width: min(480px, calc(100vw - 20px));
+}
+
+.theme-chip {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  border-radius: 11px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--dim);
+  background: var(--chip-bg);
+  transition: transform .3s var(--bounce), border-color .25s, color .25s;
+}
+
+.theme-chip:active {
+  transform: scale(.92);
+}
+
+.theme-chip .theme-chip-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.theme-chip.is-active {
+  border-color: var(--accent);
+  color: var(--accent-soft);
 }
