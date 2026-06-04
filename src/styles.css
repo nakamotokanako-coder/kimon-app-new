@@ -4431,11 +4431,12 @@ body {
 }
 
 /* ── テーマチップ（盤上部の5テーマ切替） ── */
+/* テーマ選択チップ（設定画面のテーマ選択UI。色ドット＋名称＋選択中発光枠） */
 .theme-chips {
   display: flex;
   gap: 6px;
-  margin: 0 auto 4px;
-  width: min(480px, calc(100vw - 20px));
+  width: 100%;
+  max-width: 480px;
 }
 
 .theme-chip {

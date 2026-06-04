@@ -131,29 +131,6 @@ export default function App() {
       </header>
 
       <main className="app-main">
-        <div className="theme-chips" role="group" aria-label="背景テーマ切替">
-          {THEMES.map((item) => (
-            <button
-              key={item.name}
-              type="button"
-              className={`theme-chip${theme === item.name ? ' is-active' : ''}`}
-              aria-pressed={theme === item.name}
-              onClick={() => handleThemeChange(item.name)}
-            >
-              <span
-                className="theme-chip-dot"
-                style={{
-                  background: item.dot,
-                  boxShadow: item.dot.startsWith('linear')
-                    ? '0 0 0 1px rgba(0,0,0,.12)'
-                    : `0 0 7px ${item.dot}`,
-                }}
-                aria-hidden="true"
-              />
-              {item.label}
-            </button>
-          ))}
-        </div>
         {boardReturnTab && (
           <button type="button" className="board-return-button" onClick={returnFromFullBoard}>
             ← 戻る
@@ -198,15 +175,25 @@ export default function App() {
 
         <div className="settings-section">
           <h3>テーマ</h3>
-          <div className="theme-switcher" aria-label="テーマ切替">
+          <div className="theme-chips" role="group" aria-label="テーマ切替">
             {THEMES.map((item) => (
               <button
                 key={item.name}
                 type="button"
-                className={theme === item.name ? 'is-active' : ''}
+                className={`theme-chip${theme === item.name ? ' is-active' : ''}`}
                 aria-pressed={theme === item.name}
                 onClick={() => handleThemeChange(item.name)}
               >
+                <span
+                  className="theme-chip-dot"
+                  style={{
+                    background: item.dot,
+                    boxShadow: item.dot.startsWith('linear')
+                      ? '0 0 0 1px rgba(0,0,0,.12)'
+                      : `0 0 7px ${item.dot}`,
+                  }}
+                  aria-hidden="true"
+                />
                 {item.label}
               </button>
             ))}
