@@ -265,7 +265,8 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
     <section className="reverse-view" aria-label="逆引き方位検索">
       <div className="reverse-header">
         <div>
-          <h2>吉方位</h2>
+          <span className="reverse-kicker lat">lucky direction</span>
+          <h2 className="maru">吉方位</h2>
           <p>
             {mode === 'kakkyoku'
               ? `時盤・格局検索 / ${location.name}`
@@ -279,7 +280,7 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
           </p>
         </div>
         {mode !== 'range' && (
-          <div className="reverse-time-chip">
+          <div className="reverse-time-chip lat">
             {mode === 'day' || mode === 'ranking'
               ? dayDate
               : getTimeSlotLabel(slotHour)}
@@ -313,7 +314,10 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
 
       <div className="reverse-card reverse-location-card">
         <div className="reverse-card-title">
-          <h3>基準点</h3>
+          <div>
+            <span className="reverse-section-kicker lat">base point</span>
+            <h3 className="maru">基準点</h3>
+          </div>
           <span>GPS / 場所検索 / 手動選択</span>
         </div>
         <div className="reverse-location-actions">
@@ -354,13 +358,13 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
         </div>
         {mode === 'time' || mode === 'kakkyoku' || mode === 'range' ? (
           <div className="reverse-correction">
-            <span>自然時補正：{location.name} {formatCorrection(correction)}</span>
-            <span>経度 {location.longitude.toFixed(2)}</span>
+            <span>自然時補正：{location.name} <b className="lat">{formatCorrection(correction)}</b></span>
+            <span>経度 <b className="lat">{location.longitude.toFixed(2)}</b></span>
           </div>
         ) : (
           <div className="reverse-correction">
             <span>日盤は自然時補正なし</span>
-            <span>経度 {location.longitude.toFixed(2)}</span>
+            <span>経度 <b className="lat">{location.longitude.toFixed(2)}</b></span>
           </div>
         )}
         {status && <p className="reverse-status">{status}</p>}
@@ -400,13 +404,16 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
                 </>
               )}
             </div>
-            <div className="reverse-best-score">{best ? `${best.score > 0 ? '+' : ''}${best.score}` : '-'}</div>
+            <div className="reverse-best-score lat">{best ? `${best.score > 0 ? '+' : ''}${best.score}` : '-'}</div>
           </button>
 
           {filterCard}
 
           <div className="reverse-timeline">
-            <h3>本日の時間帯別ベスト</h3>
+            <div className="reverse-section-title">
+              <span className="reverse-section-kicker lat">today's best</span>
+              <h3 className="maru">本日の時間帯別ベスト</h3>
+            </div>
             {displayedTimeline.map((slot) => (
               <div key={slot.hour} className="reverse-tl-block">
                 <button
@@ -415,7 +422,7 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
                   onClick={() => setOpenTimelineHour((current) => (current === slot.hour ? null : slot.hour))}
                   aria-expanded={openTimelineHour === slot.hour}
                 >
-                <span className="reverse-tl-time">{slot.label}</span>
+                <span className="reverse-tl-time lat">{slot.label}</span>
                 <span className="reverse-tl-main">
                   <strong>{slot.best?.label || '該当なし'}</strong>
                   <span>{slot.best?.reasons.slice(0, 2).join('・') || '凶を除外中'}</span>
@@ -446,7 +453,10 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
         <>
           <div className="reverse-card reverse-day-card">
             <div className="reverse-card-title">
-              <h3>基準点・日付</h3>
+              <div>
+                <span className="reverse-section-kicker lat">base point</span>
+                <h3 className="maru">基準点・日付</h3>
+              </div>
               <span>日盤 遠出</span>
             </div>
             <label className="reverse-date-row">
@@ -500,14 +510,17 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
                     </>
                   )}
                 </div>
-                <div className="reverse-best-score">{dayBest ? `${dayBest.score > 0 ? '+' : ''}${dayBest.score}` : '-'}</div>
+                <div className="reverse-best-score lat">{dayBest ? `${dayBest.score > 0 ? '+' : ''}${dayBest.score}` : '-'}</div>
               </div>
 
               <div className="reverse-timeline">
-                <h3>この日の方位ランキング</h3>
+                <div className="reverse-section-title">
+                  <span className="reverse-section-kicker lat">day ranking</span>
+                  <h3 className="maru">この日の方位ランキング</h3>
+                </div>
                 {dayVisibleRankings.map((item, index) => (
                   <div key={item.palace} className="reverse-tl-item">
-                    <span className="reverse-tl-time">{index + 1}</span>
+                    <span className="reverse-tl-time lat">{index + 1}</span>
                     <div className="reverse-tl-main">
                       <strong>{item.label}</strong>
                       <span>{item.reasons.slice(0, 2).join('・') || '吉凶判定'}</span>
