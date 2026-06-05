@@ -4841,9 +4841,10 @@ body {
 .direction-area-search,
 .kakkyoku-search-button,
 .sanban-search-button {
-  border-color: color-mix(in srgb, var(--accent) 82%, transparent);
-  background: var(--accent);
+  border-color: var(--accent-edge);
+  background: var(--accent-grad);
   color: var(--hero-tx);
+  box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
 }
 
 .direction-map-action,
