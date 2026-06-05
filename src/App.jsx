@@ -160,9 +160,8 @@ export default function App() {
           <div className="brand-block">
             <span className="brand-mark">遁</span>
             <div>
-              <span className="board-kicker lat">QIMEN BOARD</span>
+              <span className="board-kicker lat">KIMON TONKO</span>
               <h1 className="maru">奇門遁甲</h1>
-              <p className="subtitle">日盤・時盤メモ</p>
             </div>
           </div>
         </div>

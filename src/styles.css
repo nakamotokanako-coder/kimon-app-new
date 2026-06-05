@@ -350,7 +350,7 @@ select {
 }
 
 .board-segment label:has(input:checked) {
-  color: var(--hero-tx);
+  color: var(--accent-ink);
 }
 
 .board-segment input {
@@ -1342,6 +1342,7 @@ select {
   --kichi-mon-sh: 0 0 12px -2px rgba(70, 130, 255, .7), inset 0 1px 0 rgba(255, 255, 255, .25);
   --kyo-mon-bg: linear-gradient(180deg, #e23a52, #c42a40);
   --kyo-mon-sh: 0 0 12px -2px rgba(255, 70, 90, .7), inset 0 1px 0 rgba(255, 255, 255, .22);
+  --accent-ink: #241c0e;
   --hero-bg: linear-gradient(135deg, #2c2820, #16130d);
   --hero-tx: #f6efe0;
 }
@@ -1379,6 +1380,7 @@ select {
   --accent-edge: #f2d98a;
   --accent-glow: rgba(230, 195, 74, .28);
   --accent-grad: linear-gradient(118deg, #9c7322, #d7ab4d 25%, #fcefc4 44%, #ecd083 55%, #c59433 74%, #9c7322);
+  --accent-ink: #241c0e;
   --accent-soft: #ffe6a6;
   --dim: #8b8a98;
   --frame: rgba(255, 211, 104, .5);
@@ -1441,6 +1443,7 @@ select {
   --accent-edge: #8fe0ec;
   --accent-glow: rgba(63, 196, 216, .26);
   --accent-grad: linear-gradient(118deg, #1f6c7a, #3fb0c4 30%, #bfeef4 48%, #5fc8d8 60%, #2a8c9c 78%, #1f6c7a);
+  --accent-ink: #07232b;
   --accent-soft: #9af3ff;
   --dim: #92a0bd;
   --frame: rgba(70, 232, 255, .45);
@@ -1500,6 +1503,7 @@ select {
   --accent-edge: #e0c281;
   --accent-glow: rgba(191, 143, 60, .22);
   --accent-grad: linear-gradient(118deg, #9c7322, #d7ab4d 25%, #fcefc4 44%, #ecd083 55%, #c59433 74%, #9c7322);
+  --accent-ink: #241c0e;
   --accent-soft: #a9743a;
   --dim: #8a7d6a;
   --frame: rgba(199, 146, 72, .55);
@@ -1562,6 +1566,7 @@ select {
   --accent-edge: #e6bdb2;
   --accent-glow: rgba(192, 137, 126, .24);
   --accent-grad: linear-gradient(118deg, #a8615f, #cf8f86 28%, #f6d8cf 46%, #e0aa9e 60%, #b8746b 78%, #a8615f);
+  --accent-ink: #2a1512;
   --accent-soft: #a83e63;
   --dim: #9c7e88;
   --frame: rgba(194, 93, 126, .55);
@@ -4971,7 +4976,7 @@ body {
 .reverse-sort-toggle button.is-active,
 .kakkyoku-sort-toggle button.is-active {
   background: var(--accent-grad);
-  color: var(--hero-tx);
+  color: var(--accent-ink);
 }
 
 .reverse-best-card {
