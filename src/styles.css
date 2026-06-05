@@ -4783,7 +4783,16 @@ body {
 }
 
 .reverse-header {
-  align-items: flex-end;
+  align-items: flex-start;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.reverse-header > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 0;
+  text-align: left;
 }
 
 .reverse-header h2 {
@@ -4798,6 +4807,8 @@ body {
 }
 
 .reverse-time-chip {
+  align-self: flex-start;
+  margin-left: auto;
   border-radius: 999px;
   padding: 7px 13px;
   background: color-mix(in srgb, var(--bg-cell) 68%, transparent);
@@ -4917,14 +4928,14 @@ body {
 .sanban-search-button {
   border-color: var(--accent-edge);
   background: var(--accent-grad);
-  color: var(--hero-tx);
+  color: var(--accent-ink);
   box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
 }
 
 .direction-map-search-row button {
   border-color: color-mix(in srgb, var(--accent) 82%, transparent);
   background: var(--accent);
-  color: var(--hero-tx);
+  color: var(--accent-ink);
 }
 
 .direction-map-action,
@@ -4936,6 +4947,20 @@ body {
   border-radius: 999px;
   background: transparent;
   color: var(--text-primary);
+}
+
+.reverse-full-board-button {
+  border-color: var(--accent-edge);
+  background: color-mix(in srgb, var(--bg-cell) 72%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.reverse-full-board-button::after {
+  margin-left: 6px;
+  content: "↗";
+  font-size: 0.82em;
 }
 
 .direction-map-action:hover,
