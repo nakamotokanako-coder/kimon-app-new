@@ -47,6 +47,10 @@ function formatCorrection(minutes) {
   return `${minutes > 0 ? '+' : ''}${minutes}分`;
 }
 
+function formatDisplayDate(date) {
+  return date.replaceAll('-', '/');
+}
+
 function normalizeFavoriteBasePoint(favorite) {
   const latitude = Number(favorite?.latitude ?? favorite?.lat);
   const longitude = Number(favorite?.longitude ?? favorite?.lon);
@@ -282,7 +286,7 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
         {mode !== 'range' && (
           <div className="reverse-time-chip lat">
             {mode === 'day' || mode === 'ranking'
-              ? dayDate
+              ? formatDisplayDate(dayDate)
               : getTimeSlotLabel(slotHour)}
           </div>
         )}
