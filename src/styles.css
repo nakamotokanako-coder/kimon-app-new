@@ -4836,7 +4836,6 @@ body {
 }
 
 .reverse-search-row button,
-.direction-map-search-row button,
 .direction-popup-button,
 .direction-area-search,
 .kakkyoku-search-button,
@@ -4845,6 +4844,12 @@ body {
   background: var(--accent-grad);
   color: var(--hero-tx);
   box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
+}
+
+.direction-map-search-row button {
+  border-color: color-mix(in srgb, var(--accent) 82%, transparent);
+  background: var(--accent);
+  color: var(--hero-tx);
 }
 
 .direction-map-action,
