@@ -4783,14 +4783,21 @@ body {
 }
 
 .reverse-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: stretch;
+  justify-items: start;
   text-align: left;
+  width: 100%;
 }
 
 .reverse-header > div:first-child {
-  flex: 1 1 auto;
+  justify-self: start;
+  align-self: start;
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   margin-left: 0;
   text-align: left;
 }
@@ -4804,15 +4811,27 @@ body {
 
 .reverse-header p {
   font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 
 .reverse-time-chip {
   align-self: flex-start;
-  margin-left: auto;
+  justify-self: end;
+  margin-left: 0;
   border-radius: 999px;
   padding: 7px 13px;
   background: color-mix(in srgb, var(--bg-cell) 68%, transparent);
   color: var(--text-primary);
+}
+
+@media (max-width: 420px) {
+  .reverse-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reverse-time-chip {
+    justify-self: start;
+  }
 }
 
 .reverse-card,
