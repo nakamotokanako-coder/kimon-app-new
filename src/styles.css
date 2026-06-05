@@ -2023,6 +2023,169 @@ body {
   gap: 10px;
 }
 
+.settings-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.settings-divider::before,
+.settings-divider::after {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 48%, transparent));
+  content: "";
+}
+
+.settings-divider::after {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 48%, transparent), transparent);
+}
+
+.settings-panel-section {
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 82%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-elevated) 62%, transparent);
+}
+
+.settings-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-section-head h3 {
+  color: var(--text-primary);
+}
+
+.settings-section-head span {
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.settings-row,
+.settings-info-row,
+.settings-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 44px;
+  padding: 9px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 64%, transparent);
+}
+
+.settings-row > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-row strong,
+.settings-info-row strong,
+.settings-link-row span {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.settings-row small,
+.settings-info-row span {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.settings-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 3px;
+  background: color-mix(in srgb, var(--bg-main) 72%, var(--bg-elevated));
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.settings-switch span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform 180ms var(--bounce), background 160ms ease;
+}
+
+.settings-switch.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 28%, var(--bg-elevated));
+}
+
+.settings-switch.is-on span {
+  background: var(--accent);
+  transform: translateX(20px);
+}
+
+.settings-segment {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-main) 68%, var(--bg-elevated));
+}
+
+.settings-segment button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.settings-segment button.is-active {
+  background: var(--accent);
+  color: var(--bg-main);
+}
+
+.settings-link-row {
+  width: 100%;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.settings-link-row b {
+  color: var(--accent);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.settings-info-row {
+  min-height: 38px;
+}
+
 .reverse-view {
   display: grid;
   gap: 12px;

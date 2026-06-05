@@ -6,6 +6,7 @@ import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
+import packageJson from '../package.json';
 
 const DEFAULT_THEME = 'void';
 const THEMES = [
@@ -22,6 +23,22 @@ const LEGACY_THEME_MAP = {
   'washi-vermillion': 'pearl',
   'dusty-pink': 'pink',
 };
+const SETTINGS_STORAGE_PREFIX = 'kimon-setting-';
+const APP_VERSION = `v${packageJson?.version || '0.0.0'}`;
+
+function readStoredSetting(key, fallback) {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    return window.localStorage.getItem(`${SETTINGS_STORAGE_PREFIX}${key}`) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readStoredBoolSetting(key, fallback = false) {
+  const stored = readStoredSetting(key, fallback ? 'true' : 'false');
+  return stored === 'true';
+}
 
 function getTodayJst() {
   const now = new Date();
@@ -60,6 +77,11 @@ export default function App() {
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
   const [boardScrollRequest, setBoardScrollRequest] = useState(0);
+  const [iconStyle, setIconStyle] = useState(() => readStoredSetting('icon-style', 'emoji'));
+  const [textSize, setTextSize] = useState(() => readStoredSetting('text-size', 'medium'));
+  const [omamoriReminder, setOmamoriReminder] = useState(() => readStoredBoolSetting('omamori-reminder'));
+  const [favoriteBestNotify, setFavoriteBestNotify] = useState(() => readStoredBoolSetting('favorite-best-notify'));
+  const [showBadDirections, setShowBadDirections] = useState(() => readStoredBoolSetting('show-bad-directions'));
 
   const board = useMemo(() => {
     try {
@@ -99,6 +121,22 @@ export default function App() {
     } catch {
       // Theme persistence is optional when storage is unavailable.
     }
+  };
+  const saveSetting = (key, value) => {
+    try {
+      localStorage.setItem(`${SETTINGS_STORAGE_PREFIX}${key}`, String(value));
+    } catch {
+      // Settings scaffolding remains usable even when storage is unavailable.
+    }
+  };
+  const updateSetting = (key, setter) => (value) => {
+    setter(value);
+    saveSetting(key, value);
+  };
+  const toggleSetting = (key, setter) => (current) => {
+    const next = !current;
+    setter(next);
+    saveSetting(key, next);
   };
 
   useEffect(() => {
@@ -224,6 +262,150 @@ export default function App() {
               南を下
             </label>
           </div>
+        </div>
+
+        <div className="settings-divider">
+          <span className="lat">DISPLAY</span>
+        </div>
+
+        <div className="settings-section settings-panel-section">
+          <div className="settings-section-head">
+            <h3 className="maru">表示</h3>
+            <span className="lat">Display</span>
+          </div>
+          <div className="settings-row">
+            <div>
+              <strong>アイコン切替</strong>
+              <small>絵文字 / 線アイコン</small>
+            </div>
+            <div className="settings-segment" role="group" aria-label="アイコン切替">
+              {[
+                ['emoji', '絵文字'],
+                ['line', '線アイコン'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={iconStyle === value ? 'is-active' : ''}
+                  aria-pressed={iconStyle === value}
+                  onClick={() => updateSetting('icon-style', setIconStyle)(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-row">
+            <div>
+              <strong>文字サイズ</strong>
+              <small>小 / 中 / 大</small>
+            </div>
+            <div className="settings-segment" role="group" aria-label="文字サイズ">
+              {[
+                ['small', '小'],
+                ['medium', '中'],
+                ['large', '大'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={textSize === value ? 'is-active' : ''}
+                  aria-pressed={textSize === value}
+                  onClick={() => updateSetting('text-size', setTextSize)(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-section settings-panel-section">
+          <div className="settings-section-head">
+            <h3 className="maru">通知</h3>
+            <span className="lat">Notice</span>
+          </div>
+          <div className="settings-row">
+            <div>
+              <strong>お守りリマインド</strong>
+              <small>後で通知機能に接続</small>
+            </div>
+            <button
+              type="button"
+              className={`settings-switch${omamoriReminder ? ' is-on' : ''}`}
+              aria-pressed={omamoriReminder}
+              onClick={() => toggleSetting('omamori-reminder', setOmamoriReminder)(omamoriReminder)}
+            >
+              <span />
+            </button>
+          </div>
+          <div className="settings-row">
+            <div>
+              <strong>お気に入りが最高方位になったら通知</strong>
+              <small>後でお気に入り通知に接続</small>
+            </div>
+            <button
+              type="button"
+              className={`settings-switch${favoriteBestNotify ? ' is-on' : ''}`}
+              aria-pressed={favoriteBestNotify}
+              onClick={() => toggleSetting('favorite-best-notify', setFavoriteBestNotify)(favoriteBestNotify)}
+            >
+              <span />
+            </button>
+          </div>
+        </div>
+
+        <div className="settings-section settings-panel-section">
+          <div className="settings-section-head">
+            <h3 className="maru">プロ</h3>
+            <span className="lat">Pro</span>
+          </div>
+          <div className="settings-row">
+            <div>
+              <strong>凶も見る</strong>
+              <small>既定OFF。後で詳細表示に接続</small>
+            </div>
+            <button
+              type="button"
+              className={`settings-switch${showBadDirections ? ' is-on' : ''}`}
+              aria-pressed={showBadDirections}
+              onClick={() => toggleSetting('show-bad-directions', setShowBadDirections)(showBadDirections)}
+            >
+              <span />
+            </button>
+          </div>
+        </div>
+
+        <div className="settings-section settings-panel-section">
+          <div className="settings-section-head">
+            <h3 className="maru">アカウント</h3>
+            <span className="lat">Account</span>
+          </div>
+          <button type="button" className="settings-link-row">
+            <span>サブスク管理</span>
+            <b aria-hidden="true">›</b>
+          </button>
+        </div>
+
+        <div className="settings-section settings-panel-section">
+          <div className="settings-section-head">
+            <h3 className="maru">このアプリについて</h3>
+            <span className="lat">About</span>
+          </div>
+          <div className="settings-info-row">
+            <span>監修</span>
+            <strong>◯◯先生</strong>
+          </div>
+          <div className="settings-info-row">
+            <span>バージョン</span>
+            <strong className="lat">{APP_VERSION}</strong>
+          </div>
+          {['利用規約', 'プライバシーポリシー', 'フィードバック'].map((label) => (
+            <button key={label} type="button" className="settings-link-row">
+              <span>{label}</span>
+              <b aria-hidden="true">›</b>
+            </button>
+          ))}
         </div>
       </section>
     </main>
