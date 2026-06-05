@@ -29,6 +29,14 @@ body {
   font-family: var(--font-latin);
 }
 
+.metal {
+  background: var(--accent-grad);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: var(--accent);
+  -webkit-text-fill-color: transparent;
+}
+
 .maru {
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
@@ -117,6 +125,18 @@ select {
   line-height: 1;
   color: var(--text-primary);
   text-shadow: var(--shadow-glow);
+}
+
+.brand-z {
+  display: inline-block;
+  margin-left: 0.08em;
+  font-family: var(--font-latin);
+  font-size: 1.16em;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 0.86;
+  transform: translateY(0.04em);
 }
 
 .subtitle {

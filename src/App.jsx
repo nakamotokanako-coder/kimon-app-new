@@ -219,7 +219,7 @@ export default function App() {
             <span className="brand-mark">遁</span>
             <div>
               <span className="board-kicker lat">KIMON TONKO</span>
-              <h1 className="maru">奇門遁甲</h1>
+              <h1 className="maru">奇門遁甲<span className="brand-z metal lat">Z</span></h1>
             </div>
           </div>
           <NotificationBell unreadCount={unreadNotificationCount} onClick={openNotifications} />
