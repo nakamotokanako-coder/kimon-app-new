@@ -5,9 +5,10 @@ const CENTER = 175;
 const RADIUS = 145;
 export const GATE_ICONS = {
   '生門': '\u{1F4B0}',
-  '開門': '\u{1F3E2}',
-  '休門': '\u{2764}\u{FE0F}',
-  '景門': '\u{1F58A}\u{FE0F}',
+  '休門': '\u{1F49E}',
+  '開門': '\u{1F4BC}',
+  '杜門': '\u{1F33F}',
+  '景門': '\u{1F4D8}',
 };
 
 function polarPoint(angleDeg) {
@@ -40,7 +41,7 @@ export default function CompassWheel({ rankings, bestPalace }) {
   return (
     <div className="reverse-compass-frame">
       <svg width="100%" viewBox="0 0 350 350" role="img" aria-label="45度8区画の方位盤">
-        {PALACE_DIRECTIONS.map((direction) => {
+        {PALACE_DIRECTIONS.map((direction, index) => {
           const item = byPalace[direction.palace];
           const scorePoint = textPoint(direction.angle, 92);
           const iconPoint = textPoint(direction.angle, 112);
@@ -56,7 +57,12 @@ export default function CompassWheel({ rankings, bestPalace }) {
                 {item ? `${item.score > 0 ? '+' : ''}${item.score}` : '0'}
               </text>
               {GATE_ICONS[item?.palaceData?.hachimon] && (
-                <text className="reverse-gate-icon" x={iconPoint.x} y={iconPoint.y}>
+                <text
+                  className="reverse-gate-icon"
+                  style={{ '--wish-delay': `${index * 0.22}s` }}
+                  x={iconPoint.x}
+                  y={iconPoint.y}
+                >
                   {GATE_ICONS[item.palaceData.hachimon]}
                 </text>
               )}

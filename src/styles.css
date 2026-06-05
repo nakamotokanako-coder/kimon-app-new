@@ -4191,6 +4191,28 @@ body {
   font-size: 13px;
   text-anchor: middle;
   dominant-baseline: central;
+  animation: wish-marker-float 3.6s ease-in-out infinite;
+  animation-delay: var(--wish-delay, 0s);
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes wish-marker-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reverse-gate-icon {
+    animation: none;
+  }
 }
 
 .reverse-dir-text {
