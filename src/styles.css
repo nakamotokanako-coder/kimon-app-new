@@ -1272,6 +1272,8 @@ select {
   --kichi-mon-sh: 0 0 12px -2px rgba(70, 130, 255, .7), inset 0 1px 0 rgba(255, 255, 255, .25);
   --kyo-mon-bg: linear-gradient(180deg, #e23a52, #c42a40);
   --kyo-mon-sh: 0 0 12px -2px rgba(255, 70, 90, .7), inset 0 1px 0 rgba(255, 255, 255, .22);
+  --hero-bg: linear-gradient(135deg, #2c2820, #16130d);
+  --hero-tx: #f6efe0;
 }
 
 /* ── 漆黒（void）= デフォルト ── */
@@ -1332,7 +1334,9 @@ select {
   --dir: #9b8f72;
   --bar-bg: rgba(14, 13, 18, .62);
   --bar-bd: rgba(255, 211, 104, .16);
-  --chip-bg: rgba(255, 255, 255, .05);}
+  --chip-bg: rgba(255, 255, 255, .05);
+  --hero-bg: linear-gradient(135deg, #211b11, #15110a);
+  --hero-tx: #f6efe0;}
 
 /* ── 深海（blue） ── */
 :root[data-theme="blue"] {
@@ -1392,7 +1396,9 @@ select {
   --dir: #7d8aa6;
   --bar-bg: rgba(12, 18, 36, .6);
   --bar-bd: rgba(70, 232, 255, .16);
-  --chip-bg: rgba(255, 255, 255, .06);}
+  --chip-bg: rgba(255, 255, 255, .06);
+  --hero-bg: linear-gradient(135deg, #0e2735, #091621);
+  --hero-tx: #e8f3f6;}
 
 /* ── パール（pearl）= 明るい白背景 ── */
 :root[data-theme="pearl"] {
@@ -1454,7 +1460,9 @@ select {
   --dir: #9a8d76;
   --bar-bg: rgba(255, 252, 245, .72);
   --bar-bd: rgba(199, 146, 72, .3);
-  --chip-bg: rgba(255, 255, 255, .55);}
+  --chip-bg: rgba(255, 255, 255, .55);
+  --hero-bg: linear-gradient(135deg, #2c2820, #16130d);
+  --hero-tx: #f6efe0;}
 
 /* ── ピンク（pink）= 明るいピンク背景 ── */
 :root[data-theme="pink"] {
@@ -1514,7 +1522,9 @@ select {
   --dir: #a08890;
   --bar-bg: rgba(255, 250, 252, .74);
   --bar-bd: rgba(194, 93, 126, .3);
-  --chip-bg: rgba(255, 255, 255, .55);}
+  --chip-bg: rgba(255, 255, 255, .55);
+  --hero-bg: linear-gradient(135deg, #2a2320, #16110d);
+  --hero-tx: #f7ece6;}
 
 body {
   background: var(--page-bg, var(--bg-main));
@@ -4681,4 +4691,413 @@ body {
 .sanban-route-hero h3 {
   font-family: var(--font-heading);
   font-weight: 700;
+}
+
+/* ============================================================
+   吉方位/逆引き画面: 誌面トーン刷新
+   地図タイル・コンパス描画・お守り配色は対象外。
+   ============================================================ */
+.reverse-view {
+  gap: 16px;
+}
+
+.reverse-kicker,
+.reverse-section-kicker {
+  display: block;
+  color: color-mix(in srgb, var(--text-secondary) 78%, transparent);
+  font-size: 0.64rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.reverse-header {
+  align-items: flex-end;
+}
+
+.reverse-header h2 {
+  margin-top: 2px;
+  color: var(--text-primary);
+  font-size: clamp(1.6rem, 5vw, 2.35rem);
+  letter-spacing: 0.04em;
+}
+
+.reverse-header p {
+  font-size: 0.78rem;
+}
+
+.reverse-time-chip {
+  border-radius: 999px;
+  padding: 7px 13px;
+  background: color-mix(in srgb, var(--bg-cell) 68%, transparent);
+  color: var(--text-primary);
+}
+
+.reverse-card,
+.direction-map-search,
+.direction-map-controls,
+.direction-scale-card,
+.saikyo-top,
+.saikyo-rule,
+.kakkyoku-hero,
+.kakkyoku-picker,
+.kakkyoku-result-card,
+.sanban-route-hero,
+.sanban-route-basis,
+.sanban-threshold,
+.sanban-result-card,
+.sanban-empty {
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 76%, transparent);
+  box-shadow: 0 18px 44px -34px color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+
+.reverse-card {
+  padding: 18px;
+}
+
+.reverse-card-title,
+.reverse-section-title,
+.saikyo-section,
+.kakkyoku-result-head,
+.kakkyoku-picker-head,
+.sanban-result-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reverse-card-title {
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+}
+
+.reverse-card-title h3,
+.reverse-timeline h3,
+.direction-place-section h3,
+.saikyo-top h3,
+.saikyo-section h3,
+.kakkyoku-hero h3,
+.kakkyoku-picker-head h3,
+.kakkyoku-result-head h3,
+.sanban-route-hero h3 {
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.reverse-mode-tabs,
+.saikyo-period > div,
+.kakkyoku-period > div,
+.kakkyoku-picker-head > div:last-child,
+.kakkyoku-group > div,
+.reverse-filter-list {
+  gap: 7px;
+}
+
+.reverse-mode-tabs button,
+.saikyo-period button,
+.kakkyoku-period button,
+.kakkyoku-picker-head button,
+.kakkyoku-group button,
+.reverse-filter-list button,
+.direction-map-chips button {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: transform 160ms var(--bounce), border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.reverse-mode-tabs button:active,
+.saikyo-period button:active,
+.kakkyoku-period button:active,
+.kakkyoku-picker-head button:active,
+.kakkyoku-group button:active,
+.reverse-filter-list button:active,
+.direction-map-chips button:active,
+.reverse-search-row button:active,
+.direction-map-search-row button:active,
+.direction-map-action:active,
+.reverse-full-board-button:active,
+.board-return-button:active,
+.kakkyoku-search-button:active,
+.sanban-search-button:active,
+.direction-area-search:active {
+  transform: scale(0.97);
+}
+
+.reverse-mode-tabs button.is-active,
+.saikyo-period button.is-active,
+.kakkyoku-period button.is-active,
+.kakkyoku-picker-head button.is-active,
+.kakkyoku-group button.is-active,
+.reverse-filter-list button.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.reverse-search-row button,
+.direction-map-search-row button,
+.direction-popup-button,
+.kakkyoku-search-button,
+.sanban-search-button {
+  border-color: color-mix(in srgb, var(--accent) 82%, transparent);
+  background: var(--accent);
+  color: var(--bg-main);
+}
+
+.direction-map-action,
+.direction-area-search,
+.reverse-full-board-button,
+.board-return-button,
+.sanban-route-detail,
+.sanban-empty button {
+  border-color: var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.direction-map-action:hover,
+.direction-area-search:hover,
+.reverse-full-board-button:hover,
+.board-return-button:hover,
+.sanban-route-detail:hover,
+.sanban-empty button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.reverse-toggle-row input,
+.direction-kichi-filter input,
+.direction-map-check input,
+.saikyo-basis input {
+  accent-color: var(--accent);
+}
+
+.reverse-sort-toggle,
+.kakkyoku-sort-toggle {
+  position: relative;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+.reverse-sort-toggle button,
+.kakkyoku-sort-toggle button {
+  position: relative;
+  z-index: 1;
+  min-height: 30px;
+  border-radius: 999px;
+  color: var(--text-secondary);
+}
+
+.reverse-sort-toggle button.is-active,
+.kakkyoku-sort-toggle button.is-active {
+  background: var(--accent-grad);
+  color: var(--hero-tx);
+}
+
+.reverse-best-card {
+  background: var(--hero-bg);
+  color: var(--hero-tx);
+  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  box-shadow: 0 24px 58px -34px var(--accent);
+}
+
+.reverse-best-card[type='button'] {
+  border-radius: 22px;
+}
+
+.reverse-best-no {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  color: var(--accent);
+}
+
+.reverse-best-main strong,
+.reverse-best-main small,
+.reverse-best-main p {
+  color: var(--hero-tx);
+}
+
+.reverse-best-main small,
+.reverse-best-main p {
+  opacity: 0.74;
+}
+
+.reverse-best-score {
+  color: var(--accent);
+}
+
+.reverse-filter-card {
+  padding: 12px 14px;
+}
+
+.reverse-filter-controls {
+  margin-top: 0;
+}
+
+.reverse-timeline {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 70%, transparent);
+  box-shadow: 0 18px 44px -36px color-mix(in srgb, var(--text-primary) 36%, transparent);
+}
+
+.reverse-section-title {
+  padding: 15px 17px 10px;
+}
+
+.reverse-timeline h3 {
+  margin: 2px 0 0;
+}
+
+.reverse-tl-block {
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+}
+
+.reverse-tl-item {
+  grid-template-columns: 68px minmax(0, 1fr) 58px;
+  min-height: 58px;
+  border: 0;
+  border-radius: 0;
+  padding: 11px 16px;
+  background: transparent;
+}
+
+.reverse-tl-item.is-now {
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  margin: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.reverse-tl-item.is-expanded {
+  border-color: var(--accent);
+  border-radius: 14px 14px 0 0;
+}
+
+.reverse-tl-panel {
+  margin: 0 8px 8px;
+  border-color: var(--accent);
+  border-radius: 0 0 14px 14px;
+  background: color-mix(in srgb, var(--bg-elevated) 78%, transparent);
+}
+
+.reverse-tl-time {
+  color: color-mix(in srgb, var(--text-secondary) 82%, transparent);
+  font-size: 0.82rem;
+}
+
+.reverse-tl-main strong {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.reverse-tl-main span {
+  display: block;
+  margin-left: 0;
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+
+.reverse-tl-score {
+  font-size: 1.04rem;
+}
+
+.direction-map-search {
+  padding: 12px;
+}
+
+.direction-map-search-row input,
+.reverse-search-row input,
+.reverse-location-actions label,
+.reverse-location-actions button,
+.reverse-location-actions select,
+.reverse-date-row input {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+.direction-map-chips button {
+  padding: 7px 12px;
+}
+
+.direction-place-section {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-cell) 70%, transparent);
+}
+
+.direction-place-section .reverse-section-title {
+  padding: 13px 15px 9px;
+}
+
+.direction-scroll-window {
+  gap: 0;
+}
+
+.direction-place-row,
+.direction-place-main {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.direction-place-row {
+  padding: 10px 12px;
+}
+
+.direction-place-main {
+  padding: 10px 6px 10px 12px;
+}
+
+.direction-place-edit {
+  border-left-color: color-mix(in srgb, var(--border-subtle) 70%, transparent);
+}
+
+.direction-place-row b,
+.direction-place-row b .lat {
+  color: var(--accent);
+  font-family: var(--font-latin);
+}
+
+.saikyo-card,
+.kakkyoku-result-card,
+.sanban-result-card {
+  border-radius: 0;
+  border-width: 1px 0 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.saikyo-list,
+.kakkyoku-result-list,
+.sanban-result-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 72%, transparent);
+}
+
+.saikyo-card.is-top1 {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.saikyo-more {
+  border-radius: 999px;
 }

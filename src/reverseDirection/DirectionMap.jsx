@@ -779,7 +779,10 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         <div className="direction-place-panel">
           {decoratedFavorites.length > 0 && (
             <div className="direction-place-section">
-              <h3>お気に入り（{decoratedFavorites.length}）</h3>
+              <div className="reverse-section-title">
+                <span className="reverse-section-kicker lat">favorites</span>
+                <h3 className="maru">お気に入り（<span className="lat">{decoratedFavorites.length}</span>）</h3>
+              </div>
               <ScrollWindow className="direction-favorites-window">
                 {decoratedFavorites.map((item) => (
                   <div key={favoriteKey(item)} className="direction-place-row is-editable">
@@ -787,9 +790,9 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
                       <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
                       <span>
                         <strong>{favoriteDisplayName(item)}</strong>
-                        <small>{item.name} ・ 家から約{formatDistance(item.distanceM)}</small>
+                        <small>{item.name} ・ 家から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
                       </span>
-                      <b>{item.direction?.label || '-'} {scoreText(item.direction?.score || 0)}</b>
+                      <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
                     </button>
                     <button
                       type="button"
@@ -807,15 +810,18 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
           )}
           {(selectedPlace || visibleSearchResults.length > 0) && (
             <div className="direction-place-section">
-              <h3>{selectedPlace ? '検索した場所' : '検索結果'}</h3>
+              <div className="reverse-section-title">
+                <span className="reverse-section-kicker lat">places</span>
+                <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
+              </div>
               {(selectedPlace ? [selectedPlace] : visibleSearchResults.slice(0, 8)).map((item) => (
                 <button key={favoriteKey(item)} type="button" className="direction-place-row" onClick={() => showPlace(item)}>
                   <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
                   <span>
                     <strong>{item.name}</strong>
-                    <small>家から約{formatDistance(item.distanceM)}</small>
+                    <small>家から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
                   </span>
-                  <b>{item.direction?.label || '-'} {scoreText(item.direction?.score || 0)}</b>
+                  <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
                 </button>
               ))}
             </div>
