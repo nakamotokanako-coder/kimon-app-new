@@ -49,7 +49,8 @@ export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
       >
-        <span className="omamori-bar-icon" aria-hidden="true">🧧</span>
+        <span className="omamori-bar-sweep" aria-hidden="true" />
+        <span className="omamori-bar-icon" aria-hidden="true">福</span>
         <span className="omamori-bar-text">
           <strong>開運のお守り</strong>
           <small>タップして引く</small>
@@ -58,10 +59,15 @@ export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
       </button>
       <div className={`omamori-sheet ${isOpen ? 'is-open' : ''}`}>
         <div className="omamori-pouch">
-          <div className="omamori-cord" aria-hidden="true" />
+          <div className="omamori-sparkles" aria-hidden="true" />
           <div className="omamori-frame">
-            <div className="omamori-crest" aria-hidden="true">❖</div>
-            <div className="omamori-title">開運のお守り</div>
+            <div className="omamori-watermark" aria-hidden="true">福</div>
+            <span className="omamori-corner omamori-corner-tl" aria-hidden="true" />
+            <span className="omamori-corner omamori-corner-tr" aria-hidden="true" />
+            <span className="omamori-corner omamori-corner-bl" aria-hidden="true" />
+            <span className="omamori-corner omamori-corner-br" aria-hidden="true" />
+            <div className="omamori-crest maru" aria-hidden="true">福</div>
+            <div className="omamori-title maru">開運のお守り</div>
             <div className="omamori-category">
               <span aria-hidden="true">{categoryIcon}</span>
               {categoryLabel}

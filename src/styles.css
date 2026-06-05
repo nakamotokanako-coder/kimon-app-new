@@ -3863,12 +3863,17 @@ body {
   gap: 11px;
   width: 100%;
   overflow: hidden;
-  border: 1.5px solid #9c7d1c;
-  border-radius: 13px;
+  border: 1.5px solid #d6ad4b;
+  border-radius: 16px;
   padding: 13px 16px;
-  background: linear-gradient(135deg, #1d1812, #16130d);
-  box-shadow: 0 0 14px rgba(201, 162, 39, 0.16), inset 0 1px 0 rgba(255, 235, 180, 0.08);
-  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(255, 241, 184, 0.08), transparent 42%),
+    linear-gradient(145deg, #7c2e2f 0%, #641f22 45%, #4d191b 100%);
+  box-shadow:
+    0 16px 34px -26px rgba(77, 25, 27, 0.88),
+    0 0 22px -12px rgba(214, 173, 75, 0.78),
+    inset 0 0 0 1px rgba(255, 241, 184, 0.18);
+  color: #fff8dc;
   cursor: pointer;
   font-family: 'Zen Maru Gothic', sans-serif;
   text-align: left;
@@ -3877,25 +3882,54 @@ body {
 
 .omamori-bar::after {
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 12% 30%, rgba(201, 162, 39, 0.08) 0 2px, transparent 3px);
-  background-size: 46px 46px;
+  inset: 4px;
+  border: 1px solid rgba(255, 235, 164, 0.52);
+  border-radius: 12px;
   content: "";
   pointer-events: none;
 }
 
+.omamori-bar-sweep {
+  position: absolute;
+  inset: -40% auto -40% -35%;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, rgba(255, 246, 205, 0.4), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transform: skewX(-18deg);
+}
+
+.omamori-bar.is-open .omamori-bar-sweep {
+  animation: omamori-sweep 900ms ease-out;
+}
+
 .omamori-bar:hover,
 .omamori-bar:focus-visible {
-  border-color: #c9a227;
-  box-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+  border-color: #f0d27b;
+  box-shadow:
+    0 18px 36px -26px rgba(77, 25, 27, 0.94),
+    0 0 28px -10px rgba(214, 173, 75, 0.82),
+    inset 0 0 0 1px rgba(255, 241, 184, 0.24);
   outline: none;
 }
 
 .omamori-bar-icon {
+  display: grid;
+  place-items: center;
   flex: none;
-  font-size: 20px;
-  filter: drop-shadow(0 0 6px rgba(201, 162, 39, 0.4));
-  animation: omamori-sway 2.4s ease-in-out infinite;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e7c76d;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 244, 190, 0.3), transparent 34%),
+    #5b1c1e;
+  box-shadow: inset 0 0 0 2px rgba(124, 46, 47, 0.72), 0 0 14px -7px #f5df9d;
+  color: #f3d982;
+  font-size: 17px;
+  font-weight: 900;
+  filter: drop-shadow(0 0 6px rgba(214, 173, 75, 0.34));
+  animation: omamori-seal-pulse 2.8s ease-in-out infinite;
 }
 
 .omamori-bar-text {
@@ -3908,13 +3942,13 @@ body {
 }
 
 .omamori-bar-text strong {
-  color: #fff;
+  color: #fff8dc;
   font-size: 14px;
   font-weight: 900;
 }
 
 .omamori-bar-text small {
-  color: #c9a227;
+  color: #e7c76d;
   font-size: 11px;
 }
 
@@ -3925,9 +3959,9 @@ body {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border: 1.5px solid #c9a227;
+  border: 1.5px solid #e7c76d;
   border-radius: 50%;
-  color: #c9a227;
+  color: #f3d982;
   font-size: 16px;
   font-weight: 900;
   transition: 200ms;
@@ -3941,71 +3975,184 @@ body {
   max-height: 0;
   overflow: hidden;
   margin-top: 0;
-  transition: max-height 400ms ease, margin-top 400ms ease;
+  transition: max-height 520ms ease, margin-top 360ms ease;
 }
 
 .omamori-sheet.is-open {
-  max-height: 520px;
-  margin-top: 10px;
+  max-height: 620px;
+  margin-top: 12px;
 }
 
 .omamori-pouch {
   position: relative;
   overflow: hidden;
-  border: 1px solid #8e271c;
-  border-radius: 14px 14px 16px 16px;
-  padding: 0 0 16px;
-  background: linear-gradient(160deg, #c0392b, #9a2c20 55%, #7c1f17);
-  box-shadow: 0 6px 20px rgba(192, 57, 43, 0.3);
-  color: #fff;
+  border: 1px solid #d6ad4b;
+  border-radius: 18px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 230, 146, 0.18), transparent 28%),
+    linear-gradient(160deg, #7c2e2f 0%, #642224 44%, #4d191b 100%);
+  box-shadow:
+    0 18px 46px -30px rgba(77, 25, 27, 0.96),
+    0 0 28px -15px rgba(214, 173, 75, 0.78),
+    inset 0 0 0 1px rgba(255, 241, 184, 0.16);
+  color: #fff8dc;
   font-family: 'Zen Maru Gothic', sans-serif;
 }
 
-@keyframes omamori-sway {
-  0%,
-  100% {
-    transform: rotate(-5deg);
-  }
-  50% {
-    transform: rotate(5deg);
-  }
-}
-
-.omamori-cord {
-  position: relative;
-  height: 18px;
-  background: radial-gradient(circle at 50% 130%, #c9a227 0 18px, transparent 19px);
-}
-
-.omamori-cord::after {
+.omamori-pouch::before {
   position: absolute;
-  top: 14px;
-  left: 50%;
-  width: 8px;
-  height: 14px;
-  border-radius: 0 0 4px 4px;
-  background: #c9a227;
   content: "";
-  transform: translateX(-50%);
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 26%, rgba(255, 235, 164, 0.16) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 62%, rgba(255, 235, 164, 0.13) 0 1px, transparent 2px);
+  background-size: 42px 42px, 54px 54px;
+  pointer-events: none;
+}
+
+.omamori-pouch::after {
+  position: absolute;
+  inset: -40% auto -40% -36%;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 246, 205, 0.28), transparent);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: skewX(-18deg);
+}
+
+.omamori-sheet.is-open .omamori-pouch::after {
+  animation: omamori-sweep 1050ms 80ms ease-out;
+}
+
+.omamori-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.omamori-sparkles::before,
+.omamori-sparkles::after {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #f4dd94;
+  box-shadow:
+    46px 18px 0 rgba(244, 221, 148, 0.78),
+    188px 34px 0 rgba(244, 221, 148, 0.58),
+    82px 128px 0 rgba(244, 221, 148, 0.42),
+    238px 116px 0 rgba(244, 221, 148, 0.48);
+  content: "";
+  opacity: 0;
+}
+
+.omamori-sparkles::before {
+  top: 18px;
+  left: 22px;
+}
+
+.omamori-sparkles::after {
+  right: 34px;
+  bottom: 30px;
+  transform: scale(0.8);
+}
+
+.omamori-sheet.is-open .omamori-sparkles::before,
+.omamori-sheet.is-open .omamori-sparkles::after {
+  animation: omamori-sparkle 1200ms ease-out;
 }
 
 .omamori-frame {
-  margin: 6px 12px 0;
-  border: 1.5px solid rgba(255, 235, 180, 0.5);
-  border-radius: 9px;
-  padding: 14px 14px 16px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: 1.5px solid #e7c76d;
+  border-radius: 12px;
+  padding: 17px 17px 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 248, 220, 0.08), transparent 45%),
+    rgba(77, 25, 27, 0.2);
+  box-shadow: inset 0 0 0 3px rgba(77, 25, 27, 0.78), inset 0 0 0 4px rgba(255, 235, 164, 0.42);
+  transform: translateY(8px);
+  opacity: 0;
+  transition: transform 420ms 90ms ease, opacity 420ms 90ms ease;
+}
+
+.omamori-sheet.is-open .omamori-frame {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.omamori-watermark {
+  position: absolute;
+  inset: auto 0 22px;
+  color: rgba(255, 235, 164, 0.08);
+  font-size: 108px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.omamori-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: #f1d77e;
+  pointer-events: none;
+}
+
+.omamori-corner-tl {
+  top: 9px;
+  left: 9px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.omamori-corner-tr {
+  top: 9px;
+  right: 9px;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.omamori-corner-bl {
+  bottom: 9px;
+  left: 9px;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.omamori-corner-br {
+  right: 9px;
+  bottom: 9px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
 }
 
 .omamori-crest {
-  margin-bottom: 2px;
-  color: #c9a227;
-  font-size: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 7px;
+  border: 1.5px solid #e7c76d;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 244, 190, 0.28), transparent 35%),
+    #5b1c1e;
+  box-shadow: inset 0 0 0 2px rgba(124, 46, 47, 0.72), 0 0 16px -8px #f5df9d;
+  color: #f3d982;
+  font-size: 18px;
+  font-weight: 900;
   text-align: center;
 }
 
 .omamori-title {
   margin-bottom: 12px;
-  color: #fff;
+  color: #fff8dc;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.28em;
@@ -4016,10 +4163,11 @@ body {
 .omamori-category {
   width: fit-content;
   margin: 0 auto 11px;
+  border: 1px solid rgba(231, 199, 109, 0.6);
   border-radius: 14px;
   padding: 3px 13px;
-  background: rgba(0, 0, 0, 0.25);
-  color: #ffffee;
+  background: rgba(77, 25, 27, 0.42);
+  color: #fff8dc;
   font-size: 12px;
   font-weight: 700;
 }
@@ -4036,7 +4184,7 @@ body {
   gap: 2px;
   min-height: 2.2em;
   padding: 0 2px;
-  color: #fff;
+  color: #fff8dc;
   font-size: 18px;
   font-weight: 900;
   line-height: 1.6;
@@ -4059,15 +4207,53 @@ body {
   width: 38px;
   height: 1px;
   margin: 13px auto 0;
-  background: rgba(255, 235, 180, 0.4);
+  background: rgba(255, 235, 164, 0.58);
 }
 
 .omamori-closing {
   margin: 11px 0 0;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 248, 220, 0.86);
   font-size: 13px;
   font-weight: 700;
   text-align: center;
+}
+
+@keyframes omamori-seal-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes omamori-sweep {
+  0% {
+    opacity: 0;
+    transform: translateX(0) skewX(-18deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(480%) skewX(-18deg);
+  }
+}
+
+@keyframes omamori-sparkle {
+  0% {
+    opacity: 0;
+    transform: translateY(7px) scale(0.72);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(1);
+  }
 }
 
 @media (max-width: 480px) {
