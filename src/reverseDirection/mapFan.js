@@ -61,6 +61,11 @@ export const DISTANCE_PROFILE = {
   },
 };
 
+function getThemeAccentColor() {
+  if (typeof document === 'undefined') return '#e6c34a';
+  return (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#e6c34a';
+}
+
 export const MAP_FAN_COLORS = {
   great: '#185FA5',
   good: '#378ADD',
@@ -68,7 +73,9 @@ export const MAP_FAN_COLORS = {
   neutral: '#6f6c5e',
   bad: '#c2554f',
   'bad-strong': '#a3302a',
-  best: '#e6c34a',
+  get best() {
+    return getThemeAccentColor();
+  },
 };
 
 export function normalizeBearing(deg) {
@@ -179,6 +186,7 @@ export function getDistanceProfile(profileKey = 'jiban') {
 }
 
 export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, profileKey = 'jiban') {
+  const accent = getThemeAccentColor();
   const profile = getDistanceProfile(profileKey);
   const specs = [];
   for (const item of rankings || []) {
@@ -243,7 +251,7 @@ export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, pr
       outer: profile.fadeMaxKm * 1000,
       color,
       options: {
-        color: isBest ? MAP_FAN_COLORS.best : color,
+        color: isBest ? accent : color,
         weight: isBest ? 2.5 : 1,
         opacity: isBest ? 0.95 : 0.35,
         fill: false,
@@ -260,9 +268,9 @@ export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, pr
         to,
         inner: profile.confirmKm * 1000,
         outer: profile.fadeMaxKm * 1000,
-        color: MAP_FAN_COLORS.best,
+        color: accent,
         options: {
-          color: MAP_FAN_COLORS.best,
+          color: accent,
           weight: 4,
           opacity: 0.22,
           fill: false,
