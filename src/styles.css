@@ -4843,15 +4843,15 @@ body {
 .reverse-search-row button,
 .direction-map-search-row button,
 .direction-popup-button,
+.direction-area-search,
 .kakkyoku-search-button,
 .sanban-search-button {
   border-color: color-mix(in srgb, var(--accent) 82%, transparent);
   background: var(--accent);
-  color: var(--bg-main);
+  color: var(--hero-tx);
 }
 
 .direction-map-action,
-.direction-area-search,
 .reverse-full-board-button,
 .board-return-button,
 .sanban-route-detail,
@@ -4863,7 +4863,6 @@ body {
 }
 
 .direction-map-action:hover,
-.direction-area-search:hover,
 .reverse-full-board-button:hover,
 .board-return-button:hover,
 .sanban-route-detail:hover,
@@ -4905,10 +4904,12 @@ body {
 }
 
 .reverse-best-card {
-  background: var(--hero-bg);
-  color: var(--hero-tx);
-  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
-  box-shadow: 0 24px 58px -34px var(--accent);
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 58%),
+    color-mix(in srgb, var(--bg-cell) 86%, var(--bg-elevated));
+  color: var(--text-primary);
+  border: 1.5px solid var(--accent-edge);
+  box-shadow: 0 24px 58px -38px var(--accent);
 }
 
 .reverse-best-card[type='button'] {
@@ -4916,15 +4917,18 @@ body {
 }
 
 .reverse-best-no {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
-  color: var(--accent);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--hero-tx);
 }
 
-.reverse-best-main strong,
+.reverse-best-main strong {
+  color: var(--text-primary);
+}
+
 .reverse-best-main small,
 .reverse-best-main p {
-  color: var(--hero-tx);
+  color: var(--text-secondary);
 }
 
 .reverse-best-main small,
