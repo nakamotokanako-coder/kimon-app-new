@@ -10,10 +10,9 @@ import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 const DEFAULT_THEME = 'void';
 const THEMES = [
   { name: 'void', label: '漆黒', dot: '#ffd368' },
-  { name: 'blue', label: '深海', dot: '#46e8ff' },
-  { name: 'purple', label: '星雲', dot: '#c98bff' },
+  { name: 'blue', label: '深海', dot: '#3fc4d8' },
   { name: 'pearl', label: 'パール', dot: 'linear-gradient(135deg,#fff,#f0e6ee 55%,#e6eef7)' },
-  { name: 'pink', label: 'ピンク', dot: '#ef8fb4' },
+  { name: 'pink', label: 'ピンク', dot: '#c0897e' },
 ];
 const THEME_NAMES = new Set(THEMES.map((theme) => theme.name));
 /** 旧テーマ名 → 宇宙テーマ名（既存ユーザーの localStorage 互換） */
@@ -123,7 +122,7 @@ export default function App() {
           <div className="brand-block">
             <span className="brand-mark">遁</span>
             <div>
-              <h1>奇門遁甲</h1>
+              <h1 className="maru">奇門遁甲</h1>
               <p className="subtitle">日盤・時盤メモ</p>
             </div>
           </div>
@@ -170,11 +169,11 @@ export default function App() {
   const settingsView = (
     <main className="settings-view">
       <section className="settings-card">
-        <h2>設定</h2>
+        <h2 className="maru">設定</h2>
         <p>テーマと盤の方位表示を切り替えます。</p>
 
         <div className="settings-section">
-          <h3>テーマ</h3>
+          <h3 className="maru">テーマ</h3>
           <div className="theme-chips" role="group" aria-label="テーマ切替">
             {THEMES.map((item) => (
               <button
@@ -201,7 +200,7 @@ export default function App() {
         </div>
 
         <div className="settings-section">
-          <h3>盤の方位表示</h3>
+          <h3 className="maru">盤の方位表示</h3>
           <div className="direction-toggle" aria-label="方位表示">
             <span className="direction-label">方位</span>
             <label>
