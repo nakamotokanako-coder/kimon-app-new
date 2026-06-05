@@ -131,13 +131,13 @@ describe('strongest ranking scan', () => {
       endDate: '2026-06-01',
       days: 7,
     });
-    expect(formatPeriodLabel(buildPeriodRange('2026-05-26', 31))).toBe('本日 5/26 〜 6/25');
+    expect(formatPeriodLabel(buildPeriodRange('2026-05-26', 31))).toBe('本日 2026/05/26 〜 2026/06/25');
   });
 
-  it('formats year only when the date differs from the origin year', () => {
-    expect(formatDateForOrigin('2026-06-11', '2026-05-26').displayText).toBe('6/11');
-    expect(formatDateForOrigin('2027-01-17', '2026-05-26').displayText).toBe('2027年 1/17');
-    expect(formatDateForOrigin('2027-01-17', '2026-05-26').monthDisplay).toBe('2027年 1月');
+  it('formats display dates with slash-separated year, month, and day', () => {
+    expect(formatDateForOrigin('2026-06-11', '2026-05-26').displayText).toBe('2026/06/11');
+    expect(formatDateForOrigin('2027-01-17', '2026-05-26').displayText).toBe('2027/01/17');
+    expect(formatDateForOrigin('2027-01-17', '2026-05-26').monthDisplay).toBe('2027/01');
   });
 
   it('returns one best direction per day', () => {

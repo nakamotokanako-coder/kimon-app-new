@@ -19,11 +19,16 @@ function weekdayClass(weekday) {
   return '';
 }
 
-function KakkyokuResultCard({ item, isOpen, onToggle, onOpenBoard }) {
+function KakkyokuResultCard({ item, isFeatured, isOpen, onToggle, onOpenBoard }) {
   const rankings = isOpen ? buildReverseBoard({ date: item.date, hour: item.hour }).rankings : [];
   return (
     <div className="kakkyoku-result-wrap">
-      <button type="button" className="kakkyoku-result-card" onClick={onToggle} aria-expanded={isOpen}>
+      <button
+        type="button"
+        className={`kakkyoku-result-card${isFeatured ? ' is-featured' : ''}`}
+        onClick={onToggle}
+        aria-expanded={isOpen}
+      >
         <span className="kakkyoku-result-dir">
           <strong>{item.label}</strong>
           <small>{item.short}</small>
@@ -92,6 +97,9 @@ export default function KakkyokuSearchView({
       sortMode,
     });
   }, [searchParams, sortMode, startDate]);
+  const maxResultScore = useMemo(() => (
+    result.rows.length > 0 ? Math.max(...result.rows.map((item) => item.score)) : null
+  ), [result.rows]);
 
   const toggleName = (name) => {
     setSelectedNames((current) => (
@@ -114,6 +122,7 @@ export default function KakkyokuSearchView({
     <div className="kakkyoku-search-view">
       <div className="kakkyoku-hero">
         <div>
+          <span className="reverse-section-kicker lat">special pattern</span>
           <p>時盤専用</p>
           <h3>特別格局の出現検索</h3>
           <span>狙った大吉格が、いつ・どの方位に出るかを探す</span>
@@ -133,7 +142,7 @@ export default function KakkyokuSearchView({
             <button
               key={item.key}
               type="button"
-              className={periodKey === item.key ? 'is-active' : ''}
+              className={`${periodKey === item.key ? 'is-active ' : ''}lat`}
               onClick={() => setPeriodKey(item.key)}
             >
               {item.label}
@@ -145,6 +154,7 @@ export default function KakkyokuSearchView({
       <div className="kakkyoku-picker">
         <div className="kakkyoku-picker-head">
           <div>
+            <span className="reverse-section-kicker lat">patterns</span>
             <h3>格局</h3>
             <span>{selectedCount}件選択中</span>
           </div>
@@ -186,6 +196,7 @@ export default function KakkyokuSearchView({
         <>
           <div className="kakkyoku-result-head">
             <div>
+              <span className="reverse-section-kicker lat">results</span>
               <h3>検索結果</h3>
               <span>{result.rows.length}件</span>
             </div>
@@ -228,6 +239,7 @@ export default function KakkyokuSearchView({
               <KakkyokuResultCard
                 key={key}
                 item={item}
+                isFeatured={maxResultScore !== null && item.score === maxResultScore}
                 isOpen={openResultKey === key}
                 onToggle={() => setOpenResultKey((current) => (current === key ? null : key))}
                 onOpenBoard={onOpenBoard}

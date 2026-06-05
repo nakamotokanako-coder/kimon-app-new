@@ -1122,6 +1122,362 @@ select {
 }
 
 /* ============================================================
+   盤下部: 盤情報 + 象意パネル 誌面トーン
+   ============================================================ */
+.meta-panel,
+.shoui-panel {
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 84%, transparent);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--accent-glow) 42%, transparent), transparent 58%),
+    color-mix(in srgb, var(--bg-cell) 86%, var(--bg-main));
+  box-shadow: 0 24px 58px -44px color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+
+.meta-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  width: min(100%, 520px);
+}
+
+.meta-section {
+  margin: 0;
+}
+
+.meta-section-title {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 68%, transparent);
+}
+
+.meta-kicker {
+  color: var(--accent);
+  font-size: 0.64rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.meta-section-title h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+}
+
+.meta-section h3::before {
+  display: none;
+}
+
+.meta-card-grid {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 82%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-cell) 76%, transparent);
+}
+
+.meta-card,
+.ban-none {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.meta-card {
+  min-height: 62px;
+  padding: 11px 13px;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 58%, transparent);
+}
+
+.meta-card:nth-child(-n+2) {
+  border-top: 0;
+}
+
+.meta-card:nth-child(odd) {
+  border-right: 1px solid color-mix(in srgb, var(--border-subtle) 58%, transparent);
+}
+
+.meta-card.is-primary {
+  background: color-mix(in srgb, var(--accent-glow) 62%, transparent);
+}
+
+.meta-card-label {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.meta-card-value {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.meta-card.is-primary .meta-card-value {
+  color: var(--accent);
+}
+
+.ban-none {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.shoui-panel {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.shoui-context {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 1.04rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.shoui-context::before {
+  color: var(--accent);
+  font-family: var(--font-latin);
+  font-size: 0.64rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  content: "interpretation";
+}
+
+.shoui-panel .shoui-kichi {
+  color: var(--text-info);
+}
+
+.shoui-panel .shoui-kyo {
+  color: var(--text-danger);
+}
+
+.shoui-panel .shoui-chu {
+  color: var(--accent);
+}
+
+.shoui-palace-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 82%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-cell) 72%, transparent);
+}
+
+.shoui-palace-card {
+  position: relative;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+  background: transparent;
+}
+
+.shoui-palace-card:first-child {
+  border-top: 0;
+}
+
+.shoui-palace-card.is-open::before {
+  position: absolute;
+  inset: 10px auto 10px 0;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  content: "";
+}
+
+.shoui-palace-summary {
+  display: grid;
+  grid-template-columns: minmax(82px, auto) minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 13px 10px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.shoui-palace-card.is-open .shoui-palace-summary {
+  background: color-mix(in srgb, var(--accent-glow) 42%, transparent);
+}
+
+.shoui-palace-name {
+  color: var(--text-primary);
+}
+
+.shoui-palace-name span {
+  font-weight: 900;
+}
+
+.shoui-palace-name small,
+.shoui-palace-brief,
+.shoui-palace-meta span {
+  color: var(--text-secondary);
+}
+
+.shoui-palace-brief {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shoui-palace-meta {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.shoui-palace-meta div {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.shoui-palace-meta b {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+}
+
+.shoui-caret {
+  display: inline-grid;
+  place-items: center;
+  color: var(--accent);
+  font-size: 1rem;
+  transition: transform 180ms ease;
+}
+
+.shoui-palace-card.is-open .shoui-caret {
+  transform: rotate(180deg);
+}
+
+.shoui-palace-body {
+  display: grid;
+  gap: 10px;
+  padding: 0 13px 14px 16px;
+  animation: shouiDisclosureIn 180ms ease;
+}
+
+@keyframes shouiDisclosureIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shoui-chip-area {
+  gap: 7px;
+}
+
+.shoui-term-group {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.shoui-term-label {
+  padding-top: 6px;
+  color: var(--text-secondary);
+}
+
+.shoui-term {
+  min-height: 0;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-cell) 82%, transparent);
+  cursor: default;
+  font-size: 0.8rem;
+}
+
+.shoui-chip.shoui-kichi,
+.shoui-chip.shoui-kyo,
+.shoui-chip.shoui-chu {
+  background: color-mix(in srgb, currentColor 10%, var(--bg-cell));
+  color: currentColor;
+}
+
+.shoui-detail-list {
+  gap: 7px;
+  margin-top: 0;
+}
+
+.shoui-detail-block {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  border-left: 3px solid var(--accent);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--bg-cell) 82%, transparent);
+}
+
+.shoui-detail-block h4 {
+  color: var(--text-primary);
+}
+
+.shoui-panel .shoui-detail-block.shoui-kichi {
+  border-left-color: var(--text-info);
+}
+
+.shoui-panel .shoui-detail-block.shoui-kyo {
+  border-left-color: var(--text-danger);
+}
+
+.shoui-panel .shoui-detail-block.shoui-chu {
+  border-left-color: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .meta-panel,
+  .shoui-panel {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .meta-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .meta-card,
+  .meta-card:nth-child(-n+2) {
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle) 58%, transparent);
+    border-right: 0;
+  }
+
+  .meta-card:first-child {
+    border-top: 0;
+  }
+
+  .shoui-palace-summary {
+    grid-template-columns: minmax(58px, auto) minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .shoui-palace-meta {
+    display: none;
+  }
+
+  .shoui-term-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ============================================================
    Phase 3-C: ◎順利 (junri) UI
    ============================================================ */
 
@@ -5449,4 +5805,184 @@ body {
     justify-items: start;
     grid-auto-flow: column;
   }
+/* Kakkyoku search editorial polish */
+.kakkyoku-search-view {
+  display: grid;
+  gap: 16px;
+}
+
+.kakkyoku-hero,
+.kakkyoku-basis,
+.kakkyoku-period,
+.kakkyoku-picker {
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 76%, transparent);
+  box-shadow: 0 18px 44px -34px color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+
+.kakkyoku-hero {
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 58%),
+    color-mix(in srgb, var(--bg-cell) 86%, var(--bg-elevated));
+}
+
+.kakkyoku-hero > b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 58px;
+  min-height: 58px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-heading);
+}
+
+.kakkyoku-hero h3,
+.kakkyoku-picker-head h3,
+.kakkyoku-result-head h3 {
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  letter-spacing: 0.03em;
+}
+
+.kakkyoku-hero p,
+.kakkyoku-hero span:not(.reverse-section-kicker),
+.kakkyoku-period p,
+.kakkyoku-picker-head > div:first-child > span:not(.reverse-section-kicker),
+.kakkyoku-result-head > div:first-child > span:not(.reverse-section-kicker),
+.kakkyoku-practical {
+  color: var(--text-secondary);
+}
+
+.kakkyoku-basis {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.kakkyoku-basis strong {
+  color: var(--accent);
+}
+
+.kakkyoku-period,
+.kakkyoku-picker {
+  padding: 16px;
+}
+
+.kakkyoku-picker-head,
+.kakkyoku-result-head {
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+}
+
+.kakkyoku-period > div,
+.kakkyoku-picker-head > div:last-child,
+.kakkyoku-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.kakkyoku-period button,
+.kakkyoku-picker-head button,
+.kakkyoku-group button {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: transform 160ms var(--bounce), border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.kakkyoku-period button.is-active,
+.kakkyoku-group button.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.kakkyoku-search-button {
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
+}
+
+.kakkyoku-sort-toggle {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(88px, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+.kakkyoku-sort-toggle button {
+  position: relative;
+  z-index: 1;
+  min-height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.kakkyoku-sort-toggle button.is-active {
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.kakkyoku-result-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 72%, transparent);
+  box-shadow: 0 18px 44px -36px color-mix(in srgb, var(--text-primary) 36%, transparent);
+}
+
+.kakkyoku-result-card {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.kakkyoku-result-wrap:first-child .kakkyoku-result-card {
+  border-top: 0;
+}
+
+.kakkyoku-result-card.is-featured {
+  margin: 8px;
+  border: 1.5px solid var(--accent-edge);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 58%),
+    color-mix(in srgb, var(--bg-cell) 86%, var(--bg-elevated));
+  box-shadow: 0 24px 58px -38px var(--accent);
+}
+
+.kakkyoku-result-card.is-featured .kakkyoku-result-dir strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.kakkyoku-result-card.is-featured .kakkyoku-result-score {
+  color: var(--accent);
+}
+
+.kakkyoku-result-score {
+  font-family: var(--font-latin);
 }

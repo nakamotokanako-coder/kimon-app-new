@@ -61,22 +61,21 @@ export function formatRankingDate(date) {
   const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
   const month = parsed.getUTCMonth() + 1;
   const day = parsed.getUTCDate();
+  const displayDate = date.replaceAll('-', '/');
   return {
-    text: `${month}/${day}`,
+    text: displayDate,
     weekday: weekdays[parsed.getUTCDay()],
     monthKey: `${parsed.getUTCFullYear()}-${String(month).padStart(2, '0')}`,
-    monthLabel: `${month}月`,
+    monthLabel: `${parsed.getUTCFullYear()}/${String(month).padStart(2, '0')}`,
   };
 }
 
-export function formatDateForOrigin(date, originDate) {
+export function formatDateForOrigin(date) {
   const meta = formatRankingDate(date);
-  const year = date.slice(0, 4);
-  const originYear = originDate.slice(0, 4);
   return {
     ...meta,
-    displayText: year === originYear ? meta.text : `${Number(year)}年 ${meta.text}`,
-    monthDisplay: year === originYear ? meta.monthLabel : `${Number(year)}年 ${meta.monthLabel}`,
+    displayText: meta.text,
+    monthDisplay: meta.monthLabel,
   };
 }
 

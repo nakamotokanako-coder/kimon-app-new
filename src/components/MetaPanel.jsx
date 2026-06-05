@@ -9,11 +9,11 @@ function MetaCardGrid({ rows, emptyText = null }) {
     <div className="meta-card-grid">
       {visibleRows.map((row) => (
         <div
-          className={`meta-card${row.alert ? ' is-alert' : ''}${row.wide ? ' is-wide' : ''}`}
+          className={`meta-card${row.alert ? ' is-alert' : ''}${row.wide ? ' is-wide' : ''}${row.primary ? ' is-primary' : ''}`}
           key={row.key || row.label}
         >
           <div className="meta-card-label">{row.label}</div>
-          <div className="meta-card-value">{row.value}</div>
+          <div className="meta-card-value lat">{row.value}</div>
         </div>
       ))}
     </div>
@@ -44,8 +44,8 @@ export default function MetaPanel({ meta, banLevel }) {
 
   const infoRows = [
     { key: 'boardType', label: '盤種', value: `${meta.boardType}盤` },
-    { key: 'kyokusu', label: '局数', value: meta.kyokusu },
-    { key: 'eto', label: 'キー干支', value: meta.eto },
+    { key: 'kyokusu', label: '局数', value: meta.kyokusu, primary: true },
+    { key: 'eto', label: 'キー干支', value: meta.eto, primary: true },
     { key: 'junshu', label: '旬首', value: meta.junshu },
     { key: 'chokufu', label: '直符', value: meta.chokufu },
     { key: 'chokushi', label: '直使', value: meta.chokushi },
@@ -64,12 +64,18 @@ export default function MetaPanel({ meta, banLevel }) {
   return (
     <div className="meta-panel">
       <div className="meta-section">
-        <h3>盤情報</h3>
+        <div className="meta-section-title">
+          <span className="meta-kicker lat">board info</span>
+          <h3 className="maru">盤情報</h3>
+        </div>
         <MetaCardGrid rows={infoRows} />
       </div>
 
       <div className="meta-section">
-        <h3>干支</h3>
+        <div className="meta-section-title">
+          <span className="meta-kicker lat">eto</span>
+          <h3 className="maru">干支</h3>
+        </div>
         <MetaCardGrid rows={etoRows} />
       </div>
 
@@ -78,7 +84,10 @@ export default function MetaPanel({ meta, banLevel }) {
           九星の計算ロジック自体は temporal data として温存。 */}
 
       <div className="meta-section">
-        <h3>盤レベル判定</h3>
+        <div className="meta-section-title">
+          <span className="meta-kicker lat">board level</span>
+          <h3 className="maru">盤レベル判定</h3>
+        </div>
         <MetaCardGrid rows={banRows} emptyText="特になし" />
       </div>
     </div>
