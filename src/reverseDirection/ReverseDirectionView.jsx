@@ -7,6 +7,7 @@ import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
+import NotificationBell from '../components/NotificationBell.jsx';
 import { sortTimelineSlotsByScore } from './strongestRanking.js';
 import {
   buildDayReverseBoard,
@@ -76,7 +77,12 @@ function readStoredFavorites() {
   }
 }
 
-export default function ReverseDirectionView({ isActive, onOpenBoard }) {
+export default function ReverseDirectionView({
+  isActive,
+  onOpenBoard,
+  unreadNotificationCount = 0,
+  onOpenNotifications,
+}) {
   const [location, setLocation] = useState(DEFAULT_LOCATIONS[0]);
   const [currentMode, setCurrentMode] = useState('search');
   const [selectedFavoriteId, setSelectedFavoriteId] = useState(null);
@@ -279,13 +285,16 @@ export default function ReverseDirectionView({ isActive, onOpenBoard }) {
               : `時盤・自然時補正 ${formatCorrection(correction)} / ${location.name}`}
           </p>
         </div>
-        {mode !== 'range' && (
-          <div className="reverse-time-chip lat">
-            {mode === 'day' || mode === 'ranking'
-              ? dayDate
-              : getTimeSlotLabel(slotHour)}
-          </div>
-        )}
+        <div className="reverse-header-actions">
+          {mode !== 'range' && (
+            <div className="reverse-time-chip lat">
+              {mode === 'day' || mode === 'ranking'
+                ? dayDate
+                : getTimeSlotLabel(slotHour)}
+            </div>
+          )}
+          <NotificationBell unreadCount={unreadNotificationCount} onClick={onOpenNotifications} />
+        </div>
       </div>
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
