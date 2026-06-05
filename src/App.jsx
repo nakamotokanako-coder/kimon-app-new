@@ -5,6 +5,8 @@ import InputControls from './components/InputControls.jsx';
 import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
+import NotificationBell from './components/NotificationBell.jsx';
+import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import packageJson from '../package.json';
 
@@ -25,6 +27,33 @@ const LEGACY_THEME_MAP = {
 };
 const SETTINGS_STORAGE_PREFIX = 'kimon-setting-';
 const APP_VERSION = `v${packageJson?.version || '0.0.0'}`;
+const NOTIFICATION_READ_KEY = 'kimon-notification-read-ids';
+const NOTIFICATIONS = [
+  {
+    id: 'ops-2026-06-05',
+    type: 'ops',
+    sender: '運営',
+    title: 'テーマ表示を調整しました',
+    body: '各テーマのアクセントカラーと誌面トーンを整えました。表示に気づいた点があればフィードバックから送れます。',
+    date: '2026/06/05',
+  },
+  {
+    id: 'teacher-2026-06-04',
+    type: 'teacher',
+    sender: '先生',
+    title: '吉方位を見るときの目安',
+    body: '短い外出は時盤、遠出や予定づくりは日盤を中心に見ると整理しやすくなります。',
+    date: '2026/06/04',
+  },
+  {
+    id: 'history-2026-06-03',
+    type: 'history',
+    sender: '通知履歴',
+    title: 'お気に入り通知の準備中',
+    body: 'お気に入り地点が最高方位になったときの通知は、今後の配線で有効化します。',
+    date: '2026/06/03',
+  },
+];
 
 function readStoredSetting(key, fallback) {
   if (typeof window === 'undefined') return fallback;
@@ -38,6 +67,16 @@ function readStoredSetting(key, fallback) {
 function readStoredBoolSetting(key, fallback = false) {
   const stored = readStoredSetting(key, fallback ? 'true' : 'false');
   return stored === 'true';
+}
+
+function readStoredJsonArray(key) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function getTodayJst() {
@@ -73,6 +112,7 @@ export default function App() {
   const [theme, setTheme] = useState(INITIAL_THEME);
   const [direction, setDirection] = useState('north_bottom');
   const [activeTab, setActiveTab] = useState('board');
+  const [previousTab, setPreviousTab] = useState('board');
   const [hasVisitedDirection, setHasVisitedDirection] = useState(false);
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
@@ -82,6 +122,7 @@ export default function App() {
   const [omamoriReminder, setOmamoriReminder] = useState(() => readStoredBoolSetting('omamori-reminder'));
   const [favoriteBestNotify, setFavoriteBestNotify] = useState(() => readStoredBoolSetting('favorite-best-notify'));
   const [showBadDirections, setShowBadDirections] = useState(() => readStoredBoolSetting('show-bad-directions'));
+  const [readNotificationIds, setReadNotificationIds] = useState(() => readStoredJsonArray(NOTIFICATION_READ_KEY));
 
   const board = useMemo(() => {
     try {
@@ -138,6 +179,23 @@ export default function App() {
     setter(next);
     saveSetting(key, next);
   };
+  const unreadNotificationCount = NOTIFICATIONS.filter((item) => !readNotificationIds.includes(item.id)).length;
+  const openNotifications = () => {
+    setPreviousTab(activeTab === 'notifications' ? previousTab : activeTab);
+    setActiveTab('notifications');
+  };
+  const markNotificationRead = (id) => {
+    setReadNotificationIds((current) => {
+      if (current.includes(id)) return current;
+      const next = [...current, id];
+      try {
+        localStorage.setItem(NOTIFICATION_READ_KEY, JSON.stringify(next));
+      } catch {
+        // Notification read state is optional when storage is unavailable.
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (activeTab !== 'board' || boardScrollRequest === 0 || !board) return undefined;
@@ -164,6 +222,7 @@ export default function App() {
               <h1 className="maru">奇門遁甲</h1>
             </div>
           </div>
+          <NotificationBell unreadCount={unreadNotificationCount} onClick={openNotifications} />
         </div>
       </header>
 
@@ -395,10 +454,20 @@ export default function App() {
           <ReverseDirectionView
             isActive={activeTab === 'direction'}
             onOpenBoard={openFullBoard}
+            unreadNotificationCount={unreadNotificationCount}
+            onOpenNotifications={openNotifications}
           />
         </div>
       )}
       {activeTab === 'settings' && settingsView}
+      {activeTab === 'notifications' && (
+        <NotificationsView
+          items={NOTIFICATIONS}
+          readIds={readNotificationIds}
+          onRead={markNotificationRead}
+          onBack={() => setActiveTab(previousTab)}
+        />
+      )}
 
       <nav className="bottom-tabbar" aria-label="アプリメニュー">
         <button
