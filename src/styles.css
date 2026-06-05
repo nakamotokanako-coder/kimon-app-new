@@ -5229,3 +5229,185 @@ body {
 .saikyo-more {
   border-radius: 999px;
 }
+
+/* Kakkyoku search editorial polish */
+.kakkyoku-search-view {
+  display: grid;
+  gap: 16px;
+}
+
+.kakkyoku-hero,
+.kakkyoku-basis,
+.kakkyoku-period,
+.kakkyoku-picker {
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 76%, transparent);
+  box-shadow: 0 18px 44px -34px color-mix(in srgb, var(--text-primary) 42%, transparent);
+}
+
+.kakkyoku-hero {
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 58%),
+    color-mix(in srgb, var(--bg-cell) 86%, var(--bg-elevated));
+}
+
+.kakkyoku-hero > b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 58px;
+  min-height: 58px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-heading);
+}
+
+.kakkyoku-hero h3,
+.kakkyoku-picker-head h3,
+.kakkyoku-result-head h3 {
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  letter-spacing: 0.03em;
+}
+
+.kakkyoku-hero p,
+.kakkyoku-hero span:not(.reverse-section-kicker),
+.kakkyoku-period p,
+.kakkyoku-picker-head > div:first-child > span:not(.reverse-section-kicker),
+.kakkyoku-result-head > div:first-child > span:not(.reverse-section-kicker),
+.kakkyoku-practical {
+  color: var(--text-secondary);
+}
+
+.kakkyoku-basis {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.kakkyoku-basis strong {
+  color: var(--accent);
+}
+
+.kakkyoku-period,
+.kakkyoku-picker {
+  padding: 16px;
+}
+
+.kakkyoku-picker-head,
+.kakkyoku-result-head {
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+}
+
+.kakkyoku-period > div,
+.kakkyoku-picker-head > div:last-child,
+.kakkyoku-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.kakkyoku-period button,
+.kakkyoku-picker-head button,
+.kakkyoku-group button {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: transform 160ms var(--bounce), border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.kakkyoku-period button.is-active,
+.kakkyoku-group button.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.kakkyoku-search-button {
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
+}
+
+.kakkyoku-sort-toggle {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(88px, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+.kakkyoku-sort-toggle button {
+  position: relative;
+  z-index: 1;
+  min-height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.kakkyoku-sort-toggle button.is-active {
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.kakkyoku-result-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-cell) 72%, transparent);
+  box-shadow: 0 18px 44px -36px color-mix(in srgb, var(--text-primary) 36%, transparent);
+}
+
+.kakkyoku-result-card {
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.kakkyoku-result-wrap:first-child .kakkyoku-result-card {
+  border-top: 0;
+}
+
+.kakkyoku-result-card.is-featured {
+  margin: 8px;
+  border: 1.5px solid var(--accent-edge);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 58%),
+    color-mix(in srgb, var(--bg-cell) 86%, var(--bg-elevated));
+  box-shadow: 0 24px 58px -38px var(--accent);
+}
+
+.kakkyoku-result-card.is-featured .kakkyoku-result-dir strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.kakkyoku-result-card.is-featured .kakkyoku-result-score {
+  color: var(--accent);
+}
+
+.kakkyoku-result-score {
+  font-family: var(--font-latin);
+}
