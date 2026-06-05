@@ -160,6 +160,7 @@ export default function App() {
           <div className="brand-block">
             <span className="brand-mark">遁</span>
             <div>
+              <span className="board-kicker lat">QIMEN BOARD</span>
               <h1 className="maru">奇門遁甲</h1>
               <p className="subtitle">日盤・時盤メモ</p>
             </div>
@@ -177,7 +178,9 @@ export default function App() {
           date={state.date}
           hour={state.hour}
           boardType={state.boardType}
+          direction={direction}
           onChange={handleChange}
+          onDirectionChange={setDirection}
         />
 
         {error && <div className="error">エラー: {error}</div>}
@@ -208,7 +211,7 @@ export default function App() {
     <main className="settings-view">
       <section className="settings-card">
         <h2 className="maru">設定</h2>
-        <p>テーマと盤の方位表示を切り替えます。</p>
+        <p>テーマと表示まわりを切り替えます。</p>
 
         <div className="settings-section">
           <h3 className="maru">テーマ</h3>
@@ -234,33 +237,6 @@ export default function App() {
                 {item.label}
               </button>
             ))}
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <h3 className="maru">盤の方位表示</h3>
-          <div className="direction-toggle" aria-label="方位表示">
-            <span className="direction-label">方位</span>
-            <label>
-              <input
-                type="radio"
-                name="direction"
-                value="north_bottom"
-                checked={direction === 'north_bottom'}
-                onChange={() => setDirection('north_bottom')}
-              />
-              北を下
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="direction"
-                value="south_bottom"
-                checked={direction === 'south_bottom'}
-                onChange={() => setDirection('south_bottom')}
-              />
-              南を下
-            </label>
           </div>
         </div>
 
