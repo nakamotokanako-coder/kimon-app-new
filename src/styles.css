@@ -1402,7 +1402,7 @@ select {
 
 /* ── パール（pearl）= 明るい白背景 ── */
 :root[data-theme="pearl"] {
-  --bg-main: #f3efe8;
+  --bg-main: #f9f7f1;
   --bg-cell: #fffefb;
   --bg-elevated: #ebe0c5;
   --border-main: #c79248;
@@ -1423,12 +1423,7 @@ select {
   --first-rank-sub: #d9b66a;
   --first-rank-body: #eadfc7;
   --first-rank-score: #f0c66e;
-  --page-bg:
-    radial-gradient(circle at 18% 14%, rgba(255, 226, 238, .5), transparent 46%),
-    radial-gradient(circle at 84% 18%, rgba(218, 234, 255, .48), transparent 46%),
-    radial-gradient(circle at 72% 86%, rgba(255, 246, 220, .58), transparent 50%),
-    radial-gradient(circle at 24% 90%, rgba(236, 228, 255, .42), transparent 48%),
-    linear-gradient(160deg, #fdfbf7, #f3efe8);
+  --page-bg: linear-gradient(180deg, #fefdfb 0%, #f9f7f1 52%, #f3f0e7 100%);
   --is-dark: 0;
   --accent: #c79a3c;
   --accent-deep: #8a5f1b;
@@ -4946,6 +4941,10 @@ body {
 
 .reverse-filter-controls {
   margin-top: 0;
+}
+
+:root[data-theme="pearl"] .reverse-list-panel {
+  background: color-mix(in srgb, var(--bg-cell) 88%, var(--bg-main));
 }
 
 .reverse-timeline {
