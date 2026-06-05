@@ -1,8 +1,9 @@
 /* ベース変数（フォント等のテーマ非依存値 + フォールバック）。
-   配色は後段「宇宙テック・5テーマ」ブロックで data-theme ごとに上書きする。 */
+   配色は後段「宇宙テック・4テーマ」ブロックで data-theme ごとに上書きする。 */
 :root {
-  --font-heading: 'Noto Sans JP', sans-serif;
+  --font-heading: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
   --font-body: 'Noto Sans JP', sans-serif;
+  --font-latin: 'Playfair Display', serif;
 }
 
 * {
@@ -22,6 +23,15 @@ body {
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--text-accent) 18%, transparent), transparent 34rem),
     linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 58%, var(--bg-main)) 0%, var(--bg-main) 34rem);
   color: var(--text-primary);
+}
+
+.lat {
+  font-family: var(--font-latin);
+}
+
+.maru {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
 }
 
 button,
@@ -793,7 +803,7 @@ select {
    表示はここで実色にマッピングする。 */
 .shoui-kichi   { color: #4472C4; }              /* 吉=青 */
 .shoui-kyo     { color: #FF0000; }              /* 凶=赤 */
-.shoui-chu     { color: #e6c34a; }              /* 中立=黄(ゴールド) */
+.shoui-chu     { color: var(--accent); }        /* 中立=テーマアクセント */
 
 .shoui-palace-list {
   display: grid;
@@ -941,8 +951,8 @@ select {
 }
 
 .shoui-chip.shoui-chu {
-  border-color: #e6c34a;
-  background: color-mix(in srgb, #e6c34a 24%, var(--bg-elevated));
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 24%, var(--bg-elevated));
   color: var(--text-primary);
 }
 
@@ -986,7 +996,7 @@ select {
 }
 
 .shoui-detail-block.shoui-chu {
-  border-left-color: #e6c34a;
+  border-left-color: var(--accent);
 }
 
 .shoui-detail-block h4 {
@@ -1249,7 +1259,7 @@ select {
    ============================================================ */
 
 /* ============================================================
-   宇宙テック・5テーマ（void/blue/purple/pearl/pink）
+   宇宙テック・4テーマ（void/blue/pearl/pink）
    モック board_cosmos_genkou.html のCSS変数をそのまま移植。
    各ブロックは「既存コンポーネント用のレガシー変数」＋「盤刷新用の
    宇宙変数（--accent / --cell-bg / --frame ... ）」の両方を定義する。
@@ -1292,7 +1302,11 @@ select {
   /* 宇宙変数 */
   --page-bg: radial-gradient(ellipse 120% 70% at 50% 16%, #0c0c14, #070709 60%, #030304);
   --is-dark: 1;
-  --accent: #ffd368;
+  --accent: #e6c34a;
+  --accent-deep: #9c7d1c;
+  --accent-edge: #f2d98a;
+  --accent-glow: rgba(230, 195, 74, .28);
+  --accent-grad: linear-gradient(118deg, #9c7322, #d7ab4d 25%, #fcefc4 44%, #ecd083 55%, #c59433 74%, #9c7322);
   --accent-soft: #ffe6a6;
   --dim: #8b8a98;
   --frame: rgba(255, 211, 104, .5);
@@ -1348,7 +1362,11 @@ select {
     radial-gradient(circle at 84% 88%, rgba(80, 120, 255, .16), transparent 50%),
     radial-gradient(ellipse 130% 78% at 50% 18%, #0c1838, #070f26 58%, #03050f);
   --is-dark: 1;
-  --accent: #46e8ff;
+  --accent: #3fc4d8;
+  --accent-deep: #1f7e8e;
+  --accent-edge: #8fe0ec;
+  --accent-glow: rgba(63, 196, 216, .26);
+  --accent-grad: linear-gradient(118deg, #1f6c7a, #3fb0c4 30%, #bfeef4 48%, #5fc8d8 60%, #2a8c9c 78%, #1f6c7a);
   --accent-soft: #9af3ff;
   --dim: #92a0bd;
   --frame: rgba(70, 232, 255, .45);
@@ -1374,62 +1392,6 @@ select {
   --dir: #7d8aa6;
   --bar-bg: rgba(12, 18, 36, .6);
   --bar-bd: rgba(70, 232, 255, .16);
-  --chip-bg: rgba(255, 255, 255, .06);}
-
-/* ── 星雲（purple） ── */
-:root[data-theme="purple"] {
-  --bg-main: #100823;
-  --bg-cell: #190f30;
-  --bg-elevated: #160e2c;
-  --border-main: #b07fd6;
-  --border-subtle: rgba(255, 255, 255, .12);
-  --text-primary: #efeafb;
-  --text-secondary: #a99cc6;
-  --text-accent: #c98bff;
-  --text-danger: #ff8aa0;
-  --text-info: #c9a3ff;
-  --text-success: #7ef0c0;
-  --shadow-glow: 0 0 8px rgba(201, 139, 255, .4);
-  --zodiac-color: #9a8fb0;
-  --first-rank-bg: #2a1640;
-  --first-rank-border: #9b5fd6;
-  --first-rank-badge-bg: #9b5fd6;
-  --first-rank-badge-text: #fff;
-  --first-rank-title: #f3e8ff;
-  --first-rank-sub: #d0a7f0;
-  --first-rank-body: #d9c8ec;
-  --first-rank-score: #e0c2ff;
-  --page-bg:
-    radial-gradient(circle at 80% 10%, rgba(201, 139, 255, .2), transparent 46%),
-    radial-gradient(circle at 16% 88%, rgba(255, 90, 180, .12), transparent 52%),
-    radial-gradient(ellipse 130% 78% at 50% 18%, #1a1038, #100823 58%, #070314);
-  --is-dark: 1;
-  --accent: #c98bff;
-  --accent-soft: #e6c4ff;
-  --dim: #a99cc6;
-  --frame: rgba(201, 139, 255, .45);
-  --frame-glow: 0 0 34px -6px rgba(201, 139, 255, .5), inset 0 0 46px -22px rgba(201, 139, 255, .32);
-  --frame-fill: linear-gradient(160deg, rgba(22, 14, 44, .84), rgba(10, 6, 22, .92));
-  --cell-bg: linear-gradient(160deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .025));
-  --cell-bd: rgba(255, 255, 255, .1);
-  --cell-sh: 0 12px 30px -16px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .06);
-  --kichi-bd: rgba(201, 139, 255, .5);
-  --kichi-sh: 0 0 0 1px rgba(201, 139, 255, .22), 0 0 22px -3px rgba(201, 139, 255, .42);
-  --kamei: #fff;
-  --gogyo: #cdb0e8;
-  --kan: #faf5ff;
-  --kan-glow: 0 0 12px rgba(230, 196, 255, .4);
-  --shin: #c9a3ff;
-  --sei: #e6d4ff;
-  --plus: #7ef0c0;
-  --plus-g: 0 0 12px rgba(126, 240, 192, .5);
-  --minus: #ff8aa0;
-  --minus-g: 0 0 12px rgba(255, 110, 150, .4);
-  --zero: #dcd2ec;
-  --shoui-x: #ff8aa0;
-  --dir: #9a8fb0;
-  --bar-bg: rgba(26, 16, 40, .6);
-  --bar-bd: rgba(201, 139, 255, .16);
   --chip-bg: rgba(255, 255, 255, .06);}
 
 /* ── パール（pearl）= 明るい白背景 ── */
@@ -1462,7 +1424,11 @@ select {
     radial-gradient(circle at 24% 90%, rgba(236, 228, 255, .42), transparent 48%),
     linear-gradient(160deg, #fdfbf7, #f3efe8);
   --is-dark: 0;
-  --accent: #c79248;
+  --accent: #c79a3c;
+  --accent-deep: #8a5f1b;
+  --accent-edge: #e0c281;
+  --accent-glow: rgba(191, 143, 60, .22);
+  --accent-grad: linear-gradient(118deg, #9c7322, #d7ab4d 25%, #fcefc4 44%, #ecd083 55%, #c59433 74%, #9c7322);
   --accent-soft: #a9743a;
   --dim: #8a7d6a;
   --frame: rgba(199, 146, 72, .55);
@@ -1518,7 +1484,11 @@ select {
     radial-gradient(circle at 86% 88%, rgba(255, 226, 208, .92), transparent 54%),
     linear-gradient(160deg, #fdeef2, #fce2e7);
   --is-dark: 0;
-  --accent: #c25d7e;
+  --accent: #c0897e;
+  --accent-deep: #8f5249;
+  --accent-edge: #e6bdb2;
+  --accent-glow: rgba(192, 137, 126, .24);
+  --accent-grad: linear-gradient(118deg, #a8615f, #cf8f86 28%, #f6d8cf 46%, #e0aa9e 60%, #b8746b 78%, #a8615f);
   --accent-soft: #a83e63;
   --dim: #9c7e88;
   --frame: rgba(194, 93, 126, .55);
@@ -2609,8 +2579,8 @@ body {
 .direction-poi-pin.is-favorite {
   width: 28px;
   height: 28px;
-  border-color: #e6c34a;
-  box-shadow: 0 0 0 2px rgba(230, 195, 74, 0.28), 0 2px 8px rgba(0, 0, 0, 0.55);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
 .direction-popup-button {
@@ -2854,7 +2824,7 @@ body {
 }
 
 .direction-ring-label {
-  color: #e6c34a;
+  color: var(--accent);
   font: 800 10px var(--font-body);
   text-align: center;
   text-shadow: 0 1px 3px #000, 0 0 4px #000;
@@ -2988,7 +2958,7 @@ body {
   padding: 15px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  background: radial-gradient(120% 120% at 100% 0%, rgba(230, 195, 74, 0.12), transparent 54%), var(--bg-card);
+  background: radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 54%), var(--bg-card);
 }
 
 .saikyo-kicker,
@@ -3110,7 +3080,7 @@ body {
 
 .saikyo-card.is-top1 {
   border-color: var(--border-main);
-  box-shadow: 0 0 0 1px rgba(230, 195, 74, 0.24), 0 10px 24px -18px rgba(230, 195, 74, 0.7);
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 10px 24px -18px var(--accent);
 }
 
 .saikyo-rank {
@@ -3581,9 +3551,9 @@ body {
 .reverse-seg.tone-bad-strong { fill: #a3302a; }
 
 .reverse-seg.is-best {
-  stroke: #e6c34a;
+  stroke: var(--accent);
   stroke-width: 4;
-  filter: drop-shadow(0 0 7px rgba(230, 195, 74, 0.75));
+  filter: drop-shadow(0 0 7px var(--accent-glow));
 }
 
 .reverse-score-text,
@@ -3882,7 +3852,7 @@ body {
 .legend-swatch.tone-weak { background: #85b7eb; }
 .legend-swatch.tone-neutral { background: #6f6c5e; }
 .legend-swatch.tone-bad { background: #c2554f; }
-.legend-swatch.tone-best { background: #e6c34a; }
+.legend-swatch.tone-best { background: var(--accent); }
 
 .reverse-best-card {
   display: grid;
@@ -4015,8 +3985,8 @@ body {
 }
 
 .mini-board-cell.is-best {
-  outline: 2px solid #e6c34a;
-  box-shadow: 0 0 8px rgba(230, 195, 74, 0.45);
+  outline: 2px solid var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .mini-board-cell.daikichi {
@@ -4167,7 +4137,7 @@ body {
 }
 
 .reverse-tl-item.is-expanded {
-  border-color: #e6c34a;
+  border-color: var(--accent);
   border-radius: 11px 11px 0 0;
 }
 
@@ -4176,7 +4146,7 @@ body {
   justify-items: center;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #e6c34a;
+  border: 1px solid var(--accent);
   border-top: 0;
   border-radius: 0 0 11px 11px;
   background: var(--bg-elevated);
@@ -4242,7 +4212,7 @@ body {
   padding: 14px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  background: radial-gradient(120% 120% at 100% 0%, rgba(230, 195, 74, 0.12), transparent 54%), var(--bg-card);
+  background: radial-gradient(120% 120% at 100% 0%, var(--accent-glow), transparent 54%), var(--bg-card);
 }
 
 .sanban-route-hero p,
@@ -4459,7 +4429,7 @@ body {
   opacity: 0;
 }
 
-/* ── テーマチップ（盤上部の5テーマ切替） ── */
+/* ── テーマチップ（設定画面の4テーマ切替） ── */
 /* テーマ選択チップ（設定画面のテーマ選択UI。色ドット＋名称＋選択中発光枠） */
 .theme-chips {
   display: flex;
@@ -4501,4 +4471,51 @@ body {
 .theme-chip.is-active {
   border-color: var(--accent);
   color: var(--accent-soft);
+}
+
+/* 誌面フォント適用。盤セル系は対象外にして、逆引き・ランキングUIへ限定する。 */
+.ctrl input[type="date"],
+.reverse-time-chip,
+.reverse-correction,
+.reverse-best-no,
+.reverse-best-score,
+.reverse-tl-time,
+.reverse-tl-score,
+.saikyo-rank strong,
+.saikyo-row span,
+.saikyo-score,
+.saikyo-tie,
+.saikyo-monthly strong,
+.saikyo-monthly small,
+.saikyo-monthly b,
+.kakkyoku-result-date,
+.kakkyoku-result-score,
+.reverse-score-text,
+.mini-board-score,
+.sanban-route-hero b,
+.sanban-result-head b,
+.sanban-result-slot span,
+.sanban-result-slot b,
+.sanban-threshold strong {
+  font-family: var(--font-latin);
+}
+
+.app-header h1,
+.settings-card h2,
+.settings-card h3,
+.reverse-header h2,
+.reverse-card-title h3,
+.reverse-timeline h3,
+.reverse-placeholder h3,
+.direction-place-section h3,
+.direction-favorite-sheet h3,
+.direction-scale-card h3,
+.saikyo-top h3,
+.saikyo-section h3,
+.kakkyoku-hero h3,
+.kakkyoku-picker-head h3,
+.kakkyoku-result-head h3,
+.sanban-route-hero h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
 }
