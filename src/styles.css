@@ -1470,7 +1470,7 @@ select {
   }
 
   .meta-card-grid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .meta-card,
@@ -1479,8 +1479,27 @@ select {
     border-right: 0;
   }
 
-  .meta-card:first-child {
+  .meta-card:nth-child(-n+2) {
     border-top: 0;
+  }
+
+  .meta-card:nth-child(odd) {
+    border-right: 1px solid color-mix(in srgb, var(--border-subtle) 58%, transparent);
+  }
+
+  .meta-card {
+    min-height: 58px;
+    padding: 10px 11px;
+  }
+
+  .meta-card-label {
+    font-size: 0.66rem;
+    line-height: 1.25;
+  }
+
+  .meta-card-value {
+    font-size: 0.92rem;
+    line-height: 1.28;
   }
 
   .shoui-palace-summary {
@@ -6033,6 +6052,8 @@ body {
     justify-items: start;
     grid-auto-flow: column;
   }
+}
+
 /* Kakkyoku search editorial polish */
 .kakkyoku-search-view {
   display: grid;
