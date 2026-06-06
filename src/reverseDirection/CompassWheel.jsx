@@ -3,13 +3,71 @@ import { PALACE_DIRECTIONS } from './reverseDirection.js';
 
 const CENTER = 175;
 const RADIUS = 145;
+const WISH_MARKER_SIZE = 28;
 export const GATE_ICONS = {
-  '生門': '\u{1F4B0}',
-  '休門': '\u{1F49E}',
-  '開門': '\u{1F4BC}',
-  '杜門': '\u{1F33F}',
-  '景門': '\u{1F4D8}',
+  '生門': 'money',
+  '休門': 'bond',
+  '開門': 'work',
+  '杜門': 'health',
+  '景門': 'study',
 };
+
+function WishIcon({ type, x, y, delay }) {
+  const commonProps = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: '1.7',
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  };
+  const iconX = x - WISH_MARKER_SIZE / 2;
+  const iconY = y - WISH_MARKER_SIZE / 2;
+
+  return (
+    <svg
+      className="reverse-gate-icon"
+      style={{ '--wish-delay': `${delay}s` }}
+      x={iconX}
+      y={iconY}
+      width={WISH_MARKER_SIZE}
+      height={WISH_MARKER_SIZE}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      {type === 'money' && (
+        <g {...commonProps}>
+          <circle cx="12" cy="12" r="8.8" />
+          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1" />
+        </g>
+      )}
+      {type === 'bond' && (
+        <g {...commonProps}>
+          <circle cx="9.2" cy="12" r="4.8" />
+          <circle cx="14.8" cy="12" r="4.8" />
+        </g>
+      )}
+      {type === 'work' && (
+        <g {...commonProps}>
+          <rect x="3.5" y="8" width="17" height="11" rx="2.2" />
+          <path d="M8.5 8 V6.6 A1.6 1.6 0 0 1 10.1 5 H13.9 A1.6 1.6 0 0 1 15.5 6.6 V8" />
+          <path d="M3.5 12.8 H20.5" />
+        </g>
+      )}
+      {type === 'health' && (
+        <g {...commonProps}>
+          <path d="M5.5 18.5 C5.5 10 11 5 18.5 5 C18.5 12.5 13 18.5 5.5 18.5 Z" />
+          <path d="M8 16 C11 12.5 14 9.5 17 7.5" />
+        </g>
+      )}
+      {type === 'study' && (
+        <g {...commonProps}>
+          <path d="M12 6.2 C10 4.8 6.2 4.8 4 5.8 V18 C6.2 17 10 17 12 18.2 C14 17 17.8 17 20 18 V5.8 C17.8 4.8 14 4.8 12 6.2 Z" />
+          <path d="M12 6.2 V18.2" />
+        </g>
+      )}
+    </svg>
+  );
+}
 
 function polarPoint(angleDeg) {
   const rad = (angleDeg - 90) * Math.PI / 180;
@@ -57,14 +115,12 @@ export default function CompassWheel({ rankings, bestPalace }) {
                 {item ? `${item.score > 0 ? '+' : ''}${item.score}` : '0'}
               </text>
               {GATE_ICONS[item?.palaceData?.hachimon] && (
-                <text
-                  className="reverse-gate-icon"
-                  style={{ '--wish-delay': `${index * 0.22}s` }}
+                <WishIcon
+                  type={GATE_ICONS[item.palaceData.hachimon]}
                   x={iconPoint.x}
                   y={iconPoint.y}
-                >
-                  {GATE_ICONS[item.palaceData.hachimon]}
-                </text>
+                  delay={(index % 5) * 0.4}
+                />
               )}
               <text className="reverse-dir-text" x={labelPoint.x} y={labelPoint.y}>
                 {direction.label}

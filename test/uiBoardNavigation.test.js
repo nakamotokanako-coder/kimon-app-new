@@ -27,13 +27,14 @@ describe('吉方位 UI 整理', () => {
 
   it('円盤に吉門アイコンを描画する', () => {
     expect(GATE_ICONS).toEqual({
-      生門: '\u{1F4B0}',
-      休門: '\u{1F49E}',
-      開門: '\u{1F4BC}',
-      杜門: '\u{1F33F}',
-      景門: '\u{1F4D8}',
+      生門: 'money',
+      休門: 'bond',
+      開門: 'work',
+      杜門: 'health',
+      景門: 'study',
     });
     expect(compassSrc).toContain('reverse-gate-icon');
+    expect(compassSrc).toContain('viewBox="0 0 24 24"');
     expect(compassSrc).toContain('--wish-delay');
   });
 });
