@@ -13,10 +13,19 @@ function MetaCardGrid({ rows, emptyText = null }) {
           key={row.key || row.label}
         >
           <div className="meta-card-label">{row.label}</div>
-          <div className="meta-card-value">{row.value}</div>
+          <div className={`meta-card-value${row.lat ? ' lat' : ''}`}>{row.value}</div>
         </div>
       ))}
     </div>
+  );
+}
+
+function MetaSectionHeading({ kicker, children }) {
+  return (
+    <header className="meta-section-heading">
+      <span className="meta-kicker">{kicker}</span>
+      <h3 className="maru">{children}</h3>
+    </header>
   );
 }
 
@@ -44,32 +53,32 @@ export default function MetaPanel({ meta, banLevel }) {
 
   const infoRows = [
     { key: 'boardType', label: '盤種', value: `${meta.boardType}盤` },
-    { key: 'kyokusu', label: '局数', value: meta.kyokusu },
-    { key: 'eto', label: 'キー干支', value: meta.eto },
-    { key: 'junshu', label: '旬首', value: meta.junshu },
+    { key: 'kyokusu', label: '局数', value: meta.kyokusu, lat: true },
+    { key: 'eto', label: 'キー干支', value: meta.eto, lat: true },
+    { key: 'junshu', label: '旬首', value: meta.junshu, lat: true },
     { key: 'chokufu', label: '直符', value: meta.chokufu },
     { key: 'chokushi', label: '直使', value: meta.chokushi },
-    { key: 'kuubou', label: '空亡', value: meta.kuubou },
-    { key: 'tenban_junshu_p', label: '旬首・天盤宮', value: meta.tenban_junshu_p },
-    { key: 'chiban_junshu_p', label: '旬首・地盤宮', value: meta.chiban_junshu_p },
+    { key: 'kuubou', label: '空亡', value: meta.kuubou, lat: true },
+    { key: 'tenban_junshu_p', label: '旬首・天盤宮', value: meta.tenban_junshu_p, lat: true },
+    { key: 'chiban_junshu_p', label: '旬首・地盤宮', value: meta.chiban_junshu_p, lat: true },
   ];
 
   const etoRows = [
-    { key: 'eto_year', label: '年', value: meta.eto_year },
-    { key: 'eto_month', label: '月', value: meta.eto_month },
-    { key: 'eto_day', label: '日', value: meta.eto_day },
-    { key: 'eto_time', label: '時', value: isHour ? meta.eto_time : null },
+    { key: 'eto_year', label: '年', value: meta.eto_year, lat: true },
+    { key: 'eto_month', label: '月', value: meta.eto_month, lat: true },
+    { key: 'eto_day', label: '日', value: meta.eto_day, lat: true },
+    { key: 'eto_time', label: '時', value: isHour ? meta.eto_time : null, lat: true },
   ];
 
   return (
     <div className="meta-panel">
       <div className="meta-section">
-        <h3>盤情報</h3>
+        <MetaSectionHeading kicker="board info">盤情報</MetaSectionHeading>
         <MetaCardGrid rows={infoRows} />
       </div>
 
       <div className="meta-section">
-        <h3>干支</h3>
+        <MetaSectionHeading kicker="sexagenary">干支</MetaSectionHeading>
         <MetaCardGrid rows={etoRows} />
       </div>
 
@@ -78,7 +87,7 @@ export default function MetaPanel({ meta, banLevel }) {
           九星の計算ロジック自体は temporal data として温存。 */}
 
       <div className="meta-section">
-        <h3>盤レベル判定</h3>
+        <MetaSectionHeading kicker="board signs">盤レベル判定</MetaSectionHeading>
         <MetaCardGrid rows={banRows} emptyText="特になし" />
       </div>
     </div>

@@ -77,7 +77,7 @@ function buildKakkyokuTerm(kakkyoku, pKey, index) {
   };
 }
 
-function TermChips({ title, terms, openKeys, onToggle }) {
+function TermChips({ title, terms }) {
   return (
     <div className="shoui-term-group">
       <div className="shoui-term-label">{title}</div>
@@ -85,23 +85,11 @@ function TermChips({ title, terms, openKeys, onToggle }) {
         <span className="shoui-term-empty">—</span>
       ) : (
         <div className="shoui-term-list">
-          {terms.map((term) => {
-            const isOpen = openKeys.includes(term.key);
-            return (
-              <button
-                key={term.key}
-                type="button"
-                className={`shoui-term shoui-chip ${term.signClass}`}
-                aria-expanded={isOpen}
-                onClick={() => onToggle(term.key)}
-              >
-                <span>{term.label}</span>
-                <span className="shoui-caret" aria-hidden="true">
-                  {isOpen ? '▲' : '▼'}
-                </span>
-              </button>
-            );
-          })}
+          {terms.map((term) => (
+            <span key={term.key} className={`shoui-term shoui-chip ${term.signClass}`}>
+              {term.label}
+            </span>
+          ))}
         </div>
       )}
     </div>
@@ -109,12 +97,12 @@ function TermChips({ title, terms, openKeys, onToggle }) {
 }
 
 export default function ShouiPanel({ board }) {
-  const [openKeys, setOpenKeys] = useState([]);
+  const [openPalaces, setOpenPalaces] = useState([]);
 
   if (!board || !board.score) return null;
 
   const toggle = (key) => {
-    setOpenKeys((cur) => (
+    setOpenPalaces((cur) => (
       cur.includes(key)
         ? cur.filter((item) => item !== key)
         : [...cur, key]
@@ -123,9 +111,11 @@ export default function ShouiPanel({ board }) {
 
   return (
     <div className="shoui-panel">
-      <div className="shoui-context">
-        十干剋応・格局の象意（先生監修 2026-05-24）
-      </div>
+      <header className="shoui-panel-heading">
+        <span className="shoui-kicker">symbolic meanings</span>
+        <h3 className="maru">十干剋応・格局の象意</h3>
+        <p>先生監修 2026-05-24</p>
+      </header>
       <div className="shoui-palace-list">
         {PALACE_ORDER.map((pKey) => {
           const cell = board.palaces?.[pKey];
@@ -137,47 +127,52 @@ export default function ShouiPanel({ board }) {
           const jukanTerms = jukkan.map((j, index) => buildJukanTerm(j, pKey, index));
           const kakkyokuTerms = kakkyoku.map((k, index) => buildKakkyokuTerm(k, pKey, index));
           const allTerms = [...jukanTerms, ...kakkyokuTerms];
-          const openTerms = allTerms.filter((term) => openKeys.includes(term.key));
+          const isOpen = openPalaces.includes(pKey);
+          const summary = allTerms[0]?.label || '象意なし';
 
           return (
-            <section className="shoui-palace-card" key={pKey}>
-              <header className="shoui-palace-header">
+            <section className={`shoui-palace-card${isOpen ? ' is-open' : ''}`} key={pKey}>
+              <button
+                type="button"
+                className="shoui-palace-summary"
+                aria-expanded={isOpen}
+                onClick={() => toggle(pKey)}
+              >
                 <div className="shoui-palace-name">
                   <span>{display.label}</span>
                   <small>{display.direction}</small>
                 </div>
-                <dl className="shoui-palace-meta">
-                  <div>
-                    <dt>八門</dt>
-                    <dd>{cell.hachimon || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>点数</dt>
-                    <dd>{typeof score?.score === 'number' ? score.score : '—'}</dd>
-                  </div>
-                </dl>
-              </header>
+                <span className="shoui-palace-brief">{summary}</span>
+                <span className="shoui-chevron" aria-hidden="true">⌄</span>
+              </button>
 
-              <div className="shoui-chip-area">
-                <TermChips
-                  title="十干剋応"
-                  terms={jukanTerms}
-                  openKeys={openKeys}
-                  onToggle={toggle}
-                />
-                <TermChips
-                  title="格局"
-                  terms={kakkyokuTerms}
-                  openKeys={openKeys}
-                  onToggle={toggle}
-                />
-              </div>
+              {isOpen && (
+                <div className="shoui-palace-body">
+                  <dl className="shoui-palace-meta">
+                    <div>
+                      <dt>八門</dt>
+                      <dd>{cell.hachimon || '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>点数</dt>
+                      <dd className="lat">{typeof score?.score === 'number' ? score.score : '—'}</dd>
+                    </div>
+                  </dl>
 
-              {openTerms.length > 0 && (
-                <div className="shoui-detail-list">
-                  {openTerms.map((term) => (
-                    <ShouiDetail key={term.key} term={term} />
-                  ))}
+                  <div className="shoui-chip-area">
+                    <TermChips title="十干剋応" terms={jukanTerms} />
+                    <TermChips title="格局" terms={kakkyokuTerms} />
+                  </div>
+
+                  <div className="shoui-detail-list">
+                    {allTerms.length > 0 ? (
+                      allTerms.map((term) => (
+                        <ShouiDetail key={term.key} term={term} />
+                      ))
+                    ) : (
+                      <p className="shoui-empty-detail">この宮の十干剋応・格局の象意はありません。</p>
+                    )}
+                  </div>
                 </div>
               )}
             </section>
