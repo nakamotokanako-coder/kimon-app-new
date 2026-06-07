@@ -15,7 +15,7 @@ export const GATE_ICONS = {
 function WishIcon({ type, x, y, delay }) {
   const commonProps = {
     fill: 'none',
-    stroke: 'currentColor',
+    stroke: 'url(#markerGold)',
     strokeWidth: '1.7',
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
@@ -26,7 +26,6 @@ function WishIcon({ type, x, y, delay }) {
   return (
     <svg
       className="reverse-gate-icon"
-      style={{ '--wish-delay': `${delay}s` }}
       x={iconX}
       y={iconY}
       width={WISH_MARKER_SIZE}
@@ -34,6 +33,7 @@ function WishIcon({ type, x, y, delay }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
+      <g className="wish-bob" style={{ '--wish-delay': `${delay}s` }}>
       {type === 'money' && (
         <g {...commonProps}>
           <circle cx="12" cy="12" r="8.8" />
@@ -42,8 +42,7 @@ function WishIcon({ type, x, y, delay }) {
       )}
       {type === 'bond' && (
         <g {...commonProps}>
-          <circle cx="9.2" cy="12" r="4.8" />
-          <circle cx="14.8" cy="12" r="4.8" />
+          <path d="M12 21 C12 21 4 14.5 4 9 C4 6.2 6.2 4 9 4 C10.7 4 12 5 12 6.3 C12 5 13.3 4 15 4 C17.8 4 20 6.2 20 9 C20 14.5 12 21 12 21 Z" />
         </g>
       )}
       {type === 'work' && (
@@ -65,6 +64,7 @@ function WishIcon({ type, x, y, delay }) {
           <path d="M12 6.2 V18.2" />
         </g>
       )}
+      </g>
     </svg>
   );
 }
@@ -99,6 +99,26 @@ export default function CompassWheel({ rankings, bestPalace }) {
   return (
     <div className="reverse-compass-frame">
       <svg width="100%" viewBox="0 0 350 350" role="img" aria-label="45度8区画の方位盤">
+        <defs>
+          <linearGradient id="markerGold" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0" stopColor="#9c7322" />
+            <stop offset=".38" stopColor="#d7ab4d" />
+            <stop offset=".5" stopColor="#fcefc4" />
+            <stop offset=".62" stopColor="#ecd083" />
+            <stop offset="1" stopColor="#c59433" />
+            <animateTransform
+              attributeName="gradientTransform"
+              type="translate"
+              from="-0.4 0"
+              to="0.4 0"
+              dur="3.2s"
+              repeatCount="indefinite"
+              additive="sum"
+              keyTimes="0;0.5;1"
+              values="-0.4 0;0.4 0;-0.4 0"
+            />
+          </linearGradient>
+        </defs>
         {PALACE_DIRECTIONS.map((direction, index) => {
           const item = byPalace[direction.palace];
           const scorePoint = textPoint(direction.angle, 82);
