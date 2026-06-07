@@ -15,7 +15,7 @@ export const GATE_ICONS = {
 function WishIcon({ type, x, y, delay }) {
   const commonProps = {
     fill: 'none',
-    stroke: 'currentColor',
+    stroke: 'url(#markerGold)',
     strokeWidth: '1.7',
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
@@ -99,10 +99,17 @@ export default function CompassWheel({ rankings, bestPalace }) {
   return (
     <div className="reverse-compass-frame">
       <svg width="100%" viewBox="0 0 350 350" role="img" aria-label="45度8区画の方位盤">
+        <defs>
+          <linearGradient id="markerGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#9c7322" />
+            <stop offset=".44" stopColor="#fcefc4" />
+            <stop offset="1" stopColor="#c59433" />
+          </linearGradient>
+        </defs>
         {PALACE_DIRECTIONS.map((direction, index) => {
           const item = byPalace[direction.palace];
-          const scorePoint = textPoint(direction.angle, 92);
-          const iconPoint = textPoint(direction.angle, 112);
+          const scorePoint = textPoint(direction.angle, 82);
+          const iconPoint = textPoint(direction.angle, 126);
           const labelPoint = textPoint(direction.angle, 162);
           const isBest = direction.palace === bestPalace;
           return (
