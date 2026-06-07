@@ -4207,17 +4207,19 @@ body {
 }
 
 .reverse-gate-icon {
-  color: var(--accent);
   overflow: visible;
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.5));
-  animation: wish-marker-float 3.6s ease-in-out infinite;
+}
+
+.wish-bob {
+  animation: wishBob 2.8s ease-in-out infinite;
   animation-delay: var(--wish-delay, 0s);
   transform-box: fill-box;
   transform-origin: center;
   will-change: transform;
 }
 
-@keyframes wish-marker-float {
+@keyframes wishBob {
   0%,
   100% {
     transform: translateY(0);
@@ -4229,7 +4231,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reverse-gate-icon {
+  .wish-bob {
     animation: none;
   }
 }
