@@ -8,6 +8,7 @@ import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
+import { getBoardDate } from '../utils/boardDate.js';
 import { sortTimelineSlotsByScore } from './strongestRanking.js';
 import {
   buildDayReverseBoard,
@@ -36,12 +37,6 @@ const DEFAULT_LOCATIONS = [
 ];
 
 const MAP_SEARCH_CHANGED_EVENT = 'kimon-map-favorites-changed';
-
-function getTodayJst() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().slice(0, 10);
-}
 
 function formatCorrection(minutes) {
   if (minutes === 0) return '±0分';
@@ -94,14 +89,14 @@ export default function ReverseDirectionView({
   const [query, setQuery] = useState('');
   const [goodOnly, setGoodOnly] = useState(true);
   const [mode, setMode] = useState('time');
-  const [dayDate, setDayDate] = useState(getTodayJst());
+  const [dayDate, setDayDate] = useState(getBoardDate());
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
-  const today = getTodayJst();
+  const today = getBoardDate();
   const slotHour = getTimeSlotHour(naturalNow);
   const date = today;
 

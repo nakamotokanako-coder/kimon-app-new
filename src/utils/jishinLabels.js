@@ -29,8 +29,7 @@ export function getJishinSlotHour(date) {
 }
 
 /** 端末の現在日 (JST, YYYY-MM-DD)。 */
-export function getTodayJst() {
-  const now = new Date();
+export function getTodayJst(now = new Date()) {
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   return jst.toISOString().slice(0, 10);
 }
