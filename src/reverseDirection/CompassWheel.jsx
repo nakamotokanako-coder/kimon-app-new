@@ -3,7 +3,7 @@ import { PALACE_DIRECTIONS } from './reverseDirection.js';
 
 const CENTER = 175;
 const RADIUS = 145;
-const WISH_MARKER_SIZE = 28;
+const WISH_MARKER_SIZE = 26;
 export const GATE_ICONS = {
   '生門': 'money',
   '休門': 'bond',
@@ -101,8 +101,8 @@ export default function CompassWheel({ rankings, bestPalace }) {
       <svg width="100%" viewBox="0 0 350 350" role="img" aria-label="45度8区画の方位盤">
         {PALACE_DIRECTIONS.map((direction, index) => {
           const item = byPalace[direction.palace];
-          const scorePoint = textPoint(direction.angle, 92);
-          const iconPoint = textPoint(direction.angle, 112);
+          const scorePoint = textPoint(direction.angle, 82);
+          const iconPoint = textPoint(direction.angle, 126);
           const labelPoint = textPoint(direction.angle, 162);
           const isBest = direction.palace === bestPalace;
           return (

@@ -4207,8 +4207,9 @@ body {
 }
 
 .reverse-gate-icon {
-  color: #fff;
+  color: var(--accent);
   overflow: visible;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.5));
   animation: wish-marker-float 3.6s ease-in-out infinite;
   animation-delay: var(--wish-delay, 0s);
   transform-box: fill-box;
