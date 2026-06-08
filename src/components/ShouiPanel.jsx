@@ -112,7 +112,7 @@ export default function ShouiPanel({ board }) {
   return (
     <div className="shoui-panel">
       <div className="shoui-context">
-        十干剋応・格局の象意（先生監修 2026-05-24）
+        十干剋応・格局の象意
       </div>
       <div className="shoui-palace-list">
         {PALACE_ORDER.map((pKey) => {
