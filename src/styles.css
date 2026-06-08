@@ -323,9 +323,17 @@ select {
   opacity: 0.68;
 }
 
+.board-segment-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1 1 360px;
+  min-width: min(100%, 300px);
+}
+
 .board-type,
 .board-direction {
-  min-width: 190px;
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -335,8 +343,8 @@ select {
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(72px, 1fr));
-  gap: 4px;
-  padding: 4px;
+  gap: 3px;
+  padding: 3px;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg-main) 58%, transparent);
@@ -344,8 +352,8 @@ select {
 
 .board-segment-options::before {
   position: absolute;
-  inset: 4px auto 4px 4px;
-  width: calc(50% - 4px);
+  inset: 3px auto 3px 3px;
+  width: calc(50% - 3px);
   border-radius: 999px;
   background: var(--accent-grad);
   box-shadow: 0 10px 22px -16px var(--accent), 0 0 16px -10px var(--accent-glow);
@@ -363,14 +371,17 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 0 8px;
   border-radius: 999px;
   color: var(--text-secondary);
+  font-size: 0.82rem;
   font-weight: 800;
+  line-height: 1.1;
   cursor: pointer;
   user-select: none;
   transition: color .2s ease;
+  white-space: nowrap;
 }
 
 .board-segment label:has(input:checked) {
@@ -2721,19 +2732,26 @@ body {
 }
 
 .reverse-mode-tabs {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.8fr) minmax(0, 1.15fr) minmax(0, 0.95fr) minmax(0, 1.35fr);
-  gap: 4px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reverse-mode-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .reverse-mode-tabs button {
-  min-width: 0;
-  padding: 7px 2px;
+  flex: 0 0 auto;
+  min-width: max-content;
+  padding: 7px 12px;
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 999px;
   background: var(--bg-cell);
   color: var(--text-secondary);
-  font-size: clamp(0.56rem, 2.3vw, 0.78rem);
+  font-size: clamp(0.68rem, 2.5vw, 0.78rem);
   font-weight: 700;
   line-height: 1.25;
   white-space: nowrap;
@@ -3558,17 +3576,23 @@ body {
   position: absolute;
   top: 4px;
   z-index: 1;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.62rem;
-  font-weight: 800;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  font-weight: 900;
 }
 
 .direction-ruler-label.is-bottom {
   top: auto;
   bottom: 4px;
-  color: var(--text-main);
   font-weight: 600;
+}
+
+.direction-ruler-label.is-light-cell {
+  color: var(--text-primary);
+}
+
+.direction-ruler-label.is-dark-cell {
+  color: var(--first-rank-title);
 }
 
 .direction-map-legend {
@@ -5545,6 +5569,17 @@ body {
   gap: 7px;
 }
 
+.reverse-mode-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reverse-mode-tabs::-webkit-scrollbar {
+  display: none;
+}
+
 .reverse-mode-tabs button,
 .saikyo-period button,
 .kakkyoku-period button,
@@ -5557,6 +5592,12 @@ body {
   background: transparent;
   color: var(--text-secondary);
   transition: transform 160ms var(--bounce), border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.reverse-mode-tabs button {
+  flex: 0 0 auto;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .reverse-mode-tabs button:active,
@@ -5709,6 +5750,168 @@ body {
 
 .reverse-best-score {
   color: var(--accent);
+}
+
+.reverse-zone {
+  display: grid;
+  gap: 12px;
+}
+
+.reverse-zone-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+}
+
+.reverse-zone-title h3 {
+  margin: 2px 0 8px;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.reverse-now-board-card,
+.reverse-go-card {
+  display: grid;
+  gap: 12px;
+}
+
+.reverse-disclosure-trigger,
+.reverse-base-compact,
+.reverse-go-tabs,
+.reverse-favorite-chips {
+  display: flex;
+}
+
+.reverse-disclosure-trigger {
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  padding: 12px 15px;
+  background: color-mix(in srgb, var(--bg-cell) 74%, transparent);
+  color: var(--accent);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.reverse-disclosure-trigger b {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.reverse-base-compact {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-cell) 76%, transparent);
+}
+
+.reverse-base-compact span {
+  display: grid;
+  gap: 2px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.reverse-base-compact strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.reverse-base-compact small {
+  color: var(--text-secondary);
+}
+
+.reverse-base-compact button {
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.reverse-base-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 78%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-main) 52%, transparent);
+}
+
+.reverse-go-tabs {
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+.reverse-go-tabs button {
+  flex: 1 1 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+.reverse-go-tabs button.is-active {
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.reverse-favorite-chips {
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.reverse-favorite-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.reverse-favorite-chips button {
+  flex: 0 0 150px;
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--bg-cell) 78%, transparent);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.reverse-favorite-chips strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reverse-favorite-chips span,
+.reverse-favorite-chips small,
+.reverse-favorite-chips p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
 }
 
 .reverse-filter-card {
