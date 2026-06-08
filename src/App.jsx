@@ -422,10 +422,6 @@ export default function App() {
             <span className="lat">About</span>
           </div>
           <div className="settings-info-row">
-            <span>監修</span>
-            <strong>◯◯先生</strong>
-          </div>
-          <div className="settings-info-row">
             <span>バージョン</span>
             <strong className="lat">{APP_VERSION}</strong>
           </div>
