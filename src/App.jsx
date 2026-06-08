@@ -10,7 +10,8 @@ import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import packageJson from '../package.json';
 
-const DEFAULT_THEME = 'pearl';
+// redesign/dark-mincho 実験ブランチ: デフォルトを漆黒(void)に。他テーマは切替可能なまま。
+const DEFAULT_THEME = 'void';
 const THEMES = [
   { name: 'void', label: '漆黒', dot: '#ffd368' },
   { name: 'blue', label: '深海', dot: '#3fc4d8' },

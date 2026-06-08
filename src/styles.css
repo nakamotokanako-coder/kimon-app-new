@@ -1,7 +1,10 @@
 /* ベース変数（フォント等のテーマ非依存値 + フォールバック）。
    配色は後段「宇宙テック・4テーマ」ブロックで data-theme ごとに上書きする。 */
 :root {
-  --font-heading: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  /* redesign/dark-mincho: 見出し・盤の漢字（八卦名/天盤地盤干/八神/九星 等）を
+     明朝ハイブリッド化。Noto Serif JP を主、Zen Maru Gothic をフォールバックに。
+     象意・フォーム・補助テキストは --font-body（Noto Sans JP）のまま維持。 */
+  --font-heading: 'Noto Serif JP', 'Zen Maru Gothic', 'Noto Sans JP', serif;
   --font-body: 'Noto Sans JP', sans-serif;
   --font-latin: 'Playfair Display', serif;
 }
@@ -38,7 +41,8 @@ body {
 }
 
 .maru {
-  font-family: 'Zen Maru Gothic', sans-serif;
+  /* redesign/dark-mincho: 各画面の見出し（h1/h2/h3）を明朝へ。--font-heading 参照に統一。 */
+  font-family: var(--font-heading);
   font-weight: 700;
 }
 
@@ -587,6 +591,8 @@ select {
 
 .hasshin,
 .kyusei {
+  /* redesign/dark-mincho: 八神・九星を明朝へ（既定では body=Sans を継承していた）。 */
+  font-family: var(--font-heading);
   color: color-mix(in srgb, var(--text-primary) 80%, var(--text-secondary));
   font-size: 1.04rem;
   font-weight: 600;
@@ -828,7 +834,9 @@ select {
 .meta-card-value {
   min-width: 0;
   color: var(--text-primary);
-  font-family: var(--font-body);
+  /* redesign/dark-mincho: 盤レベル判定・盤情報・干支の「値」を明朝へ。
+     ラベル（.meta-card-label = 補助テキスト）は Sans のまま維持。 */
+  font-family: var(--font-heading);
   font-size: 0.96rem;
   font-weight: 700;
   line-height: 1.25;
