@@ -1,5 +1,6 @@
 import React from 'react';
-import { JISHIN_LABELS, getJishinSlotHour, getTodayJst } from '../utils/jishinLabels';
+import { getBoardDate } from '../utils/boardDate';
+import { JISHIN_LABELS, getJishinSlotHour } from '../utils/jishinLabels';
 
 const HOURS = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
 const BOARD_TYPES = ['日', '時'];
@@ -10,11 +11,12 @@ const DIRECTIONS = [
 
 export default function InputControls({ date, hour, boardType, direction, onChange, onDirectionChange }) {
   const handleNow = () => {
-    const slotHour = getJishinSlotHour(new Date());
-    const todayJst = getTodayJst();
+    const now = new Date();
+    const slotHour = getJishinSlotHour(now);
+    const boardDate = getBoardDate(now);
     const patch = {};
     if (hour !== slotHour) patch.hour = slotHour;
-    if (date !== todayJst) patch.date = todayJst;
+    if (date !== boardDate) patch.date = boardDate;
     if (Object.keys(patch).length > 0) onChange(patch);
   };
 
