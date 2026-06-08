@@ -2698,19 +2698,26 @@ body {
 }
 
 .reverse-mode-tabs {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.8fr) minmax(0, 1.15fr) minmax(0, 0.95fr) minmax(0, 1.35fr);
-  gap: 4px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reverse-mode-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .reverse-mode-tabs button {
-  min-width: 0;
-  padding: 7px 2px;
+  flex: 0 0 auto;
+  min-width: max-content;
+  padding: 7px 12px;
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 999px;
   background: var(--bg-cell);
   color: var(--text-secondary);
-  font-size: clamp(0.56rem, 2.3vw, 0.78rem);
+  font-size: clamp(0.68rem, 2.5vw, 0.78rem);
   font-weight: 700;
   line-height: 1.25;
   white-space: nowrap;
@@ -5508,6 +5515,17 @@ body {
   gap: 7px;
 }
 
+.reverse-mode-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reverse-mode-tabs::-webkit-scrollbar {
+  display: none;
+}
+
 .reverse-mode-tabs button,
 .saikyo-period button,
 .kakkyoku-period button,
@@ -5520,6 +5538,12 @@ body {
   background: transparent;
   color: var(--text-secondary);
   transition: transform 160ms var(--bounce), border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.reverse-mode-tabs button {
+  flex: 0 0 auto;
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 .reverse-mode-tabs button:active,
@@ -5549,15 +5573,6 @@ body {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
-}
-
-.reverse-mode-divider {
-  flex: 0 0 1px;
-  width: 1px;
-  align-self: stretch;
-  min-height: 28px;
-  margin: 2px 2px;
-  background: color-mix(in srgb, var(--border-subtle) 76%, transparent);
 }
 
 .reverse-search-row button,
@@ -5717,22 +5732,25 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--accent-edge);
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 12px 15px;
   background: color-mix(in srgb, var(--bg-cell) 74%, transparent);
-  color: var(--text-primary);
-  font-weight: 800;
+  color: var(--accent);
+  font-weight: 900;
+  letter-spacing: 0.02em;
 }
 
 .reverse-disclosure-trigger b {
   display: grid;
   place-items: center;
-  width: 24px;
+  width: 26px;
   aspect-ratio: 1;
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-ink);
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .reverse-base-compact {

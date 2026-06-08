@@ -70,7 +70,8 @@ describe('共通フル盤導線', () => {
     expect(appSrc).toContain("window.scrollTo({ top: 0, left: 0, behavior: 'auto' })");
   });
 
-  it('1位カードと時間帯別ベストから時盤を開ける', () => {
+  it('折りたたみミニ盤と時間帯別ベストから時盤を開ける', () => {
+    expect(reverseSrc).toContain('今の時盤を盤で見る');
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slotHour, boardType: '時' })");
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slot.hour, boardType: '時' })");
   });

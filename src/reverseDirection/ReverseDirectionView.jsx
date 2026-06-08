@@ -451,14 +451,12 @@ export default function ReverseDirectionView({
         <button className={mode === 'timeRanking' ? 'is-active' : ''} type="button" onClick={() => setMode('timeRanking')}>
           時盤ランキング
         </button>
-        <span className="reverse-mode-divider" aria-hidden="true" />
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
           日盤 遠出
         </button>
         <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
           日盤ランキング
         </button>
-        <span className="reverse-mode-divider" aria-hidden="true" />
         <button className={mode === 'kakkyoku' ? 'is-active' : ''} type="button" onClick={() => setMode('kakkyoku')}>
           格局を探す
         </button>
@@ -477,11 +475,7 @@ export default function ReverseDirectionView({
               <h3 className="maru">今の吉方位</h3>
             </div>
 
-            <button
-              type="button"
-              className="reverse-card reverse-best-card"
-              onClick={() => onOpenBoard({ date, hour: slotHour, boardType: '時' })}
-            >
+            <div className="reverse-card reverse-best-card">
               <div className="reverse-best-no">1</div>
               <div className="reverse-best-main">
                 {best ? (
@@ -497,7 +491,7 @@ export default function ReverseDirectionView({
                 )}
               </div>
               <div className="reverse-best-score lat">{best ? scoreText(best.score) : '-'}</div>
-            </button>
+            </div>
 
             <div className="reverse-card reverse-compass-card">
               <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
@@ -511,7 +505,7 @@ export default function ReverseDirectionView({
                 aria-expanded={currentMiniBoardOpen}
               >
                 <span>今の時盤を盤で見る</span>
-                <b aria-hidden="true">{currentMiniBoardOpen ? '−' : '+'}</b>
+                <b aria-hidden="true">{currentMiniBoardOpen ? '▾' : '›'}</b>
               </button>
               {currentMiniBoardOpen && (
                 <div className="reverse-tl-panel">
@@ -694,8 +688,6 @@ export default function ReverseDirectionView({
                   </div>
                 ))}
               </div>
-
-              {filterCard}
 
               <div className="reverse-card reverse-aux-card">
                 <p><strong>補助</strong>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。出発時刻の時盤併用を出すかは先生確認事項です。</p>
