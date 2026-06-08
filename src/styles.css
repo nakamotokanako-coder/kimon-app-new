@@ -319,9 +319,17 @@ select {
   opacity: 0.68;
 }
 
+.board-segment-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex: 1 1 360px;
+  min-width: min(100%, 300px);
+}
+
 .board-type,
 .board-direction {
-  min-width: 190px;
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -331,8 +339,8 @@ select {
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(72px, 1fr));
-  gap: 4px;
-  padding: 4px;
+  gap: 3px;
+  padding: 3px;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg-main) 58%, transparent);
@@ -340,8 +348,8 @@ select {
 
 .board-segment-options::before {
   position: absolute;
-  inset: 4px auto 4px 4px;
-  width: calc(50% - 4px);
+  inset: 3px auto 3px 3px;
+  width: calc(50% - 3px);
   border-radius: 999px;
   background: var(--accent-grad);
   box-shadow: 0 10px 22px -16px var(--accent), 0 0 16px -10px var(--accent-glow);
@@ -359,14 +367,17 @@ select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 0 8px;
   border-radius: 999px;
   color: var(--text-secondary);
+  font-size: 0.82rem;
   font-weight: 800;
+  line-height: 1.1;
   cursor: pointer;
   user-select: none;
   transition: color .2s ease;
+  white-space: nowrap;
 }
 
 .board-segment label:has(input:checked) {

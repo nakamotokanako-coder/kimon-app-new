@@ -58,41 +58,43 @@ export default function InputControls({ date, hour, boardType, direction, onChan
         </div>
       </label>
 
-      <fieldset className={`ctrl board-type board-segment ${boardType === '時' ? 'is-second' : 'is-first'}`}>
-        <legend>盤種</legend>
-        <div className="board-segment-options">
-          {BOARD_TYPES.map((bt) => (
-            <label key={bt}>
-              <input
-                type="radio"
-                name="boardType"
-                value={bt}
-                checked={boardType === bt}
-                onChange={() => onChange({ boardType: bt })}
-              />
-              {bt}盤
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <div className="board-segment-row">
+        <fieldset className={`ctrl board-type board-segment ${boardType === '時' ? 'is-second' : 'is-first'}`}>
+          <legend>盤種</legend>
+          <div className="board-segment-options">
+            {BOARD_TYPES.map((bt) => (
+              <label key={bt}>
+                <input
+                  type="radio"
+                  name="boardType"
+                  value={bt}
+                  checked={boardType === bt}
+                  onChange={() => onChange({ boardType: bt })}
+                />
+                {bt}盤
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <fieldset className={`ctrl board-direction board-segment ${direction === 'south_bottom' ? 'is-second' : 'is-first'}`}>
-        <legend>方位</legend>
-        <div className="board-segment-options">
-          {DIRECTIONS.map((item) => (
-            <label key={item.value}>
-              <input
-                type="radio"
-                name="direction"
-                value={item.value}
-                checked={direction === item.value}
-                onChange={() => onDirectionChange(item.value)}
-              />
-              {item.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+        <fieldset className={`ctrl board-direction board-segment ${direction === 'south_bottom' ? 'is-second' : 'is-first'}`}>
+          <legend>方位</legend>
+          <div className="board-segment-options">
+            {DIRECTIONS.map((item) => (
+              <label key={item.value}>
+                <input
+                  type="radio"
+                  name="direction"
+                  value={item.value}
+                  checked={direction === item.value}
+                  onChange={() => onDirectionChange(item.value)}
+                />
+                {item.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
     </div>
   );
 }
