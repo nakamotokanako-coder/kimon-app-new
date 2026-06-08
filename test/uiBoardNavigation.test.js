@@ -25,6 +25,20 @@ describe('吉方位 UI 整理', () => {
     expect(rankingSrc).toContain('<h3>日盤ランキング</h3>');
   });
 
+  it('時盤ランキングタブに時間帯別ベストを移設している', () => {
+    expect(reverseSrc).toContain('時盤ランキング');
+    expect(reverseSrc).toContain("mode === 'timeRanking'");
+    expect(reverseSrc).toContain('const timelineSection =');
+    expect(reverseSrc).toContain('本日の時間帯別ベスト');
+  });
+
+  it('時盤お散歩はNOW/GO構成と折りたたみミニ盤を持つ', () => {
+    expect(reverseSrc).toContain('reverse-zone');
+    expect(reverseSrc).toContain('今の時盤を盤で見る');
+    expect(reverseSrc).toContain('地図で探す');
+    expect(reverseSrc).toContain('reverse-favorite-chips');
+  });
+
   it('円盤に吉門アイコンを描画する', () => {
     expect(GATE_ICONS).toEqual({
       生門: 'money',

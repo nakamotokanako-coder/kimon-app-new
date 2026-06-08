@@ -15,9 +15,10 @@ const sanbanRouteViewSrc = fs.readFileSync(
   'utf-8',
 );
 
-describe('5タブ注釈撤廃', () => {
+describe('6タブ注釈撤廃', () => {
   it.each([
     '時盤 お散歩',
+    '時盤ランキング',
     '日盤 遠出',
     '日盤ランキング',
     '格局を探す',

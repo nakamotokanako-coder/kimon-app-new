@@ -97,7 +97,16 @@ function ScrollWindow({ children, className = '' }) {
   );
 }
 
-export default function DirectionMap({ location, rankings, bestPalace, profileKey = 'jiban', showScale = false }) {
+export default function DirectionMap({
+  location,
+  rankings,
+  bestPalace,
+  profileKey = 'jiban',
+  showScale = false,
+  focusFavoriteKey = '',
+  showSearchControls = true,
+  showPlacePanel = true,
+}) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bearingMode, setBearingMode] = useState(MAP_FAN.defaultBearingMode);
   const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
@@ -394,6 +403,12 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
       });
     }
   };
+
+  useEffect(() => {
+    if (!focusFavoriteKey) return;
+    const favorite = decoratedFavorites.find((item) => favoriteKey(item) === focusFavoriteKey);
+    if (favorite) showPlace(favorite);
+  }, [decoratedFavorites, focusFavoriteKey]);
 
   useEffect(() => {
     if (!mapNodeRef.current || mapRef.current) return;
@@ -720,48 +735,50 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         </div>
       )}
 
-      <div className="direction-map-search">
-        <form
-          className="direction-map-search-row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            runMapSearch();
-          }}
-        >
-          <input
-            type="search"
-            value={mapQuery}
-            placeholder="施設や地名を検索"
-            onChange={(event) => setMapQuery(event.target.value)}
-          />
-          <button type="submit" disabled={mapSearching}>検索</button>
-        </form>
-        <div className="direction-map-chips">
-          {FACILITY_PRESETS.slice(0, 6).map((preset) => (
-            <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
-              {preset.label}
-            </button>
-          ))}
-        </div>
-        <label className="direction-kichi-filter">
-          <input
-            type="checkbox"
-            checked={kichiOnlyPlaces}
-            onChange={(event) => setKichiOnlyPlaces(event.target.checked)}
-          />
-          吉方位だけ
-        </label>
-        <p className="direction-map-hint">🔍 検索したい時は地図を拡大してください（広範囲だと検索結果が出ないことがあります）</p>
-        {mapError && (
-          <div className="direction-map-error" role="alert">
-            <p className="direction-map-error-main">{mapError.main}</p>
-            <p className="direction-map-error-hint">{mapError.hint}</p>
-            {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
+      {showSearchControls && (
+        <div className="direction-map-search">
+          <form
+            className="direction-map-search-row"
+            onSubmit={(event) => {
+              event.preventDefault();
+              runMapSearch();
+            }}
+          >
+            <input
+              type="search"
+              value={mapQuery}
+              placeholder="施設や地名を検索"
+              onChange={(event) => setMapQuery(event.target.value)}
+            />
+            <button type="submit" disabled={mapSearching}>検索</button>
+          </form>
+          <div className="direction-map-chips">
+            {FACILITY_PRESETS.slice(0, 6).map((preset) => (
+              <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
+                {preset.label}
+              </button>
+            ))}
           </div>
-        )}
-        {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
-        {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
-      </div>
+          <label className="direction-kichi-filter">
+            <input
+              type="checkbox"
+              checked={kichiOnlyPlaces}
+              onChange={(event) => setKichiOnlyPlaces(event.target.checked)}
+            />
+            吉方位だけ
+          </label>
+          <p className="direction-map-hint">🔍 検索したい時は地図を拡大してください（広範囲だと検索結果が出ないことがあります）</p>
+          {mapError && (
+            <div className="direction-map-error" role="alert">
+              <p className="direction-map-error-main">{mapError.main}</p>
+              <p className="direction-map-error-hint">{mapError.hint}</p>
+              {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
+            </div>
+          )}
+          {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
+          {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
+        </div>
+      )}
 
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
       {needsAreaSearch && lastAreaSearchRef.current && (
@@ -775,7 +792,7 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         </button>
       )}
 
-      {(decoratedFavorites.length > 0 || visibleSearchResults.length > 0 || selectedPlace) && (
+      {showPlacePanel && (decoratedFavorites.length > 0 || visibleSearchResults.length > 0 || selectedPlace) && (
         <div className="direction-place-panel">
           {decoratedFavorites.length > 0 && (
             <div className="direction-place-section">

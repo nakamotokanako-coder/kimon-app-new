@@ -23,6 +23,7 @@ import {
 } from './reverseDirection.js';
 import {
   MAP_SEARCH_STORAGE_KEY,
+  decoratePlaces,
   favoriteDisplayName,
   favoriteKey,
   pickNearestAddressCandidate,
@@ -45,6 +46,24 @@ function formatCorrection(minutes) {
 
 function formatDisplayDate(date) {
   return date.replaceAll('-', '/');
+}
+
+function formatCurrentClock(date = new Date()) {
+  return date.toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+function formatDistance(meters) {
+  if (!Number.isFinite(meters)) return '-';
+  if (meters >= 1000) return `${(meters / 1000).toFixed(1)}km`;
+  return `${Math.round(meters)}m`;
+}
+
+function scoreText(score) {
+  return `${score > 0 ? '+' : ''}${score}`;
 }
 
 function normalizeFavoriteBasePoint(favorite) {
@@ -93,6 +112,10 @@ export default function ReverseDirectionView({
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
+  const [goView, setGoView] = useState('map');
+  const [basePointOpen, setBasePointOpen] = useState(false);
+  const [currentMiniBoardOpen, setCurrentMiniBoardOpen] = useState(false);
+  const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -107,6 +130,9 @@ export default function ReverseDirectionView({
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   const best = visibleRankings[0] || null;
+  const favoriteChips = useMemo(() => (
+    decoratePlaces(favorites, [location.latitude, location.longitude], reverse.rankings)
+  ), [favorites, location.latitude, location.longitude, reverse.rankings]);
 
   const dayReverseState = useMemo(() => {
     try {
@@ -266,6 +292,118 @@ export default function ReverseDirectionView({
     </div>
   );
 
+  const basePointControls = (
+    <>
+      <div className="reverse-location-actions">
+        <BasePointSelector
+          currentMode={currentMode}
+          currentBaseName={location.name}
+          selectedFavoriteId={selectedFavoriteId}
+          favorites={favorites}
+          onSelectMode={selectBasePointMode}
+        />
+        <label>
+          地域
+          <select
+            value={location.name}
+            onChange={(e) => {
+              const next = DEFAULT_LOCATIONS.find((item) => item.name === e.target.value);
+              if (next) {
+                setLocation(next);
+                setCurrentMode('search');
+                setSelectedFavoriteId(null);
+              }
+            }}
+          >
+            {DEFAULT_LOCATIONS.map((item) => (
+              <option key={item.name} value={item.name}>{item.name}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="reverse-search-row">
+        <input
+          type="search"
+          value={query}
+          placeholder="場所検索"
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button type="button" onClick={searchPlace}>検索</button>
+      </div>
+    </>
+  );
+
+  const basePointMeta = mode === 'time' || mode === 'timeRanking' || mode === 'kakkyoku' || mode === 'range' ? (
+    <div className="reverse-correction">
+      <span>自然時補正：{location.name} <b className="lat">{formatCorrection(correction)}</b></span>
+      <span>経度 <b className="lat">{location.longitude.toFixed(2)}</b></span>
+    </div>
+  ) : (
+    <div className="reverse-correction">
+      <span>日盤は自然時補正なし</span>
+      <span>経度 <b className="lat">{location.longitude.toFixed(2)}</b></span>
+    </div>
+  );
+
+  const basePointCard = (
+    <div className="reverse-card reverse-location-card">
+      <div className="reverse-card-title">
+        <div>
+          <span className="reverse-section-kicker lat">base point</span>
+          <h3 className="maru">基準点</h3>
+        </div>
+        <span>GPS / 場所検索 / 手動選択</span>
+      </div>
+      {basePointControls}
+      {basePointMeta}
+      {status && <p className="reverse-status">{status}</p>}
+    </div>
+  );
+
+  const timelineSection = (
+    <>
+      {filterCard}
+
+      <div className="reverse-timeline">
+        <div className="reverse-section-title">
+          <span className="reverse-section-kicker lat">today's best</span>
+          <h3 className="maru">本日の時間帯別ベスト</h3>
+        </div>
+        {displayedTimeline.map((slot) => (
+          <div key={slot.hour} className="reverse-tl-block">
+            <button
+              type="button"
+              className={`reverse-tl-item ${slot.hour === slotHour ? 'is-now' : ''} ${openTimelineHour === slot.hour ? 'is-expanded' : ''}`}
+              onClick={() => setOpenTimelineHour((current) => (current === slot.hour ? null : slot.hour))}
+              aria-expanded={openTimelineHour === slot.hour}
+            >
+              <span className="reverse-tl-time lat">{slot.label}</span>
+              <span className="reverse-tl-main">
+                <strong>{slot.best?.label || '該当なし'}</strong>
+                <span>{slot.best?.reasons.slice(0, 2).join('・') || '凶を除外中'}</span>
+              </span>
+              <span className={`reverse-tl-score ${(slot.best?.score || 0) < 0 ? 'is-bad' : ''}`}>
+                {slot.best ? scoreText(slot.best.score) : '-'}
+              </span>
+            </button>
+            {openTimelineHour === slot.hour && (
+              <div className="reverse-tl-panel">
+                <MiniBoardGrid rankings={slot.rankings} />
+                <button
+                  type="button"
+                  className="reverse-full-board-button"
+                  onClick={() => onOpenBoard({ date, hour: slot.hour, boardType: '時' })}
+                >
+                  フル盤を見る
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+
   return (
     <section className="reverse-view" aria-label="逆引き方位検索">
       <div className="reverse-header">
@@ -275,6 +413,8 @@ export default function ReverseDirectionView({
           <p>
             {mode === 'kakkyoku'
               ? `時盤・格局検索 / ${location.name}`
+              : mode === 'timeRanking'
+              ? `時盤・時間帯ランキング / ${location.name}`
               : mode === 'ranking'
               ? `日盤・日盤ランキング / ${location.name}`
               : mode === 'day'
@@ -287,7 +427,9 @@ export default function ReverseDirectionView({
 <div className="reverse-header-actions">
           {mode !== 'range' && (
             <div className="reverse-time-chip lat">
-              {mode === 'day' || mode === 'ranking'
+              {mode === 'timeRanking'
+                ? `現在 ${formatCurrentClock()}`
+                : mode === 'day' || mode === 'ranking'
                 ? formatDisplayDate(dayDate)
                 : getTimeSlotLabel(slotHour)}
             </div>
@@ -306,12 +448,17 @@ export default function ReverseDirectionView({
         >
           時盤 お散歩
         </button>
+        <button className={mode === 'timeRanking' ? 'is-active' : ''} type="button" onClick={() => setMode('timeRanking')}>
+          時盤ランキング
+        </button>
+        <span className="reverse-mode-divider" aria-hidden="true" />
         <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
           日盤 遠出
         </button>
         <button className={mode === 'ranking' ? 'is-active' : ''} type="button" onClick={() => setMode('ranking')}>
           日盤ランキング
         </button>
+        <span className="reverse-mode-divider" aria-hidden="true" />
         <button className={mode === 'kakkyoku' ? 'is-active' : ''} type="button" onClick={() => setMode('kakkyoku')}>
           格局を探す
         </button>
@@ -320,142 +467,150 @@ export default function ReverseDirectionView({
         </button>
       </div>
 
-      <div className="reverse-card reverse-location-card">
-        <div className="reverse-card-title">
-          <div>
-            <span className="reverse-section-kicker lat">base point</span>
-            <h3 className="maru">基準点</h3>
-          </div>
-          <span>GPS / 場所検索 / 手動選択</span>
-        </div>
-        <div className="reverse-location-actions">
-          <BasePointSelector
-            currentMode={currentMode}
-            currentBaseName={location.name}
-            selectedFavoriteId={selectedFavoriteId}
-            favorites={favorites}
-            onSelectMode={selectBasePointMode}
-          />
-          <label>
-            地域
-            <select
-              value={location.name}
-              onChange={(e) => {
-                const next = DEFAULT_LOCATIONS.find((item) => item.name === e.target.value);
-                if (next) {
-                  setLocation(next);
-                  setCurrentMode('search');
-                  setSelectedFavoriteId(null);
-                }
-              }}
-            >
-              {DEFAULT_LOCATIONS.map((item) => (
-                <option key={item.name} value={item.name}>{item.name}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="reverse-search-row">
-          <input
-            type="search"
-            value={query}
-            placeholder="場所検索"
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button type="button" onClick={searchPlace}>検索</button>
-        </div>
-        {mode === 'time' || mode === 'kakkyoku' || mode === 'range' ? (
-          <div className="reverse-correction">
-            <span>自然時補正：{location.name} <b className="lat">{formatCorrection(correction)}</b></span>
-            <span>経度 <b className="lat">{location.longitude.toFixed(2)}</b></span>
-          </div>
-        ) : (
-          <div className="reverse-correction">
-            <span>日盤は自然時補正なし</span>
-            <span>経度 <b className="lat">{location.longitude.toFixed(2)}</b></span>
-          </div>
-        )}
-        {status && <p className="reverse-status">{status}</p>}
-      </div>
+      {mode !== 'time' && mode !== 'timeRanking' && basePointCard}
 
       {mode === 'time' && (
         <>
-          <div className="reverse-card reverse-compass-card">
-            <DirectionMap location={location} rankings={reverse.rankings} bestPalace={best?.palace} profileKey="jiban" />
+          <div className="reverse-zone">
+            <div className="reverse-zone-title">
+              <span className="reverse-section-kicker lat">now</span>
+              <h3 className="maru">今の吉方位</h3>
+            </div>
+
+            <button
+              type="button"
+              className="reverse-card reverse-best-card"
+              onClick={() => onOpenBoard({ date, hour: slotHour, boardType: '時' })}
+            >
+              <div className="reverse-best-no">1</div>
+              <div className="reverse-best-main">
+                {best ? (
+                  <>
+                    <strong>{best.label}<small>{best.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
+                    <p>今の時盤で最大吉</p>
+                  </>
+                ) : (
+                  <>
+                    <strong>該当なし</strong>
+                    <p>吉のみ表示中です。凶も見ると全方位を確認できます。</p>
+                  </>
+                )}
+              </div>
+              <div className="reverse-best-score lat">{best ? scoreText(best.score) : '-'}</div>
+            </button>
+
+            <div className="reverse-card reverse-compass-card">
+              <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
+            </div>
+
+            <div className="reverse-card reverse-now-board-card">
+              <button
+                type="button"
+                className="reverse-disclosure-trigger"
+                onClick={() => setCurrentMiniBoardOpen((value) => !value)}
+                aria-expanded={currentMiniBoardOpen}
+              >
+                <span>今の時盤を盤で見る</span>
+                <b aria-hidden="true">{currentMiniBoardOpen ? '−' : '+'}</b>
+              </button>
+              {currentMiniBoardOpen && (
+                <div className="reverse-tl-panel">
+                  <MiniBoardGrid rankings={reverse.rankings} />
+                  <button
+                    type="button"
+                    className="reverse-full-board-button"
+                    onClick={() => onOpenBoard({ date, hour: slotHour, boardType: '時' })}
+                  >
+                    フル盤を見る
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="reverse-card reverse-compass-card">
-            <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
+          <div className="reverse-zone">
+            <div className="reverse-zone-title">
+              <span className="reverse-section-kicker lat">go</span>
+              <h3 className="maru">出かける場所を探す</h3>
+            </div>
+
+            <div className="reverse-card reverse-go-card">
+              <div className="reverse-base-compact">
+                <span>
+                  起点 <strong>{location.name}</strong>
+                  <small>自然時補正 <b className="lat">{formatCorrection(correction)}</b></small>
+                </span>
+                <button type="button" onClick={() => setBasePointOpen((value) => !value)}>
+                  変更
+                </button>
+              </div>
+              {basePointOpen && (
+                <div className="reverse-base-panel">
+                  {basePointControls}
+                  {basePointMeta}
+                  {status && <p className="reverse-status">{status}</p>}
+                </div>
+              )}
+
+              <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
+                <button
+                  type="button"
+                  className={goView === 'map' ? 'is-active' : ''}
+                  onClick={() => setGoView('map')}
+                >
+                  地図で探す
+                </button>
+                <button
+                  type="button"
+                  className={goView === 'favorites' ? 'is-active' : ''}
+                  onClick={() => setGoView('favorites')}
+                >
+                  お気に入り
+                </button>
+              </div>
+
+              {goView === 'favorites' && (
+                <div className="reverse-favorite-chips" aria-label="お気に入り">
+                  {favoriteChips.length > 0 ? favoriteChips.map((item) => {
+                    const key = favoriteKey(item);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setFocusedFavoriteKey(key)}
+                      >
+                        <strong>{favoriteDisplayName(item)}</strong>
+                        <span>{item.direction?.label || '-'} <b className="lat">{scoreText(item.direction?.score || 0)}</b></span>
+                        <small className="lat">{formatDistance(item.distanceM)}</small>
+                      </button>
+                    );
+                  }) : (
+                    <p>お気に入りはまだありません。地図で場所を検索して追加できます。</p>
+                  )}
+                </div>
+              )}
+
+              <DirectionMap
+                location={location}
+                rankings={reverse.rankings}
+                bestPalace={best?.palace}
+                profileKey="jiban"
+                focusFavoriteKey={goView === 'favorites' ? focusedFavoriteKey : ''}
+                showSearchControls={goView === 'map'}
+                showPlacePanel={goView === 'map'}
+              />
+            </div>
           </div>
+
           <LuckyOmamoriBar
             isActive={isActive}
             bestPalace={reverse.board.score.best_overall}
             seed={timeOmamoriSeed}
           />
-
-          <button
-            type="button"
-            className="reverse-card reverse-best-card"
-            onClick={() => onOpenBoard({ date, hour: slotHour, boardType: '時' })}
-          >
-            <div className="reverse-best-no">1</div>
-            <div className="reverse-best-main">
-              {best ? (
-                <>
-                  <strong>{best.label}<small>{best.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                  <p>今の時盤で最大吉</p>
-                </>
-              ) : (
-                <>
-                  <strong>該当なし</strong>
-                  <p>吉のみ表示中です。凶も見ると全方位を確認できます。</p>
-                </>
-              )}
-            </div>
-            <div className="reverse-best-score lat">{best ? `${best.score > 0 ? '+' : ''}${best.score}` : '-'}</div>
-          </button>
-
-          {filterCard}
-
-          <div className="reverse-timeline">
-            <div className="reverse-section-title">
-              <span className="reverse-section-kicker lat">today's best</span>
-              <h3 className="maru">本日の時間帯別ベスト</h3>
-            </div>
-            {displayedTimeline.map((slot) => (
-              <div key={slot.hour} className="reverse-tl-block">
-                <button
-                  type="button"
-                  className={`reverse-tl-item ${slot.hour === slotHour ? 'is-now' : ''} ${openTimelineHour === slot.hour ? 'is-expanded' : ''}`}
-                  onClick={() => setOpenTimelineHour((current) => (current === slot.hour ? null : slot.hour))}
-                  aria-expanded={openTimelineHour === slot.hour}
-                >
-                <span className="reverse-tl-time lat">{slot.label}</span>
-                <span className="reverse-tl-main">
-                  <strong>{slot.best?.label || '該当なし'}</strong>
-                  <span>{slot.best?.reasons.slice(0, 2).join('・') || '凶を除外中'}</span>
-                </span>
-                  <span className={`reverse-tl-score ${(slot.best?.score || 0) < 0 ? 'is-bad' : ''}`}>
-                    {slot.best ? `${slot.best.score > 0 ? '+' : ''}${slot.best.score}` : '-'}
-                  </span>
-                </button>
-                {openTimelineHour === slot.hour && (
-                  <div className="reverse-tl-panel">
-                    <MiniBoardGrid rankings={slot.rankings} />
-                    <button
-                      type="button"
-                      className="reverse-full-board-button"
-                      onClick={() => onOpenBoard({ date, hour: slot.hour, boardType: '時' })}
-                    >
-                      フル盤を見る
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         </>
       )}
+
+      {mode === 'timeRanking' && timelineSection}
 
       {mode === 'day' && (
         <>
