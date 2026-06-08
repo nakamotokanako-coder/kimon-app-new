@@ -841,7 +841,8 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
                   style={{
                     left: `${segment.x}%`,
                     width: `${segment.w}%`,
-                    backgroundColor: `rgba(24, 95, 165, ${segment.op})`,
+                    backgroundColor: 'var(--text-accent)',
+                    opacity: segment.op,
                   }}
                 />
                 {segment.label && (
