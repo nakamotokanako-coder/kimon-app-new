@@ -25,6 +25,20 @@ describe('吉方位 UI 整理', () => {
     expect(rankingSrc).toContain('<h3>日盤ランキング</h3>');
   });
 
+  it('時盤ランキングタブに時間帯別ベストを移設している', () => {
+    expect(reverseSrc).toContain('時盤ランキング');
+    expect(reverseSrc).toContain("mode === 'timeRanking'");
+    expect(reverseSrc).toContain('const timelineSection =');
+    expect(reverseSrc).toContain('本日の時間帯別ベスト');
+  });
+
+  it('時盤お散歩はNOW/GO構成と折りたたみミニ盤を持つ', () => {
+    expect(reverseSrc).toContain('reverse-zone');
+    expect(reverseSrc).toContain('今の時盤を盤で見る');
+    expect(reverseSrc).toContain('地図で探す');
+    expect(reverseSrc).toContain('reverse-favorite-chips');
+  });
+
   it('円盤に吉門アイコンを描画する', () => {
     expect(GATE_ICONS).toEqual({
       生門: 'money',
@@ -56,7 +70,8 @@ describe('共通フル盤導線', () => {
     expect(appSrc).toContain("window.scrollTo({ top: 0, left: 0, behavior: 'auto' })");
   });
 
-  it('1位カードと時間帯別ベストから時盤を開ける', () => {
+  it('折りたたみミニ盤と時間帯別ベストから時盤を開ける', () => {
+    expect(reverseSrc).toContain('今の時盤を盤で見る');
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slotHour, boardType: '時' })");
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slot.hour, boardType: '時' })");
   });
