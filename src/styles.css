@@ -1800,8 +1800,10 @@ select {
   --kan-glow: none;
   --shin: #7fd4ff;
   --sei: #cfe6ff;
-  --plus: #54f0a8;
-  --plus-g: 0 0 12px rgba(84, 240, 168, .5);
+  /* redesign/dark-mincho フェーズ2: プラススコアの蛍光緑を世界観のゴールドへ統一。
+     最大吉(--first-rank-*)のグロー/エッジは別系統なので特別感はそのまま。 */
+  --plus: var(--accent-soft);
+  --plus-g: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
   --minus: #ff7a8a;
   --minus-g: 0 0 12px rgba(255, 95, 114, .4);
   --zero: #cfcfe0;
@@ -1863,8 +1865,9 @@ select {
   --kan-glow: 0 0 12px rgba(154, 243, 255, .35);
   --shin: #7fd4ff;
   --sei: #cfe9ff;
-  --plus: #54f0a8;
-  --plus-g: 0 0 12px rgba(84, 240, 168, .5);
+  /* redesign/dark-mincho フェーズ2: プラススコアを世界観アクセントへ統一（深海テーマ）。 */
+  --plus: var(--accent-soft);
+  --plus-g: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
   --minus: #ff7a8a;
   --minus-g: 0 0 12px rgba(255, 95, 114, .4);
   --zero: #cfd6e8;
@@ -2464,6 +2467,18 @@ body {
   line-height: 1;
 }
 
+/* redesign/dark-mincho フェーズ2: 設定の歯車を線アイコン(SVG)で統一。currentColor 継承。 */
+.bottom-tab-icon svg {
+  display: block;
+  width: 1.28rem;
+  height: 1.28rem;
+}
+
+/* 非選択アイコンは accent の 30% 透過で控えめに（選択時はアクセントで点灯）。 */
+.bottom-tabbar button:not(.is-active) .bottom-tab-icon {
+  color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
 .settings-view,
 .reverse-view {
   width: min(100%, 760px);
@@ -2728,6 +2743,23 @@ body {
   border-color: var(--border-main);
   background: color-mix(in srgb, var(--text-accent) 13%, var(--bg-cell));
   color: var(--text-accent);
+}
+
+/* redesign/dark-mincho フェーズ2: 南京錠 → PRO バッジ（accent-grad 塗り / accent-ink 文字）。
+   「締め出された感」より「手に入れたい感」を出す。 */
+.pro-badge {
+  display: inline-block;
+  margin-left: 3px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font-size: 0.62em;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  vertical-align: middle;
+  box-shadow: 0 1px 6px -2px var(--accent-glow);
 }
 
 .reverse-card {
@@ -5029,7 +5061,9 @@ body {
 }
 
 .reverse-tl-score {
-  color: var(--text-success);
+  /* redesign/dark-mincho フェーズ2: 時間帯別リストのプラススコアも盤グリッドと同じ
+     --plus（世界観ゴールド）に統一。is-bad（凶）は赤のまま。 */
+  color: var(--plus);
   text-align: right;
   font-size: 0.9rem;
   font-weight: 900;
@@ -5091,7 +5125,8 @@ body {
 }
 
 .sanban-route-hero b {
-  font-size: 1.8rem;
+  /* redesign/dark-mincho フェーズ2: 旧 🔒(絵文字) 用の特大サイズを PRO バッジ向けに調整。 */
+  font-size: 1rem;
 }
 
 .sanban-route-basis,
@@ -5565,9 +5600,12 @@ body {
 }
 
 .direction-map-search-row button {
-  border-color: color-mix(in srgb, var(--accent) 82%, transparent);
-  background: var(--accent);
+  /* redesign/dark-mincho フェーズ2: 施設検索ボタンを基準点検索ボタンと同じ
+     --accent-grad に統一（フラット金 → グラデ金でトーンを揃える）。 */
+  border-color: var(--accent-edge);
+  background: var(--accent-grad);
   color: var(--accent-ink);
+  box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
 }
 
 .direction-map-action,
@@ -5767,6 +5805,14 @@ body {
 .reverse-date-row input {
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+/* redesign/dark-mincho フェーズ2: 基準点・施設検索の入力欄をゴールド細枠・角丸小さめに。
+   無機質なWebフォーム感を抑え、世界観に馴染ませる。 */
+.reverse-search-row input,
+.direction-map-search-row input {
+  border-radius: 9px;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border-subtle));
 }
 
 .direction-map-chips button {

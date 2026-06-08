@@ -21,9 +21,15 @@ describe('5タブ注釈撤廃', () => {
     '日盤 遠出',
     '日盤ランキング',
     '格局を探す',
-    '奇門三盤ルート 🔒',
+    '奇門三盤ルート',
   ])('「%s」タブが表示される', (label) => {
     expect(reverseDirectionViewSrc).toContain(label);
+  });
+
+  // redesign/dark-mincho フェーズ2: 三盤ルートタブの南京錠 🔒 → PRO バッジに変更。
+  it('奇門三盤ルートタブが南京錠ではなく PRO バッジで表示される', () => {
+    expect(reverseDirectionViewSrc).not.toContain('奇門三盤ルート 🔒');
+    expect(reverseDirectionViewSrc).toMatch(/奇門三盤ルート\s*<span className="pro-badge"/);
   });
 
   it.each([
@@ -56,8 +62,10 @@ describe('奇門三盤ルート 本実装画面', () => {
     expect(sanbanRouteViewSrc).toMatch(/検索する/);
   });
 
-  it('鍵マーク 🔒 は飾りとして含まれる', () => {
-    expect(sanbanRouteViewSrc).toMatch(/🔒/);
+  // redesign/dark-mincho フェーズ2: ヒーローの南京錠 🔒 → PRO バッジに変更。
+  it('PRO バッジが飾りとして含まれる（南京錠は撤廃）', () => {
+    expect(sanbanRouteViewSrc).not.toMatch(/🔒/);
+    expect(sanbanRouteViewSrc).toMatch(/className="pro-badge"/);
   });
 
   it('ReverseDirectionView が SanbanRouteView を import し mode=range で描画', () => {
