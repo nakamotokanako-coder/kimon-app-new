@@ -8,6 +8,7 @@ import ShouiPanel from './components/ShouiPanel.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
 import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
+import { getBoardDate } from './utils/boardDate.js';
 import packageJson from '../package.json';
 
 // redesign/dark-mincho 実験ブランチ: デフォルトを漆黒(void)に。他テーマは切替可能なまま。
@@ -80,12 +81,6 @@ function readStoredJsonArray(key) {
   }
 }
 
-function getTodayJst() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().slice(0, 10);
-}
-
 function applyInitialTheme() {
   if (typeof document === 'undefined') return DEFAULT_THEME;
 
@@ -106,7 +101,7 @@ const INITIAL_THEME = applyInitialTheme();
 
 export default function App() {
   const [state, setState] = useState({
-    date: getTodayJst(),
+    date: getBoardDate(),
     hour: 0,
     boardType: '\u65e5',
   });
