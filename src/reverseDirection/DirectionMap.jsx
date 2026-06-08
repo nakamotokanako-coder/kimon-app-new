@@ -834,25 +834,28 @@ export default function DirectionMap({ location, rankings, bestPalace, profileKe
         <div className="direction-scale-card">
           <h3>{profile.scaleTitle}</h3>
           <div className="direction-ruler" aria-hidden="true">
-            {profile.ruler.map((segment) => (
-              <React.Fragment key={`${segment.x}-${segment.w}`}>
-                <span
-                  className="direction-ruler-band"
-                  style={{
-                    left: `${segment.x}%`,
-                    width: `${segment.w}%`,
-                    backgroundColor: MAP_FAN_COLORS.great,
-                    opacity: segment.op,
-                  }}
-                />
-                {segment.label && (
-                  <span className="direction-ruler-label" style={{ left: `${segment.x + 1}%` }}>{segment.label}</span>
-                )}
-                {segment.bottom && (
-                  <span className="direction-ruler-label is-bottom" style={{ left: `${segment.x + 1}%` }}>{segment.bottom}</span>
-                )}
-              </React.Fragment>
-            ))}
+            {profile.ruler.map((segment) => {
+              const labelToneClass = segment.op <= 0.3 ? 'is-light-cell' : 'is-dark-cell';
+              return (
+                <React.Fragment key={`${segment.x}-${segment.w}`}>
+                  <span
+                    className="direction-ruler-band"
+                    style={{
+                      left: `${segment.x}%`,
+                      width: `${segment.w}%`,
+                      backgroundColor: MAP_FAN_COLORS.great,
+                      opacity: segment.op,
+                    }}
+                  />
+                  {segment.label && (
+                    <span className={`direction-ruler-label ${labelToneClass}`} style={{ left: `${segment.x + 1}%` }}>{segment.label}</span>
+                  )}
+                  {segment.bottom && (
+                    <span className={`direction-ruler-label is-bottom ${labelToneClass}`} style={{ left: `${segment.x + 1}%` }}>{segment.bottom}</span>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
           <p>{profile.scaleNote}</p>
         </div>
