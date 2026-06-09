@@ -103,6 +103,37 @@ function formatCurrentClock(date = new Date()) {
   });
 }
 
+function formatClockMinute(date) {
+  return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function getNaturalSlotStart(naturalDate, slotHour) {
+  const start = new Date(naturalDate);
+  start.setMinutes(0, 0, 0);
+  if (slotHour === 0) {
+    start.setHours(23);
+    if (naturalDate.getHours() !== 23) start.setDate(start.getDate() - 1);
+    return start;
+  }
+  start.setHours(slotHour - 1);
+  return start;
+}
+
+function getCurrentTimeWindow(now, correctionMinutes) {
+  const naturalDate = applyNaturalTime(now, correctionMinutes);
+  const currentSlotHour = getTimeSlotHour(naturalDate);
+  const naturalStart = getNaturalSlotStart(naturalDate, currentSlotHour);
+  const naturalEnd = new Date(naturalStart.getTime() + 2 * 60 * 60 * 1000);
+  const clockStart = new Date(naturalStart.getTime() - correctionMinutes * 60 * 1000);
+  const clockEnd = new Date(naturalEnd.getTime() - correctionMinutes * 60 * 1000);
+  const remainingMinutes = Math.max(0, Math.ceil((clockEnd.getTime() - now.getTime()) / 60000));
+  return {
+    clockRange: `${formatClockMinute(clockStart)}–${formatClockMinute(clockEnd)}`,
+    naturalLabel: getTimeSlotLabel(currentSlotHour).replace('-', '–'),
+    remainingMinutes,
+  };
+}
+
 function formatDistance(meters) {
   if (!Number.isFinite(meters)) return '-';
   if (meters >= 1000) return `${(meters / 1000).toFixed(1)}km`;
@@ -195,12 +226,17 @@ export default function ReverseDirectionView({
   const [currentMiniBoardOpen, setCurrentMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
+  const [now, setNow] = useState(() => new Date());
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
   const today = getBoardDate();
   const slotHour = getTimeSlotHour(naturalNow);
   const date = today;
+  const currentTimeWindow = useMemo(
+    () => getCurrentTimeWindow(now, correction),
+    [now, correction],
+  );
 
   const reverse = useMemo(() => (
     buildReverseBoard({ date, hour: slotHour })
@@ -272,6 +308,12 @@ export default function ReverseDirectionView({
       { timeout: 8000, enableHighAccuracy: false },
     );
   }, []);
+
+  useEffect(() => {
+    if (!isActive || typeof window === 'undefined') return undefined;
+    const timer = window.setInterval(() => setNow(new Date()), 30 * 1000);
+    return () => window.clearInterval(timer);
+  }, [isActive]);
 
   const refreshFavorites = useCallback(() => {
     setFavorites(readStoredFavorites());
@@ -534,7 +576,7 @@ export default function ReverseDirectionView({
           {mode !== 'range' && (
             <div className="reverse-time-chip lat">
               {mode === 'timeRanking'
-                ? `現在 ${formatCurrentClock()}`
+                ? `現在 ${formatCurrentClock(now)}`
                 : mode === 'day' || mode === 'ranking'
                 ? formatDisplayDate(dayDate)
                 : getTimeSlotLabel(slotHour)}
@@ -579,6 +621,15 @@ export default function ReverseDirectionView({
             <div className="reverse-zone-title">
               <span className="reverse-section-kicker lat">now</span>
               <h3 className="maru">今の吉方位</h3>
+            </div>
+
+            <div className="reverse-current-window">
+              <span>現在の時間帯</span>
+              <b className="lat">{currentTimeWindow.clockRange}</b>
+              <small>
+                （自然時補正 <b className="lat">{currentTimeWindow.naturalLabel}</b>）・あと
+                <b className="lat">{currentTimeWindow.remainingMinutes}</b>分
+              </small>
             </div>
 
             <div className="reverse-card reverse-best-card">
