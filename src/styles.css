@@ -3266,6 +3266,11 @@ body {
   box-shadow: 0 0 0 2px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
+.direction-poi-pin.is-numbered span {
+  font-size: 0.78rem;
+  letter-spacing: -0.08em;
+}
+
 .direction-popup-button {
   margin-top: 7px;
   padding: 6px 9px;
@@ -3318,6 +3323,10 @@ body {
   text-align: left;
 }
 
+.direction-place-row.is-numbered {
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+}
+
 .direction-place-row.is-editable {
   grid-template-columns: minmax(0, 1fr) 32px;
   padding: 0;
@@ -3349,7 +3358,7 @@ body {
   line-height: 1;
 }
 
-.direction-place-row span:not(.direction-place-dot) {
+.direction-place-row span:not(.direction-place-dot):not(.direction-place-number) {
   display: grid;
   min-width: 0;
   gap: 2px;
@@ -3387,7 +3396,26 @@ body {
   border-radius: 999px;
 }
 
+.direction-place-number {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  line-height: 1;
+}
+
 .direction-place-dot.is-good {
+  background: #185FA5;
+}
+
+.direction-place-number.is-good {
   background: #185FA5;
 }
 
@@ -3395,7 +3423,15 @@ body {
   background: #6f6c5e;
 }
 
+.direction-place-number.is-neutral {
+  background: #6f6c5e;
+}
+
 .direction-place-dot.is-bad {
+  background: #c2554f;
+}
+
+.direction-place-number.is-bad {
   background: #c2554f;
 }
 

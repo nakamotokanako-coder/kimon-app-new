@@ -80,6 +80,10 @@ function placeSubLabel(place) {
   return String(place?.subLabel || place?.branch || place?.addressLine || '').trim();
 }
 
+function placeNumberLabel(number) {
+  return ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'][number] || String(number);
+}
+
 function favoritePayload(place) {
   return {
     name: place.name,
@@ -99,11 +103,12 @@ function toneClass(tone) {
   return 'is-neutral';
 }
 
-function placeMarkerHtml(item, favorite = false) {
+function placeMarkerHtml(item, favorite = false, markerNo = null) {
   const tone = item.direction?.tone || 'neutral';
   const score = item.direction?.score ?? 0;
   const sign = score > 0 ? '+' : score < 0 ? '-' : '·';
-  return `<div class="direction-poi-pin ${toneClass(tone)} ${favorite ? 'is-favorite' : ''}"><span>${sign}</span></div>`;
+  const markerLabel = markerNo ? placeNumberLabel(markerNo) : sign;
+  return `<div class="direction-poi-pin ${toneClass(tone)} ${favorite ? 'is-favorite' : ''} ${markerNo ? 'is-numbered' : ''}"><span>${markerLabel}</span></div>`;
 }
 
 function ScrollWindow({ children, className = '' }) {
@@ -180,6 +185,13 @@ export default function DirectionMap({
   const visibleSearchResults = useMemo(
     () => filterKichiPlaces(searchResults, kichiOnlyPlaces),
     [kichiOnlyPlaces, searchResults],
+  );
+  const numberedSearchResults = useMemo(
+    () => visibleSearchResults.slice(0, 8).map((item, index) => ({
+      item,
+      markerNo: index + 1,
+    })),
+    [visibleSearchResults],
   );
 
   const saveFavorites = (nextFavorites) => {
@@ -645,10 +657,14 @@ export default function DirectionMap({
     });
 
     [
-      ...visibleSearchResults.map((item) => ({ item, favorite: false })),
+      ...visibleSearchResults.map((item, index) => ({
+        item,
+        favorite: false,
+        markerNo: index < 8 ? index + 1 : null,
+      })),
       ...(selectedPlace ? [{ item: selectedPlace, favorite: false }] : []),
       ...decoratedFavorites.map((item) => ({ item, favorite: true })),
-    ].forEach(({ item, favorite }) => {
+    ].forEach(({ item, favorite, markerNo = null }) => {
       const isSaved = favorites.some((fav) => favoriteKey(fav) === favoriteKey(item));
       const subLabel = placeSubLabel(item);
       const popup = [
@@ -663,7 +679,7 @@ export default function DirectionMap({
       const marker = L.marker([item.latitude, item.longitude], {
         icon: L.divIcon({
           className: '',
-          html: placeMarkerHtml(item, favorite),
+          html: placeMarkerHtml(item, favorite, markerNo),
           iconSize: favorite ? [28, 28] : [22, 22],
           iconAnchor: favorite ? [14, 28] : [11, 22],
           popupAnchor: [0, -20],
@@ -851,17 +867,21 @@ export default function DirectionMap({
               </ScrollWindow>
             </div>
           )}
-          {(selectedPlace || visibleSearchResults.length > 0) && (
+          {(selectedPlace || numberedSearchResults.length > 0) && (
             <div className="direction-place-section">
               <div className="reverse-section-title">
                 <span className="reverse-section-kicker lat">places</span>
                 <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
               </div>
-              {(selectedPlace ? [selectedPlace] : visibleSearchResults.slice(0, 8)).map((item) => {
+              {(selectedPlace ? [{ item: selectedPlace, markerNo: null }] : numberedSearchResults).map(({ item, markerNo }) => {
                 const subLabel = placeSubLabel(item);
                 return (
-                  <button key={favoriteKey(item)} type="button" className="direction-place-row" onClick={() => showPlace(item)}>
-                    <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                  <button key={favoriteKey(item)} type="button" className={`direction-place-row ${markerNo ? 'is-numbered' : ''}`} onClick={() => showPlace(item)}>
+                    {markerNo ? (
+                      <span className={`direction-place-number ${toneClass(item.direction?.tone)}`}>{placeNumberLabel(markerNo)}</span>
+                    ) : (
+                      <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                    )}
                     <span>
                       <strong>{item.name}</strong>
                       {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
