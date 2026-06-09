@@ -224,6 +224,7 @@ export default function ReverseDirectionView({
   const [basePointOpen, setBasePointOpen] = useState(false);
   const [dayBasePointOpen, setDayBasePointOpen] = useState(false);
   const [currentMiniBoardOpen, setCurrentMiniBoardOpen] = useState(false);
+  const [dayMiniBoardOpen, setDayMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
   const [now, setNow] = useState(() => new Date());
@@ -867,13 +868,30 @@ export default function ReverseDirectionView({
 
               <div className="reverse-card reverse-compass-card">
                 <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
+              </div>
+
+              <div className="reverse-card reverse-now-board-card">
                 <button
                   type="button"
-                  className="reverse-full-board-button"
-                  onClick={() => onOpenBoard({ date: dayDate, boardType: '日' })}
+                  className="reverse-disclosure-trigger"
+                  onClick={() => setDayMiniBoardOpen((value) => !value)}
+                  aria-expanded={dayMiniBoardOpen}
                 >
-                  この日の日盤を盤で見る
+                  <span>この日の日盤を盤で見る</span>
+                  <b aria-hidden="true">{dayMiniBoardOpen ? '▾' : '›'}</b>
                 </button>
+                {dayMiniBoardOpen && (
+                  <div className="reverse-tl-panel">
+                    <MiniBoardGrid rankings={dayReverse.rankings} />
+                    <button
+                      type="button"
+                      className="reverse-full-board-button"
+                      onClick={() => onOpenBoard({ date: dayDate, boardType: '日' })}
+                    >
+                      フル盤を見る
+                    </button>
+                  </div>
+                )}
               </div>
               <LuckyOmamoriBar
                 isActive={isActive}
