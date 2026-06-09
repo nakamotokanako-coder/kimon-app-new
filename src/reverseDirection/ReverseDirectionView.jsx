@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BasePointSelector from './BasePointSelector.jsx';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
@@ -38,6 +38,52 @@ const DEFAULT_LOCATIONS = [
 ];
 
 const MAP_SEARCH_CHANGED_EVENT = 'kimon-map-favorites-changed';
+const GO_BASE_POINT_STORAGE_KEY = 'kimon_go_base_point_v1';
+const BASE_POINT_MODES = new Set(['gps', 'favorite', 'search']);
+
+function normalizeBasePointLocation(location) {
+  const latitude = Number(location?.latitude);
+  const longitude = Number(location?.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    name: location?.name || DEFAULT_LOCATIONS[0].name,
+    latitude,
+    longitude,
+  };
+}
+
+function readStoredBasePoint() {
+  try {
+    if (typeof window === 'undefined') return null;
+    const saved = window.localStorage.getItem(GO_BASE_POINT_STORAGE_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    const location = normalizeBasePointLocation(parsed?.location);
+    if (!location || !BASE_POINT_MODES.has(parsed?.mode)) return null;
+    return {
+      mode: parsed.mode,
+      location,
+      selectedFavoriteId: parsed?.selectedFavoriteId || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredBasePoint(next) {
+  try {
+    if (typeof window === 'undefined') return;
+    const location = normalizeBasePointLocation(next?.location);
+    if (!location || !BASE_POINT_MODES.has(next?.mode)) return;
+    window.localStorage.setItem(GO_BASE_POINT_STORAGE_KEY, JSON.stringify({
+      mode: next.mode,
+      location,
+      selectedFavoriteId: next?.selectedFavoriteId || null,
+    }));
+  } catch {
+    // localStorage may be unavailable in private or restricted contexts.
+  }
+}
 
 function formatCorrection(minutes) {
   if (minutes === 0) return '±0分';
@@ -101,9 +147,12 @@ export default function ReverseDirectionView({
   unreadNotificationCount = 0,
   onOpenNotifications,
 }) {
-  const [location, setLocation] = useState(DEFAULT_LOCATIONS[0]);
-  const [currentMode, setCurrentMode] = useState('search');
-  const [selectedFavoriteId, setSelectedFavoriteId] = useState(null);
+  const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
+  const refreshGpsOnMountRef = useRef(true);
+  const fallbackGpsToDefaultRef = useRef(!initialBasePoint);
+  const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
+  const [currentMode, setCurrentMode] = useState(initialBasePoint?.mode || 'gps');
+  const [selectedFavoriteId, setSelectedFavoriteId] = useState(initialBasePoint?.selectedFavoriteId || null);
   const [favorites, setFavorites] = useState(() => readStoredFavorites());
   const [query, setQuery] = useState('');
   const [goodOnly, setGoodOnly] = useState(true);
@@ -155,10 +204,15 @@ export default function ReverseDirectionView({
     timelineSortMode === 'score' ? sortTimelineSlotsByScore(timeline) : timeline
   ), [timeline, timelineSortMode]);
 
-  const useCurrentLocation = useCallback(() => {
+  const useCurrentLocation = useCallback((options = {}) => {
+    const { fallbackToDefault = false } = options;
     setCurrentMode('gps');
     setSelectedFavoriteId(null);
-    if (!navigator.geolocation) {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      if (fallbackToDefault) {
+        setLocation(DEFAULT_LOCATIONS[0]);
+        setCurrentMode('search');
+      }
       setStatus('この端末では現在地を取得できません。地域リストを使ってください。');
       return;
     }
@@ -170,12 +224,34 @@ export default function ReverseDirectionView({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
+        writeStoredBasePoint({
+          mode: 'gps',
+          location: {
+            name: '\u73fe\u5728\u5730',
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          },
+          selectedFavoriteId: null,
+        });
         setStatus('現在地を基準点にしました。');
       },
-      () => setStatus('現在地を取得できませんでした。地域リストを使ってください。'),
+      () => {
+        if (fallbackToDefault) {
+          setLocation(DEFAULT_LOCATIONS[0]);
+          setCurrentMode('search');
+        }
+        setStatus('現在地を取得できませんでした。地域リストを使ってください。');
+      },
       { timeout: 8000, enableHighAccuracy: false },
     );
   }, []);
+
+  useEffect(() => {
+    if (!refreshGpsOnMountRef.current) return;
+    refreshGpsOnMountRef.current = false;
+    if (currentMode !== 'gps') return;
+    useCurrentLocation({ fallbackToDefault: fallbackGpsToDefaultRef.current });
+  }, [currentMode, useCurrentLocation]);
 
   const refreshFavorites = useCallback(() => {
     setFavorites(readStoredFavorites());
@@ -215,6 +291,15 @@ export default function ReverseDirectionView({
         latitude: favorite.latitude,
         longitude: favorite.longitude,
       });
+      writeStoredBasePoint({
+        mode: 'favorite',
+        location: {
+          name: nextName,
+          latitude: favorite.latitude,
+          longitude: favorite.longitude,
+        },
+        selectedFavoriteId: favorite.id,
+      });
     }
   }, [currentMode, favorites, location, selectedFavoriteId, useCurrentLocation]);
 
@@ -225,13 +310,19 @@ export default function ReverseDirectionView({
     }
     const favorite = favorites.find((item) => item.id === favoriteId);
     if (!favorite) return;
-    setLocation({
+    const nextLocation = {
       name: favoriteDisplayName(favorite),
       latitude: favorite.latitude,
       longitude: favorite.longitude,
-    });
+    };
+    setLocation(nextLocation);
     setCurrentMode('favorite');
     setSelectedFavoriteId(favorite.id);
+    writeStoredBasePoint({
+      mode: 'favorite',
+      location: nextLocation,
+      selectedFavoriteId: favorite.id,
+    });
     setStatus(`${favoriteDisplayName(favorite)}を基準点にしました。`);
   };
 
@@ -248,13 +339,19 @@ export default function ReverseDirectionView({
         setStatus('候補が見つかりませんでした。');
         return;
       }
-      setLocation({
+      const nextLocation = {
         name: first.properties?.title || text,
         longitude: Number(coords[0]),
         latitude: Number(coords[1]),
-      });
+      };
+      setLocation(nextLocation);
       setCurrentMode('search');
       setSelectedFavoriteId(null);
+      writeStoredBasePoint({
+        mode: 'search',
+        location: nextLocation,
+        selectedFavoriteId: null,
+      });
       setStatus('検索した場所を基準点にしました。');
     } catch {
       setStatus('場所検索に失敗しました。地域リストを使ってください。');
@@ -312,6 +409,11 @@ export default function ReverseDirectionView({
                 setLocation(next);
                 setCurrentMode('search');
                 setSelectedFavoriteId(null);
+                writeStoredBasePoint({
+                  mode: 'search',
+                  location: next,
+                  selectedFavoriteId: null,
+                });
               }
             }}
           >
