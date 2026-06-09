@@ -5720,9 +5720,9 @@ body {
 }
 
 .reverse-best-no {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: var(--hero-tx);
+  background: var(--accent-grad);
+  border: 1px solid var(--accent-edge);
+  color: var(--accent-ink);
 }
 
 .reverse-best-main strong {
@@ -6083,7 +6083,8 @@ body {
   min-width: 2.05rem;
   min-height: 2.05rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent-glow) 52%, transparent);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent-edge) 62%, transparent),
     0 0 18px -5px var(--accent),
