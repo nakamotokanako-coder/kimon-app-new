@@ -3589,18 +3589,22 @@ body {
 }
 
 .direction-ruler {
+  --ruler-base: #eef6ff;
+  --ruler-text-dark: #10233b;
+  --ruler-text-light: #f7fbff;
   position: relative;
   height: 42px;
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--bg-elevated);
+  background: var(--ruler-base);
 }
 
 .direction-ruler-band {
   position: absolute;
   top: 0;
   bottom: 0;
+  background: color-mix(in srgb, var(--ruler-blue) var(--ruler-mix), var(--ruler-base));
 }
 
 .direction-ruler-label {
@@ -3619,11 +3623,11 @@ body {
 }
 
 .direction-ruler-label.is-light-cell {
-  color: var(--text-primary);
+  color: var(--ruler-text-dark);
 }
 
 .direction-ruler-label.is-dark-cell {
-  color: var(--first-rank-title);
+  color: var(--ruler-text-light);
 }
 
 .direction-map-legend {

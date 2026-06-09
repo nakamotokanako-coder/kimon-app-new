@@ -910,8 +910,8 @@ export default function DirectionMap({
                     style={{
                       left: `${segment.x}%`,
                       width: `${segment.w}%`,
-                      backgroundColor: MAP_FAN_COLORS.great,
-                      opacity: segment.op,
+                      '--ruler-blue': MAP_FAN_COLORS.great,
+                      '--ruler-mix': `${Math.round(segment.op * 100)}%`,
                     }}
                   />
                   {segment.label && (
