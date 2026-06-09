@@ -86,7 +86,7 @@ export default function SanbanRouteView({
           <h3>奇門三盤ルート</h3>
           <span>1日に吉方位を3つ連続で巡る</span>
         </div>
-        <b aria-hidden="true">🔒</b>
+        <b className="pro-badge" aria-label="プロ機能">PRO</b>
       </div>
 
       <div className="sanban-route-basis">

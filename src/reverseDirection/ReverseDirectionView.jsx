@@ -461,7 +461,7 @@ export default function ReverseDirectionView({
           格局を探す
         </button>
         <button className={mode === 'range' ? 'is-active' : ''} type="button" onClick={() => setMode('range')}>
-          奇門三盤ルート 🔒
+          奇門三盤ルート <span className="pro-badge" aria-label="プロ機能">PRO</span>
         </button>
       </div>
 

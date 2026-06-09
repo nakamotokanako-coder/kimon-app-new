@@ -2469,6 +2469,16 @@ body {
   line-height: 1;
 }
 
+.bottom-tab-icon svg {
+  display: block;
+  width: 1.28rem;
+  height: 1.28rem;
+}
+
+.bottom-tabbar button:not(.is-active) .bottom-tab-icon {
+  color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
 .settings-view,
 .reverse-view {
   width: min(100%, 760px);
@@ -2740,6 +2750,21 @@ body {
   border-color: var(--border-main);
   background: color-mix(in srgb, var(--text-accent) 13%, var(--bg-cell));
   color: var(--text-accent);
+}
+
+.pro-badge {
+  display: inline-block;
+  margin-left: 3px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font-size: 0.62em;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  vertical-align: middle;
+  box-shadow: 0 1px 6px -2px var(--accent-glow);
 }
 
 .reverse-card {
@@ -5113,7 +5138,7 @@ body {
 }
 
 .sanban-route-hero b {
-  font-size: 1.8rem;
+  font-size: 1rem;
 }
 
 .sanban-route-basis,
@@ -5605,9 +5630,10 @@ body {
 }
 
 .direction-map-search-row button {
-  border-color: color-mix(in srgb, var(--accent) 82%, transparent);
-  background: var(--accent);
+  border-color: var(--accent-edge);
+  background: var(--accent-grad);
   color: var(--accent-ink);
+  box-shadow: 0 10px 24px -16px var(--accent), 0 0 18px -10px var(--accent-glow);
 }
 
 .direction-map-action,
@@ -5969,6 +5995,12 @@ body {
 .reverse-date-row input {
   border-radius: 999px;
   background: color-mix(in srgb, var(--bg-main) 58%, transparent);
+}
+
+.reverse-search-row input,
+.direction-map-search-row input {
+  border-radius: 9px;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border-subtle));
 }
 
 .direction-map-chips button {
