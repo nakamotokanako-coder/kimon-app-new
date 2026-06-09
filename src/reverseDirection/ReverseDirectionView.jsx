@@ -820,6 +820,13 @@ export default function ReverseDirectionView({
 
               <div className="reverse-card reverse-compass-card">
                 <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
+                <button
+                  type="button"
+                  className="reverse-full-board-button"
+                  onClick={() => onOpenBoard({ date: dayDate, boardType: '日' })}
+                >
+                  この日の日盤を盤で見る
+                </button>
               </div>
               <LuckyOmamoriBar
                 isActive={isActive}
