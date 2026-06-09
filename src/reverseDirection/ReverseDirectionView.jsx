@@ -162,9 +162,12 @@ export default function ReverseDirectionView({
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
   const [goView, setGoView] = useState('map');
+  const [dayGoView, setDayGoView] = useState('map');
   const [basePointOpen, setBasePointOpen] = useState(false);
+  const [dayBasePointOpen, setDayBasePointOpen] = useState(false);
   const [currentMiniBoardOpen, setCurrentMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
+  const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -196,6 +199,11 @@ export default function ReverseDirectionView({
   const dayReverse = dayReverseState.result;
   const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
   const dayBest = dayVisibleRankings[0] || null;
+  const dayFavoriteChips = useMemo(() => (
+    dayReverse
+      ? decoratePlaces(favorites, [location.latitude, location.longitude], dayReverse.rankings)
+      : []
+  ), [dayReverse, favorites, location.latitude, location.longitude]);
 
   const timeline = useMemo(() => (
     buildTimeline({ date, goodOnly })
@@ -567,7 +575,7 @@ export default function ReverseDirectionView({
         </button>
       </div>
 
-      {mode !== 'time' && mode !== 'timeRanking' && basePointCard}
+      {mode !== 'time' && mode !== 'timeRanking' && mode !== 'day' && basePointCard}
 
       {mode === 'time' && (
         <>
@@ -735,14 +743,79 @@ export default function ReverseDirectionView({
             </div>
           ) : (
             <>
-              <div className="reverse-card reverse-compass-card">
+              <div className="reverse-zone">
+                <div className="reverse-zone-title">
+                  <span className="reverse-section-kicker lat">go</span>
+                  <h3 className="maru">出かける場所を探す</h3>
+                </div>
+
+                <div className="reverse-card reverse-go-card">
+                  <div className="reverse-base-compact">
+                    <span>
+                      起点 <strong>{location.name}</strong>
+                      <small>日盤・遠出 <b className="lat">{formatDisplayDate(dayDate)}</b></small>
+                    </span>
+                    <button type="button" onClick={() => setDayBasePointOpen((value) => !value)}>
+                      変更
+                    </button>
+                  </div>
+                  {dayBasePointOpen && (
+                    <div className="reverse-base-panel">
+                      {basePointControls}
+                      {basePointMeta}
+                      {status && <p className="reverse-status">{status}</p>}
+                    </div>
+                  )}
+
+                  <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
+                    <button
+                      type="button"
+                      className={dayGoView === 'map' ? 'is-active' : ''}
+                      onClick={() => setDayGoView('map')}
+                    >
+                      地図で探す
+                    </button>
+                    <button
+                      type="button"
+                      className={dayGoView === 'favorites' ? 'is-active' : ''}
+                      onClick={() => setDayGoView('favorites')}
+                    >
+                      お気に入り
+                    </button>
+                  </div>
+
+                  {dayGoView === 'favorites' && (
+                    <div className="reverse-favorite-chips" aria-label="お気に入り">
+                      {dayFavoriteChips.length > 0 ? dayFavoriteChips.map((item) => {
+                        const key = favoriteKey(item);
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setDayFocusedFavoriteKey(key)}
+                          >
+                            <strong>{favoriteDisplayName(item)}</strong>
+                            <span>{item.direction?.label || '-'} <b className="lat">{scoreText(item.direction?.score || 0)}</b></span>
+                            <small className="lat">{formatDistance(item.distanceM)}</small>
+                          </button>
+                        );
+                      }) : (
+                        <p>お気に入りはまだありません。地図で場所を検索して追加できます。</p>
+                      )}
+                    </div>
+                  )}
+
                 <DirectionMap
                   location={location}
                   rankings={dayReverse.rankings}
                   bestPalace={dayBest?.palace}
                   profileKey="nichiban"
                   showScale
+                  focusFavoriteKey={dayGoView === 'favorites' ? dayFocusedFavoriteKey : ''}
+                  showSearchControls={dayGoView === 'map'}
+                  showPlacePanel={dayGoView === 'map'}
                 />
+                </div>
               </div>
 
               <div className="reverse-card reverse-compass-card">
