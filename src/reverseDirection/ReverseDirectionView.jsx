@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import BasePointSelector from './BasePointSelector.jsx';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
@@ -26,7 +25,6 @@ import {
   decoratePlaces,
   favoriteDisplayName,
   favoriteKey,
-  pickNearestAddressCandidate,
 } from './mapSearch.js';
 
 const DEFAULT_LOCATIONS = [
@@ -40,6 +38,9 @@ const DEFAULT_LOCATIONS = [
 const MAP_SEARCH_CHANGED_EVENT = 'kimon-map-favorites-changed';
 const GO_BASE_POINT_STORAGE_KEY = 'kimon_go_base_point_v1';
 const BASE_POINT_MODES = new Set(['gps', 'favorite', 'search']);
+const BASE_POINT_CANDIDATE_LIMIT = 8;
+const FACILITY_TITLE_RE = /(労働局|労働基準監督署|公共職業安定所|株式会社|有限会社|学校|大学|病院|郵便局|消防|警察|駅|線|用水路|水道|センター|支社|支店|出張所|庁舎|局|署|組合|小学校|中学校|高等学校|短期大学)/;
+const ADMIN_TITLE_RE = /^(東京都|北海道|(?:京都|大阪)府|.{2,3}県).*(市|区|町|村)?$/;
 
 function normalizeBasePointLocation(location) {
   const latitude = Number(location?.latitude);
@@ -141,6 +142,32 @@ function readStoredFavorites() {
   }
 }
 
+function normalizeBasePointCandidate(candidate, index) {
+  const coords = candidate?.geometry?.coordinates;
+  if (!coords || coords.length < 2) return null;
+  const longitude = Number(coords[0]);
+  const latitude = Number(coords[1]);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  const title = candidate?.properties?.title || '候補地';
+  const isFacility = FACILITY_TITLE_RE.test(title);
+  return {
+    id: `${index}-${latitude}-${longitude}`,
+    title,
+    latitude,
+    longitude,
+    order: index,
+    priority: ADMIN_TITLE_RE.test(title) && !isFacility ? 0 : isFacility ? 2 : 1,
+  };
+}
+
+function buildBasePointCandidates(data) {
+  return (Array.isArray(data) ? data : [])
+    .map(normalizeBasePointCandidate)
+    .filter(Boolean)
+    .sort((a, b) => a.priority - b.priority || a.order - b.order)
+    .slice(0, BASE_POINT_CANDIDATE_LIMIT);
+}
+
 export default function ReverseDirectionView({
   isActive,
   onOpenBoard,
@@ -148,13 +175,13 @@ export default function ReverseDirectionView({
   onOpenNotifications,
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
-  const refreshGpsOnMountRef = useRef(true);
-  const fallbackGpsToDefaultRef = useRef(!initialBasePoint);
   const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
-  const [currentMode, setCurrentMode] = useState(initialBasePoint?.mode || 'gps');
+  const [currentMode, setCurrentMode] = useState(initialBasePoint?.mode || 'search');
   const [selectedFavoriteId, setSelectedFavoriteId] = useState(initialBasePoint?.selectedFavoriteId || null);
   const [favorites, setFavorites] = useState(() => readStoredFavorites());
   const [query, setQuery] = useState('');
+  const [basePointCandidates, setBasePointCandidates] = useState([]);
+  const [basePointSearching, setBasePointSearching] = useState(false);
   const [goodOnly, setGoodOnly] = useState(true);
   const [mode, setMode] = useState('time');
   const [dayDate, setDayDate] = useState(getBoardDate());
@@ -212,16 +239,11 @@ export default function ReverseDirectionView({
     timelineSortMode === 'score' ? sortTimelineSlotsByScore(timeline) : timeline
   ), [timeline, timelineSortMode]);
 
-  const useCurrentLocation = useCallback((options = {}) => {
-    const { fallbackToDefault = false } = options;
-    setCurrentMode('gps');
+  const useCurrentLocation = useCallback(() => {
     setSelectedFavoriteId(null);
+    setBasePointCandidates([]);
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      if (fallbackToDefault) {
-        setLocation(DEFAULT_LOCATIONS[0]);
-        setCurrentMode('search');
-      }
-      setStatus('この端末では現在地を取得できません。地域リストを使ってください。');
+      setStatus('この端末では現在地を取得できません。場所・地名で探してください。');
       return;
     }
     setStatus('現在地を取得中です。');
@@ -232,6 +254,7 @@ export default function ReverseDirectionView({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
         });
+        setCurrentMode('gps');
         writeStoredBasePoint({
           mode: 'gps',
           location: {
@@ -244,22 +267,11 @@ export default function ReverseDirectionView({
         setStatus('現在地を基準点にしました。');
       },
       () => {
-        if (fallbackToDefault) {
-          setLocation(DEFAULT_LOCATIONS[0]);
-          setCurrentMode('search');
-        }
-        setStatus('現在地を取得できませんでした。地域リストを使ってください。');
+        setStatus('現在地を取得できませんでした。前回の起点を表示したままにしています。');
       },
       { timeout: 8000, enableHighAccuracy: false },
     );
   }, []);
-
-  useEffect(() => {
-    if (!refreshGpsOnMountRef.current) return;
-    refreshGpsOnMountRef.current = false;
-    if (currentMode !== 'gps') return;
-    useCurrentLocation({ fallbackToDefault: fallbackGpsToDefaultRef.current });
-  }, [currentMode, useCurrentLocation]);
 
   const refreshFavorites = useCallback(() => {
     setFavorites(readStoredFavorites());
@@ -285,7 +297,10 @@ export default function ReverseDirectionView({
     if (currentMode !== 'favorite' || !selectedFavoriteId) return;
     const favorite = favorites.find((item) => item.id === selectedFavoriteId);
     if (!favorite) {
-      useCurrentLocation();
+      setLocation(DEFAULT_LOCATIONS[0]);
+      setCurrentMode('search');
+      setSelectedFavoriteId(null);
+      setStatus('保存済みの起点が見つからないため、東京を表示しています。');
       return;
     }
     const nextName = favoriteDisplayName(favorite);
@@ -309,61 +324,44 @@ export default function ReverseDirectionView({
         selectedFavoriteId: favorite.id,
       });
     }
-  }, [currentMode, favorites, location, selectedFavoriteId, useCurrentLocation]);
-
-  const selectBasePointMode = (nextMode, favoriteId) => {
-    if (nextMode === 'gps') {
-      useCurrentLocation();
-      return;
-    }
-    const favorite = favorites.find((item) => item.id === favoriteId);
-    if (!favorite) return;
-    const nextLocation = {
-      name: favoriteDisplayName(favorite),
-      latitude: favorite.latitude,
-      longitude: favorite.longitude,
-    };
-    setLocation(nextLocation);
-    setCurrentMode('favorite');
-    setSelectedFavoriteId(favorite.id);
-    writeStoredBasePoint({
-      mode: 'favorite',
-      location: nextLocation,
-      selectedFavoriteId: favorite.id,
-    });
-    setStatus(`${favoriteDisplayName(favorite)}を基準点にしました。`);
-  };
+  }, [currentMode, favorites, location, selectedFavoriteId]);
 
   const searchPlace = async () => {
     const text = query.trim();
-    if (!text) return;
-    setStatus('場所を検索中です。');
+    if (!text || basePointSearching) return;
+    setBasePointSearching(true);
+    setBasePointCandidates([]);
+    setStatus('候補を検索中です。');
     try {
       const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(text)}`);
       const data = await res.json();
-      const first = pickNearestAddressCandidate(data, [location.latitude, location.longitude]);
-      const coords = first?.geometry?.coordinates;
-      if (!coords) {
-        setStatus('候補が見つかりませんでした。');
-        return;
-      }
-      const nextLocation = {
-        name: first.properties?.title || text,
-        longitude: Number(coords[0]),
-        latitude: Number(coords[1]),
-      };
-      setLocation(nextLocation);
-      setCurrentMode('search');
-      setSelectedFavoriteId(null);
-      writeStoredBasePoint({
-        mode: 'search',
-        location: nextLocation,
-        selectedFavoriteId: null,
-      });
-      setStatus('検索した場所を基準点にしました。');
+      const candidates = buildBasePointCandidates(data);
+      setBasePointCandidates(candidates);
+      setStatus(candidates.length > 0 ? '候補から起点を選んでください。' : '候補が見つかりませんでした。');
     } catch {
-      setStatus('場所検索に失敗しました。地域リストを使ってください。');
+      setStatus('場所検索に失敗しました。時間をおいて再試行してください。');
+    } finally {
+      setBasePointSearching(false);
     }
+  };
+
+  const selectBasePointCandidate = (candidate) => {
+    const nextLocation = {
+      name: candidate.title,
+      latitude: candidate.latitude,
+      longitude: candidate.longitude,
+    };
+    setLocation(nextLocation);
+    setCurrentMode('search');
+    setSelectedFavoriteId(null);
+    setBasePointCandidates([]);
+    setQuery(candidate.title);
+    writeStoredBasePoint({
+      mode: 'search',
+      location: nextLocation,
+      selectedFavoriteId: null,
+    });
+    setStatus('選択した場所を基準点にしました。');
   };
 
   const filterCard = (
@@ -398,49 +396,47 @@ export default function ReverseDirectionView({
   );
 
   const basePointControls = (
-    <>
-      <div className="reverse-location-actions">
-        <BasePointSelector
-          currentMode={currentMode}
-          currentBaseName={location.name}
-          selectedFavoriteId={selectedFavoriteId}
-          favorites={favorites}
-          onSelectMode={selectBasePointMode}
-        />
-        <label>
-          地域
-          <select
-            value={location.name}
-            onChange={(e) => {
-              const next = DEFAULT_LOCATIONS.find((item) => item.name === e.target.value);
-              if (next) {
-                setLocation(next);
-                setCurrentMode('search');
-                setSelectedFavoriteId(null);
-                writeStoredBasePoint({
-                  mode: 'search',
-                  location: next,
-                  selectedFavoriteId: null,
-                });
-              }
-            }}
-          >
-            {DEFAULT_LOCATIONS.map((item) => (
-              <option key={item.name} value={item.name}>{item.name}</option>
-            ))}
-          </select>
-        </label>
+    <div className="kiten-panel">
+      <div className="kiten-primary-actions">
+        <button type="button" className="kiten-current-button" onClick={useCurrentLocation}>
+          <span aria-hidden="true">📍</span>
+          <span>現在地を使う</span>
+        </button>
       </div>
-      <div className="reverse-search-row">
+      <form
+        className="reverse-search-row kiten-search-row"
+        onSubmit={(event) => {
+          event.preventDefault();
+          searchPlace();
+        }}
+      >
         <input
           type="search"
           value={query}
-          placeholder="場所検索"
+          placeholder="場所・地名で探す"
           onChange={(e) => setQuery(e.target.value)}
         />
-        <button type="button" onClick={searchPlace}>検索</button>
-      </div>
-    </>
+        <button type="submit" disabled={basePointSearching}>
+          {basePointSearching ? '検索中' : '検索'}
+        </button>
+      </form>
+      {basePointCandidates.length > 0 && (
+        <div className="kiten-candidates" role="listbox" aria-label="起点候補">
+          {basePointCandidates.map((candidate) => (
+            <button
+              key={candidate.id}
+              type="button"
+              onClick={() => selectBasePointCandidate(candidate)}
+            >
+              <strong>{candidate.title}</strong>
+              <small className="lat">
+                {candidate.latitude.toFixed(4)}, {candidate.longitude.toFixed(4)}
+              </small>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 
   const basePointMeta = mode === 'time' || mode === 'timeRanking' || mode === 'kakkyoku' || mode === 'range' ? (
@@ -462,7 +458,7 @@ export default function ReverseDirectionView({
           <span className="reverse-section-kicker lat">base point</span>
           <h3 className="maru">基準点</h3>
         </div>
-        <span>GPS / 場所検索 / 手動選択</span>
+        <span>現在地 / 場所・地名検索</span>
       </div>
       {basePointControls}
       {basePointMeta}
