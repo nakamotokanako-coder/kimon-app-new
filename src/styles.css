@@ -1,7 +1,7 @@
 /* ベース変数（フォント等のテーマ非依存値 + フォールバック）。
    配色は後段「宇宙テック・4テーマ」ブロックで data-theme ごとに上書きする。 */
 :root {
-  --font-heading: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  --font-display: 'Playfair Display', 'Shippori Mincho', serif;
   --font-body: 'Noto Sans JP', sans-serif;
   --font-latin: 'Playfair Display', serif;
 }
@@ -38,7 +38,7 @@ body {
 }
 
 .maru {
-  font-family: 'Zen Maru Gothic', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
 }
 
@@ -100,7 +100,7 @@ select {
   background: var(--accent);
   box-shadow: 0 14px 34px -24px var(--accent), 0 0 18px -10px var(--accent-glow);
   color: var(--hero-tx);
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 1.08rem;
   font-weight: 700;
 }
@@ -109,6 +109,7 @@ select {
   display: block;
   margin-bottom: 6px;
   color: var(--accent);
+  font-family: var(--font-display);
   font-size: 0.68rem;
   font-style: italic;
   font-weight: 900;
@@ -118,7 +119,7 @@ select {
 
 .app-header h1 {
   margin: 0;
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: clamp(2rem, 3.4vw, 3.3rem);
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -434,7 +435,7 @@ select {
   gap: 6px;
   padding: 4px 6px;
   color: var(--text-secondary);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.86rem;
   letter-spacing: 0.06em;
 }
@@ -471,7 +472,7 @@ select {
   padding: 2px 4px;
   color: var(--text-secondary);
   opacity: 0.65;
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -530,7 +531,7 @@ select {
 
 .palace-label {
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -576,7 +577,7 @@ select {
 .kan-tenban,
 .kan-chiban {
   color: var(--text-primary);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.04rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -598,6 +599,7 @@ select {
 
 .hasshin,
 .kyusei {
+  font-family: var(--font-body);
   color: color-mix(in srgb, var(--text-primary) 80%, var(--text-secondary));
   font-size: 1.04rem;
   font-weight: 600;
@@ -622,7 +624,7 @@ select {
   border-radius: 2px;
   background: var(--bg-elevated);
   color: var(--text-primary);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -732,7 +734,7 @@ select {
 }
 
 .center-kan {
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -749,7 +751,7 @@ select {
   padding: 0;
   list-style: none;
   color: var(--text-danger);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.88rem;
   font-weight: 700;
   line-height: 1.18;
@@ -1270,7 +1272,7 @@ select {
   gap: 3px;
   margin: 0 0 4px;
   color: var(--text-primary);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 1.04rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -2121,7 +2123,7 @@ body {
 
 .palace-label {
   color: var(--kamei);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -2687,7 +2689,7 @@ body {
 
 .reverse-header h2 {
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 1.35rem;
 }
 
@@ -3631,6 +3633,10 @@ body {
   font-size: 0.7rem;
 }
 
+.saikyo-kicker {
+  font-family: var(--font-display);
+}
+
 .saikyo-top h3 {
   margin: 2px 0;
   color: var(--text-accent);
@@ -3985,7 +3991,7 @@ body {
 .kakkyoku-picker-head h3,
 .kakkyoku-result-head h3 {
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 1.08rem;
 }
 
@@ -4118,7 +4124,7 @@ body {
 
 .kakkyoku-result-dir strong {
   color: var(--text-accent);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 0.9rem;
 }
 
@@ -5388,7 +5394,7 @@ body {
 .kakkyoku-picker-head h3,
 .kakkyoku-result-head h3,
 .sanban-route-hero h3 {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-weight: 700;
 }
 
@@ -5404,6 +5410,7 @@ body {
 .reverse-section-kicker {
   display: block;
   color: color-mix(in srgb, var(--text-secondary) 78%, transparent);
+  font-family: var(--font-display);
   font-size: 0.64rem;
   font-style: italic;
   font-weight: 900;
@@ -6121,6 +6128,7 @@ body {
 .notifications-kicker {
   display: block;
   color: color-mix(in srgb, var(--text-secondary) 78%, transparent);
+  font-family: var(--font-display);
   font-size: 0.64rem;
   font-style: italic;
   font-weight: 900;
@@ -6290,14 +6298,14 @@ body {
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
 }
 
 .kakkyoku-hero h3,
 .kakkyoku-picker-head h3,
 .kakkyoku-result-head h3 {
   color: var(--text-primary);
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   letter-spacing: 0.03em;
 }
 
