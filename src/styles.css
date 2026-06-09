@@ -3363,8 +3363,16 @@ body {
 }
 
 .direction-place-row small {
+  overflow: hidden;
   color: var(--text-secondary);
   font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.direction-place-sublabel {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .direction-place-row b {
