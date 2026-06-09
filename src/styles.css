@@ -4783,6 +4783,10 @@ body {
   color: var(--first-rank-badge-text);
   font-size: 1.1rem;
   font-weight: 900;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-edge) 62%, transparent),
+    0 0 18px -5px var(--accent),
+    inset 0 1px 0 color-mix(in srgb, var(--accent-edge) 54%, transparent);
 }
 
 .reverse-best-main {
@@ -5716,9 +5720,9 @@ body {
 }
 
 .reverse-best-no {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: var(--hero-tx);
+  background: var(--accent-grad);
+  border: 1px solid var(--accent-edge);
+  color: var(--accent-ink);
 }
 
 .reverse-best-main strong {
@@ -6071,6 +6075,20 @@ body {
 .saikyo-card.is-top1 {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.saikyo-card.is-top1 .saikyo-rank strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.05rem;
+  min-height: 2.05rem;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-edge) 62%, transparent),
+    0 0 18px -5px var(--accent),
+    inset 0 1px 0 color-mix(in srgb, var(--accent-edge) 54%, transparent);
 }
 
 .saikyo-more {
