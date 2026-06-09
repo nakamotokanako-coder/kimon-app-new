@@ -2831,6 +2831,77 @@ body {
   background: transparent;
 }
 
+.kiten-panel {
+  display: grid;
+  gap: 9px;
+}
+
+.kiten-primary-actions {
+  display: grid;
+}
+
+.kiten-current-button {
+  min-height: 42px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-elevated));
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.kiten-current-button,
+.kiten-candidates button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.kiten-current-button:hover,
+.kiten-current-button:focus-visible,
+.kiten-candidates button:hover,
+.kiten-candidates button:focus-visible {
+  border-color: var(--accent-edge);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-glow) 58%, transparent);
+  outline: none;
+}
+
+.kiten-search-row button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.kiten-candidates {
+  display: grid;
+  gap: 6px;
+}
+
+.kiten-candidates button {
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 82%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.kiten-candidates strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kiten-candidates small {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
 .base-point-selector {
   position: relative;
   min-width: 0;
