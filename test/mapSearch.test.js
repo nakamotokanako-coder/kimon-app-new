@@ -75,12 +75,48 @@ describe('map search helpers', () => {
 
   it('normalizes nodes and ways from Overpass elements', () => {
     const places = normalizeOverpassElements([
-      { type: 'node', id: 1, lat: 35.11, lon: 139.11, tags: { name: 'A' } },
-      { type: 'way', id: 2, center: { lat: 35.12, lon: 139.12 }, tags: { 'name:ja': 'B' } },
+      {
+        type: 'node',
+        id: 1,
+        lat: 35.11,
+        lon: 139.11,
+        tags: {
+          name: 'A',
+          branch: 'A支店',
+          brand: 'Aブランド',
+          operator: 'A運営',
+          'addr:province': '東京都',
+          'addr:city': '千代田区',
+          'addr:neighbourhood': '丸の内一丁目',
+          'addr:housenumber': '1',
+          'addr:housename': 'Aビル',
+        },
+      },
+      {
+        type: 'way',
+        id: 2,
+        center: { lat: 35.12, lon: 139.12 },
+        tags: {
+          'name:ja': 'B',
+          'addr:city': '渋谷区',
+          'addr:neighbourhood': '道玄坂',
+        },
+      },
       { type: 'node', id: 3, tags: { name: 'missing' } },
     ]);
     expect(places).toHaveLength(2);
+    expect(places[0]).toMatchObject({
+      branch: 'A支店',
+      brand: 'Aブランド',
+      operator: 'A運営',
+      addressLine: '東京都 千代田区 丸の内一丁目 1 Aビル',
+      subLabel: 'A支店',
+    });
     expect(places[1]).toMatchObject({ id: 'way-2', name: 'B', latitude: 35.12, longitude: 139.12 });
+    expect(places[1]).toMatchObject({
+      addressLine: '渋谷区 道玄坂',
+      subLabel: '渋谷区 道玄坂',
+    });
   });
 
   it('normalizes Nominatim results into internal places', () => {

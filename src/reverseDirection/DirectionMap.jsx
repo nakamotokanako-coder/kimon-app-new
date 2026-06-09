@@ -76,6 +76,23 @@ function formatDistance(meters) {
   return `${Math.round(meters)}m`;
 }
 
+function placeSubLabel(place) {
+  return String(place?.subLabel || place?.branch || place?.addressLine || '').trim();
+}
+
+function favoritePayload(place) {
+  return {
+    name: place.name,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    ...(place.branch ? { branch: place.branch } : {}),
+    ...(place.brand ? { brand: place.brand } : {}),
+    ...(place.operator ? { operator: place.operator } : {}),
+    ...(place.addressLine ? { addressLine: place.addressLine } : {}),
+    ...(place.subLabel ? { subLabel: place.subLabel } : {}),
+  };
+}
+
 function toneClass(tone) {
   if (isPositiveTone(tone)) return 'is-good';
   if (isNegativeTone(tone)) return 'is-bad';
@@ -178,7 +195,7 @@ export default function DirectionMap({
   const addFavorite = (place) => {
     const key = favoriteKey(place);
     if (favorites.some((item) => favoriteKey(item) === key)) return;
-    saveFavorites([...favorites, { name: place.name, latitude: place.latitude, longitude: place.longitude }]);
+    saveFavorites([...favorites, favoritePayload(place)]);
     setMapStatus(`${place.name}をお気に入りに追加しました。`);
   };
 
@@ -633,14 +650,16 @@ export default function DirectionMap({
       ...decoratedFavorites.map((item) => ({ item, favorite: true })),
     ].forEach(({ item, favorite }) => {
       const isSaved = favorites.some((fav) => favoriteKey(fav) === favoriteKey(item));
+      const subLabel = placeSubLabel(item);
       const popup = [
         `<strong>${escapeHtml(item.name)}</strong>`,
+        subLabel ? `<span>${escapeHtml(subLabel)}</span>` : '',
         `${escapeHtml(item.direction?.label || '-')} ${scoreText(item.direction?.score || 0)}`,
         `家から約${formatDistance(item.distanceM)}`,
         isSaved
           ? '<button class="direction-popup-button" data-remove-favorite="1">お気に入りから削除</button>'
           : '<button class="direction-popup-button" data-add-favorite="1">お気に入りに追加</button>',
-      ].join('<br>');
+      ].filter(Boolean).join('<br>');
       const marker = L.marker([item.latitude, item.longitude], {
         icon: L.divIcon({
           className: '',
@@ -801,27 +820,34 @@ export default function DirectionMap({
                 <h3 className="maru">お気に入り（<span className="lat">{decoratedFavorites.length}</span>）</h3>
               </div>
               <ScrollWindow className="direction-favorites-window">
-                {decoratedFavorites.map((item) => (
-                  <div key={favoriteKey(item)} className="direction-place-row is-editable">
-                    <button type="button" className="direction-place-main" onClick={() => showPlace(item)}>
-                      <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
-                      <span>
-                        <strong>{favoriteDisplayName(item)}</strong>
-                        <small>{item.name} ・ 家から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
-                      </span>
-                      <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
-                    </button>
-                    <button
-                      type="button"
-                      className="direction-place-edit"
-                      aria-label={`${favoriteDisplayName(item)}の名前を編集`}
-                      title="名前を編集"
-                      onClick={() => openFavoriteEditor(item)}
-                    >
-                      ✎
-                    </button>
-                  </div>
-                ))}
+                {decoratedFavorites.map((item) => {
+                  const subLabel = placeSubLabel(item);
+                  return (
+                    <div key={favoriteKey(item)} className="direction-place-row is-editable">
+                      <button type="button" className="direction-place-main" onClick={() => showPlace(item)}>
+                        <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                        <span>
+                          <strong>{favoriteDisplayName(item)}</strong>
+                          {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
+                          <small>
+                            {subLabel ? '' : `${item.name} ・ `}
+                            家から約<span className="lat">{formatDistance(item.distanceM)}</span>
+                          </small>
+                        </span>
+                        <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
+                      </button>
+                      <button
+                        type="button"
+                        className="direction-place-edit"
+                        aria-label={`${favoriteDisplayName(item)}の名前を編集`}
+                        title="名前を編集"
+                        onClick={() => openFavoriteEditor(item)}
+                      >
+                        ✎
+                      </button>
+                    </div>
+                  );
+                })}
               </ScrollWindow>
             </div>
           )}
@@ -831,16 +857,20 @@ export default function DirectionMap({
                 <span className="reverse-section-kicker lat">places</span>
                 <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
               </div>
-              {(selectedPlace ? [selectedPlace] : visibleSearchResults.slice(0, 8)).map((item) => (
-                <button key={favoriteKey(item)} type="button" className="direction-place-row" onClick={() => showPlace(item)}>
-                  <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
-                  <span>
-                    <strong>{item.name}</strong>
-                    <small>家から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
-                  </span>
-                  <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
-                </button>
-              ))}
+              {(selectedPlace ? [selectedPlace] : visibleSearchResults.slice(0, 8)).map((item) => {
+                const subLabel = placeSubLabel(item);
+                return (
+                  <button key={favoriteKey(item)} type="button" className="direction-place-row" onClick={() => showPlace(item)}>
+                    <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                    <span>
+                      <strong>{item.name}</strong>
+                      {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
+                      <small>家から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
+                    </span>
+                    <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

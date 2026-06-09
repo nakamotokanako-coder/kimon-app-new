@@ -118,15 +118,46 @@ export function buildOverpassNameQuery(word, bounds, limit = 40) {
   return `[out:json][timeout:15];(node["name"~"${safe}"](${bbox});way["name"~"${safe}"](${bbox}););out center ${limit};`;
 }
 
+function cleanTagValue(value) {
+  return String(value ?? '').trim();
+}
+
+function joinTags(tags, keys) {
+  return keys
+    .map((key) => cleanTagValue(tags?.[key]))
+    .filter(Boolean)
+    .join(' ');
+}
+
 export function normalizeOverpassElements(elements) {
   return (elements || [])
     .map((item) => {
       const latitude = Number(item.lat ?? item.center?.lat);
       const longitude = Number(item.lon ?? item.center?.lon);
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+      const tags = item.tags || {};
+      const branch = cleanTagValue(tags.branch || tags['branch:ja']);
+      const brand = cleanTagValue(tags.brand || tags['brand:ja']);
+      const operator = cleanTagValue(tags.operator);
+      const addressLine = joinTags(tags, [
+        'addr:province',
+        'addr:city',
+        'addr:suburb',
+        'addr:neighbourhood',
+        'addr:street',
+        'addr:block_number',
+        'addr:housenumber',
+        'addr:housename',
+      ]);
+      const subLabel = branch || joinTags(tags, ['addr:city', 'addr:neighbourhood']);
       return {
         id: `${item.type || 'poi'}-${item.id || `${latitude},${longitude}`}`,
-        name: item.tags?.['name:ja'] || item.tags?.name || '名称なし',
+        name: tags['name:ja'] || tags.name || '名称なし',
+        branch,
+        brand,
+        operator,
+        addressLine,
+        subLabel,
         latitude,
         longitude,
       };
