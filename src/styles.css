@@ -1805,8 +1805,8 @@ select {
   --kan-glow: none;
   --shin: #7fd4ff;
   --sei: #cfe6ff;
-  --plus: #54f0a8;
-  --plus-g: 0 0 12px rgba(84, 240, 168, .5);
+  --plus: var(--accent-soft);
+  --plus-g: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
   --minus: #ff7a8a;
   --minus-g: 0 0 12px rgba(255, 95, 114, .4);
   --zero: #cfcfe0;
@@ -1868,8 +1868,8 @@ select {
   --kan-glow: 0 0 12px rgba(154, 243, 255, .35);
   --shin: #7fd4ff;
   --sei: #cfe9ff;
-  --plus: #54f0a8;
-  --plus-g: 0 0 12px rgba(84, 240, 168, .5);
+  --plus: var(--accent-soft);
+  --plus-g: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
   --minus: #ff7a8a;
   --minus-g: 0 0 12px rgba(255, 95, 114, .4);
   --zero: #cfd6e8;
@@ -5080,7 +5080,7 @@ body {
 }
 
 .reverse-tl-score {
-  color: var(--text-success);
+  color: var(--plus);
   text-align: right;
   font-size: 0.9rem;
   font-weight: 900;
