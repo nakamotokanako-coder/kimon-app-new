@@ -373,6 +373,9 @@ export function classifyPalace(row, palace) {
   const shoui = shouiNames.slice(0, 4);
 
   return {
+    // 局key・宮（Phase 2 composeText の決定的バリエーション hash 用）
+    key: row.key,
+    palace,
     rank,
     vetoes,
     vetoRelief,

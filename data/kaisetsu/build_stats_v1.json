@@ -1,0 +1,21 @@
+{
+  "generated_at_note": "タイムスタンプは決定性のため記録しない（同入力→同出力）",
+  "total": 43200,
+  "length": {
+    "min": 25,
+    "avg": 67.6,
+    "max": 108,
+    "over_120": 0
+  },
+  "caution_rate": 0.902,
+  "reason_src": {
+    "shoui": 8525,
+    "use": 26245,
+    "gate": 3845,
+    "star": 4585
+  },
+  "fallback_rate_b_c": 0.195,
+  "empty_count": 0,
+  "format_error_count": 0,
+  "ok": true
+}
