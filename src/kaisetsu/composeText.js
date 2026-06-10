@@ -153,23 +153,28 @@ export function composeDetail(judgment, axis, bank) {
   }
 
   // ---- 4. 字数ガード（上限160）。削り順: 注意/補足 → 理由の修飾節 → 理由を門軸フレーズへ ----
+  // guard はメタ情報（統計・検証用。出力テキストには影響しない）。
+  let guard = 'none';
   let full = finalize([conclusion, reason, third]);
   if (len(full) > MAX_LEN) {
     third = '';
     thirdSrc = 'none';
+    guard = 'drop_third';
     full = finalize([conclusion, reason]);
   }
   if (len(full) > MAX_LEN) {
     reason = reason.split('、')[0];        // 修飾節（読点以降）を削る
+    guard = 'trim_reason';
     full = finalize([conclusion, reason]);
   }
   if (len(full) > MAX_LEN) {
     reason = toOneSentence(gateAxisPhrase); // 門の軸フレーズへ差し替え
     reasonSrc = 'gate';
+    guard = 'replace_gate';
     full = finalize([conclusion, reason]);
   }
 
-  return { full, short, reasonSrc, thirdSrc, length: len(full) };
+  return { full, short, reasonSrc, thirdSrc, guard, length: len(full) };
 }
 
 /**

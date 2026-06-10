@@ -1,12 +1,12 @@
 {
   "generated_at_note": "タイムスタンプは決定性のため記録しない（同入力→同出力）",
-  "bank_version": "1.2",
+  "bank_version": "1.3",
   "total": 43200,
   "patterns": "full(3文構成) / short(結論1文・full の1文目と一致)",
   "length": {
-    "min": 24,
-    "avg": 57.1,
-    "max": 104,
+    "min": 35,
+    "avg": 70,
+    "max": 115,
     "over_160": 0
   },
   "caution": {
@@ -24,6 +24,15 @@
     "god": 2170,
     "gate": 36830,
     "none": 4200
+  },
+  "length_guard": {
+    "total": 0,
+    "by_stage": {
+      "drop_third": 0,
+      "trim_reason": 0,
+      "replace_gate": 0
+    },
+    "by_gate": {}
   },
   "reason_src": {
     "shoui": 13300,

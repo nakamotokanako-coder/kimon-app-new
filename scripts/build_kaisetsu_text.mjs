@@ -87,6 +87,9 @@ function main() {
   const reasonSrc = { shoui: 0, use: 0, gate: 0, star: 0 };
   // 3文目内訳（注意 veto / 注意 god / 補足 gate / なし）
   const thirdSrc = { veto: 0, god: 0, gate: 0, none: 0 };
+  // 160字ガード発動内訳（段階別 / 発動した門キー別）
+  const guardStage = { drop_third: 0, trim_reason: 0, replace_gate: 0 };
+  const guardByGate = {};
   const FORMAT_BAD = /。。|、。|undefined|null/;
 
   // 代表5局の選定（v1 と同一・出現順で最初に条件を満たす局）
@@ -102,11 +105,15 @@ function main() {
       if (judgment.rank === '×') batsu += 1;
       const axisTexts = {};
       for (const axis of AXES) {
-        const { full, short, reasonSrc: rsrc, thirdSrc: tsrc, length } = composeDetail(judgment, axis, bank);
+        const { full, short, reasonSrc: rsrc, thirdSrc: tsrc, guard, length } = composeDetail(judgment, axis, bank);
         axisTexts[axis] = { full, short };
         lengths.push(length);
         if (reasonSrc[rsrc] !== undefined) reasonSrc[rsrc] += 1;
         if (thirdSrc[tsrc] !== undefined) thirdSrc[tsrc] += 1;
+        if (guard && guard !== 'none') {
+          guardStage[guard] += 1;
+          guardByGate[judgment.gate] = (guardByGate[judgment.gate] || 0) + 1;
+        }
         if (!full || full.length === 0) emptyCount += 1;
         if (FORMAT_BAD.test(full)) formatErrorCount += 1;
         if (length > 160) over160 += 1;
@@ -150,6 +157,11 @@ function main() {
       note: 'v2: 注意文は ◎/○ のみ（rank×▲は生成しない）。◎/○は実データ上 veto を持たないため veto 由来は0、god 由来のみ発火する。',
     },
     third_sentence_src: thirdSrc,
+    length_guard: {
+      total: guardStage.drop_third + guardStage.trim_reason + guardStage.replace_gate,
+      by_stage: guardStage,
+      by_gate: guardByGate,
+    },
     reason_src: reasonSrc,
     fallback_rate_b_c: Math.round(((reasonSrc.gate + reasonSrc.star) / total) * 1000) / 1000,
     checks: {
@@ -176,6 +188,7 @@ function main() {
   console.log(`文字数 min/avg/max : ${stats.length.min} / ${stats.length.avg} / ${stats.length.max}  (160超: ${over160})`);
   console.log(`注意文 出現率 : ${(cautionRate * 100).toFixed(1)}%  (v1: ${(V1_CAUTION_RATE * 100).toFixed(1)}% / Δ${(stats.caution.delta * 100).toFixed(1)}pt)`);
   console.log(`3文目内訳     : ${JSON.stringify(thirdSrc)}`);
+  console.log(`160字ガード   : ${stats.length_guard.total}  stage=${JSON.stringify(guardStage)}  gate=${JSON.stringify(guardByGate)}`);
   console.log(`理由文の内訳  : ${JSON.stringify(reasonSrc)}`);
   console.log(`禁止表現混入  : ${forbiddenCount}  / 「には注意」破綻: ${breakCount}  / short不一致: ${shortMismatch}`);
   console.log(`空文字 / 整形エラー : ${emptyCount} / ${formatErrorCount}  → ${stats.ok ? 'OK' : 'NG'}`);
