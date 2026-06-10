@@ -107,10 +107,15 @@ describe('judgment オブジェクトの形', () => {
     const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
     for (const k of [
       'rank', 'vetoes', 'vetoRelief', 'gate', 'gateClass', 'gateForce',
-      'star', 'starRank', 'god', 'godClass', 'shoui', 'axes', 'patternId',
+      'star', 'starRank', 'god', 'godClass', 'shoui', 'shouiTop', 'axes', 'patternId',
     ]) {
       expect(j).toHaveProperty(k);
     }
+    // patternId は5キー構成（shouiTop を含まない）
+    expect(j.patternId.split('_')).toHaveLength(5);
+    expect(j.patternId).toBe('◎_kichi3_shokichi_kichi_none');
+    // shouiTop は別フィールドとして残り、言及順トップの象意（shoui[0]）と一致
+    expect(j.shouiTop).toBe(j.shoui[0]);
     for (const a of ['goen', 'shigoto', 'kinun', 'kenko', 'benkyo']) {
       expect(j.axes).toHaveProperty(a);
       expect(j.axes[a]).toBeGreaterThanOrEqual(-2);

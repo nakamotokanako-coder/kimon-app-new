@@ -202,7 +202,7 @@ function capRank(rank, cap) {
  * 〇◯ → polarity +1 / × → -1 / △ → 0。十干剋応を先に並べ、同名は先勝ちで重複排除。
  * @returns {Array<{name:string, polarity:number, score:number}>}
  */
-function parseShoui(row, palace) {
+export function parseShoui(row, palace) {
   const seen = new Set();
   const out = [];
   for (const col of [`jukkan_kokuou_${palace}`, `kakkyoku_${palace}`]) {
@@ -364,7 +364,10 @@ export function classifyPalace(row, palace) {
   // ---- patternId ----
   const vetoMain = vetoes[0] || 'none';
   const shouiTop = shouiNames[0] || 'none';
-  const patternId = `${rank}_${gateClass}_${starRank}_${godClass}_${vetoMain}_${shouiTop}`;
+  // patternId は5キー構成（rank_gateClass_starRank_godClass_vetoMain）。
+  // 裁定 2026-06: 生の象意名 shouiTop をキーから外し、パターン空間を文言バンク執筆可能な規模に収める。
+  // shouiTop は文言合成で使うため判定オブジェクトの別フィールドとして残す。
+  const patternId = `${rank}_${gateClass}_${starRank}_${godClass}_${vetoMain}`;
 
   // 象意は最大4件（指示書）。十干剋応側優先・重複排除済みの言及順上位4。
   const shoui = shouiNames.slice(0, 4);
@@ -381,6 +384,7 @@ export function classifyPalace(row, palace) {
     god,
     godClass,
     shoui,
+    shouiTop,
     axes,
     patternId,
     // 付帯情報（文言生成・デバッグ用。判定の核ではない）

@@ -4,16 +4,17 @@
 // 実際に出現する patternId の種類と頻度を集計する。文言バンク執筆量の見積りが目的。
 //
 //   実行: node scripts/kaisetsu_pattern_stats.mjs
-//   出力: kaisetsu_pattern_stats.json   … patternId ごとの出現回数（降順）
+//   出力: kaisetsu_pattern_stats.json   … patternId(5キー) ごとの出現回数（降順）
 //         kaisetsu_pattern_samples.json … 各 patternId の代表サンプル3件（局キー＋宮）
-//         コンソール … ユニークパターン総数 / 上位20でのカバー率
+//         kaisetsu_shoui_freq.json      … CSV に出現する象意の種類と頻度（文言バンク部品数の見積り用）
+//         コンソール … ユニークパターン総数 / 上位20カバー率 / 象意の種類数
 //
 // 注: src/kimon/・CSV は読み込み専用。本スクリプトは集計のみで何も変更しない。
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { classifyPalace } from '../src/kaisetsu/classifyPalace.js';
+import { classifyPalace, parseShoui } from '../src/kaisetsu/classifyPalace.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CSV_PATH = join(ROOT, 'data', 'chito_v2_with_kakkyoku.csv');
@@ -36,6 +37,7 @@ function main() {
   const rows = loadRows();
   const counts = new Map();     // patternId -> count
   const samples = new Map();    // patternId -> [{key, palace}]
+  const shouiFreq = new Map();  // 象意名 -> { name, polarity, count }（出現セル数）
   let total = 0;
 
   for (const row of rows) {
@@ -48,6 +50,11 @@ function main() {
         s.push({ key: row.key, palace });
         samples.set(patternId, s);
       }
+      for (const sh of parseShoui(row, palace)) {
+        const cur = shouiFreq.get(sh.name) || { name: sh.name, polarity: sh.polarity, count: 0 };
+        cur.count += 1;
+        shouiFreq.set(sh.name, cur);
+      }
     }
   }
 
@@ -59,8 +66,15 @@ function main() {
   const statsObj = Object.fromEntries(sorted);
   const samplesObj = Object.fromEntries(sorted.map(([id]) => [id, samples.get(id)]));
 
+  // 象意頻度（出現セル数の降順、同数は名前昇順で安定）
+  const shouiSorted = [...shouiFreq.values()].sort(
+    (a, b) => b.count - a.count || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  );
+  const shouiObj = Object.fromEntries(shouiSorted.map((s) => [s.name, { polarity: s.polarity, count: s.count }]));
+
   writeFileSync(join(ROOT, 'kaisetsu_pattern_stats.json'), JSON.stringify(statsObj, null, 2) + '\n');
   writeFileSync(join(ROOT, 'kaisetsu_pattern_samples.json'), JSON.stringify(samplesObj, null, 2) + '\n');
+  writeFileSync(join(ROOT, 'kaisetsu_shoui_freq.json'), JSON.stringify(shouiObj, null, 2) + '\n');
 
   // カバー率
   const unique = sorted.length;
@@ -69,15 +83,22 @@ function main() {
 
   console.log('=== 解説パターン統計 (Phase 1) ===');
   console.log(`判定総数        : ${total}  (${rows.length}局 × ${PALACES.length}宮)`);
-  console.log(`ユニークパターン: ${unique}`);
+  console.log(`ユニークパターン: ${unique}  (patternId=5キー rank_gateClass_starRank_godClass_vetoMain)`);
   console.log(`上位20カバー率  : ${top20Pct}%  (${top20}/${total})`);
+  console.log(`象意の種類数    : ${shouiSorted.length}  (文言バンク部品数の見積り)`);
   console.log('');
   console.log('--- 上位20パターン ---');
   sorted.slice(0, 20).forEach(([id, c], i) => {
     console.log(`${String(i + 1).padStart(2)}. ${String(c).padStart(4)}  ${id}`);
   });
   console.log('');
-  console.log('出力: kaisetsu_pattern_stats.json / kaisetsu_pattern_samples.json');
+  console.log('--- 象意 出現頻度 上位20 ---');
+  shouiSorted.slice(0, 20).forEach((s, i) => {
+    const pol = s.polarity > 0 ? '吉' : s.polarity < 0 ? '凶' : '中';
+    console.log(`${String(i + 1).padStart(2)}. ${String(s.count).padStart(4)}  [${pol}] ${s.name}`);
+  });
+  console.log('');
+  console.log('出力: kaisetsu_pattern_stats.json / kaisetsu_pattern_samples.json / kaisetsu_shoui_freq.json');
 }
 
 main();
