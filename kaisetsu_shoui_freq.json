@@ -1,0 +1,418 @@
+{
+  "六儀撃刑格": {
+    "polarity": -1,
+    "count": 810
+  },
+  "丁奇得使": {
+    "polarity": 1,
+    "count": 270
+  },
+  "乙奇得使": {
+    "polarity": 1,
+    "count": 269
+  },
+  "丙奇得使": {
+    "polarity": 1,
+    "count": 267
+  },
+  "凶蛇入獄": {
+    "polarity": -1,
+    "count": 259
+  },
+  "華蓋蓬星": {
+    "polarity": 0,
+    "count": 242
+  },
+  "華蓋孛師": {
+    "polarity": 1,
+    "count": 241
+  },
+  "伏吟": {
+    "polarity": -1,
+    "count": 240
+  },
+  "伏吟天庭": {
+    "polarity": -1,
+    "count": 240
+  },
+  "地戸蓬鬼": {
+    "polarity": -1,
+    "count": 240
+  },
+  "天網四張": {
+    "polarity": -1,
+    "count": 240
+  },
+  "太白同宮": {
+    "polarity": -1,
+    "count": 240
+  },
+  "奇入太陰": {
+    "polarity": 1,
+    "count": 240
+  },
+  "日奇伏吟": {
+    "polarity": 0,
+    "count": 240
+  },
+  "月奇孛師": {
+    "polarity": -1,
+    "count": 240
+  },
+  "蛇入地羅": {
+    "polarity": -1,
+    "count": 240
+  },
+  "地網": {
+    "polarity": -1,
+    "count": 180
+  },
+  "時格": {
+    "polarity": -1,
+    "count": 180
+  },
+  "天羅": {
+    "polarity": -1,
+    "count": 179
+  },
+  "飛宮格": {
+    "polarity": -1,
+    "count": 153
+  },
+  "伏宮格": {
+    "polarity": -1,
+    "count": 143
+  },
+  "丁奇入墓": {
+    "polarity": -1,
+    "count": 136
+  },
+  "丙奇入墓": {
+    "polarity": -1,
+    "count": 136
+  },
+  "丙奇昇殿": {
+    "polarity": 1,
+    "count": 136
+  },
+  "乙奇入墓": {
+    "polarity": -1,
+    "count": 136
+  },
+  "乙奇昇殿": {
+    "polarity": 1,
+    "count": 135
+  },
+  "反吟大格": {
+    "polarity": -1,
+    "count": 135
+  },
+  "青龍転光": {
+    "polarity": 1,
+    "count": 135
+  },
+  "丁奇昇殿": {
+    "polarity": 1,
+    "count": 134
+  },
+  "囚獄被傷": {
+    "polarity": -1,
+    "count": 134
+  },
+  "地網高張": {
+    "polarity": -1,
+    "count": 134
+  },
+  "太孛入刑": {
+    "polarity": 0,
+    "count": 134
+  },
+  "太白入網": {
+    "polarity": -1,
+    "count": 134
+  },
+  "日奇被刑": {
+    "polarity": -1,
+    "count": 134
+  },
+  "火入天羅": {
+    "polarity": -1,
+    "count": 134
+  },
+  "太白蓬星": {
+    "polarity": 0,
+    "count": 133
+  },
+  "青龍折足": {
+    "polarity": -1,
+    "count": 133
+  },
+  "朱雀入獄": {
+    "polarity": -1,
+    "count": 132
+  },
+  "獄神得奇": {
+    "polarity": 1,
+    "count": 132
+  },
+  "青龍耀明": {
+    "polarity": 1,
+    "count": 132
+  },
+  "火孛地戸": {
+    "polarity": -1,
+    "count": 131
+  },
+  "水蛇入火": {
+    "polarity": -1,
+    "count": 130
+  },
+  "犬遇青龍": {
+    "polarity": 0,
+    "count": 125
+  },
+  "幼女奸淫": {
+    "polarity": -1,
+    "count": 124
+  },
+  "華蓋地戸": {
+    "polarity": -1,
+    "count": 124
+  },
+  "螣蛇妖矯": {
+    "polarity": -1,
+    "count": 124
+  },
+  "青龍合霊": {
+    "polarity": 0,
+    "count": 124
+  },
+  "龍入天牢": {
+    "polarity": -1,
+    "count": 124
+  },
+  "刑格": {
+    "polarity": -1,
+    "count": 123
+  },
+  "地刑玄武": {
+    "polarity": -1,
+    "count": 123
+  },
+  "官符刑格": {
+    "polarity": -1,
+    "count": 123
+  },
+  "小蛇化龍": {
+    "polarity": 1,
+    "count": 123
+  },
+  "青龍返首": {
+    "polarity": 1,
+    "count": 123
+  },
+  "丁丁之格": {
+    "polarity": 0,
+    "count": 122
+  },
+  "太白擒蛇": {
+    "polarity": -1,
+    "count": 122
+  },
+  "白虎干格": {
+    "polarity": -1,
+    "count": 122
+  },
+  "白虎猖狂": {
+    "polarity": -1,
+    "count": 122
+  },
+  "遊魂入墓": {
+    "polarity": -1,
+    "count": 122
+  },
+  "値符飛宮": {
+    "polarity": -1,
+    "count": 121
+  },
+  "刑格返名": {
+    "polarity": -1,
+    "count": 121
+  },
+  "干合孛師": {
+    "polarity": -1,
+    "count": 121
+  },
+  "白虎出力": {
+    "polarity": -1,
+    "count": 121
+  },
+  "網蓋天牢": {
+    "polarity": -1,
+    "count": 121
+  },
+  "謀事成就": {
+    "polarity": 0,
+    "count": 121
+  },
+  "騰蛇相纏": {
+    "polarity": -1,
+    "count": 121
+  },
+  "人遁吉格": {
+    "polarity": 1,
+    "count": 120
+  },
+  "太白入熒": {
+    "polarity": -1,
+    "count": 120
+  },
+  "奇儀相佐": {
+    "polarity": 1,
+    "count": 120
+  },
+  "奇儀順遂": {
+    "polarity": 1,
+    "count": 120
+  },
+  "干合蛇刑": {
+    "polarity": 0,
+    "count": 120
+  },
+  "星髄月転": {
+    "polarity": 0,
+    "count": 120
+  },
+  "朱雀入没": {
+    "polarity": 0,
+    "count": 120
+  },
+  "焚入太白": {
+    "polarity": -1,
+    "count": 120
+  },
+  "青龍逃走": {
+    "polarity": -1,
+    "count": 120
+  },
+  "五神互合": {
+    "polarity": 1,
+    "count": 119
+  },
+  "入獄自刑": {
+    "polarity": -1,
+    "count": 119
+  },
+  "地戸蓬星": {
+    "polarity": 0,
+    "count": 119
+  },
+  "天牢華蓋": {
+    "polarity": -1,
+    "count": 119
+  },
+  "太白伏宮": {
+    "polarity": -1,
+    "count": 119
+  },
+  "金華水流": {
+    "polarity": -1,
+    "count": 119
+  },
+  "飛鳥跌穴": {
+    "polarity": 1,
+    "count": 119
+  },
+  "日奇入霧": {
+    "polarity": -1,
+    "count": 118
+  },
+  "青龍華蓋": {
+    "polarity": 0,
+    "count": 118
+  },
+  "天乙会合": {
+    "polarity": 1,
+    "count": 117
+  },
+  "朱雀入墓": {
+    "polarity": 0,
+    "count": 117
+  },
+  "格名小蛇": {
+    "polarity": 0,
+    "count": 117
+  },
+  "貴人入獄": {
+    "polarity": -1,
+    "count": 117
+  },
+  "復見騰蛇": {
+    "polarity": -1,
+    "count": 116
+  },
+  "日奇入地": {
+    "polarity": -1,
+    "count": 116
+  },
+  "火入勾陳": {
+    "polarity": -1,
+    "count": 116
+  },
+  "星奇朱雀": {
+    "polarity": 1,
+    "count": 115
+  },
+  "日月併用": {
+    "polarity": 1,
+    "count": 114
+  },
+  "朱雀投江": {
+    "polarity": -1,
+    "count": 114
+  },
+  "利陰害陽": {
+    "polarity": -1,
+    "count": 113
+  },
+  "玉女守門": {
+    "polarity": 1,
+    "count": 97
+  },
+  "雲遁": {
+    "polarity": 1,
+    "count": 56
+  },
+  "鬼遁": {
+    "polarity": 1,
+    "count": 38
+  },
+  "風遁": {
+    "polarity": 1,
+    "count": 36
+  },
+  "龍遁": {
+    "polarity": 1,
+    "count": 24
+  },
+  "神遁": {
+    "polarity": 1,
+    "count": 20
+  },
+  "地遁": {
+    "polarity": 1,
+    "count": 19
+  },
+  "人遁": {
+    "polarity": 1,
+    "count": 12
+  },
+  "天遁": {
+    "polarity": 1,
+    "count": 11
+  },
+  "虎遁": {
+    "polarity": 1,
+    "count": 4
+  }
+}
