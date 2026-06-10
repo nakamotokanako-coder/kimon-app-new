@@ -1,0 +1,44 @@
+{
+  "generated_at_note": "タイムスタンプは決定性のため記録しない（同入力→同出力）",
+  "bank_version": "1.1",
+  "total": 43200,
+  "patterns": "full(3文構成) / short(結論1文・full の1文目と一致)",
+  "length": {
+    "min": 24,
+    "avg": 52.2,
+    "max": 79,
+    "over_160": 0
+  },
+  "caution": {
+    "rate_v2": 0.05,
+    "rate_v1": 0.902,
+    "delta": -0.852,
+    "by_source": {
+      "veto": 0,
+      "god": 2170
+    },
+    "note": "v2: 注意文は ◎/○ のみ（rank×▲は生成しない）。◎/○は実データ上 veto を持たないため veto 由来は0、god 由来のみ発火する。"
+  },
+  "third_sentence_src": {
+    "veto": 0,
+    "god": 2170,
+    "gate": 36830,
+    "none": 4200
+  },
+  "reason_src": {
+    "shoui": 13300,
+    "use": 18445,
+    "gate": 5065,
+    "star": 6390
+  },
+  "fallback_rate_b_c": 0.265,
+  "checks": {
+    "empty_count": 0,
+    "format_error_count": 0,
+    "over_160_count": 0,
+    "forbidden_expression_count": 0,
+    "ni_chuui_break_count": 0,
+    "short_mismatch_count": 0
+  },
+  "ok": true
+}
