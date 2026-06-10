@@ -362,7 +362,7 @@ export default function DirectionMap({
         maxZoom: profile.initialZoom + 2,
       });
     }
-    setMapStatus(`${place.name}を表示しました。家から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
+    setMapStatus(`${place.name}を表示しました。出発点から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
     return place;
   };
 
@@ -561,7 +561,7 @@ export default function DirectionMap({
     const distanceLabel = formatDistance(distance);
     const directionLabel = livePlace?.direction?.label || '-';
     const score = livePlace?.direction?.score ?? 0;
-    setLiveStatus(`現在地: ${directionLabel} ${scoreText(score)} / 家から約${distanceLabel}`);
+    setLiveStatus(`現在地: ${directionLabel} ${scoreText(score)} / 出発点から約${distanceLabel}`);
 
     L.polyline([center, livePos], {
       color: lineColor,
@@ -576,7 +576,7 @@ export default function DirectionMap({
       weight: 2,
       fillColor: lineColor,
       fillOpacity: 1,
-    }).bindTooltip(`現在地 / 家から約${distanceLabel}`, { permanent: false }).addTo(live);
+    }).bindTooltip(`現在地 / 出発点から約${distanceLabel}`, { permanent: false }).addTo(live);
   }, [bearingOptions, bestPalace, center, liveOn, livePos, rankings]);
 
   useEffect(() => {
@@ -671,7 +671,7 @@ export default function DirectionMap({
         `<strong>${escapeHtml(item.name)}</strong>`,
         subLabel ? `<span>${escapeHtml(subLabel)}</span>` : '',
         `${escapeHtml(item.direction?.label || '-')} ${scoreText(item.direction?.score || 0)}`,
-        `家から約${formatDistance(item.distanceM)}`,
+        `出発点から約${formatDistance(item.distanceM)}`,
         isSaved
           ? '<button class="direction-popup-button" data-remove-favorite="1">お気に入りから削除</button>'
           : '<button class="direction-popup-button" data-add-favorite="1">お気に入りに追加</button>',
@@ -847,7 +847,7 @@ export default function DirectionMap({
                           {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
                           <small>
                             {subLabel ? '' : `${item.name} ・ `}
-                            家から約<span className="lat">{formatDistance(item.distanceM)}</span>
+                            出発点から約<span className="lat">{formatDistance(item.distanceM)}</span>
                           </small>
                         </span>
                         <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
@@ -885,7 +885,7 @@ export default function DirectionMap({
                     <span>
                       <strong>{item.name}</strong>
                       {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
-                      <small>家から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
+                      <small>出発点から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
                     </span>
                     <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
                   </button>

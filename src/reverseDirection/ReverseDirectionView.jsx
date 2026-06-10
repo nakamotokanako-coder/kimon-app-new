@@ -227,6 +227,8 @@ export default function ReverseDirectionView({
   const [dayMiniBoardOpen, setDayMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
+  const [basePointEstablished, setBasePointEstablished] = useState(Boolean(initialBasePoint));
+  const [ctaSearchOpen, setCtaSearchOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
@@ -292,6 +294,8 @@ export default function ReverseDirectionView({
           longitude: pos.coords.longitude,
         });
         setCurrentMode('gps');
+        setBasePointEstablished(true);
+        setCtaSearchOpen(false);
         writeStoredBasePoint({
           mode: 'gps',
           location: {
@@ -301,10 +305,10 @@ export default function ReverseDirectionView({
           },
           selectedFavoriteId: null,
         });
-        setStatus('現在地を基準点にしました。');
+        setStatus('現在地を出発点にしました。');
       },
       () => {
-        setStatus('現在地を取得できませんでした。前回の起点を表示したままにしています。');
+        setStatus('現在地を取得できませんでした。前回の出発点を表示したままにしています。');
       },
       { timeout: 8000, enableHighAccuracy: false },
     );
@@ -343,9 +347,10 @@ export default function ReverseDirectionView({
       setLocation(DEFAULT_LOCATIONS[0]);
       setCurrentMode('search');
       setSelectedFavoriteId(null);
-      setStatus('保存済みの起点が見つからないため、東京を表示しています。');
+      setStatus('保存済みの出発点が見つからないため、東京を表示しています。');
       return;
     }
+    setBasePointEstablished(true);
     const nextName = favoriteDisplayName(favorite);
     if (
       location.name !== nextName
@@ -380,7 +385,7 @@ export default function ReverseDirectionView({
       const data = await res.json();
       const candidates = buildBasePointCandidates(data);
       setBasePointCandidates(candidates);
-      setStatus(candidates.length > 0 ? '候補から起点を選んでください。' : '候補が見つかりませんでした。');
+      setStatus(candidates.length > 0 ? '候補から出発点を選んでください。' : '候補が見つかりませんでした。');
     } catch {
       setStatus('場所検索に失敗しました。時間をおいて再試行してください。');
     } finally {
@@ -398,13 +403,15 @@ export default function ReverseDirectionView({
     setCurrentMode('search');
     setSelectedFavoriteId(null);
     setBasePointCandidates([]);
+    setBasePointEstablished(true);
+    setCtaSearchOpen(false);
     setQuery(candidate.title);
     writeStoredBasePoint({
       mode: 'search',
       location: nextLocation,
       selectedFavoriteId: null,
     });
-    setStatus('選択した場所を基準点にしました。');
+    setStatus('選択した場所を出発点にしました。');
   };
 
   const filterCard = (
@@ -438,14 +445,8 @@ export default function ReverseDirectionView({
     </div>
   );
 
-  const basePointControls = (
-    <div className="kiten-panel">
-      <div className="kiten-primary-actions">
-        <button type="button" className="kiten-current-button" onClick={useCurrentLocation}>
-          <span aria-hidden="true">📍</span>
-          <span>現在地を使う</span>
-        </button>
-      </div>
+  const basePointSearchForm = (
+    <>
       <form
         className="reverse-search-row kiten-search-row"
         onSubmit={(event) => {
@@ -464,7 +465,7 @@ export default function ReverseDirectionView({
         </button>
       </form>
       {basePointCandidates.length > 0 && (
-        <div className="kiten-candidates" role="listbox" aria-label="起点候補">
+        <div className="kiten-candidates" role="listbox" aria-label="出発点候補">
           {basePointCandidates.map((candidate) => (
             <button
               key={candidate.id}
@@ -479,6 +480,41 @@ export default function ReverseDirectionView({
           ))}
         </div>
       )}
+    </>
+  );
+
+  const basePointControls = (
+    <div className="kiten-panel">
+      <div className="kiten-primary-actions">
+        <button type="button" className="kiten-current-button" onClick={useCurrentLocation}>
+          <span aria-hidden="true">📍</span>
+          <span>現在地を使う</span>
+        </button>
+      </div>
+      {basePointSearchForm}
+    </div>
+  );
+
+  const basePointCtaCard = (
+    <div className="kiten-cta-card">
+      <button type="button" className="kiten-cta" onClick={useCurrentLocation}>
+        <span aria-hidden="true">📍</span>
+        <span>タップして現在地を使う</span>
+      </button>
+      <button
+        type="button"
+        className="kiten-cta-secondary"
+        onClick={() => setCtaSearchOpen((value) => !value)}
+        aria-expanded={ctaSearchOpen}
+      >
+        住所・地名で入力する
+      </button>
+      {ctaSearchOpen && (
+        <div className="reverse-base-panel">
+          {basePointSearchForm}
+        </div>
+      )}
+      {status && <p className="reverse-status">{status}</p>}
     </div>
   );
 
@@ -506,6 +542,131 @@ export default function ReverseDirectionView({
       {basePointControls}
       {basePointMeta}
       {status && <p className="reverse-status">{status}</p>}
+    </div>
+  );
+
+  const renderGoZone = ({
+    rankings,
+    bestPalace,
+    profileKey,
+    showScale = false,
+    goViewValue,
+    onGoViewChange,
+    chips,
+    focusedKey,
+    onFocusKey,
+    basePointOpenValue,
+    onToggleBasePoint,
+    baseSubLabel,
+  }) => (
+    <div className="reverse-zone reverse-go-zone">
+      <div className="reverse-zone-title">
+        <span className="reverse-section-kicker lat">go</span>
+        <h3 className="maru">出かける場所を探す</h3>
+      </div>
+
+      <p className="reverse-go-guide">
+        はじめての方へ　<b className="lat">①</b> 出発点を決めて → <b className="lat">②</b> 行き先を探してみよう
+      </p>
+
+      <div className="reverse-go-step">
+        <div className="reverse-step-title">
+          <span className="reverse-section-kicker lat">from</span>
+          <h4 className="maru"><span className="lat">①</span> 出発点</h4>
+        </div>
+        <div className="reverse-card reverse-go-card reverse-base-card">
+          {basePointEstablished ? (
+            <>
+              <div className="reverse-base-compact">
+                <span>
+                  出発点 <strong>{location.name}</strong>
+                  {baseSubLabel}
+                </span>
+                <button type="button" onClick={onToggleBasePoint}>
+                  変更
+                </button>
+              </div>
+              {basePointOpenValue && (
+                <div className="reverse-base-panel">
+                  {basePointControls}
+                  {basePointMeta}
+                  {status && <p className="reverse-status">{status}</p>}
+                </div>
+              )}
+            </>
+          ) : (
+            basePointCtaCard
+          )}
+        </div>
+      </div>
+
+      <div className={`reverse-go-step reverse-go-step-to ${basePointEstablished ? '' : 'is-await-base'}`}>
+        <div className="reverse-step-title">
+          <span className="reverse-section-kicker lat">to</span>
+          <h4 className="maru"><span className="lat">②</span> 行き先を探す</h4>
+        </div>
+
+        {!basePointEstablished && (
+          <p className="reverse-go-await">まず①で出発点を決めてください</p>
+        )}
+
+        <div className="reverse-card reverse-go-card">
+          <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
+            <button
+              type="button"
+              className={goViewValue === 'map' ? 'is-active' : ''}
+              onClick={() => onGoViewChange('map')}
+            >
+              地図で探す
+            </button>
+            <button
+              type="button"
+              className={goViewValue === 'favorites' ? 'is-active' : ''}
+              onClick={() => onGoViewChange('favorites')}
+            >
+              お気に入り
+            </button>
+          </div>
+
+          {goViewValue === 'map' && (
+            <p className="reverse-go-pin-hint">
+              📍 気になる場所のピンをタップすると、お気に入りに登録できます
+            </p>
+          )}
+
+          {goViewValue === 'favorites' && (
+            <div className="reverse-favorite-chips" aria-label="お気に入り">
+              {chips.length > 0 ? chips.map((item) => {
+                const key = favoriteKey(item);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onFocusKey(key)}
+                  >
+                    <strong>{favoriteDisplayName(item)}</strong>
+                    <span>{item.direction?.label || '-'} <b className="lat">{scoreText(item.direction?.score || 0)}</b></span>
+                    <small className="lat">{formatDistance(item.distanceM)}</small>
+                  </button>
+                );
+              }) : (
+                <p>地図で見つけた場所をお気に入りに追加すると、ここに表示されます。</p>
+              )}
+            </div>
+          )}
+
+          <DirectionMap
+            location={location}
+            rankings={rankings}
+            bestPalace={bestPalace}
+            profileKey={profileKey}
+            showScale={showScale}
+            focusFavoriteKey={goViewValue === 'favorites' ? focusedKey : ''}
+            showSearchControls={goViewValue === 'map'}
+            showPlacePanel={goViewValue === 'map'}
+          />
+        </div>
+      </div>
     </div>
   );
 
@@ -680,79 +841,19 @@ export default function ReverseDirectionView({
             </div>
           </div>
 
-          <div className="reverse-zone">
-            <div className="reverse-zone-title">
-              <span className="reverse-section-kicker lat">go</span>
-              <h3 className="maru">出かける場所を探す</h3>
-            </div>
-
-            <div className="reverse-card reverse-go-card">
-              <div className="reverse-base-compact">
-                <span>
-                  起点 <strong>{location.name}</strong>
-                  <small>自然時補正 <b className="lat">{formatCorrection(correction)}</b></small>
-                </span>
-                <button type="button" onClick={() => setBasePointOpen((value) => !value)}>
-                  変更
-                </button>
-              </div>
-              {basePointOpen && (
-                <div className="reverse-base-panel">
-                  {basePointControls}
-                  {basePointMeta}
-                  {status && <p className="reverse-status">{status}</p>}
-                </div>
-              )}
-
-              <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
-                <button
-                  type="button"
-                  className={goView === 'map' ? 'is-active' : ''}
-                  onClick={() => setGoView('map')}
-                >
-                  地図で探す
-                </button>
-                <button
-                  type="button"
-                  className={goView === 'favorites' ? 'is-active' : ''}
-                  onClick={() => setGoView('favorites')}
-                >
-                  お気に入り
-                </button>
-              </div>
-
-              {goView === 'favorites' && (
-                <div className="reverse-favorite-chips" aria-label="お気に入り">
-                  {favoriteChips.length > 0 ? favoriteChips.map((item) => {
-                    const key = favoriteKey(item);
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setFocusedFavoriteKey(key)}
-                      >
-                        <strong>{favoriteDisplayName(item)}</strong>
-                        <span>{item.direction?.label || '-'} <b className="lat">{scoreText(item.direction?.score || 0)}</b></span>
-                        <small className="lat">{formatDistance(item.distanceM)}</small>
-                      </button>
-                    );
-                  }) : (
-                    <p>お気に入りはまだありません。地図で場所を検索して追加できます。</p>
-                  )}
-                </div>
-              )}
-
-              <DirectionMap
-                location={location}
-                rankings={reverse.rankings}
-                bestPalace={best?.palace}
-                profileKey="jiban"
-                focusFavoriteKey={goView === 'favorites' ? focusedFavoriteKey : ''}
-                showSearchControls={goView === 'map'}
-                showPlacePanel={goView === 'map'}
-              />
-            </div>
-          </div>
+          {renderGoZone({
+            rankings: reverse.rankings,
+            bestPalace: best?.palace,
+            profileKey: 'jiban',
+            goViewValue: goView,
+            onGoViewChange: setGoView,
+            chips: favoriteChips,
+            focusedKey: focusedFavoriteKey,
+            onFocusKey: setFocusedFavoriteKey,
+            basePointOpenValue: basePointOpen,
+            onToggleBasePoint: () => setBasePointOpen((value) => !value),
+            baseSubLabel: <small>自然時補正 <b className="lat">{formatCorrection(correction)}</b></small>,
+          })}
 
           <LuckyOmamoriBar
             isActive={isActive}
@@ -791,80 +892,20 @@ export default function ReverseDirectionView({
             </div>
           ) : (
             <>
-              <div className="reverse-zone">
-                <div className="reverse-zone-title">
-                  <span className="reverse-section-kicker lat">go</span>
-                  <h3 className="maru">出かける場所を探す</h3>
-                </div>
-
-                <div className="reverse-card reverse-go-card">
-                  <div className="reverse-base-compact">
-                    <span>
-                      起点 <strong>{location.name}</strong>
-                      <small>日盤・遠出 <b className="lat">{formatDisplayDate(dayDate)}</b></small>
-                    </span>
-                    <button type="button" onClick={() => setDayBasePointOpen((value) => !value)}>
-                      変更
-                    </button>
-                  </div>
-                  {dayBasePointOpen && (
-                    <div className="reverse-base-panel">
-                      {basePointControls}
-                      {basePointMeta}
-                      {status && <p className="reverse-status">{status}</p>}
-                    </div>
-                  )}
-
-                  <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
-                    <button
-                      type="button"
-                      className={dayGoView === 'map' ? 'is-active' : ''}
-                      onClick={() => setDayGoView('map')}
-                    >
-                      地図で探す
-                    </button>
-                    <button
-                      type="button"
-                      className={dayGoView === 'favorites' ? 'is-active' : ''}
-                      onClick={() => setDayGoView('favorites')}
-                    >
-                      お気に入り
-                    </button>
-                  </div>
-
-                  {dayGoView === 'favorites' && (
-                    <div className="reverse-favorite-chips" aria-label="お気に入り">
-                      {dayFavoriteChips.length > 0 ? dayFavoriteChips.map((item) => {
-                        const key = favoriteKey(item);
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => setDayFocusedFavoriteKey(key)}
-                          >
-                            <strong>{favoriteDisplayName(item)}</strong>
-                            <span>{item.direction?.label || '-'} <b className="lat">{scoreText(item.direction?.score || 0)}</b></span>
-                            <small className="lat">{formatDistance(item.distanceM)}</small>
-                          </button>
-                        );
-                      }) : (
-                        <p>お気に入りはまだありません。地図で場所を検索して追加できます。</p>
-                      )}
-                    </div>
-                  )}
-
-                <DirectionMap
-                  location={location}
-                  rankings={dayReverse.rankings}
-                  bestPalace={dayBest?.palace}
-                  profileKey="nichiban"
-                  showScale
-                  focusFavoriteKey={dayGoView === 'favorites' ? dayFocusedFavoriteKey : ''}
-                  showSearchControls={dayGoView === 'map'}
-                  showPlacePanel={dayGoView === 'map'}
-                />
-                </div>
-              </div>
+              {renderGoZone({
+                rankings: dayReverse.rankings,
+                bestPalace: dayBest?.palace,
+                profileKey: 'nichiban',
+                showScale: true,
+                goViewValue: dayGoView,
+                onGoViewChange: setDayGoView,
+                chips: dayFavoriteChips,
+                focusedKey: dayFocusedFavoriteKey,
+                onFocusKey: setDayFocusedFavoriteKey,
+                basePointOpenValue: dayBasePointOpen,
+                onToggleBasePoint: () => setDayBasePointOpen((value) => !value),
+                baseSubLabel: <small>日盤・遠出 <b className="lat">{formatDisplayDate(dayDate)}</b></small>,
+              })}
 
               <div className="reverse-card reverse-compass-card">
                 <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
