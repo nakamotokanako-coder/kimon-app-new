@@ -175,7 +175,55 @@ L(`- ${COMPUTED_LO}〜${COMPUTED_HI} の time_kyokusu / sekki24 は **time_kyoku
 L(`- inton_youton は2000年以前は検証用実データが無い計算値（規則は2000-2019で0不一致）。`);
 L('');
 
-// 境界±1日リスト（対象範囲）
+// 既存値のバイト単位不変性チェック（v3 を新規読込して比較）
+{
+  const v3orig = parseRows(read('data/koyomi_v3.csv')).rows;
+  const enc = new TextEncoder();
+  const byteEq = (a, b) => { const x = enc.encode(a), y = enc.encode(b); if (x.length !== y.length) return false; for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false; return true; };
+  const v4map = Object.fromEntries(v3.map((r) => [r.date, r])); // v3 はこの時点で v4 内容
+  let nonEmpty = 0, equal = 0, diff = 0; const ex = [];
+  for (const r3 of v3orig) {
+    const r4 = v4map[r3.date];
+    for (const k of head) {
+      if (r3[k] !== '') {
+        nonEmpty++;
+        if (byteEq(r3[k], r4[k])) equal++;
+        else { diff++; if (ex.length < 10) ex.push(`${r3.date} ${k}: v3="${r3[k]}" v4="${r4[k]}"`); }
+      }
+    }
+  }
+  L(`## 既存値の不変性（v3→v4 バイト単位）`);
+  L(`- v3で値が入っていたセル: ${nonEmpty}件`);
+  L(`- v4でバイト一致: ${equal}件 / 不一致: ${diff}件`);
+  L(diff === 0
+    ? `- ✅ 先生提供データを含む既存値は **1バイトも改変していない**ことを確認。`
+    : `- ⚠️ 改変検出: ${ex.join(' / ')}`);
+  L('');
+}
+
+// 先生確認用: 日家九星(kyusei_day)の非標準切替の実例
+L(`## 先生確認用: 日家九星(kyusei_day)の独自切替規則について`);
+L(`本バッチは kyusei_day を**空欄のまま**にしています（先生確認事項）。理由は、この万年暦の日家九星が`);
+L(`教科書的な「冬至に最も近い甲子＝一白から陽遁順行」則に従わないためです。観察した実例:`);
+L('');
+L('### 実例: 2000年冬至前後（2000-12〜2001-01, koyomi_v3 実値）');
+L('| 日付 | 干支 | kyusei_day(実値) | inton_youton(実値) |');
+L('|---|---|---|---|');
+const exRows = v3.filter((r) => r.date >= '2000-12-29' && r.date <= '2001-01-12');
+for (const r of exRows) L(`| ${r.date} | ${r.eto_day} | ${r.kyusei_day || '—'} | ${r.inton_youton || '—'} |`);
+L('');
+L('- **inton_youton** は 2001-01-01（甲子）で 陰→**陽** に転換（＝至点最寄り甲子の符頭アンカー則どおり）。');
+L('- ところが **kyusei_day** は同じ 2001-01-01（甲子）で 一白ではなく **九**（陰遁の値）を取り、');
+L('  その後も **下降を継続**して 2001-01-10（癸酉）で 一 まで下がってから反転（順行）している。');
+L('- すなわち日家九星の反転日（2001-01-10 癸酉）は inton の転換日（2001-01-01 甲子）と **9日ずれ**ており、');
+L('  かつ反転日が符頭(甲子)ではなく癸酉である。教科書則・符頭アンカー則のいずれとも一致しない。');
+L('- 2000年以前は kyusei_day の照合用データが一切無いため、この独自規則を当て推量で100年分に外挿するのは');
+L('  憲法「先生提供＝絶対基準」に反すると判断し、空欄で保留しています。');
+L('- **お願い**: 日家九星の正統な切替規則（反転日の定め方・置閏の扱い）または出典をご教示いただければ、');
+L('  同じバッチに組み込んで 1900-1999 を埋めます。');
+L('');
+
+
 const blist = [...boundaryDays.entries()].filter(([d]) => d >= TARGET_LO && d <= TARGET_HI).sort();
 L(`## 境界±1日の不確かさ（節入がJST深夜/早朝, 日付確定が際どい日）: ${blist.length}件`);
 for (const [d, info] of blist) L(`- ${d} ${info.name} (節入 ${info.hourJst}時JST)`);
