@@ -1,12 +1,12 @@
 {
   "generated_at_note": "タイムスタンプは決定性のため記録しない（同入力→同出力）",
-  "bank_version": "1.1",
+  "bank_version": "1.2",
   "total": 43200,
   "patterns": "full(3文構成) / short(結論1文・full の1文目と一致)",
   "length": {
     "min": 24,
-    "avg": 52.2,
-    "max": 79,
+    "avg": 57.1,
+    "max": 104,
     "over_160": 0
   },
   "caution": {
