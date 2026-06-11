@@ -681,7 +681,9 @@ export default function DirectionMap({
       ...(selectedPlace ? [{ item: selectedPlace, favorite: false }] : []),
       ...decoratedFavorites.map((item) => ({ item, favorite: true })),
     ].forEach(({ item, favorite, markerNo = null }) => {
-      const isSaved = favorites.some((fav) => favoriteKey(fav) === favoriteKey(item));
+      const savedFavorite = favorites.find((fav) => favoriteKey(fav) === favoriteKey(item));
+      const isSaved = Boolean(savedFavorite);
+      const isHome = isSaved && favoriteKind(savedFavorite) === 'home';
       const subLabel = placeSubLabel(item);
       const popup = [
         `<strong>${escapeHtml(item.name)}</strong>`,
@@ -691,6 +693,8 @@ export default function DirectionMap({
         isSaved
           ? '<button class="direction-popup-button" data-remove-favorite="1">お気に入りから削除</button>'
           : '<button class="direction-popup-button" data-add-favorite="1">お気に入りに追加</button>',
+        // 拠点トグル（ベタ金は「お気に入りに追加」のみ＝こちらは控えめ表示）。未保存→home追加 / 保存済→home⇄spot。
+        `<button class="direction-popup-button direction-popup-home${isHome ? ' is-on' : ''}" data-toggle-home="1">${isHome ? '🏠 拠点を解除' : '🏠 拠点にする'}</button>`,
       ].filter(Boolean).join('<br>');
       const marker = L.marker([item.latitude, item.longitude], {
         icon: L.divIcon({
@@ -705,6 +709,7 @@ export default function DirectionMap({
         const element = event.popup.getElement();
         element?.querySelector('[data-add-favorite]')?.addEventListener('click', () => addFavorite(item), { once: true });
         element?.querySelector('[data-remove-favorite]')?.addEventListener('click', () => removeFavorite(item), { once: true });
+        element?.querySelector('[data-toggle-home]')?.addEventListener('click', () => toggleFavoriteKind(item), { once: true });
       });
     });
 
@@ -964,6 +969,14 @@ export default function DirectionMap({
               />
             </label>
             <p>{editingFavorite.name}</p>
+            <label className="direction-favorite-home-toggle">
+              <span>🏠 拠点にする<small>出発点リストの上に表示</small></span>
+              <input
+                type="checkbox"
+                checked={favoriteKind(editingFavorite) === 'home'}
+                onChange={() => toggleFavoriteKind(editingFavorite)}
+              />
+            </label>
             <div className="direction-favorite-actions">
               <button type="button" onClick={saveFavoriteLabel}>保存</button>
               <button type="button" className="is-ghost" onClick={closeFavoriteEditor}>キャンセル</button>
