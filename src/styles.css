@@ -7002,3 +7002,239 @@ body {
   font-size: 10.5px;
   color: color-mix(in srgb, var(--text-primary) 55%, transparent);
 }
+
+/* ============================================================
+   Phase 3a: 解説パネル（KaisetsuPanel）
+   配色は既存 void テーマ変数を流用。新規色は .shoui-kichi/kyo/chu を再利用。
+   ============================================================ */
+.kaisetsu-panel {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--bar-bd);
+  border-radius: 16px;
+  background: var(--frame-fill);
+  box-shadow: var(--cell-sh);
+  font-family: var(--font-body);
+}
+
+.kp-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.kp-title {
+  font-family: var(--font-display);
+  font-size: 1.04rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.kp-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* 8方位チップ（横スクロール） */
+.kp-dir-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kp-dir {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 58px;
+  padding: 8px 6px;
+  border: 1px solid var(--cell-bd);
+  border-radius: 12px;
+  background: var(--cell-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.kp-dir.is-on {
+  border-color: var(--kichi-bd);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-cell));
+  box-shadow: var(--kichi-sh);
+}
+
+.kp-dir-name {
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+  line-height: 1;
+}
+
+.kp-dir-dir {
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+}
+
+.kp-dir-rank {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 願い5軸チップ */
+.kp-axis-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.kp-axis {
+  padding: 6px 14px;
+  border: 1px solid var(--cell-bd);
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.kp-axis.is-on {
+  border-color: var(--kichi-bd);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+/* 結論ブロック（大ランク + 方位 + 短文） */
+.kp-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--cell-bd);
+  border-radius: 14px;
+  background: var(--cell-bg);
+}
+
+.kp-rank-block {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 56px;
+}
+
+.kp-rank {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kp-rank-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.kp-result-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kp-result-dir {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  color: var(--text-accent);
+}
+
+.kp-short {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+/* フルリーディング（ロック枠・中身はダミー固定） */
+.kp-full {
+  position: relative;
+  margin-top: 16px;
+  border: 1px solid var(--cell-bd);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.kp-full-label {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cell-bd);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--text-accent);
+}
+
+.kp-full-blur {
+  padding: 16px 14px 28px;
+  filter: blur(5px);
+  opacity: 0.5;
+  user-select: none;
+  pointer-events: none;
+}
+
+.kp-full-blur p {
+  margin: 0 0 10px;
+  font-size: 0.86rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.kp-lock {
+  position: absolute;
+  inset: 38px 0 0;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--bg-cell) 30%, transparent) 0%,
+    color-mix(in srgb, var(--bg-cell) 88%, transparent) 60%);
+}
+
+.kp-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -16px var(--accent), 0 0 16px -10px var(--accent-glow);
+}
+
+.kp-cta-icon {
+  font-size: 0.86rem;
+}
+
+.kp-soon {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-accent);
+}
+
+.kp-trial {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}

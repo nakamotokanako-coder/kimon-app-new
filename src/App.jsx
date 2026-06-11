@@ -5,6 +5,7 @@ import InputControls from './components/InputControls.jsx';
 import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
+import KaisetsuPanel from './components/KaisetsuPanel.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
 import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
@@ -254,6 +255,7 @@ export default function App() {
               <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
             <ShouiPanel board={board} />
+            <KaisetsuPanel board={board} />
           </>
         )}
       </main>
