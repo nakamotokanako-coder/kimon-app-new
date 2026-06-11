@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:kaisetsu": "node scripts/build_kaisetsu_text.mjs",
+    "vercel-build": "npm run build:kaisetsu && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
