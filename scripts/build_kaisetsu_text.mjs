@@ -7,8 +7,8 @@
 //     data/kaisetsu/generated/kaisetsu_text_v2.json
 //       … { 局key: { palace: { axis: { short, mid, full } } } }
 //   出力（コミットする）:
-//     data/kaisetsu/sample_review_v2.md   … 固定の代表5局の全方位×全軸（short/mid/full 併記・人間レビュー用）
-//     data/kaisetsu/build_stats_v2.json   … short/mid/full の文字数分布・なのに文発動率(型別)・
+//     data/kaisetsu/sample_review_v2_1.md … 固定の代表5局の全方位×全軸（short/mid/full 併記・人間レビュー用）
+//     data/kaisetsu/build_stats_v2_1.json … short/mid/full の文字数分布・なのに文発動率(型別)・
 //                                            行動提案/補強/general/hint/exception の採用率・
 //                                            禁止表現混入0件・「には注意」破綻0件・エラー0確認
 //
@@ -99,7 +99,7 @@ function main() {
   const leadSrc = { veto: 0, shoui_up: 0, shoui: 0, gate: 0, star: 0 };
   const reinforceSrc = { god: 0, star: 0, none: 0 };
   const extraSrc = { hint: 0, exception: 0, none: 0 };
-  const shimeSrc = { veto: 0, god: 0, none: 0 };
+  const shimeSrc = { veto: 0, god: 0, fallback: 0, none: 0 };
   const fullGuard = { none: 0, drop_reinforce: 0, drop_nanoni: 0, drop_general: 0, drop_hint: 0, replace_lead: 0 };
   let generalUsed = 0;
   let actionUsed = 0;
@@ -192,6 +192,8 @@ function main() {
       action_suppressed_palaces: actionSuppressedPalaces,
       action_suppressed_note: '▲×∩吉門(kichi3/chukichi)はactionsを出さない（吉前提文体が凶宮の結論と矛盾するため）。v2.1で代替締め文を入れる対象宮。',
       shime_src: shimeSrc,
+      fallback_closing_adopted: shimeSrc.fallback, // v2.1: 行動提案を出せない宮で代替締め文を採用したセル数
+      fallback_closing_note: 'fullのみ。▲×∩吉門で行動提案を出せない宮の締めに fallbackClosings を充当（死門は除外・hash決定的選択）。',
       guard: fullGuard,
     },
     mid_continuity: { reason_src: reasonSrc, third_sentence_src: thirdSrc },
@@ -211,8 +213,8 @@ function main() {
   // ---- 出力 ----
   mkdirSync(GEN_DIR, { recursive: true });
   writeFileSync(join(GEN_DIR, 'kaisetsu_text_v2.json'), JSON.stringify(generated) + '\n');
-  writeFileSync(join(OUT_DIR, 'build_stats_v2.json'), JSON.stringify(stats, null, 2) + '\n');
-  writeFileSync(join(OUT_DIR, 'sample_review_v2.md'), buildSampleReview(samples, generated, bank, rows));
+  writeFileSync(join(OUT_DIR, 'build_stats_v2_1.json'), JSON.stringify(stats, null, 2) + '\n');
+  writeFileSync(join(OUT_DIR, 'sample_review_v2_1.md'), buildSampleReview(samples, generated, bank, rows));
 
   // ---- コンソール ----
   console.log('=== 解説全件再生成 (full v2) ===');
@@ -229,7 +231,7 @@ function main() {
   console.log(`空文字 / 整形 / 320超 / mid160超 : ${emptyCount} / ${formatErrorCount} / ${over320} / ${over160mid}  → ${stats.ok ? 'OK' : 'NG'}`);
   console.log(`代表5局        : ${JSON.stringify(samples)}`);
   console.log('');
-  console.log('出力: data/kaisetsu/generated/kaisetsu_text_v2.json (gitignore) / build_stats_v2.json / sample_review_v2.md');
+  console.log('出力: data/kaisetsu/generated/kaisetsu_text_v2.json (gitignore) / build_stats_v2_1.json / sample_review_v2_1.md');
 }
 
 function buildSampleReview(samples, generated, bank, rows) {

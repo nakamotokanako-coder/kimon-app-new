@@ -1,0 +1,102 @@
+{
+  "generated_at_note": "タイムスタンプは決定性のため記録しない（同入力→同出力）",
+  "bank_version": "2.1",
+  "total": 43200,
+  "patterns": "short(結論1文) / mid(現行3文・文面不変) / full(v2・5〜6文の鑑定文)",
+  "length": {
+    "short": {
+      "min": 14,
+      "avg": 16.9,
+      "median": 16,
+      "max": 22
+    },
+    "mid": {
+      "min": 35,
+      "avg": 79,
+      "median": 74,
+      "max": 129,
+      "over_160": 0
+    },
+    "full": {
+      "min": 79,
+      "avg": 150,
+      "median": 150,
+      "max": 247,
+      "over_320": 0,
+      "band_220_280": 0.007,
+      "under_220": 0.993
+    }
+  },
+  "nanoni": {
+    "by_type": {
+      "none": 30745,
+      "sukinai": 10975,
+      "warukinai": 1480
+    },
+    "rate": 0.288,
+    "note": "好材料負け型=宮ローカル拒否権∩(kichi3門 or 実吉神5)。盤全体(伏吟/反吟)は対象外。悪材料負け型=◎○∩凶神。"
+  },
+  "full_slots": {
+    "lead_src": {
+      "veto": 25780,
+      "shoui_up": 2085,
+      "shoui": 5725,
+      "gate": 9610,
+      "star": 0
+    },
+    "reinforce_src": {
+      "god": 34130,
+      "star": 4805,
+      "none": 4265
+    },
+    "extra_src": {
+      "hint": 7470,
+      "exception": 12245,
+      "none": 23485
+    },
+    "general_rate": 0.64,
+    "action_rate": 0.714,
+    "action_suppressed_palaces": 2471,
+    "action_suppressed_note": "▲×∩吉門(kichi3/chukichi)はactionsを出さない（吉前提文体が凶宮の結論と矛盾するため）。v2.1で代替締め文を入れる対象宮。",
+    "shime_src": {
+      "veto": 0,
+      "god": 0,
+      "fallback": 12355,
+      "none": 30845
+    },
+    "fallback_closing_adopted": 12355,
+    "fallback_closing_note": "fullのみ。▲×∩吉門で行動提案を出せない宮の締めに fallbackClosings を充当（死門は除外・hash決定的選択）。",
+    "guard": {
+      "none": 43200,
+      "drop_reinforce": 0,
+      "drop_nanoni": 0,
+      "drop_general": 0,
+      "drop_hint": 0,
+      "replace_lead": 0
+    }
+  },
+  "mid_continuity": {
+    "reason_src": {
+      "shoui": 13300,
+      "use": 18445,
+      "gate": 5065,
+      "star": 6390
+    },
+    "third_sentence_src": {
+      "veto": 0,
+      "god": 2170,
+      "gate": 36830,
+      "none": 4200
+    }
+  },
+  "checks": {
+    "empty_count": 0,
+    "format_error_count": 0,
+    "over_320_count": 0,
+    "over_160_mid_count": 0,
+    "forbidden_expression_count": 0,
+    "ni_chuui_break_count": 0,
+    "short_mismatch_count": 0
+  },
+  "ok": true
+}
