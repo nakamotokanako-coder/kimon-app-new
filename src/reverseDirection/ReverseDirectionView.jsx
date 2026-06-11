@@ -25,6 +25,7 @@ import {
   decoratePlaces,
   favoriteDisplayName,
   favoriteKey,
+  favoriteKind,
 } from './mapSearch.js';
 
 const DEFAULT_LOCATIONS = [
@@ -229,6 +230,10 @@ export default function ReverseDirectionView({
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
   const [basePointEstablished, setBasePointEstablished] = useState(Boolean(initialBasePoint));
   const [ctaSearchOpen, setCtaSearchOpen] = useState(false);
+  // 出発点ピッカーのグループ開閉（mock v9: 🏠拠点=開 / ⭐お気に入り=閉 / 住所検索=閉）
+  const [homeGroupOpen, setHomeGroupOpen] = useState(true);
+  const [spotGroupOpen, setSpotGroupOpen] = useState(false);
+  const [addrSearchOpen, setAddrSearchOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
@@ -414,6 +419,18 @@ export default function ReverseDirectionView({
     setStatus('選択した場所を出発点にしました。');
   };
 
+  // お気に入り/拠点を出発点に選ぶ。location と localStorage の反映は currentMode='favorite' の useEffect が行う。
+  const selectFavoriteBasePoint = (favorite) => {
+    if (!favorite) return;
+    setBasePointCandidates([]);
+    setBasePointEstablished(true);
+    setCurrentMode('favorite');
+    setSelectedFavoriteId(favorite.id);
+    setBasePointOpen(false);
+    setDayBasePointOpen(false);
+    setStatus(`${favoriteDisplayName(favorite)}を出発点にしました。`);
+  };
+
   const filterCard = (
     <div className="reverse-card reverse-filter-card">
       <div className="reverse-filter-controls">
@@ -492,6 +509,97 @@ export default function ReverseDirectionView({
         </button>
       </div>
       {basePointSearchForm}
+    </div>
+  );
+
+  // 出発点ピッカー（mock v9）: 現在地常時 / 🏠拠点=開 / ⭐お気に入り=閉(内部スクロール) / 住所検索=閉
+  const homeFavorites = favorites.filter((item) => favoriteKind(item) === 'home');
+  const spotFavorites = favorites.filter((item) => favoriteKind(item) !== 'home');
+
+  const renderPickerRow = (favorite) => {
+    const selected = currentMode === 'favorite' && selectedFavoriteId === favorite.id;
+    const subAddress = favorite.label?.trim() ? favorite.name : '';
+    const icon = favoriteKind(favorite) === 'home' ? '🏠' : '⭐';
+    return (
+      <button
+        type="button"
+        key={favorite.id}
+        className={`kiten-pick-row${selected ? ' is-selected' : ''}`}
+        onClick={() => selectFavoriteBasePoint(favorite)}
+        aria-pressed={selected}
+      >
+        <span className="kiten-pick-ic" aria-hidden="true">{icon}</span>
+        <span className="kiten-pick-tx">
+          <span className="kiten-pick-nm">{favoriteDisplayName(favorite)}</span>
+          {subAddress && <span className="kiten-pick-ad">{subAddress}</span>}
+        </span>
+        <span className="kiten-pick-chk" aria-hidden="true">✓</span>
+      </button>
+    );
+  };
+
+  const basePointPicker = (
+    <div className="kiten-picker">
+      <button type="button" className="kiten-pick-now" onClick={useCurrentLocation}>
+        <span className="kiten-pick-now-ic" aria-hidden="true">📍</span>
+        <span className="kiten-pick-now-tx">
+          <span className="kiten-pick-now-b">現在地を使う</span>
+          <span className="kiten-pick-now-s">押すと位置情報の確認が出ます</span>
+        </span>
+        <span className="kiten-pick-now-arr" aria-hidden="true">›</span>
+      </button>
+
+      {homeFavorites.length > 0 && (
+        <>
+          <button
+            type="button"
+            className={`kiten-pick-grp${homeGroupOpen ? ' is-open' : ''}`}
+            onClick={() => setHomeGroupOpen((value) => !value)}
+            aria-expanded={homeGroupOpen}
+          >
+            <span className="kiten-pick-grp-ic" aria-hidden="true">🏠</span>
+            <span className="kiten-pick-grp-t">自宅・拠点</span>
+            <span className="kiten-pick-grp-cnt">{homeFavorites.length}件</span>
+            <span className="kiten-pick-grp-ln" aria-hidden="true" />
+            <span className="kiten-pick-grp-car" aria-hidden="true">▼</span>
+          </button>
+          {homeGroupOpen && (
+            <div className="kiten-pick-body">{homeFavorites.map(renderPickerRow)}</div>
+          )}
+        </>
+      )}
+
+      {spotFavorites.length > 0 && (
+        <>
+          <button
+            type="button"
+            className={`kiten-pick-grp${spotGroupOpen ? ' is-open' : ''}`}
+            onClick={() => setSpotGroupOpen((value) => !value)}
+            aria-expanded={spotGroupOpen}
+          >
+            <span className="kiten-pick-grp-ic" aria-hidden="true">⭐</span>
+            <span className="kiten-pick-grp-t">お気に入りから</span>
+            <span className="kiten-pick-grp-cnt">{spotFavorites.length}件</span>
+            <span className="kiten-pick-grp-ln" aria-hidden="true" />
+            <span className="kiten-pick-grp-car" aria-hidden="true">▼</span>
+          </button>
+          {spotGroupOpen && (
+            <div className="kiten-pick-body kiten-pick-body-scroll">{spotFavorites.map(renderPickerRow)}</div>
+          )}
+        </>
+      )}
+
+      <button
+        type="button"
+        className={`kiten-pick-addr-toggle${addrSearchOpen ? ' is-open' : ''}`}
+        onClick={() => setAddrSearchOpen((value) => !value)}
+        aria-expanded={addrSearchOpen}
+      >
+        <span aria-hidden="true">🔍</span>
+        <span>住所や地名で探す</span>
+        <span className="kiten-pick-grp-car" aria-hidden="true">▼</span>
+      </button>
+      {addrSearchOpen && <div className="kiten-pick-addr">{basePointSearchForm}</div>}
     </div>
   );
 
@@ -588,7 +696,7 @@ export default function ReverseDirectionView({
               </div>
               {basePointOpenValue && (
                 <div className="reverse-base-panel">
-                  {basePointControls}
+                  {basePointPicker}
                   {basePointMeta}
                   {status && <p className="reverse-status">{status}</p>}
                 </div>

@@ -1,6 +1,8 @@
 import { bearingFor, directionIndexFor, initialBearing } from './mapFan.js';
 
 export const MAP_SEARCH_STORAGE_KEY = 'kimon_map_favorites_v1';
+export const FAVORITE_KIND_HOME = 'home';
+export const FAVORITE_KIND_SPOT = 'spot';
 
 export const OVERPASS_PROXY_PATH = '/api/overpass';
 export const NOMINATIM_PROXY_PATH = '/api/nominatim';
@@ -282,6 +284,10 @@ export function favoriteKey(place) {
 
 export function favoriteDisplayName(favorite) {
   return favorite?.label?.trim() ? favorite.label : favorite?.name;
+}
+
+export function favoriteKind(favorite) {
+  return favorite?.kind === FAVORITE_KIND_HOME ? FAVORITE_KIND_HOME : FAVORITE_KIND_SPOT;
 }
 
 export function renameFavorite(favorites, targetKey, label) {

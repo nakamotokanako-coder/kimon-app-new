@@ -6766,3 +6766,239 @@ body {
 .kakkyoku-result-score {
   font-family: var(--font-latin);
 }
+
+/* ===== 出発点ピッカー（吉方位GO・mock v9）===== */
+.kiten-picker {
+  display: grid;
+  gap: 7px;
+}
+
+.kiten-pick-now {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 14px;
+  border: 1.5px solid var(--accent-edge);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--text-accent) 9%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.kiten-pick-now-ic {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-grad);
+  color: #1a1606;
+  font-size: 15px;
+}
+
+.kiten-pick-now-tx {
+  flex: 1;
+  display: grid;
+  gap: 1px;
+}
+
+.kiten-pick-now-b {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.kiten-pick-now-s {
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--text-primary) 55%, transparent);
+}
+
+.kiten-pick-now-arr {
+  color: var(--accent-edge);
+}
+
+.kiten-pick-grp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  margin-top: 7px;
+  padding: 5px 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.kiten-pick-grp-ic {
+  font-size: 13px;
+}
+
+.kiten-pick-grp-t {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--accent-edge);
+}
+
+.kiten-pick-grp-cnt {
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--text-primary) 50%, transparent);
+}
+
+.kiten-pick-grp-ln {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--accent-edge) 18%, transparent);
+}
+
+.kiten-pick-grp-car {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--text-primary) 50%, transparent);
+  transition: transform 0.15s ease;
+}
+
+.kiten-pick-grp.is-open .kiten-pick-grp-car {
+  transform: rotate(180deg);
+}
+
+.kiten-pick-body {
+  display: grid;
+  gap: 7px;
+}
+
+.kiten-pick-body-scroll {
+  max-height: 232px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.kiten-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text-accent) 4%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.kiten-pick-row.is-selected {
+  border-color: var(--accent-edge);
+  background: color-mix(in srgb, var(--text-accent) 11%, transparent);
+}
+
+.kiten-pick-ic {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--text-accent) 5%, transparent);
+  font-size: 14px;
+}
+
+.kiten-pick-row.is-selected .kiten-pick-ic {
+  border-color: var(--accent-edge);
+}
+
+.kiten-pick-tx {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.kiten-pick-nm {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kiten-pick-ad {
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--text-primary) 50%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kiten-pick-chk {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: var(--accent-edge);
+  opacity: 0;
+}
+
+.kiten-pick-row.is-selected .kiten-pick-chk {
+  opacity: 1;
+}
+
+.kiten-pick-addr-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 11px;
+  background: transparent;
+  color: color-mix(in srgb, var(--text-primary) 75%, transparent);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.kiten-pick-addr-toggle .kiten-pick-grp-car {
+  margin-left: auto;
+}
+
+.kiten-pick-addr {
+  margin-top: 8px;
+}
+
+/* 拠点トグル（ポップアップ・ベタ金は「お気に入りに追加」のみ＝こちらは控えめ） */
+.direction-popup-button.direction-popup-home {
+  background: transparent;
+  color: var(--text-accent);
+  font-weight: 700;
+}
+
+.direction-popup-button.direction-popup-home.is-on {
+  background: color-mix(in srgb, var(--text-accent) 16%, transparent);
+}
+
+/* 編集モーダルの拠点トグル */
+.direction-favorite-home-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.direction-favorite-home-toggle span {
+  display: grid;
+  gap: 1px;
+}
+
+.direction-favorite-home-toggle small {
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--text-primary) 55%, transparent);
+}
