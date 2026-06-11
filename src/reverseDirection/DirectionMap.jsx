@@ -24,6 +24,7 @@ import {
   distanceMeters,
   favoriteKey,
   favoriteDisplayName,
+  favoriteKind,
   filterKichiPlaces,
   findFacilityPreset,
   nominatimSearch,
@@ -84,11 +85,12 @@ function placeNumberLabel(number) {
   return ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'][number] || String(number);
 }
 
-function favoritePayload(place) {
+function favoritePayload(place, kind = favoriteKind(place)) {
   return {
     name: place.name,
     latitude: place.latitude,
     longitude: place.longitude,
+    kind,
     ...(place.branch ? { branch: place.branch } : {}),
     ...(place.brand ? { brand: place.brand } : {}),
     ...(place.operator ? { operator: place.operator } : {}),
@@ -204,17 +206,31 @@ export default function DirectionMap({
     }
   };
 
-  const addFavorite = (place) => {
+  const addFavorite = (place, kind = 'spot') => {
     const key = favoriteKey(place);
     if (favorites.some((item) => favoriteKey(item) === key)) return;
-    saveFavorites([...favorites, favoritePayload(place)]);
-    setMapStatus(`${place.name}をお気に入りに追加しました。`);
+    saveFavorites([...favorites, favoritePayload(place, kind)]);
+    setMapStatus(kind === 'home' ? `${place.name}を拠点に追加しました。` : `${place.name}をお気に入りに追加しました。`);
   };
 
   const removeFavorite = (place) => {
     const key = favoriteKey(place);
     saveFavorites(favorites.filter((item) => favoriteKey(item) !== key));
     setMapStatus(`${place.name}をお気に入りから削除しました。`);
+  };
+
+  const toggleFavoriteKind = (place) => {
+    const key = favoriteKey(place);
+    const existing = favorites.find((item) => favoriteKey(item) === key);
+    if (!existing) {
+      addFavorite(place, 'home');
+      return;
+    }
+    const nextKind = favoriteKind(existing) === 'home' ? 'spot' : 'home';
+    saveFavorites(favorites.map((item) => (
+      favoriteKey(item) === key ? { ...item, kind: nextKind } : item
+    )));
+    setMapStatus(nextKind === 'home' ? `${favoriteDisplayName(existing)}を拠点にしました。` : `${favoriteDisplayName(existing)}をお気に入りに戻しました。`);
   };
 
   const editingFavorite = useMemo(

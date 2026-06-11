@@ -8,6 +8,7 @@ import {
   deleteFavorite,
   directionForPoint,
   favoriteDisplayName,
+  favoriteKind,
   favoriteKey,
   filterKichiPlaces,
   findFacilityPreset,
@@ -168,6 +169,12 @@ describe('map search helpers', () => {
     expect(favoriteDisplayName({ name: '東京都板橋区幸町66番4号', label: '実家' })).toBe('実家');
     expect(favoriteDisplayName({ name: '東京都板橋区幸町66番4号' })).toBe('東京都板橋区幸町66番4号');
     expect(favoriteDisplayName({ name: '東京都板橋区幸町66番4号', label: '   ' })).toBe('東京都板橋区幸町66番4号');
+  });
+
+  it('treats favorites without kind as spot favorites', () => {
+    expect(favoriteKind({ name: '既存お気に入り' })).toBe('spot');
+    expect(favoriteKind({ name: '自宅', kind: 'home' })).toBe('home');
+    expect(favoriteKind({ name: '不明', kind: 'other' })).toBe('spot');
   });
 
   it('renames a favorite by storing label without changing existing fields', () => {
