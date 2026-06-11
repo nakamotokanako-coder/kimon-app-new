@@ -397,4 +397,4 @@ export function classifyPalace(row, palace) {
   };
 }
 
-export { RANK_LADDER, GATE_TABLE, STAR_TABLE, GOD_KICHI, GOD_KYO };
+export { RANK_LADDER, GATE_TABLE, STAR_TABLE, GOD_KICHI, GOD_KYO, RANK_UP_GENERAL };
