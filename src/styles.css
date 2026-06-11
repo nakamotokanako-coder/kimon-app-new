@@ -7015,6 +7015,11 @@ body {
   background: var(--frame-fill);
   box-shadow: var(--cell-sh);
   font-family: var(--font-body);
+  /* ShouiPanel と同じ流儀: 横方向は親に委ね、内部チップ列(.kp-dir-row)の
+     max-content が親 .app-main の grid auto トラックを膨張させない（盤含む全体の
+     左寄れ・右余白を防ぐ）。横スクロールは .kp-dir-row の overflow-x:auto が担う。 */
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .kp-head {
