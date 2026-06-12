@@ -16,9 +16,10 @@ import bank from '../../data/kaisetsu/kaisetsu_bank_v1.json';
 const PALACES = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
 const len = (s) => [...s].length;
 
-// Phase 2.5（full v2 改修前）の生成結果から取得し、差分ゼロを確認済みの全件ハッシュ（sorted走査）。
-// mid===改修前full / short===改修前short を恒久ロックする回帰防止用。
-const MID_SORTED_SHA256 = '8ce4247e1a85707a98b10efe8d00a8d4eb8a85d6aa880bc9704d9cfb8fbed4d5';
+// 全件ハッシュ（sorted走査）の回帰防止ロック。
+// short は API 経由で本番表示中のため恒久ロック（v2.1 でも不変＝据え置き）。
+// mid は v2.1（低頻度象意74種の phrase 改訂）で変化するため、再生成後の値へ更新。
+const MID_SORTED_SHA256 = 'c01192e56ed4c7e8ee5308eefa67e81b02841c92aaa22e25115957832eb1d102';
 const SHORT_SORTED_SHA256 = '2de746ce22084f49189032bd7f3d20e5ad3dd70cb0d3748ccdbe1261e92c4c38';
 
 describe('composeText 決定性', () => {

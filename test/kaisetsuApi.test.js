@@ -51,7 +51,7 @@ describe('kaisetsu API (short delivery)', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.key).toBe(KNOWN_KEY);
-    expect(res.body.version).toBe('2.0');
+    expect(res.body.version).toBe('2.1');
     expect(res.headers['Cache-Control']).toBe(
       'public, s-maxage=86400, stale-while-revalidate=604800',
     );

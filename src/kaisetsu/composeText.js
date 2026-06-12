@@ -318,7 +318,18 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   // 修正(c): ▲/× かつ 吉門(kichi3/chukichi)は actions を出さない。
   //   吉門 actions は吉前提の文体（「向いています」）で、拒否権で凶に落ちた宮では直前の文と矛盾するため。
   //   凶門(shokyo/kyo/daikyo)の actions は「なら使えます」形で ▲× と整合するので必須を維持（死門ルール含め不変）。
-  if (isNegative && (gateClass === 'kichi3' || gateClass === 'chukichi')) action = '';
+  let fallbackClose = '';
+  if (isNegative && (gateClass === 'kichi3' || gateClass === 'chukichi')) {
+    action = '';
+    // v2.1: 行動提案を出せない▲×∩吉門の宮には、代替の締め文（fallbackClosings）を充てる。
+    //   選択は決定的: h(=hash(局key|palace|axis)) % 本数。適用は full のみ。
+    //   死門は従来の死門特別ルールを優先し本締め文を重ねない（死門は凶門クラスのため
+    //   本来この分岐には入らないが、念のため明示ガード）。
+    const fc = bank.fallbackClosings;
+    if (gate !== '死門' && Array.isArray(fc) && fc.length) {
+      fallbackClose = fc[h % fc.length];
+    }
+  }
   // 死門特別ルール: goen軸は弔事文を無条件採用可。その他の軸は「むしろ向いています」へ強調しない。
   if (gate === '死門' && axis !== 'goen' && action.includes('むしろ向いています')) action = '';
   const actionUsed = !!action;
@@ -334,6 +345,12 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
     // 補強(同居文)で同じ凶神を語っている場合は二重を避けて省略（規則e）。
     shime = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.gods[god].caution);
     shimeSrc = 'god';
+  }
+  // v2.1: ▲×∩吉門で行動提案を出せない宮は、代替締め文を締めに採用する。
+  //   従来 ▲× は締め無し（行動提案で終わるか、それも無い）。空いた締めスロットに充当する。
+  if (fallbackClose && !shime) {
+    shime = fallbackClose;
+    shimeSrc = 'fallback';
   }
 
   // ---- 組み立て（順: 結論→主役→hint/exception→補強→なのに→general→行動提案→締め）----
