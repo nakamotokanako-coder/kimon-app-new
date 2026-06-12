@@ -13,10 +13,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@upstash/redis": "^1.38.0",
     "leaflet": "^1.9.4",
     "papaparse": "^5.5.3",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "resend": "^6.12.4"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

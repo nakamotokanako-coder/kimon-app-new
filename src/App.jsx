@@ -6,6 +6,7 @@ import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
 import ShouiPanel from './components/ShouiPanel.jsx';
 import KaisetsuPanel from './components/KaisetsuPanel.jsx';
+import AccountSettings from './components/AccountSettings.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
 import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
@@ -412,10 +413,7 @@ export default function App() {
             <h3 className="maru">アカウント</h3>
             <span className="lat">Account</span>
           </div>
-          <button type="button" className="settings-link-row">
-            <span>サブスク管理</span>
-            <b aria-hidden="true">›</b>
-          </button>
+          <AccountSettings />
         </div>
 
         <div className="settings-section settings-panel-section">
