@@ -7,7 +7,7 @@
 //   - 存在秘匿のため成功は常に同形（登録済みか否かを返さない）
 import { randomBytes } from 'node:crypto';
 import { kv } from '../../lib/kv.js';
-import { sendMagicLink } from '../../lib/email.js';
+import { sendMagicLink, magicFromSource } from '../../lib/email.js';
 import { buildOrigin } from '../../lib/session.js';
 
 const MAGIC_TTL_SEC = 15 * 60;
@@ -47,6 +47,9 @@ export default async function handler(req, res) {
   await kv().set(`magic:${token}`, email, { ex: MAGIC_TTL_SEC });
 
   const url = `${origin}/api/auth/verify?token=${token}`;
+  // env が効いているかを常に可視化（'env' なら MAGIC_LINK_FROM 適用、'fallback' なら未適用）。
+  // アドレス自体は出さず env|fallback の区別だけ。
+  console.log('[auth] from source:', magicFromSource());
   try {
     await sendMagicLink(email, url);
   } catch (err) {

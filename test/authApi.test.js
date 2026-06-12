@@ -4,7 +4,12 @@ import verifyHandler from '../api/auth/verify.js';
 import meHandler from '../api/auth/me.js';
 import logoutHandler from '../api/auth/logout.js';
 import { setKvClient } from '../lib/kv.js';
-import { setEmailSender } from '../lib/email.js';
+import {
+  setEmailSender,
+  resolveMagicFrom,
+  magicFromSource,
+  DEFAULT_MAGIC_LINK_FROM,
+} from '../lib/email.js';
 import { SESSION_COOKIE } from '../lib/session.js';
 
 const SECRET = 'auth-test-secret';
@@ -98,6 +103,15 @@ describe('POST /api/auth/request', () => {
     const res = createRes();
     await requestHandler({ method: 'GET', headers: {} }, res);
     expect(res.statusCode).toBe(405);
+  });
+
+  it('resolves from-address: env overrides, else onboarding@resend.dev fallback', () => {
+    expect(DEFAULT_MAGIC_LINK_FROM).toBe('onboarding@resend.dev');
+    expect(resolveMagicFrom({ MAGIC_LINK_FROM: 'login@verified.example' })).toBe('login@verified.example');
+    expect(resolveMagicFrom({})).toBe('onboarding@resend.dev'); // 架空ドメインにしない
+    expect(magicFromSource({ MAGIC_LINK_FROM: 'x@y.com' })).toBe('env');
+    expect(magicFromSource({})).toBe('fallback');
+    expect(magicFromSource({ MAGIC_LINK_FROM: '' })).toBe('fallback');
   });
 
   it('keeps 200 (existence concealment) even when sending fails', async () => {
