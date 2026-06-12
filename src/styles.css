@@ -7198,6 +7198,18 @@ body {
   color: var(--text-secondary);
 }
 
+.kp-full-body {
+  padding: 16px 14px 18px;
+}
+
+.kp-full-body p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.85;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
 .kp-lock {
   position: absolute;
   inset: 38px 0 0;
@@ -7232,9 +7244,13 @@ body {
   font-size: 0.86rem;
 }
 
+.kp-lock-note,
 .kp-soon {
   margin: 0;
+  max-width: 28rem;
+  text-align: center;
   font-size: 0.82rem;
+  line-height: 1.65;
   color: var(--text-accent);
 }
 

@@ -76,22 +76,46 @@ const DUMMY_FULL = [
   '結論だけでなく、その理由まで腑に落ちる――そんな鑑定をご用意しています。',
 ];
 
-export default function KaisetsuPanel({ board }) {
+export default function KaisetsuPanel({ board, onOpenAccountSettings }) {
   const key = boardKey(board);
   const ranks = useMemo(() => computeRanks(key), [key]);
 
   const [selPalace, setSelPalace] = useState(board?.score?.best_overall || 'kan');
   const [selAxis, setSelAxis] = useState('goen');
   const [cache, setCache] = useState({}); // 局key -> palaces（short のみ）
-  const [showSoon, setShowSoon] = useState(false);
+  const [auth, setAuth] = useState({ phase: 'loading', loggedIn: false, status: 'free' });
+  const [fullCache, setFullCache] = useState({}); // 局key -> palaces（paid のみ: short+mid+full）
+  const [fullErrorKey, setFullErrorKey] = useState(null);
 
-  // 局key が変わったら選択宮をベスト宮へリセットし、CTA メッセージも畳む。
+  // 局key が変わったら選択宮をベスト宮へリセットし、full の一時エラーも畳む。
   useEffect(() => {
     setSelPalace(board?.score?.best_overall || 'kan');
-    setShowSoon(false);
+    setFullErrorKey(null);
     // best_overall は局key に対して安定なので key だけを依存にする。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
+
+  // 認証状態はパネル単独で取得する。full API は paid 確認後の effect だけから呼ぶ。
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/auth/me', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : { loggedIn: false }))
+      .then((data) => {
+        if (!alive) return;
+        if (data?.loggedIn) {
+          setAuth({ phase: 'ready', loggedIn: true, email: data.email, status: data.status || 'free' });
+        } else {
+          setAuth({ phase: 'ready', loggedIn: false, status: 'free' });
+          setFullCache({});
+        }
+      })
+      .catch(() => {
+        if (!alive) return;
+        setAuth({ phase: 'ready', loggedIn: false, status: 'free' });
+        setFullCache({});
+      });
+    return () => { alive = false; };
+  }, []);
 
   // short を API から取得（局keyごと1回だけ・取得済みは再フェッチしない）。
   useEffect(() => {
@@ -108,10 +132,43 @@ export default function KaisetsuPanel({ board }) {
     return () => { alive = false; };
   }, [key, cache]);
 
+  // paid 確認後だけ full API を取得する。free/未ログインでは 403 を踏みに行かない。
+  useEffect(() => {
+    if (!key || auth.phase !== 'ready' || !auth.loggedIn || auth.status !== 'paid') return;
+    if (fullCache[key] || fullErrorKey === key) return;
+    let alive = true;
+    fetch(`/api/kaisetsu-full?key=${encodeURIComponent(key)}`, { credentials: 'same-origin' })
+      .then(async (r) => {
+        if (r.status === 403) {
+          if (alive) {
+            setAuth((current) => ({ ...current, status: 'free' }));
+            setFullCache({});
+          }
+          return null;
+        }
+        if (!r.ok) throw new Error('kaisetsu_full_failed');
+        return r.json();
+      })
+      .then((j) => {
+        if (alive && j?.palaces) {
+          setFullCache((c) => ({ ...c, [key]: j.palaces }));
+        }
+      })
+      .catch(() => {
+        if (alive) setFullErrorKey(key);
+      });
+    return () => { alive = false; };
+  }, [key, auth.phase, auth.loggedIn, auth.status, fullCache, fullErrorKey]);
+
   if (!board || !board.score) return null;
 
   const palaces = cache[key] || null;
   const short = palaces?.[selPalace]?.[selAxis]?.short || null;
+  const fullPalaces = fullCache[key] || null;
+  const full = fullPalaces?.[selPalace]?.[selAxis]?.full || null;
+  const isPaid = auth.phase === 'ready' && auth.loggedIn && auth.status === 'paid';
+  const isAnon = auth.phase === 'ready' && !auth.loggedIn;
+  const isFree = auth.phase === 'ready' && auth.loggedIn && auth.status !== 'paid';
   const selRank = ranks[selPalace] || null;
   const disp = PALACE_DISPLAY[selPalace];
 
@@ -175,22 +232,41 @@ export default function KaisetsuPanel({ board }) {
         </div>
       </div>
 
-      {/* フルリーディング（常時ロック・中身はダミー固定） */}
+      {/* フルリーディング。paid 時だけ API 由来の full 本文に差し替える。 */}
       <div className="kp-full">
         <div className="kp-full-label">フルリーディング</div>
-        <div className="kp-full-blur" aria-hidden="true">
-          {DUMMY_FULL.map((t, i) => (
-            <p key={i}>{t}</p>
-          ))}
-        </div>
-        <div className="kp-lock">
-          <button type="button" className="kp-cta" onClick={() => setShowSoon(true)}>
-            <span className="kp-cta-icon" aria-hidden="true">🔒</span>
-            フルリーディングを読む
-          </button>
-          {showSoon && <p className="kp-soon" role="status">準備中です。</p>}
-          <p className="kp-trial">いまなら初回1回ぶんを無料でお試しいただけます。</p>
-        </div>
+        {isPaid ? (
+          <div className="kp-full-body">
+            <p>
+              {fullErrorKey === key
+                ? '読み込みに失敗しました'
+                : full || (fullPalaces ? 'この方位・願いごとのフルリーディングはありません。' : '読み込み中…')}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="kp-full-blur" aria-hidden="true">
+              {DUMMY_FULL.map((t, i) => (
+                <p key={i}>{t}</p>
+              ))}
+            </div>
+            <div className="kp-lock">
+              {auth.phase === 'loading' && <p className="kp-lock-note">読み込み中…</p>}
+              {isAnon && (
+                <>
+                  <p className="kp-lock-note">フルリーディングはログイン後にご利用いただけます。</p>
+                  <button type="button" className="kp-cta" onClick={onOpenAccountSettings}>
+                    <span className="kp-cta-icon" aria-hidden="true">🔒</span>
+                    ログインして読む
+                  </button>
+                </>
+              )}
+              {isFree && (
+                <p className="kp-lock-note">フルリーディングはプロ版で解放されます。プロ版は現在準備中です。</p>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
