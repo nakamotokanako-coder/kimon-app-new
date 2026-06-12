@@ -181,6 +181,14 @@ export default function App() {
     setPreviousTab(activeTab === 'notifications' ? previousTab : activeTab);
     setActiveTab('notifications');
   };
+  const openAccountSettings = () => {
+    setActiveTab('settings');
+    window.setTimeout(() => {
+      const input = document.getElementById('account-email-input');
+      input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input?.focus({ preventScroll: true });
+    }, 0);
+  };
   const markNotificationRead = (id) => {
     setReadNotificationIds((current) => {
       if (current.includes(id)) return current;
@@ -256,7 +264,7 @@ export default function App() {
               <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
             <ShouiPanel board={board} />
-            <KaisetsuPanel board={board} />
+            <KaisetsuPanel board={board} onOpenAccountSettings={openAccountSettings} />
           </>
         )}
       </main>
