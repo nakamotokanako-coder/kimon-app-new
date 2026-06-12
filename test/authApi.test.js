@@ -99,6 +99,15 @@ describe('POST /api/auth/request', () => {
     await requestHandler({ method: 'GET', headers: {} }, res);
     expect(res.statusCode).toBe(405);
   });
+
+  it('keeps 200 (existence concealment) even when sending fails', async () => {
+    // 送信失敗（lib が throw する状況を sender 差し替えで再現）でも 200 を返す。
+    setEmailSender(() => { throw new Error('resend_error:invalid_from_address'); });
+    const res = createRes();
+    await requestHandler({ method: 'POST', body: { email: 'fail@example.com' }, headers: {} }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
 });
 
 describe('GET /api/auth/verify (one-time token)', () => {

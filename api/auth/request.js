@@ -49,9 +49,11 @@ export default async function handler(req, res) {
   const url = `${origin}/api/auth/verify?token=${token}`;
   try {
     await sendMagicLink(email, url);
-  } catch {
-    // 送信失敗の詳細は秘匿。汎用エラーのみ。
-    return res.status(502).json({ error: 'send_failed' });
+  } catch (err) {
+    // 存在秘匿のため送信成否に関わらず 200 を維持。失敗はログにのみ残す。
+    // err.message は 'resend_error:<name>' 形式（詳細な error は lib 側で記録済み）。
+    // メール本文・マジックリンクURL・トークンはログに出さない。
+    console.error('[auth] magic link send failed', err?.message || String(err));
   }
 
   // 存在秘匿: 常に同じ成功レスポンス。
