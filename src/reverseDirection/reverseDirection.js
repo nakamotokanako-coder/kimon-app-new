@@ -1,5 +1,6 @@
 import { buildBoard } from '../kimon/buildBoard.js';
 import { scoreBoard } from '../kimon/scoreEngine.js';
+import { getJstHours } from '../utils/jishinLabels.js';
 import purposeFilters from '../data/purposeFilters.json';
 
 export const TIME_BOARD_TYPE = '\u6642';
@@ -48,7 +49,7 @@ export function applyNaturalTime(date, correctionMinutes) {
 }
 
 export function getTimeSlotHour(date) {
-  const hour = date.getHours();
+  const hour = getJstHours(date);
   if (hour === 23) return 0;
   return Math.floor((hour + 1) / 2) * 2;
 }

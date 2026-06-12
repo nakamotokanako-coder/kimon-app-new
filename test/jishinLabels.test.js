@@ -17,13 +17,10 @@ describe('JISHIN_LABELS', () => {
 });
 
 describe('getJishinSlotHour', () => {
-  // ローカル時刻ベースの判定なので Date#getHours を使う。
-  // 各テストは固定された時刻の Date を生成して検証。
-  const at = (h, m = 0) => {
-    const d = new Date();
-    d.setHours(h, m, 0, 0);
-    return d;
-  };
+  // 時辰判定は JST 基準（getBoardDate / getTodayJst と同じ）。実行環境TZに依存しないよう、
+  // 各テストは「h時m分 JST」を表す絶対時刻（+09:00）を生成して検証する。
+  const at = (h, m = 0) =>
+    new Date(`2026-05-26T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00+09:00`);
 
   it('17:30 → 18 (酉刻 17-19時)', () => {
     expect(getJishinSlotHour(at(17, 30))).toBe(18);

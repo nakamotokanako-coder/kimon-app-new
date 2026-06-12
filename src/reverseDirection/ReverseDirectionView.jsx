@@ -8,6 +8,7 @@ import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
 import { getBoardDate } from '../utils/boardDate.js';
+import { getJstHours } from '../utils/jishinLabels.js';
 import { sortTimelineSlotsByScore } from './strongestRanking.js';
 import {
   buildDayReverseBoard,
@@ -113,7 +114,7 @@ function getNaturalSlotStart(naturalDate, slotHour) {
   start.setMinutes(0, 0, 0);
   if (slotHour === 0) {
     start.setHours(23);
-    if (naturalDate.getHours() !== 23) start.setDate(start.getDate() - 1);
+    if (getJstHours(naturalDate) !== 23) start.setDate(start.getDate() - 1);
     return start;
   }
   start.setHours(slotHour - 1);
