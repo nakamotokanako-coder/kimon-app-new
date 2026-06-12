@@ -3,6 +3,9 @@
   "functions": {
     "api/kaisetsu.js": {
       "includeFiles": "data/kaisetsu/**"
+    },
+    "api/kaisetsu-full.js": {
+      "includeFiles": "data/kaisetsu/**"
     }
   }
 }
