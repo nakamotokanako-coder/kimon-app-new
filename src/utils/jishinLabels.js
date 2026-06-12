@@ -21,9 +21,15 @@ export const JISHIN_LABELS = {
   22: '21-23時 (亥)',
 };
 
+/** Date から JST基準の「時」(0-23) を返す。実行環境TZに依存しない。
+ *  getBoardDate / getTodayJst と同じ +9hシフト→getUTCHours() 方式。 */
+export function getJstHours(date) {
+  return new Date(date.getTime() + 9 * 60 * 60 * 1000).getUTCHours();
+}
+
 /** Date から「現在の時辰スロット」の hour 値 (0,2,...,22) を返す。 */
 export function getJishinSlotHour(date) {
-  const hour = date.getHours();
+  const hour = getJstHours(date);
   if (hour === 23) return 0;
   return Math.floor((hour + 1) / 2) * 2;
 }
