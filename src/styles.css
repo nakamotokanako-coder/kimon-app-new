@@ -3101,6 +3101,67 @@ body {
   font-weight: 800;
 }
 
+/* 小枠の方位法アコーディオン（①発見性）。閉じている限り地図を圧迫しない1行ヘッダ。 */
+.direction-bearing-accordion {
+  margin-bottom: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.direction-bearing-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-main);
+}
+
+.direction-bearing-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.direction-bearing-now {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.direction-bearing-caret {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.direction-bearing-body {
+  padding: 0 10px 10px;
+}
+
+/* 小枠アコーディオン内では共有コントロールを一段小さく（全画面の見た目は base のまま） */
+.direction-map-controls.is-compact {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  gap: 8px;
+}
+
+.direction-map-controls.is-compact .direction-map-toggle button {
+  padding: 5px 8px;
+  font-size: 0.72rem;
+}
+
+.direction-map-controls.is-compact .direction-map-check {
+  font-size: 0.72rem;
+}
+
 .direction-map-search {
   display: grid;
   gap: 7px;
