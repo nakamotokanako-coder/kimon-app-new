@@ -16,6 +16,7 @@ import {
   sectorPolygon,
   writeBearingSettings,
 } from './mapFan.js';
+import { isOverseas } from './geoRegion.js';
 import BearingControls from './BearingControls.jsx';
 import {
   FACILITY_PRESETS,
@@ -175,6 +176,10 @@ export default function DirectionMap({
   const viewKeyRef = useRef('');
   const lastAreaSearchRef = useRef(null);
   const suppressAreaPromptRef = useRef(false);
+  // 背景タイルの国内/海外切替用。地理院タイルは日本専用のため、海外座標では全球対応タイルへ差し替える。
+  const baseRegionRef = useRef(null); // 'jp' | 'overseas'（直近に適用したリージョン）
+  const baseLayersRef = useRef([]); // 現在マップに乗っているベースタイルレイヤ群
+  const baseLayersControlRef = useRef(null); // 国内の地図/航空写真 切替コントロール
   const center = useMemo(() => [location.latitude, location.longitude], [location.latitude, location.longitude]);
   const centerRef = useRef(center);
   useEffect(() => { centerRef.current = center; }, [center]);
@@ -474,21 +479,7 @@ export default function DirectionMap({
     }).setView(center, profile.initialZoom);
     mapRef.current = map;
 
-    const gsiAttribution = '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">国土地理院</a>';
-    const gsiPale = L.tileLayer(
-      'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
-      { maxZoom: 18, attribution: gsiAttribution },
-    );
-    const gsiPhoto = L.tileLayer(
-      'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
-      { maxZoom: 18, attribution: gsiAttribution },
-    );
-    gsiPale.addTo(map);
-    L.control.layers(
-      { '🗺 地図': gsiPale, '📷 航空写真': gsiPhoto },
-      null,
-      { position: 'bottomright', collapsed: false },
-    ).addTo(map);
+    // 背景タイル（地理院 or 海外fallback）は center 依存の別 useEffect が管理する。
 
     // 「検索範囲に合わせる」カスタムコントロール（ズームボタンの並びに追加）
     const FitSearchControl = L.Control.extend({
@@ -517,6 +508,58 @@ export default function DirectionMap({
     layerGroupRef.current = L.layerGroup().addTo(map);
     liveLayerRef.current = L.layerGroup().addTo(map);
   }, [center, profile.initialZoom]);
+
+  // 背景タイルの国内/海外切替。
+  // 地理院タイルは日本専用で海外座標では真っ白になるため、center が海外のときは
+  // 全球対応の OpenStreetMap タイルへ差し替える。国内では従来どおり地理院タイル
+  // （地図/航空写真の切替コントロール付き）を維持する。
+  // 同一リージョン内（国内→国内）の移動では再構築せず、ユーザーのレイヤ選択を保持する。
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const region = isOverseas(center) ? 'overseas' : 'jp';
+    if (baseRegionRef.current === region) return;
+    baseRegionRef.current = region;
+
+    // 直前のベースタイル・切替コントロールを撤去
+    baseLayersRef.current.forEach((layer) => {
+      if (map.hasLayer(layer)) map.removeLayer(layer);
+    });
+    baseLayersRef.current = [];
+    if (baseLayersControlRef.current) {
+      map.removeControl(baseLayersControlRef.current);
+      baseLayersControlRef.current = null;
+    }
+
+    if (region === 'overseas') {
+      const osmAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors';
+      const osm = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { subdomains: 'abc', maxZoom: 19, attribution: osmAttribution },
+      );
+      osm.addTo(map);
+      baseLayersRef.current = [osm];
+    } else {
+      const gsiAttribution = '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">国土地理院</a>';
+      const gsiPale = L.tileLayer(
+        'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+        { maxZoom: 18, attribution: gsiAttribution },
+      );
+      const gsiPhoto = L.tileLayer(
+        'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
+        { maxZoom: 18, attribution: gsiAttribution },
+      );
+      gsiPale.addTo(map);
+      const control = L.control.layers(
+        { '🗺 地図': gsiPale, '📷 航空写真': gsiPhoto },
+        null,
+        { position: 'bottomright', collapsed: false },
+      );
+      control.addTo(map);
+      baseLayersRef.current = [gsiPale, gsiPhoto];
+      baseLayersControlRef.current = control;
+    }
+  }, [center]);
 
   useEffect(() => {
     const map = mapRef.current;
