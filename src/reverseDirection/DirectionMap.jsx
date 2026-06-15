@@ -3,7 +3,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
   BEARING_LABELS,
-  MAP_FAN,
   MAP_FAN_COLORS,
   bearingFor,
   buildFanLayerSpecs,
@@ -13,7 +12,9 @@ import {
   isNegativeTone,
   isPositiveTone,
   liveLineColor,
+  readBearingSettings,
   sectorPolygon,
+  writeBearingSettings,
 } from './mapFan.js';
 import BearingControls from './BearingControls.jsx';
 import {
@@ -134,8 +135,8 @@ export default function DirectionMap({
   showPlacePanel = true,
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [bearingMode, setBearingMode] = useState(MAP_FAN.defaultBearingMode);
-  const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
+  const [bearingMode, setBearingMode] = useState(() => readBearingSettings().mode);
+  const [useDeclination, setUseDeclination] = useState(() => readBearingSettings().declination);
   const [bearingPanelOpen, setBearingPanelOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
@@ -181,10 +182,11 @@ export default function DirectionMap({
     () => buildBearingOptions(center, bearingMode, useDeclination),
     [bearingMode, center, useDeclination],
   );
-  // 方位法の単一変更ハンドラ。※ localStorage 永続化は PR2 でここに1行足す。
+  // 方位法の単一変更ハンドラ。選択を端末に保存し、再マウント・時盤↔日盤をまたいで保持する。
   const handleBearingChange = (next) => {
     setBearingMode(next.mode);
     setUseDeclination(next.declination);
+    writeBearingSettings(next);
   };
   const bearingSummary = `${bearingMode === 'plane' ? BEARING_LABELS.mode_plane : BEARING_LABELS.mode_sphere}・${useDeclination ? BEARING_LABELS.declination_on : BEARING_LABELS.declination_off}`;
   const profile = getDistanceProfile(profileKey);

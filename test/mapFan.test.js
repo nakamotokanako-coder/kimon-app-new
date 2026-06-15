@@ -1,12 +1,18 @@
-import { describe, expect, it } from 'vitest';
+/* @vitest-environment jsdom */
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   approximateWestDeclination,
   bearingFor,
   buildFanLayerSpecs,
+  BEARING_STORAGE_KEY,
+  DEFAULT_BEARING_SETTINGS,
   DISTANCE_PROFILE,
   destPoint,
   liveLineColor,
+  readBearingSettings,
+  sanitizeBearingSettings,
   sectorPolygon,
+  writeBearingSettings,
 } from '../src/reverseDirection/mapFan.js';
 
 const center = [35, 139];
@@ -109,5 +115,53 @@ describe('map fan geometry', () => {
     expect(liveLineColor({ palace: 'shin', tone: 'weak' }, 'kan')).toBe('#2e9e5b');
     expect(liveLineColor({ palace: 'shin', tone: 'neutral' }, 'kan')).toBe('#8a8a8a');
     expect(liveLineColor({ palace: 'shin', tone: 'bad' }, 'kan')).toBe('#8a8a8a');
+  });
+});
+
+describe('bearing settings persistence', () => {
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('sanitizes valid settings unchanged', () => {
+    expect(sanitizeBearingSettings({ mode: 'sphere', declination: true }))
+      .toEqual({ mode: 'sphere', declination: true });
+    expect(sanitizeBearingSettings({ mode: 'plane', declination: false }))
+      .toEqual({ mode: 'plane', declination: false });
+  });
+
+  it('falls back to defaults for invalid or partial input', () => {
+    expect(sanitizeBearingSettings({ mode: 'bogus', declination: true }))
+      .toEqual({ mode: DEFAULT_BEARING_SETTINGS.mode, declination: true });
+    expect(sanitizeBearingSettings({ mode: 'sphere', declination: 'yes' }))
+      .toEqual({ mode: 'sphere', declination: DEFAULT_BEARING_SETTINGS.declination });
+    expect(sanitizeBearingSettings({ mode: 'sphere' }))
+      .toEqual({ mode: 'sphere', declination: DEFAULT_BEARING_SETTINGS.declination });
+    expect(sanitizeBearingSettings({})).toEqual(DEFAULT_BEARING_SETTINGS);
+  });
+
+  it('returns defaults for non-object / nullish input', () => {
+    expect(sanitizeBearingSettings(null)).toEqual(DEFAULT_BEARING_SETTINGS);
+    expect(sanitizeBearingSettings(undefined)).toEqual(DEFAULT_BEARING_SETTINGS);
+    expect(sanitizeBearingSettings('plane')).toEqual(DEFAULT_BEARING_SETTINGS);
+    expect(sanitizeBearingSettings(42)).toEqual(DEFAULT_BEARING_SETTINGS);
+  });
+
+  it('reads defaults when nothing is stored', () => {
+    expect(readBearingSettings()).toEqual(DEFAULT_BEARING_SETTINGS);
+  });
+
+  it('reads defaults when the stored value is corrupt JSON', () => {
+    window.localStorage.setItem(BEARING_STORAGE_KEY, '{not json');
+    expect(readBearingSettings()).toEqual(DEFAULT_BEARING_SETTINGS);
+  });
+
+  it('round-trips a written setting and sanitizes on write', () => {
+    writeBearingSettings({ mode: 'sphere', declination: true });
+    expect(readBearingSettings()).toEqual({ mode: 'sphere', declination: true });
+
+    // 不正値で書いても保存はサニタイズ済み（デフォルト補完）になる
+    writeBearingSettings({ mode: 'bogus', declination: 'nope' });
+    expect(readBearingSettings()).toEqual(DEFAULT_BEARING_SETTINGS);
   });
 });

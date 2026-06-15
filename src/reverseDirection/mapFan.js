@@ -15,6 +15,51 @@ export const BEARING_LABELS = {
   group_aria: '方位線の引き方',
 };
 
+// 方位法トグルの選択を端末に保存するための utility（角度計算には一切関与しない）。
+export const BEARING_STORAGE_KEY = 'kimon_map_bearing_v1';
+
+export const DEFAULT_BEARING_SETTINGS = {
+  mode: MAP_FAN.defaultBearingMode,
+  declination: MAP_FAN.defaultDeclination,
+};
+
+// どんな入力でも必ず正規の { mode, declination } を返す（破損・部分欠落はデフォルト補完）。
+export function sanitizeBearingSettings(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  const mode = source.mode === 'plane' || source.mode === 'sphere'
+    ? source.mode
+    : DEFAULT_BEARING_SETTINGS.mode;
+  const declination = typeof source.declination === 'boolean'
+    ? source.declination
+    : DEFAULT_BEARING_SETTINGS.declination;
+  return { mode, declination };
+}
+
+export function readBearingSettings() {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return { ...DEFAULT_BEARING_SETTINGS };
+  }
+  try {
+    const saved = window.localStorage.getItem(BEARING_STORAGE_KEY);
+    if (!saved) return { ...DEFAULT_BEARING_SETTINGS };
+    return sanitizeBearingSettings(JSON.parse(saved));
+  } catch {
+    return { ...DEFAULT_BEARING_SETTINGS };
+  }
+}
+
+export function writeBearingSettings(settings) {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(
+      BEARING_STORAGE_KEY,
+      JSON.stringify(sanitizeBearingSettings(settings)),
+    );
+  } catch {
+    // localStorage is only a convenience for the toggle state.
+  }
+}
+
 export const DISTANCE_PROFILE = {
   jiban: {
     key: 'jiban',
