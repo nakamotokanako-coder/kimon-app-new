@@ -5,6 +5,16 @@ export const MAP_FAN = {
   sphereReferenceM: 1000000,
 };
 
+// 方位法トグルの表示文言（i18n布石・角度計算とは無関係の文言定数のみ）。
+export const BEARING_LABELS = {
+  heading: '方位の引き方',
+  mode_plane: '平面',
+  mode_sphere: '球面',
+  declination_on: '西偏角あり',
+  declination_off: '補正なし',
+  group_aria: '方位線の引き方',
+};
+
 export const DISTANCE_PROFILE = {
   jiban: {
     key: 'jiban',

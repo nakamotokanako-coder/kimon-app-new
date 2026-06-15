@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
+  BEARING_LABELS,
   MAP_FAN,
   MAP_FAN_COLORS,
   bearingFor,
@@ -14,6 +15,7 @@ import {
   liveLineColor,
   sectorPolygon,
 } from './mapFan.js';
+import BearingControls from './BearingControls.jsx';
 import {
   FACILITY_PRESETS,
   MAP_SEARCH_STORAGE_KEY,
@@ -134,6 +136,7 @@ export default function DirectionMap({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bearingMode, setBearingMode] = useState(MAP_FAN.defaultBearingMode);
   const [useDeclination, setUseDeclination] = useState(MAP_FAN.defaultDeclination);
+  const [bearingPanelOpen, setBearingPanelOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
   const [mapError, setMapError] = useState(null);
@@ -178,6 +181,12 @@ export default function DirectionMap({
     () => buildBearingOptions(center, bearingMode, useDeclination),
     [bearingMode, center, useDeclination],
   );
+  // 方位法の単一変更ハンドラ。※ localStorage 永続化は PR2 でここに1行足す。
+  const handleBearingChange = (next) => {
+    setBearingMode(next.mode);
+    setUseDeclination(next.declination);
+  };
+  const bearingSummary = `${bearingMode === 'plane' ? BEARING_LABELS.mode_plane : BEARING_LABELS.mode_sphere}・${useDeclination ? BEARING_LABELS.declination_on : BEARING_LABELS.declination_off}`;
   const profile = getDistanceProfile(profileKey);
   const labelMode = isFullscreen ? LABEL_MODE.fullscreen : LABEL_MODE.compact;
   const decoratedFavorites = useMemo(
@@ -763,32 +772,11 @@ export default function DirectionMap({
       </div>
 
       {isFullscreen && (
-        <div className="direction-map-controls" aria-label="方位線の引き方">
-          <div className="direction-map-toggle" role="group" aria-label="平面または球面">
-            <button
-              type="button"
-              className={bearingMode === 'plane' ? 'is-active' : ''}
-              onClick={() => setBearingMode('plane')}
-            >
-              平面
-            </button>
-            <button
-              type="button"
-              className={bearingMode === 'sphere' ? 'is-active' : ''}
-              onClick={() => setBearingMode('sphere')}
-            >
-              球面
-            </button>
-          </div>
-          <label className="direction-map-check">
-            <input
-              type="checkbox"
-              checked={useDeclination}
-              onChange={(event) => setUseDeclination(event.target.checked)}
-            />
-            西偏角あり
-          </label>
-        </div>
+        <BearingControls
+          variant="fullscreen"
+          value={{ mode: bearingMode, declination: useDeclination }}
+          onChange={handleBearingChange}
+        />
       )}
 
       {showSearchControls && (
@@ -833,6 +821,30 @@ export default function DirectionMap({
           )}
           {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
           {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
+        </div>
+      )}
+
+      {!isFullscreen && (
+        <div className={`direction-bearing-accordion ${bearingPanelOpen ? 'is-open' : ''}`}>
+          <button
+            type="button"
+            className="direction-bearing-head"
+            aria-expanded={bearingPanelOpen}
+            onClick={() => setBearingPanelOpen((value) => !value)}
+          >
+            <span className="direction-bearing-label">{BEARING_LABELS.heading}</span>
+            <span className="direction-bearing-now">{bearingSummary}</span>
+            <span className="direction-bearing-caret" aria-hidden="true">{bearingPanelOpen ? '▲' : '▼'}</span>
+          </button>
+          {bearingPanelOpen && (
+            <div className="direction-bearing-body">
+              <BearingControls
+                variant="compact"
+                value={{ mode: bearingMode, declination: useDeclination }}
+                onChange={handleBearingChange}
+              />
+            </div>
+          )}
         </div>
       )}
 
