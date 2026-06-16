@@ -12,7 +12,9 @@ import {
   isNegativeTone,
   isPositiveTone,
   liveLineColor,
+  outerEdgeKm,
   readBearingSettings,
+  resolveBearingMode,
   sectorPolygon,
   writeBearingSettings,
 } from './mapFan.js';
@@ -138,6 +140,8 @@ export default function DirectionMap({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bearingMode, setBearingMode] = useState(() => readBearingSettings().mode);
   const [useDeclination, setUseDeclination] = useState(() => readBearingSettings().declination);
+  // 今見えている地図の端までの距離(km)。扇の外縁伸縮＋平面/球面の自動切替に使う（moveend/zoomendで更新）。
+  const [viewEdgeKm, setViewEdgeKm] = useState(null);
   const [bearingPanelOpen, setBearingPanelOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
@@ -577,6 +581,36 @@ export default function DirectionMap({
     };
   }, []);
 
+  // 扇の外縁距離(km)を moveend/zoomend で更新する専用ハンドラ。
+  // area-searchプロンプト（上）／タイル差し替え（PR-1）とは独立。基準点(center)から
+  // 画面四隅までの最大距離を測り、扇を画面端まで届かせる。
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return undefined;
+    const updateEdge = () => {
+      const bounds = map.getBounds();
+      if (!bounds) return;
+      const corners = [
+        bounds.getNorthWest(),
+        bounds.getNorthEast(),
+        bounds.getSouthWest(),
+        bounds.getSouthEast(),
+      ].map((ll) => [ll.lat, ll.lng]);
+      const km = outerEdgeKm(centerRef.current, corners);
+      if (!Number.isFinite(km) || km <= 0) return;
+      setViewEdgeKm((prev) => {
+        // 2%未満の変化は無視＝invalidateSize等のジッタによる再描画ループを防ぐ
+        if (prev != null && Math.abs(km - prev) / km < 0.02) return prev;
+        return km;
+      });
+    };
+    updateEdge();
+    map.on('moveend zoomend', updateEdge);
+    return () => {
+      map.off('moveend zoomend', updateEdge);
+    };
+  }, []);
+
   useEffect(() => {
     if (!liveOn) return undefined;
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -661,7 +695,17 @@ export default function DirectionMap({
       map.setView(center, isFullscreen ? Math.max(profile.initialZoom, 7) : profile.initialZoom);
     }
 
-    const specs = buildFanLayerSpecs(rankings, bestPalace, bearingOptions, profileKey);
+    // 平面/球面の実効モード（描画専用の派生値）。ユーザー選択を base に、外縁が遠距離なら球面へ昇格。
+    // localStorage の bearingMode・トグルUI表示は変えない。decoratePlaces(:195) には適用しない。
+    const effectiveMode = resolveBearingMode(bearingMode, viewEdgeKm);
+    const fanBearingOptions = effectiveMode === bearingOptions.mode
+      ? bearingOptions
+      : { ...bearingOptions, mode: effectiveMode };
+    // 扇の外縁距離(km)。画面端まで届く有効値があればそれを、無ければ従来の固定 fadeMaxKm を使う。
+    const fanOuterKm = Number.isFinite(viewEdgeKm) && viewEdgeKm > profile.confirmKm ? viewEdgeKm : null;
+    const labelOuterM = (fanOuterKm || profile.fadeMaxKm) * 1000;
+
+    const specs = buildFanLayerSpecs(rankings, bestPalace, fanBearingOptions, profileKey, fanOuterKm);
     specs.forEach((spec) => {
       L.polygon(
         sectorPolygon(center, spec.from, spec.to, spec.outer, spec.inner),
@@ -712,8 +756,8 @@ export default function DirectionMap({
     });
 
     (rankings || []).forEach((item) => {
-      const labelAngle = bearingFor(directionIndexFor(item), bearingOptions);
-      const labelPoint = destPoint(center, labelAngle, profile.fadeMaxKm * 1000 * 0.72);
+      const labelAngle = bearingFor(directionIndexFor(item), fanBearingOptions);
+      const labelPoint = destPoint(center, labelAngle, labelOuterM * 0.72);
       const score = labelMode.showScore
         ? `<br><span style="color:${scoreColor(item.tone)}">${scoreText(item.score)}</span>`
         : '';
@@ -769,6 +813,7 @@ export default function DirectionMap({
 
     window.setTimeout(() => map.invalidateSize(), 0);
   }, [
+    bearingMode,
     bearingOptions,
     bestPalace,
     center,
@@ -782,6 +827,7 @@ export default function DirectionMap({
     rankings,
     searchResults,
     selectedPlace,
+    viewEdgeKm,
     visibleSearchResults,
   ]);
 

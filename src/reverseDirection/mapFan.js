@@ -240,9 +240,72 @@ export function getDistanceProfile(profileKey = 'jiban') {
   return DISTANCE_PROFILE[profileKey] || DISTANCE_PROFILE.jiban;
 }
 
-export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, profileKey = 'jiban') {
+// 外縁が遠距離になったら平面→球面（大圏）へ自動切替する閾値（km）。後で調整できるよう定数化。
+export const ADAPTIVE_SPHERE_THRESHOLD_KM = 1500;
+
+// ユーザーが方位法トグルで選んだ mode と、外縁距離による自動球面を両立させる純関数。
+// - ユーザーが 'sphere' を明示選択していたら絶対に降格しない。
+// - ユーザーが 'plane' でも外縁が閾値以上なら 'sphere' に昇格。
+// localStorage の bearingMode・トグルUI表示は変えず、描画専用の派生値として使う。
+export function resolveBearingMode(userMode, outerKm) {
+  if (userMode === 'sphere') return 'sphere';
+  return Number.isFinite(outerKm) && outerKm >= ADAPTIVE_SPHERE_THRESHOLD_KM
+    ? 'sphere'
+    : 'plane';
+}
+
+function haversineKm(a, b) {
+  const earthRadiusKm = 6371;
+  const dLat = (b[0] - a[0]) * Math.PI / 180;
+  const dLon = (b[1] - a[1]) * Math.PI / 180;
+  const lat1 = a[0] * Math.PI / 180;
+  const lat2 = b[0] * Math.PI / 180;
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+// center から地図の bounds 四隅までの最大距離(km)に余裕係数を掛けて返す。
+// 扇の外縁を「今見えている画面の端まで」確実に届かせるための画面基準の半径。
+export function outerEdgeKm(center, corners, margin = 1.15) {
+  if (!Array.isArray(center) || !Number.isFinite(center[0]) || !Number.isFinite(center[1])) return 0;
+  if (!Array.isArray(corners) || corners.length === 0) return 0;
+  let max = 0;
+  for (const corner of corners) {
+    if (!Array.isArray(corner) || !Number.isFinite(corner[0]) || !Number.isFinite(corner[1])) continue;
+    const d = haversineKm(center, corner);
+    if (d > max) max = d;
+  }
+  return max * margin;
+}
+
+// フェード帯を解決する。
+// - outerKm が未指定/不正/confirmKm以下なら、従来どおり profile.fadeBands をそのまま使う（後方互換）。
+// - 有効な outerKm が来たら、確定ゾーン(0→confirmKm)は実距離のまま固定し、
+//   外側の帯だけ confirmKm→outerKm を「画面基準で等分割」して引き伸ばす。
+//   各段の不透明度は profile の外側帯の op をその順序で流用（日盤の「外ほど濃い反転」も保たれる）。
+export function resolveFadeBands(profile, outerKm) {
+  const bands = profile.fadeBands || [];
+  if (!Number.isFinite(outerKm) || outerKm <= profile.confirmKm) return bands;
+  const confirmBands = bands.filter((b) => b.to <= profile.confirmKm);
+  const outerBands = bands.filter((b) => b.to > profile.confirmKm);
+  if (outerBands.length === 0) return bands;
+  const span = outerKm - profile.confirmKm;
+  const remapped = outerBands.map((b, i) => ({
+    from: profile.confirmKm + (span * i) / outerBands.length,
+    to: profile.confirmKm + (span * (i + 1)) / outerBands.length,
+    op: b.op,
+  }));
+  return [...confirmBands, ...remapped];
+}
+
+export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, profileKey = 'jiban', outerKm = null) {
   const accent = getThemeAccentColor();
   const profile = getDistanceProfile(profileKey);
+  // 外縁の有効値。画面端まで届く外縁距離(km)が来ればそれを、無ければ従来の固定 fadeMaxKm を使う。
+  const hasOuter = Number.isFinite(outerKm) && outerKm > profile.confirmKm;
+  const edgeOuterKm = hasOuter ? outerKm : profile.fadeMaxKm;
+  const fadeBands = resolveFadeBands(profile, hasOuter ? outerKm : null);
   const specs = [];
   for (const item of rankings || []) {
     const color = getFanColor(item.tone);
@@ -255,7 +318,7 @@ export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, pr
 
     if (isGood || isBad) {
       const base = isBad ? 0.75 : 1;
-      for (const band of profile.fadeBands) {
+      for (const band of fadeBands) {
         specs.push({
           item,
           type: 'fade',
@@ -303,7 +366,7 @@ export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, pr
       from,
       to,
       inner: profile.confirmKm * 1000,
-      outer: profile.fadeMaxKm * 1000,
+      outer: edgeOuterKm * 1000,
       color,
       options: {
         color: isBest ? accent : color,
@@ -322,7 +385,7 @@ export function buildFanLayerSpecs(rankings, bestPalace, bearingOptions = {}, pr
         from,
         to,
         inner: profile.confirmKm * 1000,
-        outer: profile.fadeMaxKm * 1000,
+        outer: edgeOuterKm * 1000,
         color: accent,
         options: {
           color: accent,
