@@ -654,6 +654,27 @@ export default function ReverseDirectionView({
     </div>
   );
 
+  const rankingBasePointMeta = mode === 'timeRanking' ? basePointMeta : (
+    <div className="reverse-correction">
+      <span>日盤は自然時補正なし</span>
+    </div>
+  );
+
+  const rankingBasePointPanel = (
+    <div className="reverse-card reverse-go-card reverse-base-card">
+      <div className="reverse-base-compact">
+        <span>
+          基準点 <strong>{location.name}</strong>
+        </span>
+      </div>
+      <div className="reverse-base-panel">
+        {basePointPicker}
+        {rankingBasePointMeta}
+        {status && <p className="reverse-status">{status}</p>}
+      </div>
+    </div>
+  );
+
   const renderGoZone = ({
     rankings,
     bestPalace,
@@ -884,7 +905,9 @@ export default function ReverseDirectionView({
         </button>
       </div>
 
-      {mode !== 'time' && mode !== 'timeRanking' && mode !== 'day' && basePointCard}
+      {(mode === 'ranking' || mode === 'timeRanking') && rankingBasePointPanel}
+
+      {mode !== 'time' && mode !== 'timeRanking' && mode !== 'day' && mode !== 'ranking' && basePointCard}
 
       {mode === 'time' && (
         <>
