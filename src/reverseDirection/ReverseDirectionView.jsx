@@ -225,6 +225,7 @@ export default function ReverseDirectionView({
   const [dayGoView, setDayGoView] = useState('map');
   const [basePointOpen, setBasePointOpen] = useState(false);
   const [dayBasePointOpen, setDayBasePointOpen] = useState(false);
+  const [rankingBasePointOpen, setRankingBasePointOpen] = useState(false);
   const [currentMiniBoardOpen, setCurrentMiniBoardOpen] = useState(false);
   const [dayMiniBoardOpen, setDayMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
@@ -429,6 +430,7 @@ export default function ReverseDirectionView({
     setSelectedFavoriteId(favorite.id);
     setBasePointOpen(false);
     setDayBasePointOpen(false);
+    setRankingBasePointOpen(false);
     setStatus(`${favoriteDisplayName(favorite)}を出発点にしました。`);
   };
 
@@ -666,12 +668,17 @@ export default function ReverseDirectionView({
         <span>
           基準点 <strong>{location.name}</strong>
         </span>
+        <button type="button" onClick={() => setRankingBasePointOpen((value) => !value)}>
+          変更
+        </button>
       </div>
-      <div className="reverse-base-panel">
-        {basePointPicker}
-        {rankingBasePointMeta}
-        {status && <p className="reverse-status">{status}</p>}
-      </div>
+      {rankingBasePointOpen && (
+        <div className="reverse-base-panel">
+          {basePointPicker}
+          {rankingBasePointMeta}
+          {status && <p className="reverse-status">{status}</p>}
+        </div>
+      )}
     </div>
   );
 
