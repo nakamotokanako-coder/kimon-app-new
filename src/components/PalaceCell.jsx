@@ -65,6 +65,9 @@ export default function PalaceCell({
   junshu = null,                 // 旬首干（例 "庚"）
   isTenbanJunshuPalace = false,  // この宮が tenban_junshu_p と一致するか
   isChibanJunshuPalace = false,  // この宮が chiban_junshu_p と一致するか
+  isSelected = false,
+  isDimmed = false,
+  onSelect = null,
 }) {
   // ── 中宮 ──────────────────────────────────────────────
   if (isCenter) {
@@ -87,8 +90,24 @@ export default function PalaceCell({
 
   // ── 通常宮 ────────────────────────────────────────────
   if (!data) {
+    const emptyCellClass = [
+      'cell',
+      isSelected ? 'selected' : '',
+      isDimmed ? 'dimmed' : '',
+    ].filter(Boolean).join(' ');
     return (
-      <div className="cell">
+      <div
+        className={emptyCellClass}
+        onClick={() => onSelect?.(label)}
+        role={onSelect ? 'button' : undefined}
+        tabIndex={onSelect ? 0 : undefined}
+        onKeyDown={(event) => {
+          if (onSelect && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            onSelect(label);
+          }
+        }}
+      >
         <div className="cell-empty">－</div>
       </div>
     );
@@ -107,6 +126,8 @@ export default function PalaceCell({
     score?.usable ? 'cell-usable' : '',
     hasKyo ? 'cell-has-kyo' : '',
     isJunri ? 'cell-junri' : '',
+    isSelected ? 'selected' : '',
+    isDimmed ? 'dimmed' : '',
   ].filter(Boolean).join(' ');
 
   const monClass = `mon-pill ${toneClass(hachimonTone(data.hachimon))}`;
@@ -115,7 +136,18 @@ export default function PalaceCell({
   const visibleInfoItems = infoItems.filter((it) => it.kind !== 'overflow');
 
   return (
-    <div className={cellClass}>
+    <div
+      className={cellClass}
+      onClick={() => onSelect?.(label)}
+      role={onSelect ? 'button' : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (onSelect && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onSelect(label);
+        }
+      }}
+    >
       {/* ── header: 宮名 + 五行(薄く) + スコア ── */}
       <div className="cell-header">
         <div className="palace-title">
