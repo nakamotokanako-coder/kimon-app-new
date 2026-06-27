@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './BottomSheet.css';
 
 const AXIS_NAMES = ['ご縁', '仕事', '金運', '健康', '勉強'];
@@ -68,7 +69,7 @@ export default function BottomSheet({ palace, onClose }) {
 
   if (!palace) return null;
 
-  return (
+  return createPortal(
     <>
       <div
         className="bs-overlay open"
@@ -180,6 +181,7 @@ export default function BottomSheet({ palace, onClose }) {
           )}
         </div>
       </section>
-    </>
+    </>,
+    document.body
   );
 }

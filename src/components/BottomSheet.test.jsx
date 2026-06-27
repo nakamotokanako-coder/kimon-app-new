@@ -56,9 +56,9 @@ describe('BottomSheet', () => {
 
   it('オーバーレイクリックで onClose を呼ぶ', () => {
     const onClose = vi.fn();
-    const { container } = render(<BottomSheet palace={makePalace()} onClose={onClose} />);
+    render(<BottomSheet palace={makePalace()} onClose={onClose} />);
 
-    fireEvent.click(container.querySelector('.bs-overlay'));
+    fireEvent.click(document.body.querySelector('.bs-overlay'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -73,9 +73,9 @@ describe('BottomSheet', () => {
   });
 
   it('格局がある宮では格局カードが表示される', () => {
-    const { container } = render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
 
-    expect(container.querySelector('.kakkyoku-card')).toBeTruthy();
+    expect(document.body.querySelector('.kakkyoku-card')).toBeTruthy();
     expect(screen.getByText('天遁')).toBeTruthy();
     expect(screen.getByText('吉格')).toBeTruthy();
   });
@@ -88,9 +88,9 @@ describe('BottomSheet', () => {
         detected_kakkyoku: [],
       },
     });
-    const { container } = render(<BottomSheet palace={palace} onClose={() => {}} />);
+    render(<BottomSheet palace={palace} onClose={() => {}} />);
 
-    expect(container.querySelector('.kakkyoku-card')).toBe(null);
+    expect(document.body.querySelector('.kakkyoku-card')).toBe(null);
   });
 
   it('軸セグメントのボタンをクリックすると activeAxis が切り替わる', () => {
@@ -106,9 +106,9 @@ describe('BottomSheet', () => {
   });
 
   it('「なぜこの評価？」をクリックすると展開/折りたたみする', () => {
-    const { container } = render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
     const toggle = screen.getByRole('button', { name: 'なぜこの評価？' });
-    const detail = container.querySelector('.why-detail');
+    const detail = document.body.querySelector('.why-detail');
 
     expect(detail.className).not.toContain('open');
     fireEvent.click(toggle);

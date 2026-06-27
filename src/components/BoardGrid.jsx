@@ -114,7 +114,7 @@ export default function BoardGrid({
   } : null;
 
   return (
-    <div className={`board-bottomsheet-host${selectedPalace ? ' sheet-open' : ''}`}>
+    <>
       <div className="board-grid">
         {items.map((it, idx) => {
           const style = { gridRow: it.row, gridColumn: it.col };
@@ -156,6 +156,6 @@ export default function BoardGrid({
         palace={selectedSheetPalace}
         onClose={() => setSelectedPalace(null)}
       />
-    </div>
+    </>
   );
 }
