@@ -316,9 +316,38 @@
 }
 
 .axis-btn.active {
-  background: var(--accent);
-  color: var(--accent-ink);
+  border: 1px solid var(--accent-edge);
   font-weight: 700;
+}
+
+.axis-btn.active.goen {
+  background: #fce8e8;
+  color: #8a3a3a;
+  border-color: #f0a0a0;
+}
+
+.axis-btn.active.shigoto {
+  background: #e8eef8;
+  color: #2a4a8a;
+  border-color: #a0b8f0;
+}
+
+.axis-btn.active.kinun {
+  background: #f8f0e0;
+  color: #7a5a1a;
+  border-color: #d4b060;
+}
+
+.axis-btn.active.kenkou {
+  background: #e8f5ec;
+  color: #2a6a3a;
+  border-color: #90c8a0;
+}
+
+.axis-btn.active.benkyou {
+  background: #eeebf8;
+  color: #4a3a8a;
+  border-color: #b0a0d8;
 }
 
 .reading {
@@ -345,11 +374,13 @@
   background: var(--bs-kinun-bg);
 }
 
-.reading.kenko {
+.reading.kenko,
+.reading.kenkou {
   background: var(--bs-kenko-bg);
 }
 
-.reading.benkyo {
+.reading.benkyo,
+.reading.benkyou {
   background: var(--bs-benkyo-bg);
 }
 

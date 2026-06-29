@@ -11,6 +11,11 @@ const AXES = [
   { key: 'benkyo', label: '勉強' },
 ];
 
+const axisClassName = (key) => ({
+  kenko: 'kenkou',
+  benkyo: 'benkyou',
+}[key] || key);
+
 const FULL_TEXT_CACHE = new Map();
 
 const PURPOSE_TO_AXES = {
@@ -401,7 +406,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
                 type="button"
                 role="tab"
                 aria-selected={activeAxis === index}
-                className={`axis-btn ${activeAxis === index ? 'active' : ''}`}
+                className={`axis-btn ${activeAxis === index ? `active ${axisClassName(axis.key)}` : ''}`}
                 onClick={() => setActiveAxis(index)}
               >
                 {axis.label}
@@ -409,7 +414,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
             ))}
           </div>
 
-          <div className={`reading text-card ${activeAxisItem?.key || ''}`}>
+          <div className={`reading text-card ${activeAxisItem ? axisClassName(activeAxisItem.key) : ''}`}>
             <div className="reading-title">{activeAxisItem?.label}</div>
             <p className={`reading-state ${readingState.kind}`}>{readingState.text}</p>
           </div>
