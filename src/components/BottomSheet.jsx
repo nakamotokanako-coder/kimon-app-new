@@ -202,6 +202,7 @@ function normalizeKakkyoku(kakkyoku) {
   const entry = findKakkyokuEntry(kakkyoku.name);
   return {
     name: kakkyoku.name,
+    tone: kakkyoku.kichi_kyo === 'kichi' || kakkyoku.score > 0 ? 'kichi' : 'kyo',
     meaning: entry?.display_text || entry?.modern || entry?.practical ||
       kakkyoku.meaning || kakkyoku.keyword || kakkyoku.reading || '',
   };
@@ -372,7 +373,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
           </div>
 
           {kakkyoku && (
-            <div className="kakkyoku-card">
+            <div className={`kakkyoku-card ${kakkyoku.tone}`}>
               <div className="kk-art">墨絵</div>
               <div className="kk-info">
                 <div className="kk-name">{kakkyoku.name}</div>
@@ -383,10 +384,10 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
             </div>
           )}
 
-          <div className="axis-compare">
+          <div className="axis-compare axis-compare-card">
             <div className="axis-compare-title">5軸ざっくり比較</div>
             {axisScores.map((axis) => (
-              <div className="axis-row" key={axis.key}>
+              <div className="axis-row axis-item" key={axis.key}>
                 <span className="axis-label">{axis.label}</span>
                 <span className={`axis-val axis-symbol ${axis.className}`}>{axis.symbol}</span>
               </div>
@@ -408,48 +409,50 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
             ))}
           </div>
 
-          <div className="reading">
+          <div className={`reading text-card ${activeAxisItem?.key || ''}`}>
             <div className="reading-title">{activeAxisItem?.label}</div>
             <p className={`reading-state ${readingState.kind}`}>{readingState.text}</p>
           </div>
 
-          <button
-            type="button"
-            className={`why-toggle ${whyOpen ? 'open' : ''}`}
-            aria-expanded={whyOpen}
-            onClick={() => setWhyOpen((current) => !current)}
-          >
-            なぜこの評価？
-          </button>
-          <div className={`why-detail ${whyOpen ? 'open' : ''}`}>
-            {breakdown.length > 0 ? (
-              <>
-                {breakdown.map((item) => (
-                  <div className="why-item" key={item.label}>
-                    <span className="factor">{item.label}</span>
-                    <span className={`why-desc ${toneClass(item.score)}`}>
-                      {elementText(item.key, palace.score, palace.data, palace)}
-                    </span>
-                  </div>
-                ))}
-                {typeof score === 'number' && (
-                  <div className="why-item total">
-                    <span className="factor">総合評価</span>
-                    <span className={`pts ${score >= 0 ? 'plus' : 'minus'}`}>{scoreText(score)}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="why-empty">評価内訳はありません</div>
-            )}
+          <div className="why-card">
+            <button
+              type="button"
+              className={`why-toggle ${whyOpen ? 'open' : ''}`}
+              aria-expanded={whyOpen}
+              onClick={() => setWhyOpen((current) => !current)}
+            >
+              なぜこの評価？
+            </button>
+            <div className={`why-detail ${whyOpen ? 'open' : ''}`}>
+              {breakdown.length > 0 ? (
+                <>
+                  {breakdown.map((item) => (
+                    <div className="why-item why-row" key={item.label}>
+                      <span className="factor">{item.label}</span>
+                      <span className={`why-desc ${toneClass(item.score)}`}>
+                        {elementText(item.key, palace.score, palace.data, palace)}
+                      </span>
+                    </div>
+                  ))}
+                  {typeof score === 'number' && (
+                    <div className="why-item why-row total">
+                      <span className="factor">総合評価</span>
+                      <span className={`pts ${score >= 0 ? 'plus' : 'minus'}`}>{scoreText(score)}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="why-empty">評価内訳はありません</div>
+              )}
+            </div>
           </div>
 
           <div className="sh-actions">
-            <button type="button" className="sh-action" onClick={() => {}}>
+            <button type="button" className="sh-action action-btn-primary" onClick={() => {}}>
               この方位で行き先を探す →
             </button>
             {kakkyoku && (
-              <button type="button" className="sh-action" onClick={() => {}}>
+              <button type="button" className="sh-action action-btn-secondary" onClick={() => {}}>
                 この格局が出る日を探す →
               </button>
             )}
