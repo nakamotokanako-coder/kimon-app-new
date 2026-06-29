@@ -406,6 +406,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
                 type="button"
                 role="tab"
                 aria-selected={activeAxis === index}
+                data-axis={axis.key}
                 className={`axis-btn ${activeAxis === index ? `active ${axisClassName(axis.key)}` : ''}`}
                 onClick={() => setActiveAxis(index)}
               >
@@ -414,7 +415,10 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
             ))}
           </div>
 
-          <div className={`reading text-card ${activeAxisItem ? axisClassName(activeAxisItem.key) : ''}`}>
+          <div
+            className={`reading text-card ${activeAxisItem ? axisClassName(activeAxisItem.key) : ''}`}
+            data-axis={activeAxisItem?.key}
+          >
             <div className="reading-title">{activeAxisItem?.label}</div>
             <p className={`reading-state ${readingState.kind}`}>{readingState.text}</p>
           </div>

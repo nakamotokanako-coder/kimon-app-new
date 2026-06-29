@@ -4,21 +4,26 @@
   --bs-card-text: #1a1a1a;
   --bs-card-text-muted: #6b6560;
   --bs-card-border: #e8e4dd;
-  --bs-kakkyoku-good-bg: #e0ecfa;
-  --bs-kakkyoku-good-border: #a0c4f0;
-  --bs-kakkyoku-good-text: #1a3050;
-  --bs-kakkyoku-bad-bg: #fae0dd;
-  --bs-kakkyoku-bad-border: #f0a0a0;
-  --bs-kakkyoku-bad-text: #501a1a;
   --bs-axis-item-bg: #eeebe5;
   --bs-axis-item-border: #ddd8cf;
-  --bs-goen-bg: #faf0f0;
-  --bs-shigoto-bg: #eef2fa;
-  --bs-kinun-bg: #faf5e8;
-  --bs-kenko-bg: #eefaf0;
-  --bs-benkyo-bg: #f0eefa;
+  --red-base: #d42a2a;
+  --red-glow: rgba(212, 42, 42, 0.35);
+  --blue-base: #2a6ad4;
+  --blue-glow: rgba(42, 106, 212, 0.30);
+  --goen-base: #c45070;
+  --goen-glow: rgba(196, 80, 112, 0.30);
+  --shigoto-base: #2f6ad4;
+  --shigoto-glow: rgba(47, 106, 212, 0.30);
+  --kinun-base: #d4a548;
+  --kinun-glow: rgba(212, 165, 72, 0.35);
+  --kenko-base: #3aa05e;
+  --kenko-glow: rgba(58, 160, 94, 0.30);
+  --benkyo-base: #7a4ad4;
+  --benkyo-glow: rgba(122, 74, 212, 0.30);
+  --glass-highlight: inset 0 1.5px 0 rgba(255, 255, 255, 0.45);
+  --glass-edge: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  --glass-bottom: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   --bs-puffy: inset 0 2px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06), 0 4px 8px rgba(0,0,0,0.10), 0 10px 0 rgba(0,0,0,0.12);
-  --bs-puffy-accent: inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.08), 0 5px 10px rgba(0,0,0,0.12), 0 12px 0 rgba(0,0,0,0.15);
   --bs-puffy-inner: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 4px rgba(0,0,0,0.06), 0 6px 0 rgba(0,0,0,0.08);
   --bs-puffy-btn: inset 0 2px 0 rgba(255,255,255,0.4), 0 6px 0 #8a6e2e;
   --bs-radius: 22px;
@@ -184,17 +189,28 @@
   align-items: center;
   margin: 14px 0 18px;
   padding: 20px;
-  border: 2px solid var(--bs-kakkyoku-bad-border);
+  border: 0;
   border-radius: var(--bs-radius);
-  background: var(--bs-kakkyoku-bad-bg);
-  box-shadow: var(--bs-puffy-accent);
-  color: var(--bs-kakkyoku-bad-text);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.10) 100%),
+    var(--red-base);
+  box-shadow:
+    var(--glass-highlight),
+    var(--glass-edge),
+    var(--glass-bottom),
+    0 10px 26px var(--red-glow);
+  color: #fff;
 }
 
 .kakkyoku-card.kichi {
-  border-color: var(--bs-kakkyoku-good-border);
-  background: var(--bs-kakkyoku-good-bg);
-  color: var(--bs-kakkyoku-good-text);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.10) 100%),
+    var(--blue-base);
+  box-shadow:
+    var(--glass-highlight),
+    var(--glass-edge),
+    var(--glass-bottom),
+    0 10px 26px var(--blue-glow);
 }
 
 .kk-art {
@@ -202,18 +218,22 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 96px;
-  border: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
+  width: 64px;
+  height: 64px;
+  border: 0;
   border-radius: var(--bs-radius-inner);
-  background: rgba(255, 255, 255, 0.42);
-  color: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.78) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -1px 0 rgba(0,0,0,0.08),
+    0 2px 6px rgba(0,0,0,0.15);
+  color: #8a7a5a;
   font-size: 10px;
-  opacity: 0.78;
 }
 
 .kk-name {
-  color: inherit;
+  color: #fff;
   font-family: var(--font-display, 'Shippori Mincho', serif);
   font-size: 16px;
   font-weight: 700;
@@ -221,10 +241,9 @@
 
 .kk-desc {
   margin-top: 4px;
-  color: inherit;
+  color: rgba(255,255,255,0.94);
   font-size: 11px;
   line-height: 1.5;
-  opacity: 0.9;
 }
 
 .axis-compare {
@@ -232,6 +251,9 @@
 }
 
 .axis-compare-card {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
   padding: 20px;
   border: 1px solid var(--bs-card-border);
   border-radius: var(--bs-radius);
@@ -241,6 +263,7 @@
 }
 
 .axis-compare-title {
+  grid-column: 1 / -1;
   margin-bottom: 10px;
   color: var(--bs-card-text-muted);
   font-size: 11px;
@@ -249,12 +272,13 @@
 
 .axis-row {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-  padding: 14px 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 4px;
   border: 1px solid var(--bs-axis-item-border);
-  border-radius: var(--bs-radius-inner);
+  border-radius: 12px;
   background: var(--bs-axis-item-bg);
   box-shadow: var(--bs-puffy-inner);
   font-size: 12px;
@@ -262,6 +286,10 @@
 
 .axis-label {
   color: var(--bs-card-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .axis-val {
@@ -270,19 +298,22 @@
 
 .axis-symbol {
   min-width: 1.5em;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
   text-align: center;
 }
 
 .axis-symbol.good {
-  color: #2a6ad4;
+  color: var(--blue-base);
 }
 
 .axis-symbol.neutral {
-  color: var(--bs-card-text-muted);
+  color: #b08820;
 }
 
 .axis-symbol.bad {
-  color: #d42a2a;
+  color: var(--red-base);
 }
 
 .axis-seg {
@@ -290,110 +321,127 @@
   top: 0;
   z-index: 10;
   display: flex;
+  gap: 8px;
   margin: 12px 0 0;
+  padding: 6px 0 16px;
   overflow: hidden;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--bg-card);
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  scrollbar-width: none;
+}
+
+.axis-seg::-webkit-scrollbar {
+  display: none;
 }
 
 .axis-btn {
-  flex: 1 1 0;
+  flex: 1 0 auto;
   min-width: 0;
-  padding: 8px 0;
+  padding: 10px 16px;
   border: 0;
-  border-right: 1px solid color-mix(in srgb, var(--border-subtle) 64%, transparent);
-  background: transparent;
-  color: var(--text-muted);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  box-shadow: var(--glass-edge);
+  color: var(--on-dark-muted, #9a958e);
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
 }
 
-.axis-btn:last-child {
-  border-right: 0;
-}
-
 .axis-btn.active {
-  border: 1px solid var(--accent-edge);
+  color: #fff;
   font-weight: 700;
 }
 
-.axis-btn.active.goen {
-  background: #fce8e8;
-  color: #8a3a3a;
-  border-color: #f0a0a0;
+.axis-btn.active[data-axis="goen"] {
+  background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0.10) 100%), var(--goen-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), 0 4px 12px var(--goen-glow);
 }
 
-.axis-btn.active.shigoto {
-  background: #e8eef8;
-  color: #2a4a8a;
-  border-color: #a0b8f0;
+.axis-btn.active[data-axis="shigoto"] {
+  background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0.10) 100%), var(--shigoto-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), 0 4px 12px var(--shigoto-glow);
 }
 
-.axis-btn.active.kinun {
-  background: #f8f0e0;
-  color: #7a5a1a;
-  border-color: #d4b060;
+.axis-btn.active[data-axis="kinun"] {
+  background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(0,0,0,0.10) 100%), var(--kinun-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), 0 4px 12px var(--kinun-glow);
+  color: #2d1f08;
 }
 
-.axis-btn.active.kenkou {
-  background: #e8f5ec;
-  color: #2a6a3a;
-  border-color: #90c8a0;
+.axis-btn.active[data-axis="kenko"] {
+  background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0.10) 100%), var(--kenko-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), 0 4px 12px var(--kenko-glow);
 }
 
-.axis-btn.active.benkyou {
-  background: #eeebf8;
-  color: #4a3a8a;
-  border-color: #b0a0d8;
+.axis-btn.active[data-axis="benkyo"] {
+  background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(0,0,0,0.10) 100%), var(--benkyo-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), 0 4px 12px var(--benkyo-glow);
 }
 
 .reading {
   margin: 14px 0 18px;
   padding: 22px;
-  border: 1px solid var(--bs-card-border);
+  border: 0;
   border-radius: var(--bs-radius);
-  background: var(--bs-card-bg);
-  box-shadow: var(--bs-puffy);
-  color: var(--bs-card-text);
+  color: #fff;
   font-size: 13px;
   line-height: 1.8;
 }
 
-.reading.goen {
-  background: var(--bs-goen-bg);
+.reading[data-axis="goen"] {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.10) 100%),
+    var(--goen-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom), 0 10px 26px var(--goen-glow);
 }
 
-.reading.shigoto {
-  background: var(--bs-shigoto-bg);
+.reading[data-axis="shigoto"] {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.10) 100%),
+    var(--shigoto-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom), 0 10px 26px var(--shigoto-glow);
 }
 
-.reading.kinun {
-  background: var(--bs-kinun-bg);
+.reading[data-axis="kinun"] {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.08) 100%),
+    var(--kinun-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom), 0 10px 26px var(--kinun-glow);
+  color: #2d1f08;
 }
 
-.reading.kenko,
-.reading.kenkou {
-  background: var(--bs-kenko-bg);
+.reading[data-axis="kenko"] {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.10) 100%),
+    var(--kenko-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom), 0 10px 26px var(--kenko-glow);
 }
 
-.reading.benkyo,
-.reading.benkyou {
-  background: var(--bs-benkyo-bg);
+.reading[data-axis="benkyo"] {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.10) 100%),
+    var(--benkyo-base);
+  box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom), 0 10px 26px var(--benkyo-glow);
 }
 
 .reading p {
   margin: 0;
-  color: var(--bs-card-text);
+  color: rgba(255,255,255,0.96);
+}
+
+.reading[data-axis="kinun"] p {
+  color: #2d1f08;
 }
 
 .reading-state.locked,
 .reading-state.empty,
 .reading-state.error,
 .reading-state.loading {
-  color: var(--bs-card-text-muted);
+  color: rgba(255,255,255,0.85);
 }
 
 .reading-state.error {
@@ -402,10 +450,17 @@
 
 .reading-title {
   margin-bottom: 6px;
-  color: var(--bs-card-text);
+  color: rgba(255,255,255,0.85);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0;
+}
+
+.reading[data-axis="kinun"] .reading-title,
+.reading[data-axis="kinun"] .reading-state.locked,
+.reading[data-axis="kinun"] .reading-state.empty,
+.reading[data-axis="kinun"] .reading-state.loading {
+  color: rgba(45,31,8,0.78);
 }
 
 .why-card {
