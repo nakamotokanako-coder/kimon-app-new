@@ -130,7 +130,7 @@ export default function KakkyokuSearchView({
         <b>格局を探す</b>
       </div>
 
-      <div className="kakkyoku-basis">
+      <div className="kakkyoku-basis base-inline-hidden">
         <span>基準点：<strong>{location.name}</strong></span>
         <span>自然時補正：<strong>{correctionLabel}</strong></span>
       </div>
