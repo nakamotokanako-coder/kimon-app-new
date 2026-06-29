@@ -167,10 +167,11 @@ describe('BottomSheet', () => {
     fireEvent.click(toggle);
     expect(detail.className).toContain('open');
     expect(screen.getByText('八門（休門）')).toBeTruthy();
-    expect(screen.getByText('休息の門。穏やかな縁と回復')).toBeTruthy();
-    expect(screen.getByText('文書がらみの争い。')).toBeTruthy();
-    expect(screen.getByText('休息の門。穏やかな縁と回復').className).toContain('kichi');
-    expect(screen.getByText('文書がらみの争い。').className).toContain('kyo');
+    expect(screen.getByText(/人間関係の調和を促し/)).toBeTruthy();
+    expect(screen.getByText(/文書がらみの争い/)).toBeTruthy();
+    expect(screen.getByText(/対外的な文章は1日寝かせて校閲/)).toBeTruthy();
+    expect(screen.getByText(/人間関係の調和を促し/).className).toContain('kichi');
+    expect(screen.getByText(/文書がらみの争い/).className).toContain('kyo');
     expect(screen.queryByText('+40')).toBe(null);
     expect(screen.queryByText('-10')).toBe(null);
     expect(screen.getByText('総合評価')).toBeTruthy();
