@@ -222,8 +222,21 @@
   font-weight: 700;
 }
 
-.axis-val.pending {
-  color: color-mix(in srgb, var(--text-muted) 78%, transparent);
+.axis-symbol {
+  min-width: 1.5em;
+  text-align: center;
+}
+
+.axis-symbol.good {
+  color: var(--plus);
+}
+
+.axis-symbol.neutral {
+  color: var(--accent);
+}
+
+.axis-symbol.bad {
+  color: var(--minus);
 }
 
 .axis-seg {
@@ -271,6 +284,17 @@
 .reading p {
   margin: 0;
   color: var(--text-main);
+}
+
+.reading-state.locked,
+.reading-state.empty,
+.reading-state.error,
+.reading-state.loading {
+  color: var(--text-muted);
+}
+
+.reading-state.error {
+  color: var(--minus);
 }
 
 .reading-title {
@@ -343,6 +367,14 @@
 
 .why-item .pts.minus {
   color: var(--minus);
+}
+
+.why-item.total {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 58%, transparent);
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .why-empty {

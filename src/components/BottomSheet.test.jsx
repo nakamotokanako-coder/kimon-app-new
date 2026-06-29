@@ -34,6 +34,8 @@ function makePalace(overrides = {}) {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  delete global.fetch;
 });
 
 describe('BottomSheet', () => {
@@ -81,7 +83,7 @@ describe('BottomSheet', () => {
 
     expect(document.body.querySelector('.kakkyoku-card')).toBeTruthy();
     expect(screen.getByText('天遁')).toBeTruthy();
-    expect(screen.getByText('吉格')).toBeTruthy();
+    expect(screen.getByText(/天盤の丙/)).toBeTruthy();
   });
 
   it('格局がない宮では格局カードが表示されない', () => {
@@ -109,6 +111,49 @@ describe('BottomSheet', () => {
     expect(goen.getAttribute('aria-selected')).toBe('false');
   });
 
+  it('5軸比較に実評価の記号を表示する', () => {
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+
+    const symbols = [...document.body.querySelectorAll('.axis-symbol')].map((node) => node.textContent);
+    expect(symbols).toHaveLength(5);
+    expect(symbols.every((symbol) => ['◎', '○', '△', '×'].includes(symbol))).toBe(true);
+    expect(screen.queryByText(/準備中/)).toBe(null);
+  });
+
+  it('paid full API の軸別本文を表示する', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        palaces: {
+          kan: {
+            goen: { full: 'ご縁の詳しい読み解きです。' },
+            shigoto: { full: '仕事の詳しい読み解きです。' },
+          },
+        },
+      }),
+    });
+
+    render(<BottomSheet palace={makePalace()} kaisetsuKey="1甲" onClose={() => {}} />);
+
+    expect(await screen.findByText('ご縁の詳しい読み解きです。')).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: '仕事' }));
+    expect(screen.getByText('仕事の詳しい読み解きです。')).toBeTruthy();
+    expect(global.fetch).toHaveBeenCalledWith('/api/kaisetsu-full?key=1%E7%94%B2', { credentials: 'same-origin' });
+  });
+
+  it('full API が403の時は月額プラン案内を表示する', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: 'forbidden' }),
+    });
+
+    render(<BottomSheet palace={makePalace()} kaisetsuKey="2乙" onClose={() => {}} />);
+
+    expect(await screen.findByText(/月額プラン/)).toBeTruthy();
+  });
+
   it('「なぜこの評価？」をクリックすると展開/折りたたみする', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
     const toggle = screen.getByRole('button', { name: 'なぜこの評価？' });
@@ -117,8 +162,10 @@ describe('BottomSheet', () => {
     expect(detail.className).not.toContain('open');
     fireEvent.click(toggle);
     expect(detail.className).toContain('open');
-    expect(screen.getByText('八門')).toBeTruthy();
+    expect(screen.getByText('八門（休門）')).toBeTruthy();
     expect(screen.getByText('+40')).toBeTruthy();
+    expect(screen.getByText('総合評価')).toBeTruthy();
+    expect(screen.getByText('70点')).toBeTruthy();
     fireEvent.click(toggle);
     expect(detail.className).not.toContain('open');
   });
