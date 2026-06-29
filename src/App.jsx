@@ -4,7 +4,7 @@ import { scoreBoard } from './kimon/scoreEngine.js';
 import InputControls from './components/InputControls.jsx';
 import MetaPanel from './components/MetaPanel.jsx';
 import BoardGrid from './components/BoardGrid.jsx';
-// import ShouiPanel from './components/ShouiPanel.jsx';
+import ShouiPanel from './components/ShouiPanel.jsx';
 // import KaisetsuPanel from './components/KaisetsuPanel.jsx';
 import AccountSettings from './components/AccountSettings.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
@@ -263,8 +263,8 @@ export default function App() {
               />
               <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
-            {/* ボトムシートに統合済みのため非表示化（コンポーネントは残す）
             <ShouiPanel board={board} />
+            {/* ボトムシートに統合済みのため非表示化（コンポーネントは残す）
             <KaisetsuPanel board={board} onOpenAccountSettings={openAccountSettings} />
             */}
           </>
