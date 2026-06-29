@@ -92,12 +92,13 @@ export default function PalaceCell({
   if (!data) {
     const emptyCellClass = [
       'cell',
-      isSelected ? 'selected' : '',
+      isSelected ? 'active' : '',
       isDimmed ? 'dimmed' : '',
     ].filter(Boolean).join(' ');
     return (
       <div
         className={emptyCellClass}
+        style={{ opacity: isDimmed ? 0.5 : 1 }}
         onClick={() => onSelect?.(label)}
         role={onSelect ? 'button' : undefined}
         tabIndex={onSelect ? 0 : undefined}
@@ -126,7 +127,7 @@ export default function PalaceCell({
     score?.usable ? 'cell-usable' : '',
     hasKyo ? 'cell-has-kyo' : '',
     isJunri ? 'cell-junri' : '',
-    isSelected ? 'selected' : '',
+    isSelected ? 'active' : '',
     isDimmed ? 'dimmed' : '',
   ].filter(Boolean).join(' ');
 
@@ -138,6 +139,7 @@ export default function PalaceCell({
   return (
     <div
       className={cellClass}
+      style={{ opacity: isDimmed ? 0.5 : 1 }}
       onClick={() => onSelect?.(label)}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}

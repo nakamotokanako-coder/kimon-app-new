@@ -38,9 +38,13 @@ afterEach(() => {
 
 describe('BottomSheet', () => {
   it('宮データを渡すとレンダリングされる', () => {
-    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+    const { container } = render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
 
     expect(screen.getByRole('dialog', { name: '坎の詳細' })).toBeTruthy();
+    expect(container.firstChild).toBe(null);
+    expect(document.body.querySelector('.sheet-overlay.open')).toBeTruthy();
+    expect(document.body.querySelector('.sheet.open')).toBeTruthy();
+    expect(document.body.querySelector('.sheet-content')).toBeTruthy();
     expect(screen.getByText('坎（北）')).toBeTruthy();
     expect(screen.getByText('+70')).toBeTruthy();
     expect(screen.getByText('大吉')).toBeTruthy();
@@ -58,7 +62,7 @@ describe('BottomSheet', () => {
     const onClose = vi.fn();
     render(<BottomSheet palace={makePalace()} onClose={onClose} />);
 
-    fireEvent.click(document.body.querySelector('.bs-overlay'));
+    fireEvent.click(document.body.querySelector('.sheet-overlay'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

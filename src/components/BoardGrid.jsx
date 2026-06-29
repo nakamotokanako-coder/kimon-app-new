@@ -113,6 +113,32 @@ export default function BoardGrid({
     score: scores?.[selectedPalace],
   } : null;
 
+  const handleSelect = (palaceKey) => {
+    setSelectedPalace((current) => (current === palaceKey ? null : palaceKey));
+  };
+
+  const handleOverlayTap = (event) => {
+    const sheetTop = document.querySelector('.sheet')?.getBoundingClientRect().top ?? window.innerHeight;
+    if (event.clientY >= sheetTop) {
+      setSelectedPalace(null);
+      return;
+    }
+    if (!document.elementsFromPoint) {
+      setSelectedPalace(null);
+      return;
+    }
+    const elements = document.elementsFromPoint(event.clientX, event.clientY);
+    const palaceEl = elements.find((el) => (
+      el !== event.currentTarget
+      && el.dataset?.palaceKey
+    ));
+    if (palaceEl?.dataset?.palaceKey && palaceEl.dataset.palaceKey !== selectedPalace) {
+      handleSelect(palaceEl.dataset.palaceKey);
+      return;
+    }
+    setSelectedPalace(null);
+  };
+
   return (
     <>
       <div className="board-grid">
@@ -133,7 +159,11 @@ export default function BoardGrid({
           }
           const isCenter = it.key === null;
           return (
-            <div key={`C-${idx}`} style={style}>
+            <div
+              key={`C-${idx}`}
+              style={style}
+              data-palace-key={!isCenter ? it.key : undefined}
+            >
               <PalaceCell
                 label={it.label}
                 element={PALACE_FIVE_ELEMENTS[it.label] || ''}
@@ -146,7 +176,7 @@ export default function BoardGrid({
                 isChibanJunshuPalace={!isCenter && it.label === chibanJunshuPalace}
                 isSelected={!isCenter && selectedPalace === it.key}
                 isDimmed={!isCenter && selectedPalace !== null && selectedPalace !== it.key}
-                onSelect={!isCenter ? () => setSelectedPalace(it.key) : undefined}
+                onSelect={!isCenter ? () => handleSelect(it.key) : undefined}
               />
             </div>
           );
@@ -155,6 +185,7 @@ export default function BoardGrid({
       <BottomSheet
         palace={selectedSheetPalace}
         onClose={() => setSelectedPalace(null)}
+        onOverlayTap={handleOverlayTap}
       />
     </>
   );
