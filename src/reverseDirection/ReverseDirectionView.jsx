@@ -945,10 +945,6 @@ export default function ReverseDirectionView({
         </button>
       </div>
 
-      {(mode === 'ranking' || mode === 'timeRanking') && rankingBasePointPanel}
-
-      {mode !== 'time' && mode !== 'timeRanking' && mode !== 'day' && mode !== 'ranking' && basePointCard}
-
       {mode === 'time' && (
         <>
           <div className="reverse-zone">
@@ -1042,8 +1038,8 @@ export default function ReverseDirectionView({
           <div className="reverse-card reverse-day-card">
             <div className="reverse-card-title">
               <div>
-                <span className="reverse-section-kicker lat">base point</span>
-                <h3 className="maru">基準点・日付</h3>
+                <span className="reverse-section-kicker lat">date</span>
+                <h3 className="maru">行く日</h3>
               </div>
               <span>日盤 遠出</span>
             </div>
