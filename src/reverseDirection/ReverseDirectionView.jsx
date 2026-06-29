@@ -6,6 +6,7 @@ import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
+import BasePointBar from '../components/yoho/BasePointBar.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
 import { getBoardDate } from '../utils/boardDate.js';
 import { getJstHours } from '../utils/jishinLabels.js';
@@ -230,7 +231,7 @@ export default function ReverseDirectionView({
   const [dayMiniBoardOpen, setDayMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
-  const [basePointEstablished, setBasePointEstablished] = useState(Boolean(initialBasePoint));
+  const [basePointEstablished, setBasePointEstablished] = useState(true);
   const [ctaSearchOpen, setCtaSearchOpen] = useState(false);
   // 出発点ピッカーのグループ開閉（mock v9: 🏠拠点=開 / ⭐お気に入り=閉 / 住所検索=閉）
   const [homeGroupOpen, setHomeGroupOpen] = useState(true);
@@ -319,6 +320,32 @@ export default function ReverseDirectionView({
       },
       { timeout: 8000, enableHighAccuracy: false },
     );
+  }, []);
+
+  const handleGlobalBasePointChange = useCallback((nextCenter, nextName = '選択地点') => {
+    const longitude = Number(nextCenter?.[0]);
+    const latitude = Number(nextCenter?.[1]);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    const nextLocation = {
+      name: nextName || '選択地点',
+      latitude,
+      longitude,
+    };
+    setLocation(nextLocation);
+    setCurrentMode(nextName === '現在地' ? 'gps' : 'search');
+    setSelectedFavoriteId(null);
+    setBasePointCandidates([]);
+    setBasePointEstablished(true);
+    setBasePointOpen(false);
+    setDayBasePointOpen(false);
+    setRankingBasePointOpen(false);
+    setCtaSearchOpen(false);
+    writeStoredBasePoint({
+      mode: nextName === '現在地' ? 'gps' : 'search',
+      location: nextLocation,
+      selectedFavoriteId: null,
+    });
+    setStatus(`${nextLocation.name}を出発点にしました。`);
   }, []);
 
   useEffect(() => {
@@ -706,7 +733,7 @@ export default function ReverseDirectionView({
         はじめての方へ　<b className="lat">①</b> 出発点を決めて → <b className="lat">②</b> 行き先を探してみよう
       </p>
 
-      <div className="reverse-go-step">
+      <div className="reverse-go-step" style={{ display: 'none' }}>
         <div className="reverse-step-title">
           <span className="reverse-section-kicker lat">from</span>
           <h4 className="maru"><span className="lat">①</span> 出発点</h4>
@@ -884,6 +911,12 @@ export default function ReverseDirectionView({
           <NotificationBell unreadCount={unreadNotificationCount} onClick={onOpenNotifications} />
         </div>
       </div>
+
+      <BasePointBar
+        center={[location.longitude, location.latitude]}
+        baseName={location.name}
+        onCenterChange={handleGlobalBasePointChange}
+      />
 
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
         <button

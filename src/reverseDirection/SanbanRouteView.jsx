@@ -89,7 +89,7 @@ export default function SanbanRouteView({
         <b className="pro-badge" aria-label="プロ機能">PRO</b>
       </div>
 
-      <div className="sanban-route-basis">
+      <div className="sanban-route-basis base-inline-hidden">
         <span>基準点：<strong>{location.name}</strong></span>
         <small>自然時補正：{correctionLabel}</small>
       </div>

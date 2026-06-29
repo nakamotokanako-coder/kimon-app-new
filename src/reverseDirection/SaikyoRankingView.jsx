@@ -143,7 +143,7 @@ export default function SaikyoRankingView({
       </div>
 
       <div className="saikyo-basis">
-        <span>基準点：<strong>{location.name}</strong></span>
+        <span className="base-inline-hidden">基準点：<strong>{location.name}</strong></span>
         <label>
           <span>吉のみ表示</span>
           <input
