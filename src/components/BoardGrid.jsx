@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PalaceCell from './PalaceCell.jsx';
+import BottomSheet from './BottomSheet.jsx';
 import { isKuubouZodiac } from '../kimon/banLevel.js';
 
 // 5×5 グリッド。中央 3×3 が宮セル、外周 12 マスに単独十二支ラベル。
@@ -23,6 +24,17 @@ import { isKuubouZodiac } from '../kimon/banLevel.js';
 const PALACE_FIVE_ELEMENTS = {
   '坎': '水', '艮': '土', '震': '木', '巽': '木',
   '離': '火', '坤': '土', '兌': '金', '乾': '金',
+};
+
+const PALACE_DISPLAY = {
+  son: { label: '巽', direction: '南東' },
+  ri: { label: '離', direction: '南' },
+  kun: { label: '坤', direction: '南西' },
+  shin: { label: '震', direction: '東' },
+  da: { label: '兌', direction: '西' },
+  gon: { label: '艮', direction: '北東' },
+  kan: { label: '坎', direction: '北' },
+  ken: { label: '乾', direction: '北西' },
 };
 
 /** 北を下（南を上）= デフォルト＝先生Excel と同じ orientation の構成要素 */
@@ -89,43 +101,92 @@ export default function BoardGrid({
   tenbanJunshuPalace = null,   // 天盤旬首がある宮の日本語名（例 "離"）
   chibanJunshuPalace = null,   // 地盤旬首がある宮の日本語名（例 "兌"）
 }) {
+  const [selectedPalace, setSelectedPalace] = useState(null);
   const items = getItems(direction);
   const centerAlerts = buildCenterAlerts(banLevel);
+  const selectedDisplay = selectedPalace ? PALACE_DISPLAY[selectedPalace] : null;
+  const selectedSheetPalace = selectedPalace && selectedDisplay ? {
+    key: selectedPalace,
+    label: selectedDisplay.label,
+    direction: selectedDisplay.direction,
+    data: palaces?.[selectedPalace],
+    score: scores?.[selectedPalace],
+  } : null;
+
+  const handleSelect = (palaceKey) => {
+    setSelectedPalace((current) => (current === palaceKey ? null : palaceKey));
+  };
+
+  const handleOverlayTap = (event) => {
+    const sheetTop = document.querySelector('.sheet')?.getBoundingClientRect().top ?? window.innerHeight;
+    if (event.clientY >= sheetTop) {
+      setSelectedPalace(null);
+      return;
+    }
+    if (!document.elementsFromPoint) {
+      setSelectedPalace(null);
+      return;
+    }
+    const elements = document.elementsFromPoint(event.clientX, event.clientY);
+    const palaceEl = elements.find((el) => (
+      el !== event.currentTarget
+      && el.dataset?.palaceKey
+    ));
+    if (palaceEl?.dataset?.palaceKey && palaceEl.dataset.palaceKey !== selectedPalace) {
+      handleSelect(palaceEl.dataset.palaceKey);
+      return;
+    }
+    setSelectedPalace(null);
+  };
 
   return (
-    <div className="board-grid">
-      {items.map((it, idx) => {
-        const style = { gridRow: it.row, gridColumn: it.col };
-        if (it.type === 'zodiac') {
-          const isKuubou = isKuubouZodiac(it.zodiac, kuubou);
+    <>
+      <div className="board-grid">
+        {items.map((it, idx) => {
+          const style = { gridRow: it.row, gridColumn: it.col };
+          if (it.type === 'zodiac') {
+            const isKuubou = isKuubouZodiac(it.zodiac, kuubou);
+            return (
+              <div
+                key={`Z-${idx}`}
+                className={getZodiacLabelClass(it.zodiac, kuubou)}
+                style={style}
+                aria-label={isKuubou ? `${it.zodiac}（空亡）` : it.zodiac}
+              >
+                {it.zodiac}
+              </div>
+            );
+          }
+          const isCenter = it.key === null;
           return (
             <div
-              key={`Z-${idx}`}
-              className={getZodiacLabelClass(it.zodiac, kuubou)}
+              key={`C-${idx}`}
               style={style}
-              aria-label={isKuubou ? `${it.zodiac}（空亡）` : it.zodiac}
+              data-palace-key={!isCenter ? it.key : undefined}
             >
-              {it.zodiac}
+              <PalaceCell
+                label={it.label}
+                element={PALACE_FIVE_ELEMENTS[it.label] || ''}
+                data={isCenter ? null : palaces[it.key]}
+                score={isCenter ? null : scores[it.key]}
+                isCenter={isCenter}
+                centerAlerts={isCenter ? centerAlerts : []}
+                junshu={junshu}
+                isTenbanJunshuPalace={!isCenter && it.label === tenbanJunshuPalace}
+                isChibanJunshuPalace={!isCenter && it.label === chibanJunshuPalace}
+                isSelected={!isCenter && selectedPalace === it.key}
+                isDimmed={!isCenter && selectedPalace !== null && selectedPalace !== it.key}
+                onSelect={!isCenter ? () => handleSelect(it.key) : undefined}
+              />
             </div>
           );
-        }
-        const isCenter = it.key === null;
-        return (
-          <div key={`C-${idx}`} style={style}>
-            <PalaceCell
-              label={it.label}
-              element={PALACE_FIVE_ELEMENTS[it.label] || ''}
-              data={isCenter ? null : palaces[it.key]}
-              score={isCenter ? null : scores[it.key]}
-              isCenter={isCenter}
-              centerAlerts={isCenter ? centerAlerts : []}
-              junshu={junshu}
-              isTenbanJunshuPalace={!isCenter && it.label === tenbanJunshuPalace}
-              isChibanJunshuPalace={!isCenter && it.label === chibanJunshuPalace}
-            />
-          </div>
-        );
-      })}
-    </div>
+        })}
+      </div>
+      <BottomSheet
+        palace={selectedSheetPalace}
+        onClose={() => setSelectedPalace(null)}
+        onOverlayTap={handleOverlayTap}
+      />
+    </>
   );
 }
