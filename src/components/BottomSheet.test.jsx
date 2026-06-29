@@ -22,8 +22,12 @@ function makePalace(overrides = {}) {
         tenban_kan: 10,
         hachimon: 40,
         hasshin: 20,
+        jukkan_kokuou: -10,
         kakkyoku: 10,
       },
+      detected_jukkan: [
+        { name: '月奇孛師', kikkyo: '凶', tenban: '乙', chiban: '丙' },
+      ],
       detected_kakkyoku: [
         { name: '天遁', kichi_kyo: 'kichi', score: 10, meaning: '吉格' },
       ],
@@ -48,7 +52,7 @@ describe('BottomSheet', () => {
     expect(document.body.querySelector('.sheet.open')).toBeTruthy();
     expect(document.body.querySelector('.sheet-content')).toBeTruthy();
     expect(screen.getByText('坎（北）')).toBeTruthy();
-    expect(screen.getByText('+70')).toBeTruthy();
+    expect(screen.getAllByText('+70').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('大吉')).toBeTruthy();
     expect(screen.getByText('休門・六合・天蓬')).toBeTruthy();
     expect(screen.getByText('天盤乙 / 地盤丙')).toBeTruthy();
@@ -83,7 +87,7 @@ describe('BottomSheet', () => {
 
     expect(document.body.querySelector('.kakkyoku-card')).toBeTruthy();
     expect(screen.getByText('天遁')).toBeTruthy();
-    expect(screen.getByText(/天盤の丙/)).toBeTruthy();
+    expect(screen.getAllByText(/天盤の丙/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('格局がない宮では格局カードが表示されない', () => {
@@ -163,9 +167,14 @@ describe('BottomSheet', () => {
     fireEvent.click(toggle);
     expect(detail.className).toContain('open');
     expect(screen.getByText('八門（休門）')).toBeTruthy();
-    expect(screen.getByText('+40')).toBeTruthy();
+    expect(screen.getByText('休息の門。穏やかな縁と回復')).toBeTruthy();
+    expect(screen.getByText('文書がらみの争い。')).toBeTruthy();
+    expect(screen.getByText('休息の門。穏やかな縁と回復').className).toContain('kichi');
+    expect(screen.getByText('文書がらみの争い。').className).toContain('kyo');
+    expect(screen.queryByText('+40')).toBe(null);
+    expect(screen.queryByText('-10')).toBe(null);
     expect(screen.getByText('総合評価')).toBeTruthy();
-    expect(screen.getByText('70点')).toBeTruthy();
+    expect(screen.getAllByText('+70').length).toBeGreaterThanOrEqual(1);
     fireEvent.click(toggle);
     expect(detail.className).not.toContain('open');
   });

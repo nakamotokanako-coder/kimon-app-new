@@ -112,6 +112,7 @@ export default function BoardGrid({
     direction: selectedDisplay.direction,
     data: palaces?.[selectedPalace],
     score: scores?.[selectedPalace],
+    banLevel,
   } : null;
 
   const handleSelect = (palaceKey) => {

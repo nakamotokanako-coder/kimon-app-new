@@ -58,6 +58,50 @@ const AXIS_RULES = {
   },
 };
 
+const MON_DESC = {
+  '休門': '休息の門。穏やかな縁と回復',
+  '生門': '生む門。財運と新しい始まり',
+  '開門': '開く門。仕事と発展の好機',
+  '景門': '光の門。学問と表現に吉',
+  '傷門': '傷つける門。争いに注意',
+  '杜門': '閉じる門。物事が停滞する',
+  '死門': '止まる門。変化を避ける時期',
+  '驚門': '驚く門。予想外の出来事に備え',
+};
+
+const SEI_DESC = {
+  '天蓬': '水の凶星。争いの暗示',
+  '天芮': '病の星。健康に注意',
+  '天衝': '行動の星。決断と前進',
+  '天輔': '学問の吉星。知恵と成長',
+  '天禽': '中央の星。万事に通じる',
+  '天心': '治癒の吉星。医療と金運',
+  '天柱': '守りの星。静かに耐える',
+  '天任': '育む吉星。財と縁を結ぶ',
+  '天英': '火の星。宴と交流に吉',
+  '天冲': '行動の星。決断と前進',
+};
+
+const SHIN_DESC = {
+  '直符': '最高の神助。急用に最適',
+  '九天': '攻めの神。拡大と発信',
+  '九地': '守りの神。蓄財と安定',
+  '太陰': '隠の神。静かな準備に吉',
+  '六合': '縁の神。人との和合',
+  '螣蛇': '惑わしの神。迷いに注意',
+  '勾陳': '停滞の神。動きが取れない',
+  '朱雀': '口舌の神。言葉のトラブル',
+};
+
+const BAN_LEVEL_NAMES = [
+  ['kan_fukugin', '干伏吟'],
+  ['sei_fukugin', '星伏吟'],
+  ['mon_fukugin', '門伏吟'],
+  ['sei_hangin', '星反吟'],
+  ['mon_hangin', '門反吟'],
+  ['gofuguuji', '五不遇時'],
+];
+
 const BREAKDOWN_LABELS = {
   tenban_kan: (data) => `天盤干（${data?.tenban || '—'}）`,
   hachimon: (data) => `八門（${data?.hachimon || '—'}）`,
@@ -73,7 +117,7 @@ const BREAKDOWN_LABELS = {
   },
   monpaku: '門迫',
   kuubou: '空亡',
-  ban_level_minus: '盤全体の減点',
+  ban_level_minus: '盤レベル',
   junri_bonus: '順利ボーナス',
 };
 
@@ -96,14 +140,69 @@ function resolveLabel(label, data, score) {
 function buildBreakdown(score, data) {
   const breakdown = score?.breakdown || {};
   return Object.entries(BREAKDOWN_LABELS)
-    .map(([key, label]) => ({ label: resolveLabel(label, data, score), score: breakdown[key] }))
+    .map(([key, label]) => ({
+      key,
+      label: resolveLabel(label, data, score),
+      score: breakdown[key],
+    }))
     .filter((item) => typeof item.score === 'number' && item.score !== 0);
+}
+
+function firstSentence(text = '') {
+  return text.split('。')[0] ? `${text.split('。')[0]}。` : text;
+}
+
+function shortText(text = '', limit = 30) {
+  return text.length > limit ? `${text.slice(0, limit)}…` : text;
+}
+
+function findJukkanEntry(name) {
+  if (!name) return null;
+  const indexes = shouiDict.jukan_index_by_name?.[name] || [];
+  return shouiDict.jukan_kokuou?.find((item) => indexes.includes(item.no) || item.name === name) || null;
 }
 
 function findKakkyokuEntry(name) {
   if (!name) return null;
   const index = shouiDict.kakkyoku_index_by_name?.[name];
   return shouiDict.kakkyoku?.find((item) => item.no === index || item.name === name) || null;
+}
+
+function shouiText(entry) {
+  return shortText(entry?.keyword || firstSentence(entry?.modern || ''), 30) || '象意を確認';
+}
+
+function banLevelText(banLevel) {
+  const names = banLevel?.detected?.length
+    ? banLevel.detected
+    : BAN_LEVEL_NAMES.map(([key, name]) => (banLevel?.[key] ? name : null)).filter(Boolean);
+  return names.length ? names.join('・') : '盤全体に重い配置';
+}
+
+function elementText(key, score, data, palace) {
+  if (key === 'tenban_kan') return data?.tenban ? `天盤${data.tenban}の働き` : '天盤干の働き';
+  if (key === 'hachimon') return MON_DESC[data?.hachimon] || '門の象意';
+  if (key === 'kyusei') return SEI_DESC[data?.kyusei] || '星の象意';
+  if (key === 'hasshin') return SHIN_DESC[data?.hasshin] || '神の象意';
+  if (key === 'jukkan_kokuou') {
+    const names = score?.detected_jukkan?.map((item) => item.name).filter(Boolean) || [];
+    return names.map((name) => shouiText(findJukkanEntry(name))).filter(Boolean).join(' / ') || '十干剋応の象意';
+  }
+  if (key === 'kakkyoku') {
+    const names = score?.detected_kakkyoku?.map((item) => item.name).filter(Boolean) || [];
+    return names.map((name) => shouiText(findKakkyokuEntry(name))).filter(Boolean).join(' / ') || '格局の象意';
+  }
+  if (key === 'monpaku') return shouiText(findKakkyokuEntry('門迫'));
+  if (key === 'kuubou') return shouiText(findKakkyokuEntry('空亡'));
+  if (key === 'ban_level_minus') return banLevelText(palace?.banLevel);
+  if (key === 'junri_bonus') return '流れに乗る吉方位';
+  return '配置の象意';
+}
+
+function toneClass(value) {
+  if (value > 0) return 'kichi';
+  if (value < 0) return 'kyo';
+  return 'neutral';
 }
 
 function normalizeKakkyoku(kakkyoku) {
@@ -336,15 +435,15 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
                 {breakdown.map((item) => (
                   <div className="why-item" key={item.label}>
                     <span className="factor">{item.label}</span>
-                    <span className={`pts ${item.score >= 0 ? 'plus' : 'minus'}`}>
-                      {scoreText(item.score)}
+                    <span className={`why-desc ${toneClass(item.score)}`}>
+                      {elementText(item.key, palace.score, palace.data, palace)}
                     </span>
                   </div>
                 ))}
                 {typeof score === 'number' && (
                   <div className="why-item total">
                     <span className="factor">総合評価</span>
-                    <span className={`pts ${score >= 0 ? 'plus' : 'minus'}`}>{score}点</span>
+                    <span className={`pts ${score >= 0 ? 'plus' : 'minus'}`}>{scoreText(score)}</span>
                   </div>
                 )}
               </>

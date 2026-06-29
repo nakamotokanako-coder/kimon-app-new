@@ -356,17 +356,29 @@
   flex: 1;
 }
 
-.why-item .pts {
+.why-item .pts,
+.why-item .why-desc {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.why-item .pts.plus {
-  color: var(--plus);
+.why-item .why-desc {
+  flex: 1.2;
+  text-align: right;
 }
 
-.why-item .pts.minus {
-  color: var(--minus);
+.why-item .pts.plus,
+.why-item .why-desc.kichi {
+  color: var(--kichi, var(--plus));
+}
+
+.why-item .pts.minus,
+.why-item .why-desc.kyo {
+  color: var(--kyo, var(--minus));
+}
+
+.why-item .why-desc.neutral {
+  color: var(--text-dim, var(--text-muted));
 }
 
 .why-item.total {
