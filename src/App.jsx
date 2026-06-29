@@ -254,6 +254,7 @@ export default function App() {
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}
+                kaisetsuKey={`${board.meta?.kyokusu || ''}${board.meta?.eto || ''}`}
                 banLevel={board.banLevel}
                 direction={direction}
                 kuubou={board.banLevel?.kuubou_text}

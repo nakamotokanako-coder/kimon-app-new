@@ -93,6 +93,7 @@ function buildCenterAlerts(banLevel) {
 export default function BoardGrid({
   palaces,
   scores = {},
+  kaisetsuKey = '',
   banLevel = null,
   direction = 'north_bottom',
   kuubou = null,
@@ -111,6 +112,7 @@ export default function BoardGrid({
     direction: selectedDisplay.direction,
     data: palaces?.[selectedPalace],
     score: scores?.[selectedPalace],
+    banLevel,
   } : null;
 
   const handleSelect = (palaceKey) => {
@@ -184,6 +186,7 @@ export default function BoardGrid({
       </div>
       <BottomSheet
         palace={selectedSheetPalace}
+        kaisetsuKey={kaisetsuKey}
         onClose={() => setSelectedPalace(null)}
         onOverlayTap={handleOverlayTap}
       />
