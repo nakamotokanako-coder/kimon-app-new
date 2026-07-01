@@ -10,16 +10,16 @@
   --red-glow: rgba(212, 42, 42, 0.35);
   --blue-base: #2a6ad4;
   --blue-glow: rgba(42, 106, 212, 0.30);
-  --goen-base: #c45070;
-  --goen-glow: rgba(196, 80, 112, 0.30);
-  --shigoto-base: #2f6ad4;
-  --shigoto-glow: rgba(47, 106, 212, 0.30);
-  --kinun-base: #d4a548;
-  --kinun-glow: rgba(212, 165, 72, 0.35);
-  --kenko-base: #3aa05e;
-  --kenko-glow: rgba(58, 160, 94, 0.30);
-  --benkyo-base: #7a4ad4;
-  --benkyo-glow: rgba(122, 74, 212, 0.30);
+  --goen-base: #8f3f55;
+  --goen-glow: rgba(143, 63, 85, 0.24);
+  --shigoto-base: #315f9f;
+  --shigoto-glow: rgba(49, 95, 159, 0.24);
+  --kinun-base: #75602b;
+  --kinun-glow: rgba(117, 96, 43, 0.26);
+  --kenko-base: #2f7046;
+  --kenko-glow: rgba(47, 112, 70, 0.24);
+  --benkyo-base: #604796;
+  --benkyo-glow: rgba(96, 71, 150, 0.24);
   --glass-highlight: inset 0 1.5px 0 rgba(255, 255, 255, 0.45);
   --glass-edge: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   --glass-bottom: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
@@ -125,6 +125,7 @@
   font-family: var(--font-display, 'Shippori Mincho', serif);
   font-size: 21px;
   font-weight: 700;
+  color: #fff;
   overflow-wrap: anywhere;
 }
 
@@ -173,13 +174,13 @@
 
 .sh-meta {
   margin-top: 6px;
-  color: var(--text-muted);
+  color: #f5f5f5;
   font-size: 12px;
 }
 
 .sh-kanpair {
   margin-top: 2px;
-  color: color-mix(in srgb, var(--text-muted) 74%, transparent);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 12px;
 }
 
@@ -411,7 +412,6 @@
     linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.08) 100%),
     var(--kinun-base);
   box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom), 0 10px 26px var(--kinun-glow);
-  color: #2d1f08;
 }
 
 .reading[data-axis="kenko"] {
@@ -433,19 +433,15 @@
   color: rgba(255,255,255,0.96);
 }
 
-.reading[data-axis="kinun"] p {
-  color: #2d1f08;
-}
-
 .reading-state.locked,
 .reading-state.empty,
 .reading-state.error,
 .reading-state.loading {
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.9);
 }
 
 .reading-state.error {
-  color: var(--minus);
+  color: rgba(255,255,255,0.94);
 }
 
 .reading-title {
@@ -454,13 +450,6 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0;
-}
-
-.reading[data-axis="kinun"] .reading-title,
-.reading[data-axis="kinun"] .reading-state.locked,
-.reading[data-axis="kinun"] .reading-state.empty,
-.reading[data-axis="kinun"] .reading-state.loading {
-  color: rgba(45,31,8,0.78);
 }
 
 .why-card {
