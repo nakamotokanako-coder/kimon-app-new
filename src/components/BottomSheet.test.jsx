@@ -124,15 +124,15 @@ describe('BottomSheet', () => {
     expect(screen.queryByText(/準備中/)).toBe(null);
   });
 
-  it('paid full API の軸別本文を表示する', async () => {
+  it('kaisetsu-full API の軸別 mid 本文を表示する', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({
         palaces: {
           kan: {
-            goen: { full: 'ご縁の詳しい読み解きです。' },
-            shigoto: { full: '仕事の詳しい読み解きです。' },
+            goen: { mid: 'ご縁のmid解説です。' },
+            shigoto: { mid: '仕事のmid解説です。' },
           },
         },
       }),
@@ -140,13 +140,13 @@ describe('BottomSheet', () => {
 
     render(<BottomSheet palace={makePalace()} kaisetsuKey="1甲" onClose={() => {}} />);
 
-    expect(await screen.findByText('ご縁の詳しい読み解きです。')).toBeTruthy();
+    expect(await screen.findByText('ご縁のmid解説です。')).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: '仕事' }));
-    expect(screen.getByText('仕事の詳しい読み解きです。')).toBeTruthy();
+    expect(screen.getByText('仕事のmid解説です。')).toBeTruthy();
     expect(global.fetch).toHaveBeenCalledWith('/api/kaisetsu-full?key=1%E7%94%B2', { credentials: 'same-origin' });
   });
 
-  it('full API が403の時は月額プラン案内を表示する', async () => {
+  it('kaisetsu-full API が403の時も月額プラン案内を表示しない', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 403,
@@ -155,12 +155,13 @@ describe('BottomSheet', () => {
 
     render(<BottomSheet palace={makePalace()} kaisetsuKey="2乙" onClose={() => {}} />);
 
-    expect(await screen.findByText(/月額プラン/)).toBeTruthy();
+    expect(await screen.findByText('解説を表示できませんでした。')).toBeTruthy();
+    expect(screen.queryByText(/月額プラン/)).toBe(null);
   });
 
-  it('「なぜこの評価？」をクリックすると展開/折りたたみする', () => {
+  it('「評価の解説」をクリックすると展開/折りたたみする', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
-    const toggle = screen.getByRole('button', { name: 'なぜこの評価？' });
+    const toggle = screen.getByRole('button', { name: '評価の解説' });
     const detail = document.body.querySelector('.why-detail');
 
     expect(detail.className).not.toContain('open');

@@ -264,7 +264,7 @@ function computeAxisScores(palace) {
 function getReadingState(fullState, palaceKey, axisKey) {
   if (fullState.status === 'loading') return { kind: 'loading', text: '解説を読み込んでいます。' };
   if (fullState.status === 'forbidden') {
-    return { kind: 'locked', text: '月額プランで、願いごとの詳しい読み解きが開きます。' };
+    return { kind: 'error', text: '解説を表示できませんでした。' };
   }
   if (fullState.status === 'error') {
     return { kind: 'error', text: '解説を取得できませんでした。時間をおいてもう一度お試しください。' };
@@ -272,7 +272,7 @@ function getReadingState(fullState, palaceKey, axisKey) {
   if (fullState.status === 'missing-key') {
     return { kind: 'empty', text: 'この盤の解説キーを取得できませんでした。' };
   }
-  const text = fullState.palaces?.[palaceKey]?.[axisKey]?.full;
+  const text = fullState.palaces?.[palaceKey]?.[axisKey]?.mid;
   if (text) return { kind: 'ready', text };
   return { kind: 'empty', text: 'この願いごとの詳しい解説はまだありません。' };
 }
@@ -430,7 +430,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
               aria-expanded={whyOpen}
               onClick={() => setWhyOpen((current) => !current)}
             >
-              なぜこの評価？
+              評価の解説
             </button>
             <div className={`why-detail ${whyOpen ? 'open' : ''}`}>
               {breakdown.length > 0 ? (
