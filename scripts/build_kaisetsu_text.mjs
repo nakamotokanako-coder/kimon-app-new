@@ -5,7 +5,7 @@
 //   実行: node scripts/build_kaisetsu_text.mjs
 //   出力（コミットしない・.gitignore 済）:
 //     data/kaisetsu/generated/kaisetsu_text_v2.json
-//       … { 局key: { palace: { axis: { short, mid, full } } } }
+//       … { 局key: { palace: { axisRanks, axis: { short, mid, full } } } }
 //   出力（コミットする）:
 //     data/kaisetsu/sample_review_v2_1.md … 固定の代表5局の全方位×全軸（short/mid/full 併記・人間レビュー用）
 //     data/kaisetsu/build_stats_v2_1.json … short/mid/full の文字数分布・なのに文発動率(型別)・
@@ -149,7 +149,7 @@ function main() {
         if (reasonSrc[d.reasonSrc] !== undefined) reasonSrc[d.reasonSrc] += 1;
         if (thirdSrc[d.thirdSrc] !== undefined) thirdSrc[d.thirdSrc] += 1;
       }
-      byPalace[palace] = axisTexts;
+      byPalace[palace] = { axisRanks: judgment.axisRanks, ...axisTexts };
     }
     generated[row.key] = byPalace;
 

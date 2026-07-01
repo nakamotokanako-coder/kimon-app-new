@@ -93,6 +93,110 @@ describe('反吟の奇門緩和', () => {
     expect(j.vetoes).toContain('反吟');
     expect(j.vetoRelief).toBe('反吟だが奇門が蓋う');
     expect(j.rank).toBe('△');
+    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['△']));
+  });
+});
+
+describe('axisRanks', () => {
+  const axisKeys = ['goen', 'shigoto', 'kinun', 'kenko', 'benkyo'];
+
+  it('標準的な吉方位は axes 由来の軸別 rank を返す', () => {
+    const synthetic = {
+      hachimon_kan: '開門',
+      kyusei_kan: '天禽',
+      hasshin_kan: '直符',
+      tenban_kan: '戊',
+      chiban_kan: '庚',
+      jukkan_kokuou_kan: '',
+      kakkyoku_kan: '',
+      ban_level: '',
+      kuubou: '',
+    };
+    const j = classifyPalace(synthetic, 'kan');
+    expect(j.axisRanks).toEqual({
+      goen: '△',
+      shigoto: '◎',
+      kinun: '△',
+      kenko: '△',
+      benkyo: '○',
+    });
+  });
+
+  it('標準的な凶方位は全軸が ×〜▲ に収まる', () => {
+    const synthetic = {
+      hachimon_kan: '死門',
+      kyusei_kan: '天蓬',
+      hasshin_kan: '玄武',
+      tenban_kan: '壬',
+      chiban_kan: '戊',
+      jukkan_kokuou_kan: '',
+      kakkyoku_kan: '',
+      ban_level: '',
+      kuubou: '',
+    };
+    const j = classifyPalace(synthetic, 'kan');
+    expect(Object.values(j.axisRanks).every((rank) => rankIdx(rank) <= rankIdx('▲'))).toBe(true);
+  });
+
+  it('伏吟は金運だけ △ に緩和し、他軸は × に固定する', () => {
+    const synthetic = {
+      hachimon_kan: '休門',
+      kyusei_kan: '天禽',
+      hasshin_kan: '六合',
+      tenban_kan: '戊',
+      chiban_kan: '庚',
+      jukkan_kokuou_kan: '',
+      kakkyoku_kan: '',
+      ban_level: '伏吟',
+      kuubou: '',
+    };
+    const j = classifyPalace(synthetic, 'kan');
+    expect(j.vetoes).toContain('伏吟');
+    expect(j.axisRanks).toEqual({
+      goen: '×',
+      shigoto: '×',
+      kinun: '△',
+      kenko: '×',
+      benkyo: '×',
+    });
+  });
+
+  it('反吟は緩和なしなら全軸 × に固定する', () => {
+    const synthetic = {
+      hachimon_kan: '杜門',
+      kyusei_kan: '天禽',
+      hasshin_kan: '六合',
+      tenban_kan: '戊',
+      chiban_kan: '庚',
+      jukkan_kokuou_kan: '',
+      kakkyoku_kan: '',
+      ban_level: '反吟',
+      kuubou: '',
+    };
+    const j = classifyPalace(synthetic, 'kan');
+    expect(j.vetoes).toContain('反吟');
+    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['×']));
+  });
+
+  it('空亡の宮は全軸 × に固定する', () => {
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'ken');
+    expect(j.vetoes).toContain('空亡');
+    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['×']));
+  });
+
+  it('総合 rank が × のとき軸別 rank に ◎ を出さない', () => {
+    const row = lookupChito('陰1局丁卯');
+    for (const palace of ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken']) {
+      const j = classifyPalace(row, palace);
+      if (j.rank === '×') {
+        expect(Object.values(j.axisRanks)).not.toContain('◎');
+      }
+    }
+  });
+
+  it('全軸キーを備える', () => {
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
+    expect(Object.keys(j.axisRanks)).toEqual(axisKeys);
   });
 });
 
@@ -107,7 +211,7 @@ describe('judgment オブジェクトの形', () => {
     const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
     for (const k of [
       'rank', 'vetoes', 'vetoRelief', 'gate', 'gateClass', 'gateForce',
-      'star', 'starRank', 'god', 'godClass', 'shoui', 'shouiTop', 'axes', 'patternId',
+      'star', 'starRank', 'god', 'godClass', 'shoui', 'shouiTop', 'axes', 'axisRanks', 'patternId',
     ]) {
       expect(j).toHaveProperty(k);
     }
@@ -118,8 +222,10 @@ describe('judgment オブジェクトの形', () => {
     expect(j.shouiTop).toBe(j.shoui[0]);
     for (const a of ['goen', 'shigoto', 'kinun', 'kenko', 'benkyo']) {
       expect(j.axes).toHaveProperty(a);
+      expect(j.axisRanks).toHaveProperty(a);
       expect(j.axes[a]).toBeGreaterThanOrEqual(-2);
       expect(j.axes[a]).toBeLessThanOrEqual(2);
+      expect(RANK_LADDER).toContain(j.axisRanks[a]);
     }
   });
 });

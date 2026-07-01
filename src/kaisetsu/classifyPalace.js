@@ -197,6 +197,30 @@ function capRank(rank, cap) {
   return RANK_LADDER[Math.min(rankIdx(rank), rankIdx(cap))];
 }
 
+function axisScoreToRank(score) {
+  return RANK_LADDER[clampIdx(Number(score || 0) + 2)];
+}
+
+function buildAxisRanks(axes, { boardFukugin, boardHangin, hardVeto, vetoRelief }) {
+  const ranks = {};
+  for (const k of AXIS_KEYS) ranks[k] = axisScoreToRank(axes[k]);
+
+  if (boardFukugin) {
+    for (const k of AXIS_KEYS) ranks[k] = '×';
+    ranks.kinun = '△';
+  }
+
+  if (boardHangin) {
+    for (const k of AXIS_KEYS) ranks[k] = vetoRelief ? '△' : '×';
+  }
+
+  if (hardVeto) {
+    for (const k of AXIS_KEYS) ranks[k] = '×';
+  }
+
+  return ranks;
+}
+
 /**
  * jukkan_kokuou_<p> / kakkyoku_<p> を象意リストへ。
  * 〇◯ → polarity +1 / × → -1 / △ → 0。十干剋応を先に並べ、同名は先勝ちで重複排除。
@@ -356,6 +380,7 @@ export function classifyPalace(row, palace) {
     if (axes.kinun < 0) axes.kinun = 0;
   }
   for (const k of AXIS_KEYS) axes[k] = Math.max(-2, Math.min(2, axes[k]));
+  const axisRanks = buildAxisRanks(axes, { boardFukugin, boardHangin, hardVeto, vetoRelief });
 
   // ---- Level 5: 八神 ----
   let godClass = GOD_KICHI.includes(god) ? 'kichi' : (GOD_KYO.includes(god) ? 'kyo' : 'kichi');
@@ -389,6 +414,7 @@ export function classifyPalace(row, palace) {
     shoui,
     shouiTop,
     axes,
+    axisRanks,
     patternId,
     // 付帯情報（文言生成・デバッグ用。判定の核ではない）
     tenpouKyusai,
