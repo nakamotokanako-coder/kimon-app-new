@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
+import FusionCard from './FusionCard.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
 import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
 import SanbanRouteView from './SanbanRouteView.jsx';
@@ -969,23 +970,7 @@ export default function ReverseDirectionView({
               </small>
             </div>
 
-            <div className="reverse-card reverse-best-card">
-              <div className="reverse-best-no">1</div>
-              <div className="reverse-best-main">
-                {best ? (
-                  <>
-                    <strong>{best.label}<small>{best.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                    <p>今の時盤で最大吉</p>
-                  </>
-                ) : (
-                  <>
-                    <strong>該当なし</strong>
-                    <p>吉のみ表示中です。凶も見ると全方位を確認できます。</p>
-                  </>
-                )}
-              </div>
-              <div className="reverse-best-score lat">{best ? scoreText(best.score) : '-'}</div>
-            </div>
+            <FusionCard best={best} boardKey={reverse.board.meta.kyokusu + reverse.board.meta.eto} />
 
             <div className="reverse-card reverse-now-board-card">
               <button
