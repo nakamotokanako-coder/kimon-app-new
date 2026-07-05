@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
+import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 
 // 表示順は ShouiPanel と同一の8宮並び（盤の論理順とは独立）。
 const PALACE_ORDER = ['son', 'ri', 'kun', 'shin', 'da', 'gon', 'kan', 'ken'];
@@ -82,93 +83,19 @@ export default function KaisetsuPanel({ board, onOpenAccountSettings }) {
 
   const [selPalace, setSelPalace] = useState(board?.score?.best_overall || 'kan');
   const [selAxis, setSelAxis] = useState('goen');
-  const [cache, setCache] = useState({}); // 局key -> palaces（short のみ）
-  const [auth, setAuth] = useState({ phase: 'loading', loggedIn: false, status: 'free' });
-  const [fullCache, setFullCache] = useState({}); // 局key -> palaces（paid のみ: short+mid+full）
-  const [fullErrorKey, setFullErrorKey] = useState(null);
+  const { auth, palaces, fullPalaces, fullErrorKey, isPaid, isAnon, isFree } = useKaisetsuPalace(key);
 
-  // 局key が変わったら選択宮をベスト宮へリセットし、full の一時エラーも畳む。
+  // 局key が変わったら選択宮をベスト宮へリセットする。
   useEffect(() => {
     setSelPalace(board?.score?.best_overall || 'kan');
-    setFullErrorKey(null);
     // best_overall は局key に対して安定なので key だけを依存にする。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  // 認証状態はパネル単独で取得する。full API は paid 確認後の effect だけから呼ぶ。
-  useEffect(() => {
-    let alive = true;
-    fetch('/api/auth/me', { credentials: 'same-origin' })
-      .then((r) => (r.ok ? r.json() : { loggedIn: false }))
-      .then((data) => {
-        if (!alive) return;
-        if (data?.loggedIn) {
-          setAuth({ phase: 'ready', loggedIn: true, email: data.email, status: data.status || 'free' });
-        } else {
-          setAuth({ phase: 'ready', loggedIn: false, status: 'free' });
-          setFullCache({});
-        }
-      })
-      .catch(() => {
-        if (!alive) return;
-        setAuth({ phase: 'ready', loggedIn: false, status: 'free' });
-        setFullCache({});
-      });
-    return () => { alive = false; };
-  }, []);
-
-  // short を API から取得（局keyごと1回だけ・取得済みは再フェッチしない）。
-  useEffect(() => {
-    if (!key || cache[key]) return;
-    let alive = true;
-    fetch(`/api/kaisetsu?key=${encodeURIComponent(key)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => {
-        if (alive && j && j.palaces) {
-          setCache((c) => ({ ...c, [key]: j.palaces }));
-        }
-      })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [key, cache]);
-
-  // paid 確認後だけ full API を取得する。free/未ログインでは 403 を踏みに行かない。
-  useEffect(() => {
-    if (!key || auth.phase !== 'ready' || !auth.loggedIn || auth.status !== 'paid') return;
-    if (fullCache[key] || fullErrorKey === key) return;
-    let alive = true;
-    fetch(`/api/kaisetsu-full?key=${encodeURIComponent(key)}`, { credentials: 'same-origin' })
-      .then(async (r) => {
-        if (r.status === 403) {
-          if (alive) {
-            setAuth((current) => ({ ...current, status: 'free' }));
-            setFullCache({});
-          }
-          return null;
-        }
-        if (!r.ok) throw new Error('kaisetsu_full_failed');
-        return r.json();
-      })
-      .then((j) => {
-        if (alive && j?.palaces) {
-          setFullCache((c) => ({ ...c, [key]: j.palaces }));
-        }
-      })
-      .catch(() => {
-        if (alive) setFullErrorKey(key);
-      });
-    return () => { alive = false; };
-  }, [key, auth.phase, auth.loggedIn, auth.status, fullCache, fullErrorKey]);
-
   if (!board || !board.score) return null;
 
-  const palaces = cache[key] || null;
   const short = palaces?.[selPalace]?.[selAxis]?.short || null;
-  const fullPalaces = fullCache[key] || null;
   const full = fullPalaces?.[selPalace]?.[selAxis]?.full || null;
-  const isPaid = auth.phase === 'ready' && auth.loggedIn && auth.status === 'paid';
-  const isAnon = auth.phase === 'ready' && !auth.loggedIn;
-  const isFree = auth.phase === 'ready' && auth.loggedIn && auth.status !== 'paid';
   const selRank = ranks[selPalace] || null;
   const disp = PALACE_DISPLAY[selPalace];
 

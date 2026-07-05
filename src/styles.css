@@ -7694,3 +7694,165 @@ body {
   min-height: 280px;
   flex: none;
 }
+
+/* ── 願い5軸 配色（PR-2: 統合カード）。yoho_sanpo_v6_3layer.html の .fusion 準拠。 ── */
+:root {
+  --axis-goen: #c45070;
+  --axis-shigoto: #2f6ad4;
+  --axis-kinun: #d4a548;
+  --axis-kenko: #3aa05e;
+  --axis-benkyo: #7a4ad4;
+}
+
+/* ── 統合カード（PR-2: 最大吉カード改修） ── */
+.fusion {
+  display: block;
+  padding: 12px 14px 11px;
+}
+
+.f-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dir-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-edge) 45%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.dir-badge .en {
+  font-family: var(--font-latin);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--accent-edge, var(--accent));
+}
+
+.dir-badge .jp {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.f-score {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  /* 動く金は点数のsheenのみ。base の .metal は静止のまま流用し、
+     ここだけ background-position をアニメーションさせる。 */
+  background-size: 200% auto;
+  animation: fusion-score-sheen 5.5s linear infinite;
+}
+
+@keyframes fusion-score-sheen {
+  to { background-position: 200% center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f-score {
+    animation: none;
+  }
+}
+
+.f-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.f-tags {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kichi-badge {
+  margin-left: auto;
+  flex: none;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--accent-edge, var(--accent));
+  border: 1px solid color-mix(in srgb, var(--accent-edge) 45%, transparent);
+  border-radius: 99px;
+  padding: 3px 9px;
+}
+
+.fusion-axis-kicker {
+  margin-top: 10px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.axes {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.axis {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  padding: 5px 0;
+  border-radius: 99px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.axis .rk {
+  font-size: 9px;
+  display: block;
+  line-height: 1;
+  margin-top: 1px;
+  opacity: 0.9;
+}
+
+.axis.on {
+  color: #fff;
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.meaning {
+  margin-top: 10px;
+  padding-left: 11px;
+  border-left: 3px solid var(--axis-goen);
+  transition: border-color .2s;
+}
+
+.m-lead {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+.m-body {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.m-cta {
+  color: var(--accent-edge, var(--accent));
+  font-weight: 400;
+}
