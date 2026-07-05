@@ -7682,25 +7682,15 @@ body {
   flex: none;
 }
 
-.reverse-view--walk .reverse-go-zone,
-.reverse-view--walk .reverse-go-step-to,
-.reverse-view--walk .reverse-go-card {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) {
-  flex: 1;
-  min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
+/* 地図はネストしたflex growチェーンにせず、「walk-bodyのスクロール内にある
+   固定高さブロック」として扱う。地図に続く要素（お守りバー・地図内キャプション/
+   お気に入りパネル等）の有無や量に関わらず地図自体は常に280pxで確定するため、
+   途中階層のflex計算に左右されずスクロール終端で下端まで到達できる。
+   .reverse-go-zone / .reverse-go-step-to / .reverse-go-card は元の
+   display:grid のまま（内容ベースの自然な高さ）に戻し、地図の固定高さだけを
+   親へそのまま伝える。 */
 .reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map {
-  flex: 1;
+  height: 280px;
   min-height: 280px;
-  height: auto;
+  flex: none;
 }
