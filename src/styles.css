@@ -7649,3 +7649,48 @@ body {
   color: var(--text-primary);
   font-weight: 800;
 }
+
+/* ── 時盤お散歩（map-first, PR-1）: 画面1枚に収め、地図に残り全域を割り当てる ──
+   .reverse-view の祖先 .app.app-with-tabs が padding-top:20px / padding-bottom:110px
+  （フローティング下タブバー分の予約）を持つため、100dvh からその分を差し引く。 */
+.reverse-view--walk {
+  height: calc(100dvh - 20px - 110px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 12px;
+}
+
+.reverse-view--walk > .reverse-header,
+.reverse-view--walk > .base-bar,
+.reverse-view--walk > .reverse-mode-tabs {
+  flex: none;
+}
+
+.reverse-view--walk .reverse-walk-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 12px;
+}
+
+.reverse-view--walk .reverse-walk-body > .reverse-zone:not(.reverse-go-zone),
+.reverse-view--walk .reverse-walk-body > .omamori-wrap {
+  flex: none;
+}
+
+/* 地図はネストしたflex growチェーンにせず、「walk-bodyのスクロール内にある
+   固定高さブロック」として扱う。地図に続く要素（お守りバー・地図内キャプション/
+   お気に入りパネル等）の有無や量に関わらず地図自体は常に280pxで確定するため、
+   途中階層のflex計算に左右されずスクロール終端で下端まで到達できる。
+   .reverse-go-zone / .reverse-go-step-to / .reverse-go-card は元の
+   display:grid のまま（内容ベースの自然な高さ）に戻し、地図の固定高さだけを
+   親へそのまま伝える。 */
+.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map {
+  height: 280px;
+  min-height: 280px;
+  flex: none;
+}
