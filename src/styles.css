@@ -3247,14 +3247,6 @@ body {
   font-weight: 800;
 }
 
-.direction-map-hint {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.68rem;
-  line-height: 1.45;
-  opacity: 0.85;
-}
-
 .direction-map-error {
   display: grid;
   gap: 4px;
@@ -7855,4 +7847,60 @@ body {
 .m-cta {
   color: var(--accent-edge, var(--accent));
   font-weight: 400;
+}
+
+/* ── PR-2.5: 時盤お散歩(jiban)のフルスクリーン地図で検索UIをトグル＋
+   オーバーレイ化（地図の高さを奪わない）。日盤遠出(nichiban)は対象外。 ── */
+.direction-map-search-toggle-wrap {
+  position: relative;
+  align-self: flex-start;
+  width: fit-content;
+}
+
+.direction-map-search-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.direction-map-search-toggle.is-open {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+}
+
+.direction-map-search--overlay {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(320px, calc(100vw - 44px));
+  z-index: 30;
+  padding-top: 34px;
+  /* 背後の地図が透けて読みにくくならないよう不透明度高め＋軽いblur。 */
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.45);
+}
+
+.direction-map-search-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
 }
