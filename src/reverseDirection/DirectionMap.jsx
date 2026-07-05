@@ -513,6 +513,17 @@ export default function DirectionMap({
     liveLayerRef.current = L.layerGroup().addTo(map);
   }, [center, profile.initialZoom]);
 
+  // map-first(PR-1)レイアウトではコンテナ高さが flex:1 で可変になるため、
+  // リサイズのたびに Leaflet へ invalidateSize() を伝える。
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined' || !mapNodeRef.current) return undefined;
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.invalidateSize();
+    });
+    observer.observe(mapNodeRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   // 背景タイルの国内/海外切替。
   // 地理院タイルは日本専用で海外座標では真っ白になるため、center が海外のときは
   // 全球対応の OpenStreetMap タイルへ差し替える。国内では従来どおり地理院タイル

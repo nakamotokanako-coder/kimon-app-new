@@ -7649,3 +7649,57 @@ body {
   color: var(--text-primary);
   font-weight: 800;
 }
+
+/* ── 時盤お散歩（map-first, PR-1）: 画面1枚に収め、地図に残り全域を割り当てる ──
+   .reverse-view の祖先 .app.app-with-tabs が padding-top:20px / padding-bottom:110px
+  （フローティング下タブバー分の予約）を持つため、100dvh からその分を差し引く。 */
+.reverse-view--walk {
+  height: calc(100dvh - 20px - 110px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 12px;
+}
+
+.reverse-view--walk > .reverse-header,
+.reverse-view--walk > .base-bar,
+.reverse-view--walk > .reverse-mode-tabs {
+  flex: none;
+}
+
+.reverse-view--walk .reverse-walk-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 12px;
+}
+
+.reverse-view--walk .reverse-walk-body > .reverse-zone:not(.reverse-go-zone),
+.reverse-view--walk .reverse-walk-body > .omamori-wrap {
+  flex: none;
+}
+
+.reverse-view--walk .reverse-go-zone,
+.reverse-view--walk .reverse-go-step-to,
+.reverse-view--walk .reverse-go-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}

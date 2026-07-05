@@ -722,6 +722,7 @@ export default function ReverseDirectionView({
     basePointOpenValue,
     onToggleBasePoint,
     baseSubLabel,
+    hideOnboarding = false,
   }) => (
     <div className="reverse-zone reverse-go-zone">
       <div className="reverse-zone-title">
@@ -729,10 +730,13 @@ export default function ReverseDirectionView({
         <h3 className="maru">出かける場所を探す</h3>
       </div>
 
-      <p className="reverse-go-guide">
-        はじめての方へ　<b className="lat">①</b> 出発点を決めて → <b className="lat">②</b> 行き先を探してみよう
-      </p>
+      {!hideOnboarding && (
+        <p className="reverse-go-guide">
+          はじめての方へ　<b className="lat">①</b> 出発点を決めて → <b className="lat">②</b> 行き先を探してみよう
+        </p>
+      )}
 
+      {!hideOnboarding && (
       <div className="reverse-go-step" style={{ display: 'none' }}>
         <div className="reverse-step-title">
           <span className="reverse-section-kicker lat">from</span>
@@ -763,12 +767,15 @@ export default function ReverseDirectionView({
           )}
         </div>
       </div>
+      )}
 
       <div className={`reverse-go-step reverse-go-step-to ${basePointEstablished ? '' : 'is-await-base'}`}>
-        <div className="reverse-step-title">
-          <span className="reverse-section-kicker lat">to</span>
-          <h4 className="maru"><span className="lat">②</span> 行き先を探す</h4>
-        </div>
+        {!hideOnboarding && (
+          <div className="reverse-step-title">
+            <span className="reverse-section-kicker lat">to</span>
+            <h4 className="maru"><span className="lat">②</span> 行き先を探す</h4>
+          </div>
+        )}
 
         {!basePointEstablished && (
           <p className="reverse-go-await">まず①で出発点を決めてください</p>
@@ -879,7 +886,7 @@ export default function ReverseDirectionView({
   );
 
   return (
-    <section className="reverse-view" aria-label="逆引き方位検索">
+    <section className={`reverse-view${mode === 'time' ? ' reverse-view--walk' : ''}`} aria-label="逆引き方位検索">
       <div className="reverse-header">
         <div>
           <span className="reverse-kicker lat">lucky direction</span>
@@ -946,7 +953,7 @@ export default function ReverseDirectionView({
       </div>
 
       {mode === 'time' && (
-        <>
+        <div className="reverse-walk-body">
           <div className="reverse-zone">
             <div className="reverse-zone-title">
               <span className="reverse-section-kicker lat">now</span>
@@ -978,10 +985,6 @@ export default function ReverseDirectionView({
                 )}
               </div>
               <div className="reverse-best-score lat">{best ? scoreText(best.score) : '-'}</div>
-            </div>
-
-            <div className="reverse-card reverse-compass-card">
-              <CompassWheel rankings={reverse.rankings} bestPalace={best?.palace} />
             </div>
 
             <div className="reverse-card reverse-now-board-card">
@@ -1021,6 +1024,7 @@ export default function ReverseDirectionView({
             basePointOpenValue: basePointOpen,
             onToggleBasePoint: () => setBasePointOpen((value) => !value),
             baseSubLabel: <small>自然時補正 <b className="lat">{formatCorrection(correction)}</b></small>,
+            hideOnboarding: true,
           })}
 
           <LuckyOmamoriBar
@@ -1028,7 +1032,7 @@ export default function ReverseDirectionView({
             bestPalace={reverse.board.score.best_overall}
             seed={timeOmamoriSeed}
           />
-        </>
+        </div>
       )}
 
       {mode === 'timeRanking' && timelineSection}
