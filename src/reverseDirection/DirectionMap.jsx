@@ -935,34 +935,29 @@ export default function DirectionMap({
           </>
         );
 
-        // 時盤お散歩（jiban）のフルスクリーンだけ、検索UIを既定で畳んだトグル＋
-        // オーバーレイにする（地図の高さを奪わない）。日盤遠出(nichiban)は
-        // フルスクリーンでも従来どおり常時展開のまま。
+        // 時盤お散歩（jiban）のフルスクリーンだけ、検索UIを既定で畳んだトグルにする。
+        // 日盤遠出(nichiban)はフルスクリーンでも従来どおり常時展開のまま。
+        //
+        // 実機（iOS Safari）検証で position:absolute オーバーレイ案は
+        // タップが通らない不具合が確認されたため撤回し、グリッド内に通常表示する
+        // シンプルな方式に倒した（展開中は地図の高さを一時的に譲る）。
         if (isFullscreen && profileKey === 'jiban') {
           return (
-            <div className="direction-map-search-toggle-wrap">
+            <>
               <button
                 type="button"
                 className={`direction-map-search-toggle ${fullscreenSearchOpen ? 'is-open' : ''}`}
                 onClick={() => setFullscreenSearchOpen((value) => !value)}
                 aria-expanded={fullscreenSearchOpen}
               >
-                🔍 検索
+                {fullscreenSearchOpen ? '🔍 検索を閉じる' : '🔍 検索'}
               </button>
               {fullscreenSearchOpen && (
-                <div className="direction-map-search direction-map-search--overlay">
-                  <button
-                    type="button"
-                    className="direction-map-search-close"
-                    onClick={() => setFullscreenSearchOpen(false)}
-                    aria-label="検索を閉じる"
-                  >
-                    ×
-                  </button>
+                <div className="direction-map-search">
                   {searchBody}
                 </div>
               )}
-            </div>
+            </>
           );
         }
 

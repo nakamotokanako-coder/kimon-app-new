@@ -27,7 +27,7 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5, ji
     expect(document.querySelector('.direction-map-search-row')).toBeTruthy();
   });
 
-  it('jiban×フルスクリーンでは既定で検索UIが畳まれ、トグルで開閉できる', () => {
+  it('jiban×フルスクリーンでは既定で検索UIが畳まれ、同じトグルボタンで開閉できる', () => {
     render(
       <DirectionMap
         location={LOCATION}
@@ -43,13 +43,12 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5, ji
     expect(screen.getByRole('button', { name: '🔍 検索' })).toBeTruthy();
     expect(document.querySelector('.direction-map-search-row')).toBe(null);
 
-    // トグルで展開。
+    // トグルで展開（グリッド内に通常表示。absoluteオーバーレイは使わない）。
     fireEvent.click(screen.getByRole('button', { name: '🔍 検索' }));
     expect(document.querySelector('.direction-map-search-row')).toBeTruthy();
-    expect(document.querySelector('.direction-map-search--overlay')).toBeTruthy();
 
-    // ×で再び畳める。
-    fireEvent.click(screen.getByRole('button', { name: '検索を閉じる' }));
+    // 同じボタン（ラベルが「検索を閉じる」に変わる）で再び畳める。
+    fireEvent.click(screen.getByRole('button', { name: '🔍 検索を閉じる' }));
     expect(document.querySelector('.direction-map-search-row')).toBe(null);
   });
 
