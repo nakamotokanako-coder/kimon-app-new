@@ -161,7 +161,7 @@ describe('DirectionMap GOゾーン再構成（PR-2.6, jibanのみ）', () => {
     expect(screen.queryByText('お気に入り')).toBe(null);
   });
 
-  it('jibanでは地図が .direction-map-stage でラップされ、全画面/現在地ボタン・凡例が地図上オーバーレイになる', () => {
+  it('jibanでも全画面/現在地ボタン・凡例は地図上オーバーレイにせず、in-flowヘッダー行・凡例で描画する（PR-2.7）', () => {
     render(
       <DirectionMap
         location={LOCATION}
@@ -170,13 +170,16 @@ describe('DirectionMap GOゾーン再構成（PR-2.6, jibanのみ）', () => {
         profileKey="jiban"
       />,
     );
-    const stage = document.querySelector('.direction-map-stage');
-    expect(stage).toBeTruthy();
-    expect(stage.querySelector('.direction-map')).toBeTruthy();
-    expect(stage.querySelector('.direction-map-overlay-actions')).toBeTruthy();
-    expect(stage.querySelector('.direction-map-legend--overlay')).toBeTruthy();
-    // 通常のヘッダー行（旧位置の全画面/現在地ボタン）は出さない。
-    expect(document.querySelector('.direction-map-header')).toBe(null);
+    // オーバーレイ土台・オーバーレイ要素は使わない。
+    expect(document.querySelector('.direction-map-stage')).toBe(null);
+    expect(document.querySelector('.direction-map-overlay-actions')).toBe(null);
+    expect(document.querySelector('.direction-map-legend--overlay')).toBe(null);
+    // 通常のヘッダー行（全画面/現在地ボタン）と凡例がin-flowで描画される。
+    const header = document.querySelector('.direction-map-header');
+    expect(header).toBeTruthy();
+    expect(header.querySelector('.direction-map-action')).toBeTruthy();
+    expect(document.querySelector('.direction-map-legend')).toBeTruthy();
+    expect(document.querySelector('.direction-map')).toBeTruthy();
   });
 
   it('nichibanは従来どおり通常のヘッダー行・凡例のまま（地図オーバーレイ化しない）', () => {

@@ -859,38 +859,31 @@ export default function DirectionMap({
     if (!isFullscreen) setFullscreenSearchOpen(false);
   }, [isFullscreen]);
 
-  // PR-2.6: 時盤お散歩(jiban)の非フルスクリーン表示だけ、地図を主役化して
-  // 全画面/現在地ボタン・凡例を地図上オーバーレイへ移す。フルスクリーン中は
-  // 従来どおり通常のヘッダー行に戻す（PR-2.5の折りたたみ検索とも整合させる）。
-  const useMapOverlayLayout = profileKey === 'jiban' && !isFullscreen;
-
   return (
     <div className={`direction-map-wrap ${isFullscreen ? 'is-fullscreen' : ''}`}>
-      {!useMapOverlayLayout && (
-        <div className="direction-map-header">
-          {profileKey !== 'jiban' && (
-            <div className="direction-map-note">
-              <span>{profile.note[0]}</span>
-              <span>{profile.note[1]}</span>
-            </div>
-          )}
-          <button
-            type="button"
-            className="direction-map-action"
-            onClick={() => setIsFullscreen((value) => !value)}
-          >
-            {isFullscreen ? '閉じる' : '⛶ 全画面'}
-          </button>
-          <button
-            type="button"
-            className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
-            onClick={toggleLiveLocation}
-            aria-pressed={liveOn}
-          >
-            {liveOn ? '現在地ON' : '現在地'}
-          </button>
-        </div>
-      )}
+      <div className="direction-map-header">
+        {profileKey !== 'jiban' && (
+          <div className="direction-map-note">
+            <span>{profile.note[0]}</span>
+            <span>{profile.note[1]}</span>
+          </div>
+        )}
+        <button
+          type="button"
+          className="direction-map-action"
+          onClick={() => setIsFullscreen((value) => !value)}
+        >
+          {isFullscreen ? '閉じる' : '⛶ 全画面'}
+        </button>
+        <button
+          type="button"
+          className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
+          onClick={toggleLiveLocation}
+          aria-pressed={liveOn}
+        >
+          {liveOn ? '現在地ON' : '現在地'}
+        </button>
+      </div>
 
       {isFullscreen && (
         <BearingControls
@@ -1034,44 +1027,9 @@ export default function DirectionMap({
         </div>
       )}
 
-      {profileKey === 'jiban' ? (
-        // PR-2.6: jiban は常に .direction-map-stage で地図をラップする
-        // （フルスクリーン切替時に地図divの親構造を変えず、Leafletのマウント先
-        // ノードを不用意に作り直さないため）。オーバーレイの子要素だけを
-        // 非フルスクリーン時に限り追加する。
-        <div className="direction-map-stage">
-          <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
-          {useMapOverlayLayout && (
-            <>
-              <div className="direction-map-overlay-actions">
-                <button
-                  type="button"
-                  className="direction-map-overlay-btn"
-                  onClick={() => setIsFullscreen(true)}
-                >
-                  ⛶ 全画面
-                </button>
-                <button
-                  type="button"
-                  className={`direction-map-overlay-btn ${liveOn ? 'is-active' : ''}`}
-                  onClick={toggleLiveLocation}
-                  aria-pressed={liveOn}
-                >
-                  {liveOn ? '現在地ON' : '◎ 現在地'}
-                </button>
-              </div>
-              <div className="direction-map-legend direction-map-legend--overlay">
-                <span><i className="legend-swatch tone-great" />大吉</span>
-                <span><i className="legend-swatch tone-weak" />小吉</span>
-                <span><i className="legend-swatch tone-neutral" />中立</span>
-                <span><i className="legend-swatch tone-bad" />凶</span>
-              </div>
-            </>
-          )}
-        </div>
-      ) : (
-        <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
-      )}
+      {/* Leaflet上へのposition:absoluteオーバーレイUIは実機でペイント不発の実績あり
+          （PR-2.5, PR-2.6）。in-flow配置（このヘッダー行・下の凡例）を維持すること。 */}
+      <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
       {needsAreaSearch && lastAreaSearchRef.current && (
         <button
           type="button"
@@ -1183,14 +1141,12 @@ export default function DirectionMap({
           <p>{profile.scaleNote}</p>
         </div>
       )}
-      {!useMapOverlayLayout && (
-        <div className="direction-map-legend">
-          <span><i className="legend-swatch tone-great" />大吉</span>
-          <span><i className="legend-swatch tone-weak" />小吉</span>
-          <span><i className="legend-swatch tone-neutral" />中立</span>
-          <span><i className="legend-swatch tone-bad" />凶</span>
-        </div>
-      )}
+      <div className="direction-map-legend">
+        <span><i className="legend-swatch tone-great" />大吉</span>
+        <span><i className="legend-swatch tone-weak" />小吉</span>
+        <span><i className="legend-swatch tone-neutral" />中立</span>
+        <span><i className="legend-swatch tone-bad" />凶</span>
+      </div>
       {editingFavorite && (
         <div className="direction-favorite-modal" role="dialog" aria-modal="true" aria-label="お気に入りの編集">
           <div className="direction-favorite-sheet">

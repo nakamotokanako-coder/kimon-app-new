@@ -7663,17 +7663,13 @@ body {
   gap: 12px;
 }
 
-/* 地図（.direction-map-stage）の高さはPR-2.6のまま400px固定を維持する
-   （スクロール周りの修正とは独立。jiban限定のオーバーレイ地図の土台）。 */
-.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map-stage {
+/* 地図の高さはPR-2.6の400px固定を維持する（jiban限定。スクロール周りの
+   修正とは独立）。PR-2.7でオーバーレイ土台(.direction-map-stage)を撤回した後は
+   .direction-map に直接指定する（in-flowヘッダー行/凡例に戻したため）。 */
+.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map {
   height: 400px;
   min-height: 400px;
   flex: none;
-}
-
-.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map-stage .direction-map {
-  height: 100%;
-  min-height: 0;
 }
 
 /* ── 願い5軸 配色（PR-2: 統合カード）。yoho_sanpo_v6_3layer.html の .fusion 準拠。 ── */
@@ -7865,56 +7861,13 @@ body {
 
 /* ── PR-2.6: GOゾーン再構成（時盤お散歩=jibanのみ） ── */
 
-/* 地図の土台。非フルスクリーン時はここに全画面/現在地ボタン・凡例を
-   オーバーレイする。フルスクリーン時はオーバーレイ子要素を描画しないため
-   通常のグリッド行としてそのまま伸縮する（backdrop-filterは使わない）。 */
-.direction-map-stage {
-  position: relative;
-  min-height: 0;
-}
-
-.direction-map-overlay-actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.direction-map-overlay-btn {
-  min-width: 0;
-  border: 1px solid rgba(58, 52, 42, 0.18);
-  border-radius: 10px;
-  padding: 0 12px;
-  height: 34px;
-  background: rgba(255, 253, 247, 0.95);
-  color: #3a342a;
-  font-size: 0.7rem;
-  font-weight: 700;
-  box-shadow: 0 1px 4px rgba(58, 52, 42, 0.12);
-}
-
-.direction-map-overlay-btn.is-active {
-  border-color: #2e9e5b;
-  background: #2e9e5b;
-  color: #fff;
-}
-
-.direction-map-legend--overlay {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  z-index: 10;
-  margin: 0;
-  flex-wrap: nowrap;
-  background: rgba(255, 253, 247, 0.92);
-  border: 1px solid rgba(58, 52, 42, 0.18);
-  border-radius: 999px;
-  padding: 5px 12px;
-  color: #3a342a;
-}
+/* PR-2.7: 地図上へのposition:absoluteオーバーレイ（全画面/現在地ボタン・凡例）は
+   実機でペイント不発（DOM/ヒットテストは正常なのに描画されない）という不具合が
+   確認されたため撤回した。.direction-map-stage / .direction-map-overlay-* /
+   .direction-map-legend--overlay は削除済み。ボタン・凡例は
+   .direction-map-header / .direction-map-legend の通常のin-flow表示に戻した
+   （nichibanと同じ実績のあるレイアウト）。同じ轍を踏まないよう、地図上への
+   position:absoluteオーバーレイUIは再導入しないこと。 */
 
 /* 「吉方位だけ」チップ（点線ボーダーで通常チップと区別。フィルタ挙動は無改変）。 */
 .direction-map-chip-toggle {
