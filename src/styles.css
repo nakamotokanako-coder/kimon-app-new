@@ -7642,48 +7642,29 @@ body {
   font-weight: 800;
 }
 
-/* ── 時盤お散歩（map-first, PR-1）: 画面1枚に収め、地図に残り全域を割り当てる ──
-   .reverse-view の祖先 .app.app-with-tabs が padding-top:20px / padding-bottom:110px
-  （フローティング下タブバー分の予約）を持つため、100dvh からその分を差し引く。 */
-.reverse-view--walk {
-  height: calc(100dvh - 20px - 110px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  gap: 12px;
-}
-
-.reverse-view--walk > .reverse-header,
-.reverse-view--walk > .base-bar,
-.reverse-view--walk > .reverse-mode-tabs {
-  flex: none;
-}
-
+/* ── 時盤お散歩（jiban）レイアウト経緯 ──
+   PR-1では「画面1枚に収め、地図に残り全域を割り当てる」ため .reverse-view--walk を
+   固定高さ(calc(100dvh - 20px - 110px)) + overflow:hidden にし、.reverse-walk-body
+   を内部スクロール(overflow-y:auto)の逃がし先にしていた。
+   PR-2.6で地図を280px→400pxに拡大しお気に入りストリップを新設した結果、中身の
+   合計がスクロール窓（当時のまま変わらない約328px）の3倍を超え、「地図を拡大した
+   のに表示領域は据え置き」という不具合が発生した。
+   PR-2.7: 「1画面に収める」前提はコンテンツ増加により破綻したと判断し、内部スクロール
+   の仕組み自体を撤去。他の全モード（日盤遠出・時盤ランキング等）と同じ、通常の
+   ページスクロールに統一する。「地図を常に見たい」ニーズは既存の「⛶ 全画面」
+   ボタン（position:fixedのフルスクリーン表示、このコンテナに依存しない）が受け皿。
+   .reverse-view--walk 自体はもう高さ・overflowを持たず、.reverse-view の通常の
+   display:grid のまま流れる。.reverse-walk-body は内部スクロールをやめた後も
+   子要素間の見た目の余白(gap)だけを保つため、display:flex + gap を残す
+   （flex:1・min-height:0・overflow-y:auto は撤去）。 */
 .reverse-view--walk .reverse-walk-body {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
   gap: 12px;
 }
 
-.reverse-view--walk .reverse-walk-body > .reverse-zone:not(.reverse-go-zone),
-.reverse-view--walk .reverse-walk-body > .omamori-wrap {
-  flex: none;
-}
-
-/* 地図はネストしたflex growチェーンにせず、「walk-bodyのスクロール内にある
-   固定高さブロック」として扱う。地図に続く要素（お守りバー・地図内キャプション/
-   お気に入りパネル等）の有無や量に関わらず地図自体は常に確定した高さになるため、
-   途中階層のflex計算に左右されずスクロール終端で下端まで到達できる。
-   .reverse-go-zone / .reverse-go-step-to / .reverse-go-card は元の
-   display:grid のまま（内容ベースの自然な高さ）に戻し、地図の固定高さだけを
-   親へそのまま伝える。
-   PR-2.6: GOゾーン再構成で地図を主役化するため 280px→400px に拡大し、
-   jiban専用の .direction-map-stage（オーバーレイの土台）に対して固定高を
-   設定、内側の .direction-map は 100% で追従させる。 */
+/* 地図（.direction-map-stage）の高さはPR-2.6のまま400px固定を維持する
+   （スクロール周りの修正とは独立。jiban限定のオーバーレイ地図の土台）。 */
 .reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map-stage {
   height: 400px;
   min-height: 400px;
