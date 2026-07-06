@@ -96,7 +96,7 @@ export default function FusionCard({ best, boardKey }) {
     }
   } else {
     leadText = short || (palaces ? 'この方位・願いごとの解説はありません。' : '読み込み中…');
-    if (short) bodyNode = <div className="m-body m-cta">続きはプロ版のフルリーディングで読めます。</div>;
+    if (short) bodyNode = <div className="m-body m-cta">ログインすると続きが読めます。</div>;
   }
 
   return (

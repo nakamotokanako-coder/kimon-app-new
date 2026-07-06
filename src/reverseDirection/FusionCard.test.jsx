@@ -142,7 +142,7 @@ describe('FusionCard フォールバック', () => {
 
     expect(calls.some((url) => url.startsWith('/api/kaisetsu-full?'))).toBe(false);
     expect(document.body.textContent).not.toContain(MID_TEXT_GOEN);
-    expect(document.body.textContent).toContain('プロ版');
+    expect(document.body.textContent).toContain('ログインすると続きが読めます。');
   });
 
   it('paid中のfull取得失敗ではクラッシュせず「読み込みに失敗しました」を表示する', async () => {

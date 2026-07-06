@@ -7676,15 +7676,23 @@ body {
 
 /* 地図はネストしたflex growチェーンにせず、「walk-bodyのスクロール内にある
    固定高さブロック」として扱う。地図に続く要素（お守りバー・地図内キャプション/
-   お気に入りパネル等）の有無や量に関わらず地図自体は常に280pxで確定するため、
+   お気に入りパネル等）の有無や量に関わらず地図自体は常に確定した高さになるため、
    途中階層のflex計算に左右されずスクロール終端で下端まで到達できる。
    .reverse-go-zone / .reverse-go-step-to / .reverse-go-card は元の
    display:grid のまま（内容ベースの自然な高さ）に戻し、地図の固定高さだけを
-   親へそのまま伝える。 */
-.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map {
-  height: 280px;
-  min-height: 280px;
+   親へそのまま伝える。
+   PR-2.6: GOゾーン再構成で地図を主役化するため 280px→400px に拡大し、
+   jiban専用の .direction-map-stage（オーバーレイの土台）に対して固定高を
+   設定、内側の .direction-map は 100% で追従させる。 */
+.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map-stage {
+  height: 400px;
+  min-height: 400px;
   flex: none;
+}
+
+.reverse-view--walk .direction-map-wrap:not(.is-fullscreen) .direction-map-stage .direction-map {
+  height: 100%;
+  min-height: 0;
 }
 
 /* ── 願い5軸 配色（PR-2: 統合カード）。yoho_sanpo_v6_3layer.html の .fusion 準拠。 ── */
@@ -7872,4 +7880,177 @@ body {
 .direction-map-search-toggle.is-open {
   border-color: var(--text-accent);
   color: var(--text-accent);
+}
+
+/* ── PR-2.6: GOゾーン再構成（時盤お散歩=jibanのみ） ── */
+
+/* 地図の土台。非フルスクリーン時はここに全画面/現在地ボタン・凡例を
+   オーバーレイする。フルスクリーン時はオーバーレイ子要素を描画しないため
+   通常のグリッド行としてそのまま伸縮する（backdrop-filterは使わない）。 */
+.direction-map-stage {
+  position: relative;
+  min-height: 0;
+}
+
+.direction-map-overlay-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.direction-map-overlay-btn {
+  min-width: 0;
+  border: 1px solid rgba(58, 52, 42, 0.18);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 34px;
+  background: rgba(255, 253, 247, 0.95);
+  color: #3a342a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(58, 52, 42, 0.12);
+}
+
+.direction-map-overlay-btn.is-active {
+  border-color: #2e9e5b;
+  background: #2e9e5b;
+  color: #fff;
+}
+
+.direction-map-legend--overlay {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 10;
+  margin: 0;
+  flex-wrap: nowrap;
+  background: rgba(255, 253, 247, 0.92);
+  border: 1px solid rgba(58, 52, 42, 0.18);
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: #3a342a;
+}
+
+/* 「吉方位だけ」チップ（点線ボーダーで通常チップと区別。フィルタ挙動は無改変）。 */
+.direction-map-chip-toggle {
+  flex: none;
+  padding: 6px 10px;
+  border: 1.5px dashed var(--border-subtle);
+  border-radius: 9px;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.direction-map-chip-toggle.on {
+  border-style: solid;
+  border-color: var(--text-accent);
+  background: var(--text-accent);
+  color: #1a1606;
+}
+
+/* お気に入りストリップ（地図直下・横スクロール）。 */
+.fav-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.fav-head-en {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--text-accent);
+}
+
+.fav-head-cnt {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.fav-head-all {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--text-accent);
+  font-weight: 800;
+}
+
+.fav-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  scrollbar-width: none;
+}
+
+.fav-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.fav-card {
+  flex: none;
+  width: 190px;
+  text-align: left;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-cell);
+  padding: 9px 12px;
+  color: inherit;
+  font-family: inherit;
+}
+
+.fav-card.is-selected {
+  border-color: var(--accent);
+}
+
+.fav-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fav-dir-pill {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 8px;
+  padding: 3px 8px;
+  line-height: 1.4;
+}
+
+.fav-score {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.fav-name {
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.fav-dist {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.fav-empty {
+  margin: 0;
+  padding: 10px 2px;
+  color: var(--text-secondary);
+  font-size: 12px;
 }

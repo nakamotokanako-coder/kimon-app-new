@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
+import FavoritesStrip from './FavoritesStrip.jsx';
 import FusionCard from './FusionCard.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
 import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
@@ -223,7 +224,6 @@ export default function ReverseDirectionView({
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
-  const [goView, setGoView] = useState('map');
   const [dayGoView, setDayGoView] = useState('map');
   const [basePointOpen, setBasePointOpen] = useState(false);
   const [dayBasePointOpen, setDayBasePointOpen] = useState(false);
@@ -232,6 +232,8 @@ export default function ReverseDirectionView({
   const [dayMiniBoardOpen, setDayMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
+  // GOゾーン再構成(PR-2.6): 時盤お散歩のみ「すべて見る」でお気に入りフルリストを開閉する。
+  const [showFavoritesList, setShowFavoritesList] = useState(false);
   const [basePointEstablished, setBasePointEstablished] = useState(true);
   const [ctaSearchOpen, setCtaSearchOpen] = useState(false);
   // 出発点ピッカーのグループ開閉（mock v9: 🏠拠点=開 / ⭐お気に入り=閉 / 住所検索=閉）
@@ -842,6 +844,34 @@ export default function ReverseDirectionView({
     </div>
   );
 
+  // PR-2.6: 時盤お散歩モード専用のGOゾーン。地図を常時主役表示にし、
+  // 従来のタブ切替(地図で探す/お気に入り)・見出し・📍バナーを廃止して
+  // 地図直下にお気に入りストリップを新設する。日盤遠出は renderGoZone のまま。
+  const renderJibanGoZone = ({ rankings, bestPalace }) => (
+    <div className="reverse-zone reverse-go-zone reverse-go-zone--jiban">
+      <div className="reverse-card reverse-go-card">
+        <DirectionMap
+          location={location}
+          rankings={rankings}
+          bestPalace={bestPalace}
+          profileKey="jiban"
+          showScale={false}
+          focusFavoriteKey={focusedFavoriteKey}
+          showSearchControls
+          showPlacePanel
+          showFavoritesSection={showFavoritesList}
+        />
+      </div>
+
+      <FavoritesStrip
+        chips={favoriteChips}
+        focusedKey={focusedFavoriteKey}
+        onFocusKey={setFocusedFavoriteKey}
+        onShowAll={() => setShowFavoritesList((value) => !value)}
+      />
+    </div>
+  );
+
   const timelineSection = (
     <>
       {filterCard}
@@ -997,19 +1027,9 @@ export default function ReverseDirectionView({
             </div>
           </div>
 
-          {renderGoZone({
+          {renderJibanGoZone({
             rankings: reverse.rankings,
             bestPalace: best?.palace,
-            profileKey: 'jiban',
-            goViewValue: goView,
-            onGoViewChange: setGoView,
-            chips: favoriteChips,
-            focusedKey: focusedFavoriteKey,
-            onFocusKey: setFocusedFavoriteKey,
-            basePointOpenValue: basePointOpen,
-            onToggleBasePoint: () => setBasePointOpen((value) => !value),
-            baseSubLabel: <small>自然時補正 <b className="lat">{formatCorrection(correction)}</b></small>,
-            hideOnboarding: true,
           })}
 
           <LuckyOmamoriBar
