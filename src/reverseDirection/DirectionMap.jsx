@@ -136,6 +136,9 @@ export default function DirectionMap({
   focusFavoriteKey = '',
   showSearchControls = true,
   showPlacePanel = true,
+  // PR-2.6: お気に入りの「フルリスト」節を独立して開閉する（既定は従来どおり表示）。
+  // 時盤お散歩(jiban)の新レイアウトだけが「すべて見る」タップで true にする。
+  showFavoritesSection = true,
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jibanのみ。日盤遠出=nichibanは常時展開のまま）。
@@ -870,7 +873,7 @@ export default function DirectionMap({
           className="direction-map-action"
           onClick={() => setIsFullscreen((value) => !value)}
         >
-          {isFullscreen ? '閉じる' : '拡大'}
+          {isFullscreen ? '閉じる' : '⛶ 全画面'}
         </button>
         <button
           type="button"
@@ -891,23 +894,63 @@ export default function DirectionMap({
       )}
 
       {showSearchControls && (() => {
-        const searchBody = (
+        const searchForm = (
+          <form
+            className="direction-map-search-row"
+            onSubmit={(event) => {
+              event.preventDefault();
+              runMapSearch();
+            }}
+          >
+            <input
+              type="search"
+              value={mapQuery}
+              placeholder="施設や地名を検索"
+              onChange={(event) => setMapQuery(event.target.value)}
+            />
+            <button type="submit" disabled={mapSearching}>検索</button>
+          </form>
+        );
+        const searchStatusBlock = (
           <>
-            <form
-              className="direction-map-search-row"
-              onSubmit={(event) => {
-                event.preventDefault();
-                runMapSearch();
-              }}
-            >
-              <input
-                type="search"
-                value={mapQuery}
-                placeholder="施設や地名を検索"
-                onChange={(event) => setMapQuery(event.target.value)}
-              />
-              <button type="submit" disabled={mapSearching}>検索</button>
-            </form>
+            {mapError && (
+              <div className="direction-map-error" role="alert">
+                <p className="direction-map-error-main">{mapError.main}</p>
+                <p className="direction-map-error-hint">{mapError.hint}</p>
+                {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
+              </div>
+            )}
+            {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
+            {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
+          </>
+        );
+
+        // PR-2.6: 時盤お散歩(jiban)は「吉方位だけ」をチップ列の先頭へ移設
+        // （点線ボーダーの見た目違いで区別、フィルタ挙動そのものは既存のまま）。
+        // 日盤遠出(nichiban)は従来どおりチップ列の下にチェックボックスで表示する。
+        const searchBody = profileKey === 'jiban' ? (
+          <>
+            {searchForm}
+            <div className="direction-map-chips">
+              <button
+                type="button"
+                className={`direction-map-chip-toggle ${kichiOnlyPlaces ? 'on' : ''}`}
+                aria-pressed={kichiOnlyPlaces}
+                onClick={() => setKichiOnlyPlaces((value) => !value)}
+              >
+                ✓ 吉方位だけ
+              </button>
+              {FACILITY_PRESETS.slice(0, 6).map((preset) => (
+                <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            {searchStatusBlock}
+          </>
+        ) : (
+          <>
+            {searchForm}
             <div className="direction-map-chips">
               {FACILITY_PRESETS.slice(0, 6).map((preset) => (
                 <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
@@ -923,15 +966,7 @@ export default function DirectionMap({
               />
               吉方位だけ
             </label>
-            {mapError && (
-              <div className="direction-map-error" role="alert">
-                <p className="direction-map-error-main">{mapError.main}</p>
-                <p className="direction-map-error-hint">{mapError.hint}</p>
-                {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
-              </div>
-            )}
-            {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
-            {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
+            {searchStatusBlock}
           </>
         );
 
@@ -992,6 +1027,8 @@ export default function DirectionMap({
         </div>
       )}
 
+      {/* Leaflet上へのposition:absoluteオーバーレイUIは実機でペイント不発の実績あり
+          （PR-2.5, PR-2.6）。in-flow配置（このヘッダー行・下の凡例）を維持すること。 */}
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
       {needsAreaSearch && lastAreaSearchRef.current && (
         <button
@@ -1004,9 +1041,9 @@ export default function DirectionMap({
         </button>
       )}
 
-      {showPlacePanel && (decoratedFavorites.length > 0 || visibleSearchResults.length > 0 || selectedPlace) && (
+      {showPlacePanel && ((showFavoritesSection && decoratedFavorites.length > 0) || visibleSearchResults.length > 0 || selectedPlace) && (
         <div className="direction-place-panel">
-          {decoratedFavorites.length > 0 && (
+          {showFavoritesSection && decoratedFavorites.length > 0 && (
             <div className="direction-place-section">
               <div className="reverse-section-title">
                 <span className="reverse-section-kicker lat">favorites</span>
