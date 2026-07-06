@@ -138,6 +138,8 @@ export default function DirectionMap({
   showPlacePanel = true,
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jibanのみ。日盤遠出=nichibanは常時展開のまま）。
+  const [fullscreenSearchOpen, setFullscreenSearchOpen] = useState(false);
   const [bearingMode, setBearingMode] = useState(() => readBearingSettings().mode);
   const [useDeclination, setUseDeclination] = useState(() => readBearingSettings().declination);
   // 今見えている地図の端までの距離(km)。扇の外縁伸縮＋平面/球面の自動切替に使う（moveend/zoomendで更新）。
@@ -849,13 +851,20 @@ export default function DirectionMap({
     return () => window.clearTimeout(timer);
   }, [isFullscreen]);
 
+  // フルスクリーンを抜けたら、次に開いたときは必ず畳んだ状態から始める。
+  useEffect(() => {
+    if (!isFullscreen) setFullscreenSearchOpen(false);
+  }, [isFullscreen]);
+
   return (
     <div className={`direction-map-wrap ${isFullscreen ? 'is-fullscreen' : ''}`}>
       <div className="direction-map-header">
-        <div className="direction-map-note">
-          <span>{profile.note[0]}</span>
-          <span>{profile.note[1]}</span>
-        </div>
+        {profileKey !== 'jiban' && (
+          <div className="direction-map-note">
+            <span>{profile.note[0]}</span>
+            <span>{profile.note[1]}</span>
+          </div>
+        )}
         <button
           type="button"
           className="direction-map-action"
@@ -881,50 +890,83 @@ export default function DirectionMap({
         />
       )}
 
-      {showSearchControls && (
-        <div className="direction-map-search">
-          <form
-            className="direction-map-search-row"
-            onSubmit={(event) => {
-              event.preventDefault();
-              runMapSearch();
-            }}
-          >
-            <input
-              type="search"
-              value={mapQuery}
-              placeholder="施設や地名を検索"
-              onChange={(event) => setMapQuery(event.target.value)}
-            />
-            <button type="submit" disabled={mapSearching}>検索</button>
-          </form>
-          <div className="direction-map-chips">
-            {FACILITY_PRESETS.slice(0, 6).map((preset) => (
-              <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
-                {preset.label}
-              </button>
-            ))}
-          </div>
-          <label className="direction-kichi-filter">
-            <input
-              type="checkbox"
-              checked={kichiOnlyPlaces}
-              onChange={(event) => setKichiOnlyPlaces(event.target.checked)}
-            />
-            吉方位だけ
-          </label>
-          <p className="direction-map-hint">🔍 検索したい時は地図を拡大してください（広範囲だと検索結果が出ないことがあります）</p>
-          {mapError && (
-            <div className="direction-map-error" role="alert">
-              <p className="direction-map-error-main">{mapError.main}</p>
-              <p className="direction-map-error-hint">{mapError.hint}</p>
-              {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
+      {showSearchControls && (() => {
+        const searchBody = (
+          <>
+            <form
+              className="direction-map-search-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                runMapSearch();
+              }}
+            >
+              <input
+                type="search"
+                value={mapQuery}
+                placeholder="施設や地名を検索"
+                onChange={(event) => setMapQuery(event.target.value)}
+              />
+              <button type="submit" disabled={mapSearching}>検索</button>
+            </form>
+            <div className="direction-map-chips">
+              {FACILITY_PRESETS.slice(0, 6).map((preset) => (
+                <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
+                  {preset.label}
+                </button>
+              ))}
             </div>
-          )}
-          {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
-          {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
-        </div>
-      )}
+            <label className="direction-kichi-filter">
+              <input
+                type="checkbox"
+                checked={kichiOnlyPlaces}
+                onChange={(event) => setKichiOnlyPlaces(event.target.checked)}
+              />
+              吉方位だけ
+            </label>
+            {mapError && (
+              <div className="direction-map-error" role="alert">
+                <p className="direction-map-error-main">{mapError.main}</p>
+                <p className="direction-map-error-hint">{mapError.hint}</p>
+                {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
+              </div>
+            )}
+            {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
+            {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
+          </>
+        );
+
+        // 時盤お散歩（jiban）のフルスクリーンだけ、検索UIを既定で畳んだトグルにする。
+        // 日盤遠出(nichiban)はフルスクリーンでも従来どおり常時展開のまま。
+        //
+        // 実機（iOS Safari）検証で position:absolute オーバーレイ案は
+        // タップが通らない不具合が確認されたため撤回し、グリッド内に通常表示する
+        // シンプルな方式に倒した（展開中は地図の高さを一時的に譲る）。
+        if (isFullscreen && profileKey === 'jiban') {
+          return (
+            <>
+              <button
+                type="button"
+                className={`direction-map-search-toggle ${fullscreenSearchOpen ? 'is-open' : ''}`}
+                onClick={() => setFullscreenSearchOpen((value) => !value)}
+                aria-expanded={fullscreenSearchOpen}
+              >
+                {fullscreenSearchOpen ? '🔍 検索を閉じる' : '🔍 検索'}
+              </button>
+              {fullscreenSearchOpen && (
+                <div className="direction-map-search">
+                  {searchBody}
+                </div>
+              )}
+            </>
+          );
+        }
+
+        return (
+          <div className="direction-map-search">
+            {searchBody}
+          </div>
+        );
+      })()}
 
       {!isFullscreen && (
         <div className={`direction-bearing-accordion ${bearingPanelOpen ? 'is-open' : ''}`}>
@@ -1031,7 +1073,7 @@ export default function DirectionMap({
         </div>
       )}
 
-      <p className="direction-map-caption">{profile.caption}</p>
+      {profileKey !== 'jiban' && <p className="direction-map-caption">{profile.caption}</p>}
       {showScale && (
         <div className="direction-scale-card">
           <h3>{profile.scaleTitle}</h3>

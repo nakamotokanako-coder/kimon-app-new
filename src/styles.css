@@ -3247,14 +3247,6 @@ body {
   font-weight: 800;
 }
 
-.direction-map-hint {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.68rem;
-  line-height: 1.45;
-  opacity: 0.85;
-}
-
 .direction-map-error {
   display: grid;
   gap: 4px;
@@ -7855,4 +7847,29 @@ body {
 .m-cta {
   color: var(--accent-edge, var(--accent));
   font-weight: 400;
+}
+
+/* ── PR-2.5: 時盤お散歩(jiban)のフルスクリーン地図で検索UIをトグル表示。
+   日盤遠出(nichiban)は対象外。
+   実機(iOS Safari)検証でposition:absoluteオーバーレイ案はタップが通らない
+   不具合が確認されたため撤回。グリッド内の通常表示に倒し、展開中は
+   地図の高さを一時的に譲るシンプルな方式にした（absolute/z-index/
+   backdrop-filterは一切使わない）。 ── */
+.direction-map-search-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.direction-map-search-toggle.is-open {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
 }
