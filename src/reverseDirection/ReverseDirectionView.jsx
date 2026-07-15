@@ -241,6 +241,8 @@ export default function ReverseDirectionView({
   const [spotGroupOpen, setSpotGroupOpen] = useState(false);
   const [addrSearchOpen, setAddrSearchOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  // L3ボトムシート（PR-5）: FusionCard(L2)と共有する軸選択。
+  const [selAxis, setSelAxis] = useState('goen');
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -359,6 +361,16 @@ export default function ReverseDirectionView({
 
   const refreshFavorites = useCallback(() => {
     setFavorites(readStoredFavorites());
+  }, []);
+
+  // L3ボトムシートのCTA「この方位で行き先を探す」用。GOゾーンの検索窓へ
+  // スクロール＋フォーカスする（DirectionMap.jsx側のid付与とセット）。
+  const scrollToGoSearch = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById('yoho-go-search-input');
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {
@@ -1000,7 +1012,14 @@ export default function ReverseDirectionView({
               </small>
             </div>
 
-            <FusionCard best={best} boardKey={reverse.board.meta.kyokusu + reverse.board.meta.eto} />
+            <FusionCard
+              best={best}
+              boardKey={reverse.board.meta.kyokusu + reverse.board.meta.eto}
+              banLevel={reverse.board.score.ban_level}
+              selAxis={selAxis}
+              onAxisChange={setSelAxis}
+              onGoToSearch={scrollToGoSearch}
+            />
 
             <div className="reverse-card reverse-now-board-card">
               <button

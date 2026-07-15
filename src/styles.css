@@ -7982,6 +7982,207 @@ body {
   margin-top: 1px;
 }
 
+/* ── PR-5: 吉方位タブ L3ボトムシート（FusionCardタップで開く詳細層）──
+   開閉は盤タブ BottomSheet.jsx と同じ方式（createPortal・常時マウント・
+   .openクラス・transformスライド・Escape対応）。backdrop-filterは使わない。
+   z-index は下部タブバー(100)より確実に上、BasePointSheet(200/201)より下に
+   固定する（同時に開かないため衝突しない）。 ── */
+.fusion-more-hint {
+  margin-top: 8px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.l3-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.l3-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.l3-sheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 151;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  background: var(--bg-main);
+  border-top: 1px solid var(--border-subtle);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -18px 42px -28px rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.l3-sheet.open {
+  transform: translateY(0);
+}
+
+.l3-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.l3-handle::before {
+  content: "";
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+}
+
+.l3-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 20px;
+}
+
+.l3-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0 6px;
+}
+
+.l3-reading {
+  margin-top: 12px;
+}
+
+.l3-reading-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.l3-reading-cta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--accent-edge, var(--accent));
+}
+
+.l3-walk-tip {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.l3-walk-tip p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.l3-why {
+  margin-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+}
+
+.l3-why-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.l3-why-toggle::after {
+  content: "›";
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.l3-why-toggle.open::after {
+  transform: rotate(90deg);
+}
+
+.l3-why-detail {
+  display: none;
+  margin-top: 6px;
+}
+
+.l3-why-detail.open {
+  display: block;
+}
+
+.l3-why-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+}
+
+.l3-why-row:first-child {
+  border-top: 0;
+}
+
+.l3-why-factor {
+  flex: none;
+  width: 88px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.l3-why-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.l3-why-empty {
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.l3-actions {
+  margin-top: 14px;
+}
+
+.l3-action-primary {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--bg-main);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .fav-empty {
   margin: 0;
   padding: 10px 2px;
