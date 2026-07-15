@@ -1,8 +1,15 @@
 /* @vitest-environment jsdom */
-import React from 'react';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import React, { useState } from 'react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import FusionCard, { computeAxisRanks, splitMid } from './FusionCard.jsx';
+
+// selAxis は親からの controlled props（PR-5・L3ボトムシート）。
+// 軸切替を試すテストはこの薄いラッパーでstateを持たせる。
+function ControlledFusionCard({ initialAxis = 'goen', ...props }) {
+  const [axis, setAxis] = useState(initialAxis);
+  return <FusionCard {...props} selAxis={axis} onAxisChange={setAxis} />;
+}
 
 // 実在する局key（KaisetsuPanel.test.jsx / kaisetsuApi.test.js と同じ既知キー）。
 const KNOWN_KEY = '陰1局丁卯';
@@ -14,6 +21,12 @@ const BEST = {
   score: 30,
   reasons: ['開門', '直符'],
   palaceData: { hachimon: '開門', hasshin: '直符', kyusei: '天輔', tenban: '乙', chiban: '丁' },
+  palaceScore: {
+    score: 30,
+    breakdown: { hachimon: 12, kyusei: 8, ban_level_minus: -10 },
+    detected_kakkyoku: [],
+    detected_jukkan: [],
+  },
 };
 
 const SHORT_TEXT = 'short api text';
@@ -107,7 +120,7 @@ describe('splitMid', () => {
 describe('FusionCard 軸切替（paid）', () => {
   it('デフォルトはご縁。軸チップのランク記号は classifyPalace 由来で表示される', async () => {
     mockFetchAuth({ loggedIn: true, email: 'paid@example.com', status: 'paid' });
-    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} />);
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(MID_TEXT_GOEN.split('。')[0] + '。');
     const chips = screen.getAllByRole('tab');
@@ -120,7 +133,7 @@ describe('FusionCard 軸切替（paid）', () => {
 
   it('軸チップをクリックするとランク記号・リード・本文が連動して切り替わる', async () => {
     mockFetchAuth({ loggedIn: true, email: 'paid@example.com', status: 'paid' });
-    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} />);
+    render(<ControlledFusionCard best={BEST} boardKey={KNOWN_KEY} />);
 
     await screen.findByText('ご縁の短文リード。');
     const kenkoChip = screen.getAllByRole('tab').find((el) => el.textContent.includes('健康'));
@@ -136,7 +149,7 @@ describe('FusionCard 軸切替（paid）', () => {
 describe('FusionCard フォールバック', () => {
   it('未ログインでは kaisetsu-full をfetchせず、short をリードに・本文位置は軽いCTAにする', async () => {
     const calls = mockFetchAuth({ loggedIn: false });
-    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} />);
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(SHORT_TEXT);
 
@@ -147,21 +160,80 @@ describe('FusionCard フォールバック', () => {
 
   it('paid中のfull取得失敗ではクラッシュせず「読み込みに失敗しました」を表示する', async () => {
     mockFetchAuth({ loggedIn: true, email: 'paid@example.com', status: 'paid' }, { fullThrows: true });
-    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} />);
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText('読み込みに失敗しました');
   });
 
   it('paid中に403を受けてもクラッシュしない', async () => {
     mockFetchAuth({ loggedIn: true, email: 'paid@example.com', status: 'paid' }, { fullStatus: 403 });
-    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} />);
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(SHORT_TEXT);
   });
 
   it('best が無くてもクラッシュせず該当なし表示', () => {
     mockFetchAuth({ loggedIn: false });
-    render(<FusionCard best={null} boardKey={KNOWN_KEY} />);
+    render(<FusionCard best={null} boardKey={KNOWN_KEY} selAxis="goen" />);
     expect(screen.getByText('該当なし')).toBeTruthy();
+  });
+});
+
+describe('FusionCard → L3ボトムシート（PR-5）', () => {
+  it('カードタップでL3シートが開き、スクリムタップで閉じる', async () => {
+    mockFetchAuth({ loggedIn: false });
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
+
+    await screen.findByText(SHORT_TEXT);
+    expect(screen.queryByRole('dialog')).toBe(null);
+
+    fireEvent.click(screen.getByText('詳しく ›'));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toBeTruthy();
+
+    fireEvent.click(document.querySelector('.l3-overlay'));
+    expect(screen.queryByRole('dialog')).toBe(null);
+  });
+
+  it('L3内で軸チップを押すとL2側の選択軸も連動する', async () => {
+    mockFetchAuth({ loggedIn: true, email: 'paid@example.com', status: 'paid' });
+    render(<ControlledFusionCard best={BEST} boardKey={KNOWN_KEY} />);
+
+    await screen.findByText('ご縁の短文リード。');
+    fireEvent.click(screen.getByText('詳しく ›'));
+    const dialog = await screen.findByRole('dialog');
+
+    const kenkoChipInSheet = within(dialog).getAllByRole('tab').find((el) => el.textContent.includes('健康'));
+    fireEvent.click(kenkoChipInSheet);
+
+    await screen.findByText('健康の短文リード。');
+    const kenkoChipInCard = screen.getAllByRole('tab').find((el) => el.closest('.l3-sheet') === null && el.textContent.includes('健康'));
+    expect(kenkoChipInCard.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('anon時はL3にも short と「ログインすると続きが読めます。」が出る', async () => {
+    mockFetchAuth({ loggedIn: false });
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
+
+    await screen.findByText(SHORT_TEXT);
+    fireEvent.click(screen.getByText('詳しく ›'));
+    const dialog = await screen.findByRole('dialog');
+
+    expect(within(dialog).getAllByText(SHORT_TEXT).length).toBeGreaterThan(0);
+    expect(within(dialog).getByText('ログインすると続きが読めます。')).toBeTruthy();
+  });
+
+  it('「評価の解説」内に点数パターン（+N/-N）が表示されない', async () => {
+    mockFetchAuth({ loggedIn: false });
+    render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
+
+    await screen.findByText(SHORT_TEXT);
+    fireEvent.click(screen.getByText('詳しく ›'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByText('評価の解説'));
+
+    const detail = dialog.querySelector('.l3-why-detail');
+    expect(detail).toBeTruthy();
+    expect(detail.textContent).not.toMatch(/[+-]\d/);
   });
 });

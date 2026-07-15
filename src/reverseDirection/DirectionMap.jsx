@@ -903,6 +903,7 @@ export default function DirectionMap({
             }}
           >
             <input
+              id={profileKey === 'jiban' ? 'yoho-go-search-input' : undefined}
               type="search"
               value={mapQuery}
               placeholder="施設や地名を検索"

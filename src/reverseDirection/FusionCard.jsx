@@ -3,6 +3,7 @@ import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { getMiniBoardToneClass } from './reverseDirection.js';
+import L3Sheet from '../components/yoho/L3Sheet.jsx';
 
 // 願い5軸（classifyPalace / kaisetsu API と同一キー。KaisetsuPanel.jsx と同じ表示ラベル）。
 export const AXES = [
@@ -17,9 +18,9 @@ export const AXES = [
 // 軸チップの◎○△▲×（kaisetsu 由来）とは別エンジンの評価であるため、
 // バッジは "総合スコア" 側にのみ責務を持たせる（axisRanks とは食い違い得る。
 // docs/axis_score_mismatch_v1.md 参照）。
-const BADGE_LABEL = { daikichi: '大吉', shokichi: '吉', churitsu: '中立', kyo: '凶' };
+export const BADGE_LABEL = { daikichi: '大吉', shokichi: '吉', churitsu: '中立', kyo: '凶' };
 
-function scoreText(score) {
+export function scoreText(score) {
   return `${score > 0 ? '+' : ''}${score}`;
 }
 
@@ -51,9 +52,19 @@ export function splitMid(mid) {
  * 軸チップ＋意味テキストは kaisetsu（classifyPalace / /api/kaisetsu-full）由来。
  * 2つのデータ源は独立エンジンで食い違うことがあるため、UI上「テーマ別」と
  * ラベリングして総合スコアとは別軸の評価であることを明示する。
+ *
+ * 軸選択（selAxis）は L3ボトムシートと共有するため親から controlled props で受け取る
+ * （PR-5・L3ボトムシート）。boardKey/banLevel は L3 に転送するだけで自身の表示には使わない。
  */
-export default function FusionCard({ best, boardKey }) {
-  const [selAxis, setSelAxis] = useState('goen');
+export default function FusionCard({
+  best,
+  boardKey,
+  banLevel = null,
+  selAxis = 'goen',
+  onAxisChange,
+  onGoToSearch,
+}) {
+  const [isL3Open, setIsL3Open] = useState(false);
   const palace = best?.palace || null;
   const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace), [boardKey, palace]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
@@ -100,46 +111,63 @@ export default function FusionCard({ best, boardKey }) {
   }
 
   return (
-    <div className="reverse-card fusion">
-      <div className="f-top">
-        <div className="dir-badge">
-          <span className="en">{best.short}</span>
-          <span className="jp">{best.label}</span>
+    <>
+      <div className="reverse-card fusion" onClick={() => setIsL3Open(true)}>
+        <div className="f-top">
+          <div className="dir-badge">
+            <span className="en">{best.short}</span>
+            <span className="jp">{best.label}</span>
+          </div>
+          <div className="f-score metal lat">{scoreText(best.score)}</div>
+          <div className="f-meta">
+            <div className="f-tags">{tags || '—'}</div>
+            <div className="f-tags" style={{ opacity: 0.7 }}>{ganshi}</div>
+          </div>
+          {badgeLabel && <div className="kichi-badge">{badgeLabel}</div>}
         </div>
-        <div className="f-score metal lat">{scoreText(best.score)}</div>
-        <div className="f-meta">
-          <div className="f-tags">{tags || '—'}</div>
-          <div className="f-tags" style={{ opacity: 0.7 }}>{ganshi}</div>
+
+        <div className="fusion-axis-kicker">テーマ別の相性</div>
+        <div className="axes" role="tablist" aria-label="願いごと">
+          {AXES.map((a) => {
+            const on = a.key === selAxis;
+            const rank = axisRanks?.[a.key] || '—';
+            return (
+              <button
+                key={a.key}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                className={`axis${on ? ' on' : ''}`}
+                style={on ? { background: `var(--axis-${a.key})`, borderColor: `var(--axis-${a.key})` } : undefined}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAxisChange?.(a.key);
+                }}
+              >
+                {a.label}
+                <span className="rk">{rank}</span>
+              </button>
+            );
+          })}
         </div>
-        {badgeLabel && <div className="kichi-badge">{badgeLabel}</div>}
+
+        <div className="meaning" style={{ borderLeftColor: `var(--axis-${selAxis})` }}>
+          <div className="m-lead">{leadText}</div>
+          {bodyNode}
+        </div>
+
+        <div className="fusion-more-hint">詳しく ›</div>
       </div>
 
-      <div className="fusion-axis-kicker">テーマ別の相性</div>
-      <div className="axes" role="tablist" aria-label="願いごと">
-        {AXES.map((a) => {
-          const on = a.key === selAxis;
-          const rank = axisRanks?.[a.key] || '—';
-          return (
-            <button
-              key={a.key}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              className={`axis${on ? ' on' : ''}`}
-              style={on ? { background: `var(--axis-${a.key})`, borderColor: `var(--axis-${a.key})` } : undefined}
-              onClick={() => setSelAxis(a.key)}
-            >
-              {a.label}
-              <span className="rk">{rank}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="meaning" style={{ borderLeftColor: `var(--axis-${selAxis})` }}>
-        <div className="m-lead">{leadText}</div>
-        {bodyNode}
-      </div>
-    </div>
+      <L3Sheet
+        best={isL3Open ? best : null}
+        boardKey={boardKey}
+        banLevel={banLevel}
+        selAxis={selAxis}
+        onAxisChange={onAxisChange}
+        onClose={() => setIsL3Open(false)}
+        onGoToSearch={onGoToSearch}
+      />
+    </>
   );
 }
