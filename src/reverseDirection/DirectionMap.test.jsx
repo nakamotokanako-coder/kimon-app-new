@@ -2,7 +2,8 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import DirectionMap from './DirectionMap.jsx';
+import DirectionMap, { buildCenterReticleHtml } from './DirectionMap.jsx';
+import { getFanColor } from './mapFan.js';
 
 const LOCATION = { name: '東京駅', latitude: 35.681, longitude: 139.767 };
 const RANKINGS = [
@@ -331,5 +332,106 @@ describe('DirectionMap 地図中心インジケータ（jiban/nichiban共通）'
     );
     const header = document.querySelector('.direction-map-header');
     expect(header.firstElementChild.className).toContain('direction-map-center-indicator');
+  });
+});
+
+describe('buildCenterReticleHtml（レティクルのHTML生成・純関数）', () => {
+  it('isNearBaseのときは「◎ 基準点」を出す', () => {
+    const html = buildCenterReticleHtml({ isNearBase: true, distanceM: 10, direction: null });
+    expect(html).toContain('direction-map-reticle-label">◎</span>');
+    expect(html).toContain('◎ 基準点');
+  });
+
+  it('離れた地点の方位・吉凶・色を反映する（great）', () => {
+    const html = buildCenterReticleHtml({
+      isNearBase: false,
+      distanceM: 24700,
+      direction: { palace: 'ken', label: '北西', short: 'NW', score: 70, tone: 'great' },
+    });
+    expect(html).toContain('北西');
+    expect(html).toContain('大吉 +70');
+    expect(html).toContain(`--reticle-color: ${getFanColor('great')};`);
+  });
+
+  it('凶方位ではラベル・色がgreatと異なる', () => {
+    const html = buildCenterReticleHtml({
+      isNearBase: false,
+      distanceM: 5000,
+      direction: { palace: 'shin', label: '東', short: 'E', score: -30, tone: 'bad-strong' },
+    });
+    expect(html).toContain('東');
+    expect(html).toContain('凶 -30');
+    expect(html).toContain(`--reticle-color: ${getFanColor('bad-strong')};`);
+    expect(getFanColor('bad-strong')).not.toBe(getFanColor('great'));
+  });
+
+  it('centerOffsetがnullなら空文字を返す', () => {
+    expect(buildCenterReticleHtml(null)).toBe('');
+  });
+});
+
+describe('DirectionMap 地図中心レティクル（照準リング・jiban/nichiban共通）', () => {
+  it('マウント直後は地図中心=基準点のためレティクルに「基準点」が表示される（jiban）', () => {
+    render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="jiban"
+      />,
+    );
+    const reticle = document.querySelector('.direction-map-reticle');
+    expect(reticle).toBeTruthy();
+    expect(reticle.textContent).toContain('基準点');
+  });
+
+  it('マウント直後は地図中心=基準点のためレティクルに「基準点」が表示される（nichiban）', () => {
+    render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="nichiban"
+      />,
+    );
+    const reticle = document.querySelector('.direction-map-reticle');
+    expect(reticle).toBeTruthy();
+    expect(reticle.textContent).toContain('基準点');
+  });
+
+  it('主描画（扇・ラベル）が再構築されてもレティクルは独立レイヤーのため消えない', () => {
+    const { rerender } = render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="jiban"
+      />,
+    );
+    expect(document.querySelector('.direction-map-reticle')).toBeTruthy();
+
+    // rankings/bestPalaceの変更は主描画エフェクト（layerGroupRef.clearLayers()）を再実行させる。
+    rerender(
+      <DirectionMap
+        location={LOCATION}
+        rankings={[{ palace: 'shin', label: '東', short: 'E', angle: 90, score: -10, tone: 'bad', reasons: [] }]}
+        bestPalace="shin"
+        profileKey="jiban"
+      />,
+    );
+    expect(document.querySelector('.direction-map-reticle')).toBeTruthy();
+  });
+
+  it('フルスクリーンでもレティクルが表示され続ける', () => {
+    render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="jiban"
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
+    expect(document.querySelector('.direction-map-reticle')).toBeTruthy();
   });
 });

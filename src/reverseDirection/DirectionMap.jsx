@@ -93,6 +93,45 @@ function describeCenterIndicatorKichi(direction) {
   };
 }
 
+// 地図中心レティクル（照準リング）。位置は L.marker.setLatLng で移動するだけの
+// 静的マーカーとして扱い、HTML（中身）だけを centerOffset の変化で差し替える。
+const CENTER_RETICLE_ICON_SIZE = [130, 100];
+const CENTER_RETICLE_ICON_ANCHOR = [65, 32]; // リングの中心（幅中央・高さ32px）を基準点に合わせる
+
+// export: HTML生成のみを純関数として単体テストするため（Leafletのmove/moveend実配線は
+// jsdomでは検証しないため、中身の組み立てロジックはここで直接検証する）。
+export function buildCenterReticleHtml(centerOffset) {
+  if (!centerOffset) return '';
+  const ticks = `
+    <span class="direction-map-reticle-tick is-n" aria-hidden="true"></span>
+    <span class="direction-map-reticle-tick is-e" aria-hidden="true"></span>
+    <span class="direction-map-reticle-tick is-s" aria-hidden="true"></span>
+    <span class="direction-map-reticle-tick is-w" aria-hidden="true"></span>
+  `;
+  if (centerOffset.isNearBase) {
+    return `
+      <div class="direction-map-reticle">
+        <div class="direction-map-reticle-ring" style="--reticle-color: var(--accent);">
+          ${ticks}
+          <span class="direction-map-reticle-label">◎</span>
+        </div>
+        <div class="direction-map-reticle-kichi" style="background: var(--accent);">◎ 基準点</div>
+      </div>
+    `;
+  }
+  const { direction } = centerOffset;
+  const kichi = describeCenterIndicatorKichi(direction);
+  return `
+    <div class="direction-map-reticle">
+      <div class="direction-map-reticle-ring" style="--reticle-color: ${kichi.color};">
+        ${ticks}
+        <span class="direction-map-reticle-label">${escapeHtml(direction?.label || '-')}</span>
+      </div>
+      <div class="direction-map-reticle-kichi" style="background: ${kichi.color};">${escapeHtml(kichi.label)} ${scoreText(direction?.score ?? 0)}</div>
+    </div>
+  `;
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -208,6 +247,9 @@ export default function DirectionMap({
   const mapNodeRef = useRef(null);
   const layerGroupRef = useRef(null);
   const liveLayerRef = useRef(null);
+  // 地図中心レティクル: 主描画（layerGroupRef）の clearLayers() の影響を受けないよう独立レイヤーに置く。
+  const centerReticleLayerRef = useRef(null);
+  const centerReticleMarkerRef = useRef(null);
   const watchIdRef = useRef(null);
   const viewKeyRef = useRef('');
   const lastAreaSearchRef = useRef(null);
@@ -543,6 +585,7 @@ export default function DirectionMap({
 
     layerGroupRef.current = L.layerGroup().addTo(map);
     liveLayerRef.current = L.layerGroup().addTo(map);
+    centerReticleLayerRef.current = L.layerGroup().addTo(map);
   }, [center, profile.initialZoom]);
 
   // map-first(PR-1)レイアウトではコンテナ高さが flex:1 で可変になるため、
@@ -670,6 +713,47 @@ export default function DirectionMap({
       map.off('moveend zoomend', updateCenterOffset);
     };
   }, [rankings, bearingOptions]);
+
+  // 地図中心レティクル(位置)。このハンドラは位置更新（setLatLng）専用。
+  // 重い処理・DOM生成・状態更新を追加してはならない（ドラッグ中に毎フレーム発火するため）。
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return undefined;
+    const handleMove = () => {
+      centerReticleMarkerRef.current?.setLatLng(map.getCenter());
+    };
+    map.on('move', handleMove);
+    return () => {
+      map.off('move', handleMove);
+    };
+  }, []);
+
+  // 地図中心レティクル(中身): 方位名・吉凶ラベル・色は centerOffset（上のmoveend/zoomend
+  // エフェクトが更新）の変化でのみ差し替える。フルスクリーン切替時も位置・中身を
+  // 明示的に一度再計算する。layerGroupRef（主描画）とは独立した centerReticleLayerRef
+  // に描画するため、主描画のclearLayers()の影響を受けない。
+  useEffect(() => {
+    const map = mapRef.current;
+    const layer = centerReticleLayerRef.current;
+    if (!map || !layer || !centerOffset) return;
+    const icon = L.divIcon({
+      className: '',
+      html: buildCenterReticleHtml(centerOffset),
+      iconSize: CENTER_RETICLE_ICON_SIZE,
+      iconAnchor: CENTER_RETICLE_ICON_ANCHOR,
+    });
+    if (!centerReticleMarkerRef.current) {
+      centerReticleMarkerRef.current = L.marker(map.getCenter(), {
+        icon,
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 500,
+      }).addTo(layer);
+    } else {
+      centerReticleMarkerRef.current.setIcon(icon);
+      centerReticleMarkerRef.current.setLatLng(map.getCenter());
+    }
+  }, [centerOffset, isFullscreen]);
 
   useEffect(() => {
     if (!liveOn) return undefined;

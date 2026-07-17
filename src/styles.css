@@ -3718,6 +3718,87 @@ body {
   white-space: nowrap;
 }
 
+/* 地図中心レティクル（照準リング）。Leafletのdiv Icon内に描画されるため、
+   Leaflet自身が制御する translate3d（マーカー位置）とはこの要素は無関係
+   （position:absoluteのペイン外オーバーレイではない）。 */
+.direction-map-reticle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.direction-map-reticle-ring {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--reticle-color, var(--accent));
+  box-shadow: 0 0 0 2px #fff, 0 4px 10px rgba(0, 0, 0, 0.35);
+  background: color-mix(in srgb, var(--reticle-color, var(--accent)) 22%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: direction-map-reticle-breathe 2.6s ease-in-out infinite;
+}
+
+.direction-map-reticle-label {
+  color: #fff;
+  font: 800 0.92rem var(--font-body);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+.direction-map-reticle-tick {
+  position: absolute;
+  background: #fff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.direction-map-reticle-tick.is-n,
+.direction-map-reticle-tick.is-s {
+  left: 50%;
+  width: 2px;
+  height: 8px;
+  transform: translateX(-50%);
+}
+
+.direction-map-reticle-tick.is-n { top: -4px; }
+.direction-map-reticle-tick.is-s { bottom: -4px; }
+
+.direction-map-reticle-tick.is-e,
+.direction-map-reticle-tick.is-w {
+  top: 50%;
+  width: 8px;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+.direction-map-reticle-tick.is-e { right: -4px; }
+.direction-map-reticle-tick.is-w { left: -4px; }
+
+.direction-map-reticle-kichi {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--reticle-color, var(--accent));
+  color: #fff;
+  font: 800 0.72rem var(--font-body);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes direction-map-reticle-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .direction-map-reticle-ring {
+    animation: none;
+  }
+}
+
 .direction-map-caption {
   margin: 0;
   padding: 0 4px;
