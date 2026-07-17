@@ -35,8 +35,8 @@ describe('吉方位 UI 整理', () => {
   it('時盤お散歩はNOW/GO構成と折りたたみミニ盤を持つ', () => {
     expect(reverseSrc).toContain('reverse-zone');
     expect(reverseSrc).toContain('今の時盤を盤で見る');
-    expect(reverseSrc).toContain('地図で探す');
-    expect(reverseSrc).toContain('reverse-favorite-chips');
+    expect(reverseSrc).toContain('renderJibanGoZone');
+    expect(reverseSrc).toContain('<FavoritesStrip');
   });
 
   it('円盤に吉門アイコンを描画する', () => {

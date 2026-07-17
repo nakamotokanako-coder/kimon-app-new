@@ -5975,16 +5975,10 @@ body {
   gap: 14px;
 }
 
-.reverse-go-pin-hint {
-  margin: 0;
-  padding: 9px 12px;
-  border: 1px solid color-mix(in srgb, var(--accent-edge) 45%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-  font-family: var(--font-body);
-  font-size: 0.74rem;
-  line-height: 1.55;
-  color: var(--text-secondary);
+/* PR-D2: 日盤遠出も時盤お散歩(PR-2.6)と同じ400pxに統一する。 */
+.reverse-go-zone--nichiban .direction-map-wrap:not(.is-fullscreen) .direction-map {
+  height: 400px;
+  min-height: 400px;
 }
 
 /* 取得前カードの主役CTA（金枠＋金アイコン） */
@@ -6038,9 +6032,7 @@ body {
 }
 
 .reverse-disclosure-trigger,
-.reverse-base-compact,
-.reverse-go-tabs,
-.reverse-favorite-chips {
+.reverse-base-compact {
   display: flex;
 }
 
@@ -6111,67 +6103,6 @@ body {
   border: 1px solid color-mix(in srgb, var(--border-subtle) 78%, transparent);
   border-radius: 16px;
   background: color-mix(in srgb, var(--bg-main) 52%, transparent);
-}
-
-.reverse-go-tabs {
-  gap: 6px;
-  padding: 4px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-main) 58%, transparent);
-}
-
-.reverse-go-tabs button {
-  flex: 1 1 0;
-  border: 0;
-  border-radius: 999px;
-  padding: 9px 12px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-weight: 800;
-}
-
-.reverse-go-tabs button.is-active {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  color: var(--accent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-edge) 70%, transparent);
-}
-
-.reverse-favorite-chips {
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-}
-
-.reverse-favorite-chips::-webkit-scrollbar {
-  display: none;
-}
-
-.reverse-favorite-chips button {
-  flex: 0 0 150px;
-  display: grid;
-  gap: 3px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 10px 12px;
-  background: color-mix(in srgb, var(--bg-cell) 78%, transparent);
-  color: var(--text-primary);
-  text-align: left;
-}
-
-.reverse-favorite-chips strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reverse-favorite-chips span,
-.reverse-favorite-chips small,
-.reverse-favorite-chips p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.72rem;
 }
 
 .reverse-filter-card {
