@@ -3024,9 +3024,45 @@ body {
 
 .direction-map-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+}
+
+/* 地図中心インジケータ: 基準点→地図中心の方位・距離・吉凶を常時表示（ヘッダー行左側・in-flow）。 */
+.direction-map-center-indicator {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 4px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.direction-map-center-dir,
+.direction-map-center-dist,
+.direction-map-center-kichi,
+.direction-map-center-base {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.direction-map-center-dist::before,
+.direction-map-center-kichi::before {
+  content: '・';
+  margin: 0 5px;
+  color: var(--text-secondary);
+}
+
+/* モバイル幅で1行に収まらない場合は距離を省略し、方位・吉凶ラベルを優先する。 */
+@media (max-width: 420px) {
+  .direction-map-center-dist {
+    display: none;
+  }
 }
 
 .direction-map-note {
