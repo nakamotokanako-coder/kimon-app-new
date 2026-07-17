@@ -648,29 +648,6 @@ export default function ReverseDirectionView({
     </div>
   );
 
-  const basePointCtaCard = (
-    <div className="kiten-cta-card">
-      <button type="button" className="kiten-cta" onClick={useCurrentLocation}>
-        <span aria-hidden="true">📍</span>
-        <span>タップして現在地を使う</span>
-      </button>
-      <button
-        type="button"
-        className="kiten-cta-secondary"
-        onClick={() => setCtaSearchOpen((value) => !value)}
-        aria-expanded={ctaSearchOpen}
-      >
-        住所・地名で入力する
-      </button>
-      {ctaSearchOpen && (
-        <div className="reverse-base-panel">
-          {basePointSearchForm}
-        </div>
-      )}
-      {status && <p className="reverse-status">{status}</p>}
-    </div>
-  );
-
   const basePointMeta = mode === 'time' || mode === 'timeRanking' || mode === 'kakkyoku' || mode === 'range' ? (
     <div className="reverse-correction">
       <span>自然時補正：{location.name} <b className="lat">{formatCorrection(correction)}</b></span>
@@ -737,7 +714,6 @@ export default function ReverseDirectionView({
     basePointOpenValue,
     onToggleBasePoint,
     baseSubLabel,
-    hideOnboarding = false,
   }) => (
     <div className="reverse-zone reverse-go-zone">
       <div className="reverse-zone-title">
@@ -745,57 +721,7 @@ export default function ReverseDirectionView({
         <h3 className="maru">出かける場所を探す</h3>
       </div>
 
-      {!hideOnboarding && (
-        <p className="reverse-go-guide">
-          はじめての方へ　<b className="lat">①</b> 出発点を決めて → <b className="lat">②</b> 行き先を探してみよう
-        </p>
-      )}
-
-      {!hideOnboarding && (
-      <div className="reverse-go-step" style={{ display: 'none' }}>
-        <div className="reverse-step-title">
-          <span className="reverse-section-kicker lat">from</span>
-          <h4 className="maru"><span className="lat">①</span> 出発点</h4>
-        </div>
-        <div className="reverse-card reverse-go-card reverse-base-card">
-          {basePointEstablished ? (
-            <>
-              <div className="reverse-base-compact">
-                <span>
-                  出発点 <strong>{location.name}</strong>
-                  {baseSubLabel}
-                </span>
-                <button type="button" onClick={onToggleBasePoint}>
-                  変更
-                </button>
-              </div>
-              {basePointOpenValue && (
-                <div className="reverse-base-panel">
-                  {basePointPicker}
-                  {basePointMeta}
-                  {status && <p className="reverse-status">{status}</p>}
-                </div>
-              )}
-            </>
-          ) : (
-            basePointCtaCard
-          )}
-        </div>
-      </div>
-      )}
-
-      <div className={`reverse-go-step reverse-go-step-to ${basePointEstablished ? '' : 'is-await-base'}`}>
-        {!hideOnboarding && (
-          <div className="reverse-step-title">
-            <span className="reverse-section-kicker lat">to</span>
-            <h4 className="maru"><span className="lat">②</span> 行き先を探す</h4>
-          </div>
-        )}
-
-        {!basePointEstablished && (
-          <p className="reverse-go-await">まず①で出発点を決めてください</p>
-        )}
-
+      <div className="reverse-go-step-to">
         <div className="reverse-card reverse-go-card">
           <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
             <button
