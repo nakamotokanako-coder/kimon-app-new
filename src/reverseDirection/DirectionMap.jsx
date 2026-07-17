@@ -9,6 +9,7 @@ import {
   destPoint,
   directionIndexFor,
   getDistanceProfile,
+  getFanColor,
   isNegativeTone,
   isPositiveTone,
   liveLineColor,
@@ -27,6 +28,7 @@ import {
   classifyQuery,
   decoratePlaces,
   deleteFavorite,
+  describeCenterOffset,
   distanceMeters,
   favoriteKey,
   favoriteDisplayName,
@@ -40,6 +42,8 @@ import {
   renameFavorite,
   sanitizeQuery,
 } from './mapSearch.js';
+import { getMiniBoardToneClass } from './reverseDirection.js';
+import { BADGE_LABEL } from './FusionCard.jsx';
 
 const LABEL_MODE = {
   compact: { className: 'is-compact', showScore: true },
@@ -65,6 +69,27 @@ function buildBearingOptions(center, bearingMode, useDeclination) {
     center,
     mode: bearingMode,
     declination: useDeclination,
+  };
+}
+
+// 地図中心インジケータ用の表示辞書・整形（幾何計算は describeCenterOffset に委譲）。
+const CENTER_INDICATOR_ARROWS = {
+  N: '↑', NE: '↗', E: '→', SE: '↘',
+  S: '↓', SW: '↙', W: '←', NW: '↖',
+};
+
+function formatCenterIndicatorDistance(meters) {
+  if (!Number.isFinite(meters)) return '-';
+  const km = meters / 1000;
+  return km < 10 ? `${km.toFixed(1)}km` : `${Math.round(km)}km`;
+}
+
+function describeCenterIndicatorKichi(direction) {
+  if (!direction) return { label: '', color: '' };
+  const toneClass = getMiniBoardToneClass(direction.score);
+  return {
+    label: BADGE_LABEL[toneClass] || '',
+    color: getFanColor(direction.tone),
   };
 }
 
@@ -147,6 +172,8 @@ export default function DirectionMap({
   const [useDeclination, setUseDeclination] = useState(() => readBearingSettings().declination);
   // 今見えている地図の端までの距離(km)。扇の外縁伸縮＋平面/球面の自動切替に使う（moveend/zoomendで更新）。
   const [viewEdgeKm, setViewEdgeKm] = useState(null);
+  // 地図中心インジケータ: 基準点→地図中心の方位・距離・吉凶（moveend/zoomendで更新）。
+  const [centerOffset, setCenterOffset] = useState(null);
   const [bearingPanelOpen, setBearingPanelOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
@@ -627,6 +654,23 @@ export default function DirectionMap({
     };
   }, []);
 
+  // 地図中心インジケータ: 基準点→地図中心の方位・距離・吉凶を moveend/zoomend で更新する。
+  // エリア再検索プロンプト・扇の外縁距離(いずれも上)とは独立したハンドラ。
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return undefined;
+    const updateCenterOffset = () => {
+      const mapCenter = map.getCenter();
+      if (!mapCenter) return;
+      setCenterOffset(describeCenterOffset(centerRef.current, [mapCenter.lat, mapCenter.lng], rankings, bearingOptions));
+    };
+    updateCenterOffset();
+    map.on('moveend zoomend', updateCenterOffset);
+    return () => {
+      map.off('moveend zoomend', updateCenterOffset);
+    };
+  }, [rankings, bearingOptions]);
+
   useEffect(() => {
     if (!liveOn) return undefined;
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -862,6 +906,28 @@ export default function DirectionMap({
   return (
     <div className={`direction-map-wrap ${isFullscreen ? 'is-fullscreen' : ''}`}>
       <div className="direction-map-header">
+        {centerOffset && (
+          <div className="direction-map-center-indicator" aria-live="polite">
+            {centerOffset.isNearBase ? (
+              <span className="direction-map-center-base">◎ 基準点</span>
+            ) : (
+              <>
+                <span className="direction-map-center-dir">
+                  {CENTER_INDICATOR_ARROWS[centerOffset.direction?.short] || ''} {centerOffset.direction?.label || '-'}
+                </span>
+                <span className="direction-map-center-dist">
+                  {formatCenterIndicatorDistance(centerOffset.distanceM)}
+                </span>
+                <span
+                  className="direction-map-center-kichi"
+                  style={{ color: describeCenterIndicatorKichi(centerOffset.direction).color }}
+                >
+                  {describeCenterIndicatorKichi(centerOffset.direction).label} {scoreText(centerOffset.direction?.score ?? 0)}
+                </span>
+              </>
+            )}
+          </div>
+        )}
         {profileKey !== 'jiban' && (
           <div className="direction-map-note">
             <span>{profile.note[0]}</span>

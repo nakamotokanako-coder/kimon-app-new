@@ -272,6 +272,18 @@ export function decoratePlaces(places, center, rankings, bearingOptions = {}) {
     });
 }
 
+// 地図中心インジケータ用。基準点からほぼ動いていない(50m未満)場合は方位が
+// 定義できないため isNearBase=true とし、direction は算出しない。
+// 幾何計算・方位判定は distanceMeters/directionForPoint の既存経路のみ使用。
+export const CENTER_INDICATOR_NEAR_BASE_METERS = 50;
+
+export function describeCenterOffset(base, target, rankings, bearingOptions = {}) {
+  const distanceM = distanceMeters(base, target);
+  const isNearBase = distanceM < CENTER_INDICATOR_NEAR_BASE_METERS;
+  const direction = isNearBase ? null : directionForPoint(base, target, rankings, bearingOptions);
+  return { distanceM, isNearBase, direction };
+}
+
 export function filterKichiPlaces(places, enabled) {
   const list = places || [];
   if (!enabled) return list;

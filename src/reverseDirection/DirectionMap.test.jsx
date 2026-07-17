@@ -289,3 +289,47 @@ describe('DirectionMap GOゾーン再構成（PR-2.6 jiban → PR-D2 nichiban展
     }
   });
 });
+
+describe('DirectionMap 地図中心インジケータ（jiban/nichiban共通）', () => {
+  it('マウント直後は地図中心=基準点のため「基準点」表示になる（jiban）', () => {
+    render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="jiban"
+      />,
+    );
+    const indicator = document.querySelector('.direction-map-center-indicator');
+    expect(indicator).toBeTruthy();
+    expect(indicator.querySelector('.direction-map-center-base')).toBeTruthy();
+    expect(indicator.textContent).toContain('基準点');
+  });
+
+  it('マウント直後は地図中心=基準点のため「基準点」表示になる（nichiban）', () => {
+    render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="nichiban"
+      />,
+    );
+    const indicator = document.querySelector('.direction-map-center-indicator');
+    expect(indicator).toBeTruthy();
+    expect(indicator.textContent).toContain('基準点');
+  });
+
+  it('インジケータは.direction-map-header内の先頭子要素として配置される（新規の独立行を作らない）', () => {
+    render(
+      <DirectionMap
+        location={LOCATION}
+        rankings={RANKINGS}
+        bestPalace="kan"
+        profileKey="nichiban"
+      />,
+    );
+    const header = document.querySelector('.direction-map-header');
+    expect(header.firstElementChild.className).toContain('direction-map-center-indicator');
+  });
+});
