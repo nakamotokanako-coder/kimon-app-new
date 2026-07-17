@@ -31,28 +31,23 @@ const FIELD_MAP = {
 };
 
 // §2実装中に判明した、chito_v2_with_kakkyoku.csv 側の既知の差異
-// （kyokusu決定ロジックの追加とは無関係。データファイルは変更禁止のため、
-// ここでは明示的に突合から除外し、理由をコメントに残す。ぶりちゃん確認済み・
-// 2026-07-17）。
+// （kyokusu決定ロジックの追加とは無関係。ぶりちゃん確認済み・2026-07-17）。
 //   ① 旬首宮の干支合成表示: chito_v2 は中宮の寄干を host 宮の1セルに合成
 //      表示する（例 "癸庚"）が、先生Excelは中宮(5番)と host宮を分けて記載
 //      する。既存の日盤テストにも同じ合成表示パターンが存在する
-//      （buildBoard.test.js の kun.chiban="乙庚" 等）。無害な表記慣習。
+//      （buildBoard.test.js の kun.chiban="乙庚" 等）。無害な表記慣習のため
+//      引き続き突合から除外する。
 //   ② 星の異体字: chito_v2 は「天冲」で統一（全1080行中1080件、他表記なし）、
 //      先生Excelは「天衝」。データ全体の表記揺れで、今回の実装とは無関係。
-//   ③【既知バグ・データ側】chito_v2_with_kakkyoku.csv の "陰7局丁亥" 行だけ、
-//      hachimon列8宮すべてが対冲宮（洛書の和10ペア: 1↔9, 2↔8, 3↔7, 4↔6）で
-//      入れ替わっている。年盤(陰7局乙巳)ではこの入れ替わりは発生しないため、
-//      この1行のhachimon列だけの転記ミスと推定。日盤・時盤でも理論上到達
-//      しうるキーだが（日盤: 2026-09-10等18日、時盤: dayKan=乙/庚×21-23時
-//      で609コマ）、既存テストのカバー範囲外で未検出。データ修正は別タスク。
+//      引き続き突合から除外する。
+//   ③【修正済み・fix-chito-inyo7-hachimon】chito_v2.csv / chito_v2_with_kakkyoku.csv
+//      の "陰7局丁亥" 行で、hachimon列8宮すべてが対冲宮（洛書の和10ペア:
+//      1↔9, 2↔8, 3↔7, 4↔6）で入れ替わっていたデータ側の誤りを修正した。
+//      test_case_2025-12-05.json との突合で正しい値を確定済み。
+//      以前はここでxfail的に除外していたが、修正後は通常のアサーションに戻す。
 const KNOWN_DATA_ISSUES = {
   年盤: new Set(['2:chiban', '8:kyusei', '9:tenban']), // ①②
-  月盤: new Set([
-    '1:tenban', '2:chiban', '2:kyusei', // ①②
-    '1:hachimon', '2:hachimon', '3:hachimon', '4:hachimon',
-    '6:hachimon', '7:hachimon', '8:hachimon', '9:hachimon', // ③
-  ]),
+  月盤: new Set(['1:tenban', '2:chiban', '2:kyusei']), // ①②（③は修正済みのため除外リストから削除）
 };
 
 function assertBoardMatchesTestCase(board, testCaseBoard, boardLabel) {
@@ -93,7 +88,7 @@ describe('buildBoard: 月盤 2025-12-05 (test_case_2025-12-05.json)', () => {
     expect(board.meta.eto).toBe('丁亥');
   });
 
-  it('全8宮が test_case.boards.月盤 と一致（既知の差異①②③を除く）', () => {
+  it('全8宮が test_case.boards.月盤 と一致（既知の差異①②を除く。③はfix-chito-inyo7-hachimonで修正済み）', () => {
     assertBoardMatchesTestCase(board, testCase.boards.月盤, '月盤');
   });
 });
