@@ -19,8 +19,12 @@ const len = (s) => [...s].length;
 // 全件ハッシュ（sorted走査）の回帰防止ロック。
 // short は API 経由で本番表示中のため恒久ロック（v2.1 でも不変＝据え置き）。
 // mid は v2.1（低頻度象意74種の phrase 改訂）で変化するため、再生成後の値へ更新。
-const MID_SORTED_SHA256 = 'c01192e56ed4c7e8ee5308eefa67e81b02841c92aaa22e25115957832eb1d102';
-const SHORT_SORTED_SHA256 = '2de746ce22084f49189032bd7f3d20e5ad3dd70cb0d3748ccdbe1261e92c4c38';
+// fix-chito-inyo7-hachimon: chito_v2 の「陰7局丁亥」行hachimon対冲入れ替わり
+// 修正に伴い、同キー8宮ぶんの解説文が変化したため再度更新。
+const MID_SORTED_SHA256 = 'a75c2da6e36337ef077689569bf8c04f9562a6507efb580125130e6fd943be61';
+// fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
+// このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
+const SHORT_SORTED_SHA256 = '6ac3abc7a6474a7c3ff3c8c8c48f9a40082ebf37557604b8cbb0f071ac0a9b58';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {

@@ -30,6 +30,32 @@ describe('buildBoard: 2026-01-01 日盤 (新 day_kyokusu.csv: 陽3局乙亥)', (
   });
 });
 
+describe('buildBoard: 2026-09-10 日盤 (陰7局丁亥・回帰テスト: hachimon対冲入れ替わり修正の確認)', () => {
+  // fix-chito-inyo7-hachimon: chito_v2_with_kakkyoku.csv の「陰7局丁亥」行は
+  // hachimon列8宮が対冲宮で入れ替わっていた（PR #132 で発見）。この日は
+  // day_kyokusu=陰7局・eto_day=丁亥で同じキーに到達する実在の日盤日付
+  // （他に2027-09-05等17日あり）。修正後の正しい値で全8宮が一致することを確認する。
+  const board = buildBoard({ date: '2026-09-10', boardType: '日' });
+
+  it('局数=陰7局、干支=丁亥', () => {
+    expect(board.meta.kyokusu).toBe('陰7局');
+    expect(board.meta.eto).toBe('丁亥');
+  });
+
+  it('全8宮が修正後の chito_v2_with_kakkyoku.csv (陰7局丁亥) と完全一致', () => {
+    expect(board.palaces).toEqual({
+      kan:  { tenban: '癸庚', chiban: '丁',   kyusei: '天芮', hasshin: '直符', hachimon: '景門' },
+      gon:  { tenban: '戊',   chiban: '乙',   kyusei: '天柱', hasshin: '九天', hachimon: '死門' },
+      shin: { tenban: '己',   chiban: '壬',   kyusei: '天心', hasshin: '九地', hachimon: '驚門' },
+      son:  { tenban: '丁',   chiban: '辛',   kyusei: '天蓬', hasshin: '朱雀', hachimon: '開門' },
+      ri:   { tenban: '乙',   chiban: '丙',   kyusei: '天任', hasshin: '勾陳', hachimon: '休門' },
+      kun:  { tenban: '壬',   chiban: '癸庚', kyusei: '天冲', hasshin: '六合', hachimon: '生門' },
+      da:   { tenban: '辛',   chiban: '戊',   kyusei: '天輔', hasshin: '太陰', hachimon: '傷門' },
+      ken:  { tenban: '丙',   chiban: '己',   kyusei: '天英', hasshin: '螣蛇', hachimon: '杜門' },
+    });
+  });
+});
+
 describe('buildBoard: 2026-06-21 日盤 (陰陽切替日: 夏至 → 陰7局丙寅)', () => {
   const board = buildBoard({ date: '2026-06-21', boardType: '日' });
 
