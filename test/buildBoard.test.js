@@ -99,10 +99,15 @@ describe('buildBoard: バリデーション', () => {
   it("boardType='時' で hour 未指定はエラー", () => {
     expect(() => buildBoard({ date: '2025-12-05', boardType: '時' })).toThrow(/hour/);
   });
-  it('boardType は日または時のみ受け付ける', () => {
-    const message = 'boardType は "日" または "時" のみ';
-    expect(() => buildBoard({ date: '2025-12-05', boardType: '年' })).toThrow(message);
-    expect(() => buildBoard({ date: '2025-12-05', boardType: '月' })).toThrow(message);
-    expect(() => buildBoard({ date: '2025-12-05', boardType: 'X' })).toThrow(message);
+  // 年盤・月盤対応（feat-year-month-kyokusu）: '年'/'月' はエラーではなく
+  // 正常に盤を返すようになった。詳細は test/yearMonthBoard.test.js を参照。
+  it('boardType は "日" "時" "年" "月" 以外を受け付けない', () => {
+    expect(() => buildBoard({ date: '2025-12-05', boardType: 'X' }))
+      .toThrow('boardType は "日" "時" "年" "月" のみ');
+  });
+
+  it('boardType="年"/"月" は例外を投げず盤を返す', () => {
+    expect(() => buildBoard({ date: '2025-12-05', boardType: '年' })).not.toThrow();
+    expect(() => buildBoard({ date: '2025-12-05', boardType: '月' })).not.toThrow();
   });
 });
