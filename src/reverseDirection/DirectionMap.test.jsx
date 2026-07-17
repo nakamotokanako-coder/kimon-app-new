@@ -13,7 +13,7 @@ afterEach(() => {
   cleanup();
 });
 
-describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5, jibanのみ）', () => {
+describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5 jiban → PR-D2 nichiban展開）', () => {
   it('通常表示（非フルスクリーン）ではトグルボタンを出さず、検索カードをそのまま表示する', () => {
     render(
       <DirectionMap
@@ -52,7 +52,7 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5, ji
     expect(document.querySelector('.direction-map-search-row')).toBe(null);
   });
 
-  it('nichiban（日盤遠出）のフルスクリーンでは従来どおり検索UIが常時展開のまま', () => {
+  it('nichiban（日盤遠出）×フルスクリーンでもjibanと同じく既定で検索UIが畳まれ、同じトグルボタンで開閉できる（PR-D2）', () => {
     render(
       <DirectionMap
         location={LOCATION}
@@ -64,8 +64,17 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5, ji
 
     fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
 
-    expect(screen.queryByRole('button', { name: '🔍 検索' })).toBe(null);
+    // 既定：畳まれている（検索フォームは描画されない・トグルボタンだけ）。
+    expect(screen.getByRole('button', { name: '🔍 検索' })).toBeTruthy();
+    expect(document.querySelector('.direction-map-search-row')).toBe(null);
+
+    // トグルで展開。
+    fireEvent.click(screen.getByRole('button', { name: '🔍 検索' }));
     expect(document.querySelector('.direction-map-search-row')).toBeTruthy();
+
+    // 同じボタン（ラベルが「検索を閉じる」に変わる）で再び畳める。
+    fireEvent.click(screen.getByRole('button', { name: '🔍 検索を閉じる' }));
+    expect(document.querySelector('.direction-map-search-row')).toBe(null);
   });
 
   it('フルスクリーンを閉じてもう一度開くと、検索UIは再び畳まれた状態に戻る', () => {
@@ -144,7 +153,7 @@ describe('DirectionMap 検索ヒント文・キャプション（PR-2.5）', () 
   });
 });
 
-describe('DirectionMap GOゾーン再構成（PR-2.6, jibanのみ）', () => {
+describe('DirectionMap GOゾーン再構成（PR-2.6 jiban → PR-D2 nichiban展開）', () => {
   it('タブなしで地図と検索UIが同時にレンダリングされる（jiban・非フルスクリーン）', () => {
     render(
       <DirectionMap
@@ -218,7 +227,7 @@ describe('DirectionMap GOゾーン再構成（PR-2.6, jibanのみ）', () => {
     expect(document.querySelector('.direction-kichi-filter')).toBe(null);
   });
 
-  it('nichibanは従来どおりチェックボックス版の「吉方位だけ」のまま', () => {
+  it('nichibanもjibanと同じくチップ列内の点線トグル版の「吉方位だけ」になる（PR-D2）', () => {
     render(
       <DirectionMap
         location={LOCATION}
@@ -227,8 +236,14 @@ describe('DirectionMap GOゾーン再構成（PR-2.6, jibanのみ）', () => {
         profileKey="nichiban"
       />,
     );
-    expect(document.querySelector('.direction-kichi-filter')).toBeTruthy();
-    expect(document.querySelector('.direction-map-chip-toggle')).toBe(null);
+    const toggle = screen.getByRole('button', { name: '✓ 吉方位だけ' });
+    expect(toggle.className).toContain('direction-map-chip-toggle');
+
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+
+    // 従来のチェックボックス版は出ない（置き場所だけ移した）。
+    expect(document.querySelector('.direction-kichi-filter')).toBe(null);
   });
 
   it('showFavoritesSection=false ではお気に入りの従来リスト節を出さない（jibanの既定）', () => {

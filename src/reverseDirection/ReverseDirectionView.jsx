@@ -139,12 +139,6 @@ function getCurrentTimeWindow(now, correctionMinutes) {
   };
 }
 
-function formatDistance(meters) {
-  if (!Number.isFinite(meters)) return '-';
-  if (meters >= 1000) return `${(meters / 1000).toFixed(1)}km`;
-  return `${Math.round(meters)}m`;
-}
-
 function scoreText(score) {
   return `${score > 0 ? '+' : ''}${score}`;
 }
@@ -224,7 +218,6 @@ export default function ReverseDirectionView({
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
-  const [dayGoView, setDayGoView] = useState('map');
   const [basePointOpen, setBasePointOpen] = useState(false);
   const [dayBasePointOpen, setDayBasePointOpen] = useState(false);
   const [rankingBasePointOpen, setRankingBasePointOpen] = useState(false);
@@ -232,8 +225,9 @@ export default function ReverseDirectionView({
   const [dayMiniBoardOpen, setDayMiniBoardOpen] = useState(false);
   const [focusedFavoriteKey, setFocusedFavoriteKey] = useState('');
   const [dayFocusedFavoriteKey, setDayFocusedFavoriteKey] = useState('');
-  // GOゾーン再構成(PR-2.6): 時盤お散歩のみ「すべて見る」でお気に入りフルリストを開閉する。
+  // GOゾーン再構成(PR-2.6/PR-D2): 「すべて見る」でお気に入りフルリストを開閉する（時盤・日盤それぞれ独立）。
   const [showFavoritesList, setShowFavoritesList] = useState(false);
+  const [dayShowFavoritesList, setDayShowFavoritesList] = useState(false);
   const [basePointEstablished, setBasePointEstablished] = useState(true);
   const [ctaSearchOpen, setCtaSearchOpen] = useState(false);
   // 出発点ピッカーのグループ開閉（mock v9: 🏠拠点=開 / ⭐お気に入り=閉 / 住所検索=閉）
@@ -701,90 +695,51 @@ export default function ReverseDirectionView({
     </div>
   );
 
+  // PR-D2: 日盤遠出のGOゾーン。時盤お散歩(PR-2.6)と同型に、タブ切替(地図で探す/
+  // お気に入り)・📍ヒント行を廃止して地図を常時主役表示にし、地図直下にお気に入り
+  // ストリップを新設する。「出かける場所を探す」見出しは時盤と違い日盤では温存
+  // （見出し有無の統一はPhase 2のGOゾーン全体見直しで判断）。
   const renderGoZone = ({
     rankings,
     bestPalace,
     profileKey,
     showScale = false,
-    goViewValue,
-    onGoViewChange,
     chips,
     focusedKey,
     onFocusKey,
-    basePointOpenValue,
-    onToggleBasePoint,
-    baseSubLabel,
+    onShowAll,
+    showFavoritesSection,
   }) => (
-    <div className="reverse-zone reverse-go-zone">
+    <div className="reverse-zone reverse-go-zone reverse-go-zone--nichiban">
       <div className="reverse-zone-title">
         <span className="reverse-section-kicker lat">go</span>
         <h3 className="maru">出かける場所を探す</h3>
       </div>
 
-      <div className="reverse-go-step-to">
-        <div className="reverse-card reverse-go-card">
-          <div className="reverse-go-tabs" role="group" aria-label="出かける場所の探し方">
-            <button
-              type="button"
-              className={goViewValue === 'map' ? 'is-active' : ''}
-              onClick={() => onGoViewChange('map')}
-            >
-              地図で探す
-            </button>
-            <button
-              type="button"
-              className={goViewValue === 'favorites' ? 'is-active' : ''}
-              onClick={() => onGoViewChange('favorites')}
-            >
-              お気に入り
-            </button>
-          </div>
-
-          {goViewValue === 'map' && (
-            <p className="reverse-go-pin-hint">
-              📍 気になる場所のピンをタップすると、お気に入りに登録できます
-            </p>
-          )}
-
-          {goViewValue === 'favorites' && (
-            <div className="reverse-favorite-chips" aria-label="お気に入り">
-              {chips.length > 0 ? chips.map((item) => {
-                const key = favoriteKey(item);
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => onFocusKey(key)}
-                  >
-                    <strong>{favoriteDisplayName(item)}</strong>
-                    <span>{item.direction?.label || '-'} <b className="lat">{scoreText(item.direction?.score || 0)}</b></span>
-                    <small className="lat">{formatDistance(item.distanceM)}</small>
-                  </button>
-                );
-              }) : (
-                <p>地図で見つけた場所をお気に入りに追加すると、ここに表示されます。</p>
-              )}
-            </div>
-          )}
-
-          <DirectionMap
-            location={location}
-            rankings={rankings}
-            bestPalace={bestPalace}
-            profileKey={profileKey}
-            showScale={showScale}
-            focusFavoriteKey={goViewValue === 'favorites' ? focusedKey : ''}
-            showSearchControls={goViewValue === 'map'}
-            showPlacePanel={goViewValue === 'map'}
-          />
-        </div>
+      <div className="reverse-card reverse-go-card">
+        <DirectionMap
+          location={location}
+          rankings={rankings}
+          bestPalace={bestPalace}
+          profileKey={profileKey}
+          showScale={showScale}
+          focusFavoriteKey={focusedKey}
+          showFavoritesSection={showFavoritesSection}
+        />
       </div>
+
+      <FavoritesStrip
+        chips={chips}
+        focusedKey={focusedKey}
+        onFocusKey={onFocusKey}
+        onShowAll={onShowAll}
+      />
     </div>
   );
 
   // PR-2.6: 時盤お散歩モード専用のGOゾーン。地図を常時主役表示にし、
   // 従来のタブ切替(地図で探す/お気に入り)・見出し・📍バナーを廃止して
-  // 地図直下にお気に入りストリップを新設する。日盤遠出は renderGoZone のまま。
+  // 地図直下にお気に入りストリップを新設する。
   const renderJibanGoZone = ({ rankings, bestPalace }) => (
     <div className="reverse-zone reverse-go-zone reverse-go-zone--jiban">
       <div className="reverse-card reverse-go-card">
@@ -1019,14 +974,11 @@ export default function ReverseDirectionView({
                 bestPalace: dayBest?.palace,
                 profileKey: 'nichiban',
                 showScale: true,
-                goViewValue: dayGoView,
-                onGoViewChange: setDayGoView,
                 chips: dayFavoriteChips,
                 focusedKey: dayFocusedFavoriteKey,
                 onFocusKey: setDayFocusedFavoriteKey,
-                basePointOpenValue: dayBasePointOpen,
-                onToggleBasePoint: () => setDayBasePointOpen((value) => !value),
-                baseSubLabel: <small>日盤・遠出 <b className="lat">{formatDisplayDate(dayDate)}</b></small>,
+                onShowAll: () => setDayShowFavoritesList((value) => !value),
+                showFavoritesSection: dayShowFavoritesList,
               })}
 
               <div className="reverse-card reverse-compass-card">

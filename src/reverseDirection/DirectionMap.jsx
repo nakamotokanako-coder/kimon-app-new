@@ -136,12 +136,12 @@ export default function DirectionMap({
   focusFavoriteKey = '',
   showSearchControls = true,
   showPlacePanel = true,
-  // PR-2.6: お気に入りの「フルリスト」節を独立して開閉する（既定は従来どおり表示）。
-  // 時盤お散歩(jiban)の新レイアウトだけが「すべて見る」タップで true にする。
+  // PR-2.6/PR-D2: お気に入りの「フルリスト」節を独立して開閉する（既定は従来どおり表示）。
+  // 時盤お散歩(jiban)・日盤遠出(nichiban)の新レイアウトが「すべて見る」タップで true にする。
   showFavoritesSection = true,
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jibanのみ。日盤遠出=nichibanは常時展開のまま）。
+  // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jiban・日盤遠出=nichiban共通）。
   const [fullscreenSearchOpen, setFullscreenSearchOpen] = useState(false);
   const [bearingMode, setBearingMode] = useState(() => readBearingSettings().mode);
   const [useDeclination, setUseDeclination] = useState(() => readBearingSettings().declination);
@@ -926,10 +926,10 @@ export default function DirectionMap({
           </>
         );
 
-        // PR-2.6: 時盤お散歩(jiban)は「吉方位だけ」をチップ列の先頭へ移設
+        // PR-2.6/PR-D2: 「吉方位だけ」をチップ列の先頭へ移設
         // （点線ボーダーの見た目違いで区別、フィルタ挙動そのものは既存のまま）。
-        // 日盤遠出(nichiban)は従来どおりチップ列の下にチェックボックスで表示する。
-        const searchBody = profileKey === 'jiban' ? (
+        // jiban（時盤お散歩）・nichiban（日盤遠出）共通の表示。
+        const searchBody = (profileKey === 'jiban' || profileKey === 'nichiban') ? (
           <>
             {searchForm}
             <div className="direction-map-chips">
@@ -971,13 +971,13 @@ export default function DirectionMap({
           </>
         );
 
-        // 時盤お散歩（jiban）のフルスクリーンだけ、検索UIを既定で畳んだトグルにする。
-        // 日盤遠出(nichiban)はフルスクリーンでも従来どおり常時展開のまま。
+        // 時盤お散歩（jiban）・日盤遠出（nichiban）のフルスクリーンは、検索UIを
+        // 既定で畳んだトグルにする（PR-2.5 jiban → PR-D2 nichiban展開）。
         //
         // 実機（iOS Safari）検証で position:absolute オーバーレイ案は
         // タップが通らない不具合が確認されたため撤回し、グリッド内に通常表示する
         // シンプルな方式に倒した（展開中は地図の高さを一時的に譲る）。
-        if (isFullscreen && profileKey === 'jiban') {
+        if (isFullscreen && (profileKey === 'jiban' || profileKey === 'nichiban')) {
           return (
             <>
               <button
