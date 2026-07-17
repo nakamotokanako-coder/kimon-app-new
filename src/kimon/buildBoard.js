@@ -3,9 +3,20 @@ import { lookupChito } from './loadChito.js';
 import { lookupDayKyokusu } from './loadDayKyokusu.js';
 import { calcTimeKanshi } from './timeKanshi.js';
 import { detectBanLevel } from './banLevel.js';
+import { getYearKyokusu, getMonthKyokusu } from './yearMonthKyokusu.js';
 
 const PALACES = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
 const ELEMENTS = ['tenban', 'chiban', 'kyusei', 'hasshin', 'hachimon'];
+
+// 年盤・月盤の「実効年」を算出する。eto_year は立春基準で切り替わるため、
+// 西暦1/1〜立春前日までは前年の干支のまま（§1調査・2026-07-17確定。
+// 1924年/1984年境界の実データで確認済み、2044年1月も同じ扱いが必要）。
+// 前年12/31時点の eto_year と一致する＝まだ立春前＝実効年は前年、と判定する。
+function resolveEffectiveYear(date, koyomi) {
+  const calendarYear = Number(date.slice(0, 4));
+  const prevDec31 = lookupKoyomi(`${calendarYear - 1}-12-31`);
+  return koyomi.eto_year === prevDec31.eto_year ? calendarYear - 1 : calendarYear;
+}
 
 function resolveKey(boardType, koyomi, hour, date) {
   switch (boardType) {
@@ -18,8 +29,18 @@ function resolveKey(boardType, koyomi, hour, date) {
       // 日盤の局数は最終版 day_kyokusu.csv を使用（旧 koyomi.kyokusu は時盤等のため温存）。
       // 範囲外日付は lookupDayKyokusu が明示エラーを投げる。
       return { kyokusu: lookupDayKyokusu(date), eto: koyomi.eto_day };
+    case '年': {
+      const effectiveYear = resolveEffectiveYear(date, koyomi);
+      const { display } = getYearKyokusu(effectiveYear);
+      return { kyokusu: display, eto: koyomi.eto_year };
+    }
+    case '月': {
+      const effectiveYear = resolveEffectiveYear(date, koyomi);
+      const { display } = getMonthKyokusu(effectiveYear);
+      return { kyokusu: display, eto: koyomi.eto_month };
+    }
     default:
-      throw new Error('boardType は "日" または "時" のみ');
+      throw new Error('boardType は "日" "時" "年" "月" のみ');
   }
 }
 

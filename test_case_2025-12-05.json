@@ -1,0 +1,325 @@
+{
+  "date": "2025-12-05",
+  "note": "奇門遁甲Pro5_5.xlsx「年月日盤」シートから抽出した正解値。年盤・月盤・日盤の3盤。時盤は別シート抽出が必要。",
+  "koyomi_lookup": {
+    "date": "2025-12-05",
+    "eto_year": "乙巳",
+    "eto_month": "丁亥",
+    "eto_day": "戊申",
+    "kyusei_year": "二黒土星",
+    "kyusei_month": "二",
+    "kyusei_day": "七",
+    "inton_youton": "陰",
+    "day_kyokusu": "7局",
+    "day_kyokusu2": "陰7局",
+    "sangen": "下元",
+    "month_kyokusu": "陰7局",
+    "time_kyokusu": "陰2局",
+    "sekki24_2": "小雪"
+  },
+  "header": {
+    "年": {
+      "干支": "乙巳",
+      "局数": "陰7局",
+      "九星": "二黒",
+      "直使": "傷門",
+      "旬首": "壬",
+      "直符": "天衝"
+    },
+    "月": {
+      "干支": "丁亥",
+      "局数": "陰7局",
+      "九星": "二黒",
+      "直使": "死門",
+      "旬首": "庚",
+      "直符": "天芮"
+    },
+    "日": {
+      "干支": "戊申",
+      "局数": "陰7局",
+      "九星": "七赤",
+      "直使": "傷門",
+      "旬首": "壬",
+      "直符": "天衝"
+    }
+  },
+  "palace_layout_3x3": [
+    [
+      "巽4",
+      "離9",
+      "坤2"
+    ],
+    [
+      "震3",
+      "中5",
+      "兌7"
+    ],
+    [
+      "艮8",
+      "坎1",
+      "乾6"
+    ]
+  ],
+  "palace_name_jp": {
+    "1": "坎",
+    "2": "坤",
+    "3": "震",
+    "4": "巽",
+    "5": "中",
+    "6": "乾",
+    "7": "兌",
+    "8": "艮",
+    "9": "離"
+  },
+  "boards": {
+    "年盤": {
+      "4": {
+        "tenban_kan": "丙",
+        "hasshin": "九地",
+        "tenban_star": "天英",
+        "chiban_kan": "辛",
+        "hachimon": "休門",
+        "shisei": "一白",
+        "kikkyo": "△謀事成就"
+      },
+      "9": {
+        "tenban_kan": "癸",
+        "hasshin": "朱雀",
+        "tenban_star": "天芮",
+        "chiban_kan": "丙",
+        "hachimon": "生門",
+        "shisei": "六白",
+        "kikkyo": "〇華蓋孛師"
+      },
+      "2": {
+        "tenban_kan": "戊",
+        "hasshin": "勾陳",
+        "tenban_star": "天柱",
+        "chiban_kan": "癸",
+        "hachimon": "傷門",
+        "shisei": "八白",
+        "kikkyo": "△青龍華蓋"
+      },
+      "3": {
+        "tenban_kan": "辛",
+        "hasshin": "九天",
+        "tenban_star": "天輔",
+        "chiban_kan": "壬",
+        "hachimon": "開門",
+        "shisei": "九紫",
+        "kikkyo": "×凶蛇入獄"
+      },
+      "5": {
+        "tenban_kan": null,
+        "hasshin": null,
+        "tenban_star": null,
+        "chiban_kan": "庚",
+        "hachimon": null,
+        "shisei": "二黒",
+        "kikkyo": null
+      },
+      "7": {
+        "tenban_kan": "己",
+        "hasshin": "六合",
+        "tenban_star": "天心",
+        "chiban_kan": "戊",
+        "hachimon": "杜門",
+        "shisei": "四緑",
+        "kikkyo": "△犬遇青龍"
+      },
+      "8": {
+        "tenban_kan": "壬",
+        "hasshin": "直符",
+        "tenban_star": "天衝",
+        "chiban_kan": "乙",
+        "hachimon": "驚門",
+        "shisei": "五黄",
+        "kikkyo": "△格名小蛇"
+      },
+      "1": {
+        "tenban_kan": "乙",
+        "hasshin": "螣蛇",
+        "tenban_star": "天任",
+        "chiban_kan": "丁",
+        "hachimon": "死門",
+        "shisei": "七赤",
+        "kikkyo": "〇奇儀相佐"
+      },
+      "6": {
+        "tenban_kan": "丁",
+        "hasshin": "太陰",
+        "tenban_star": "天蓬",
+        "chiban_kan": "己",
+        "hachimon": "景門",
+        "shisei": "三碧",
+        "kikkyo": "×火入勾陳"
+      }
+    },
+    "月盤": {
+      "4": {
+        "tenban_kan": "丁",
+        "hasshin": "朱雀",
+        "tenban_star": "天蓬",
+        "chiban_kan": "辛",
+        "hachimon": "開門",
+        "shisei": "一白",
+        "kikkyo": "×朱雀入獄"
+      },
+      "9": {
+        "tenban_kan": "乙",
+        "hasshin": "勾陳",
+        "tenban_star": "天任",
+        "chiban_kan": "丙",
+        "hachimon": "休門",
+        "shisei": "六白",
+        "kikkyo": "〇奇儀順遂"
+      },
+      "2": {
+        "tenban_kan": "壬",
+        "hasshin": "六合",
+        "tenban_star": "天衝",
+        "chiban_kan": "癸",
+        "hachimon": "生門",
+        "shisei": "八白",
+        "kikkyo": "×幼女奸淫"
+      },
+      "3": {
+        "tenban_kan": "己",
+        "hasshin": "九地",
+        "tenban_star": "天心",
+        "chiban_kan": "壬",
+        "hachimon": "驚門",
+        "shisei": "九紫",
+        "kikkyo": "×地網高張"
+      },
+      "5": {
+        "tenban_kan": null,
+        "hasshin": null,
+        "tenban_star": null,
+        "chiban_kan": "庚",
+        "hachimon": null,
+        "shisei": "二黒",
+        "kikkyo": "旬首中宮"
+      },
+      "7": {
+        "tenban_kan": "辛",
+        "hasshin": "太陰",
+        "tenban_star": "天輔",
+        "chiban_kan": "戊",
+        "hachimon": "傷門",
+        "shisei": "四緑",
+        "kikkyo": "×因獄被傷"
+      },
+      "8": {
+        "tenban_kan": "戊",
+        "hasshin": "九天",
+        "tenban_star": "天柱",
+        "chiban_kan": "乙",
+        "hachimon": "死門",
+        "shisei": "五黄",
+        "kikkyo": "△青龍合霊"
+      },
+      "1": {
+        "tenban_kan": "庚",
+        "hasshin": "直符",
+        "tenban_star": "天芮",
+        "chiban_kan": "丁",
+        "hachimon": "景門",
+        "shisei": "七赤",
+        "kikkyo": "△丁丁之格"
+      },
+      "6": {
+        "tenban_kan": "丙",
+        "hasshin": "螣蛇",
+        "tenban_star": "天英",
+        "chiban_kan": "己",
+        "hachimon": "杜門",
+        "shisei": "三碧",
+        "kikkyo": "△太孛入刑"
+      }
+    },
+    "日盤": {
+      "4": {
+        "tenban_kan": "己",
+        "hasshin": "六合",
+        "tenban_star": "天心",
+        "chiban_kan": "辛",
+        "hachimon": "景門",
+        "shisei": "六白",
+        "kikkyo": "×遊魂入墓"
+      },
+      "9": {
+        "tenban_kan": "丁",
+        "hasshin": "太陰",
+        "tenban_star": "天蓬",
+        "chiban_kan": "丙",
+        "hachimon": "死門",
+        "shisei": "二黒",
+        "kikkyo": "△星髄月転"
+      },
+      "2": {
+        "tenban_kan": "乙",
+        "hasshin": "螣蛇",
+        "tenban_star": "天任",
+        "chiban_kan": "癸",
+        "hachimon": "驚門",
+        "shisei": "四緑",
+        "kikkyo": "△華蓋蓬星"
+      },
+      "3": {
+        "tenban_kan": "戊",
+        "hasshin": "勾陳",
+        "tenban_star": "天柱",
+        "chiban_kan": "壬",
+        "hachimon": "杜門",
+        "shisei": "五黄",
+        "kikkyo": "×龍入天牢"
+      },
+      "5": {
+        "tenban_kan": null,
+        "hasshin": null,
+        "tenban_star": null,
+        "chiban_kan": "庚",
+        "hachimon": null,
+        "shisei": "七赤",
+        "kikkyo": null
+      },
+      "7": {
+        "tenban_kan": "壬",
+        "hasshin": "直符",
+        "tenban_star": "天衝",
+        "chiban_kan": "戊",
+        "hachimon": "開門",
+        "shisei": "九紫",
+        "kikkyo": "〇小蛇化龍"
+      },
+      "8": {
+        "tenban_kan": "癸",
+        "hasshin": "朱雀",
+        "tenban_star": "天芮",
+        "chiban_kan": "乙",
+        "hachimon": "傷門",
+        "shisei": "一白",
+        "kikkyo": "△華蓋蓬星"
+      },
+      "1": {
+        "tenban_kan": "丙",
+        "hasshin": "九地",
+        "tenban_star": "天英",
+        "chiban_kan": "丁",
+        "hachimon": "生門",
+        "shisei": "三碧",
+        "kikkyo": "〇星奇朱雀"
+      },
+      "6": {
+        "tenban_kan": "辛",
+        "hasshin": "九天",
+        "tenban_star": "天輔",
+        "chiban_kan": "己",
+        "hachimon": "休門",
+        "shisei": "八白",
+        "kikkyo": "×入獄自刑"
+      }
+    }
+  }
+}
