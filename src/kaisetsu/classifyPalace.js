@@ -14,6 +14,7 @@
 //   board レベル: ban_level / kuubou / junshu / chokufu / chokushi
 
 import { isKuubouCell, isMonpakuCell, PALACE_NAMES } from '../kimon/banLevel.js';
+import { SANDAI_KYOKAKU } from './kyoVeto.js';
 
 // ============================================================
 // 定数
@@ -90,6 +91,7 @@ const PALACE_VETO_TERMS = [
   { term: '奇入墓', name: '三奇入墓' },   // 乙/丙/丁奇入墓
   { term: '五不遇時', name: '五不遇時' },
   { term: '天網四張', name: '天網四張' },
+  ...SANDAI_KYOKAKU.map((name) => ({ term: name, name })),
 ];
 
 /**

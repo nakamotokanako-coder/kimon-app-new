@@ -6,6 +6,7 @@ import {
   hachimonTone,
   toneClass,
 } from '../kimon/palaceColors.js';
+import { detectSandaiKyokaku } from '../kaisetsu/kyoVeto.js';
 import { buildInfoItems } from './palaceCellHelpers.js';
 
 /**
@@ -116,7 +117,9 @@ export default function PalaceCell({
 
   const hasKyo = score?.detected_kakkyoku?.some((k) => k.kichi_kyo === 'kyo');
   const isJunri = score?.is_junri === true;
-  const scoreTone = score?.score >= 40
+  const scoreTone = detectSandaiKyokaku(score)
+    ? 'score-negative'
+    : score?.score >= 40
     ? 'score-positive'
     : score?.score >= 0
       ? 'score-neutral'

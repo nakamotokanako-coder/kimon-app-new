@@ -39,7 +39,7 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
 
   if (!best) return null;
 
-  const toneClassName = getMiniBoardToneClass(best.score);
+  const toneClassName = getMiniBoardToneClass(best.score, best.palaceScore);
   const badgeLabel = BADGE_LABEL[toneClassName] || '';
   const tags = [best.palaceData?.hachimon, best.palaceData?.hasshin, best.palaceData?.kyusei]
     .filter(Boolean)

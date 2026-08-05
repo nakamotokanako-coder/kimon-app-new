@@ -82,7 +82,7 @@ export default function FusionCard({
     );
   }
 
-  const toneClass = getMiniBoardToneClass(best.score);
+  const toneClass = getMiniBoardToneClass(best.score, best.palaceScore);
   const badgeLabel = BADGE_LABEL[toneClass] || '';
   const tags = [best.palaceData?.hachimon, best.palaceData?.hasshin, best.palaceData?.kyusei]
     .filter(Boolean)
