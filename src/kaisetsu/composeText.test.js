@@ -21,10 +21,12 @@ const len = (s) => [...s].length;
 // mid は v2.1（低頻度象意74種の phrase 改訂）で変化するため、再生成後の値へ更新。
 // fix-chito-inyo7-hachimon: chito_v2 の「陰7局丁亥」行hachimon対冲入れ替わり
 // 修正に伴い、同キー8宮ぶんの解説文が変化したため再度更新。
-const MID_SORTED_SHA256 = 'a75c2da6e36337ef077689569bf8c04f9562a6507efb580125130e6fd943be61';
+// PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
+const MID_SORTED_SHA256 = '965ba11a0d14a3bb404776b474d743d97b55c9abab37ee3acf5c6446e651091e';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
-const SHORT_SORTED_SHA256 = '6ac3abc7a6474a7c3ff3c8c8c48f9a40082ebf37557604b8cbb0f071ac0a9b58';
+// PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
+const SHORT_SORTED_SHA256 = '395cadb973f2941aaf91485a7d56d93c472776bed71748a7caf2630d9824a961';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {

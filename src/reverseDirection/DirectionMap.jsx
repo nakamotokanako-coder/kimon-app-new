@@ -86,7 +86,7 @@ function formatCenterIndicatorDistance(meters) {
 
 function describeCenterIndicatorKichi(direction) {
   if (!direction) return { label: '', color: '' };
-  const toneClass = getMiniBoardToneClass(direction.score);
+  const toneClass = getMiniBoardToneClass(direction.score, direction.palaceScore);
   return {
     label: BADGE_LABEL[toneClass] || '',
     color: getFanColor(direction.tone),
