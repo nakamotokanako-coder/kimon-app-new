@@ -21,12 +21,15 @@ const len = (s) => [...s].length;
 // mid は v2.1（低頻度象意74種の phrase 改訂）で変化するため、再生成後の値へ更新。
 // fix-chito-inyo7-hachimon: chito_v2 の「陰7局丁亥」行hachimon対冲入れ替わり
 // 修正に伴い、同キー8宮ぶんの解説文が変化したため再度更新。
-// palace-veto-policy: 空亡＋開休生門の宮（551宮）を×固定から「上限○・遅れて届きやすい」注記へ
+// PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
+// palace-veto-policy: 空亡＋開休生門の宮を×固定から「上限○・遅れて届きやすい」注記へ
 // 変更したため、該当宮の short/mid が変化（docs/palace_veto_policy_v1.md・意図した変更）。
-const MID_SORTED_SHA256 = 'f8d5464edfcd7dddbed72db558c253b4b02fea28a2d687c00d8cc479d2d00f2d';
+const MID_SORTED_SHA256 = '0a1a0551cb1d4ba1d2c6a822dd43f0dc49de2acbaec3b31e7a85248c6808e39b';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
-const SHORT_SORTED_SHA256 = '069a4cce4e63e3b22dbae572bc9d1aad9d510be58aa4c30c82b2e288aa1e131d';
+// PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
+// palace-veto-policy: 同上（空亡＋開休生門の543宮）。
+const SHORT_SORTED_SHA256 = '218c9dee183973ec401ad6648c152331d0741edbc09bd09d3a36e72fbf49ee84';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {

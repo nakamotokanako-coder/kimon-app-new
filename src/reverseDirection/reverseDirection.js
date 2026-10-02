@@ -1,5 +1,6 @@
 import { buildBoard } from '../kimon/buildBoard.js';
 import { scoreBoard } from '../kimon/scoreEngine.js';
+import { detectSandaiKyokaku } from '../kaisetsu/kyoVeto.js';
 import { getJstHours } from '../utils/jishinLabels.js';
 import purposeFilters from '../data/purposeFilters.json';
 
@@ -86,7 +87,8 @@ export function getPurposeBonus(palaceData, palaceScore, purposeName) {
   };
 }
 
-export function getScoreTone(score) {
+export function getScoreTone(score, scoreResult = null) {
+  if (detectSandaiKyokaku(scoreResult)) return 'bad-strong';
   if (score >= 40) return 'great';
   if (score >= 20) return 'good';
   if (score > 0) return 'weak';
@@ -95,8 +97,8 @@ export function getScoreTone(score) {
   return 'bad';
 }
 
-export function getMiniBoardToneClass(score) {
-  const tone = getScoreTone(score);
+export function getMiniBoardToneClass(score, scoreResult = null) {
+  const tone = getScoreTone(score, scoreResult);
   if (tone === 'great') return 'daikichi';
   if (tone === 'good' || tone === 'weak') return 'shokichi';
   if (tone === 'neutral') return 'churitsu';
@@ -126,7 +128,7 @@ function buildRankings(board) {
       baseScore: finalScore,
       purposeBonus: 0,
       purposeMatches: [],
-      tone: getScoreTone(finalScore),
+      tone: getScoreTone(finalScore, palaceScore),
       // 拒否権（空亡・三奇入墓など）に該当する宮は、その理由を先頭に出す。
       // 空亡でも吉門が救う宮は点数そのままで「空亡（遅効）」と注記する。
       vetoes: palaceScore?.vetoes || [],

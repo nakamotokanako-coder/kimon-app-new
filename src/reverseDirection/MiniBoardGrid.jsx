@@ -31,7 +31,7 @@ export default function MiniBoardGrid({ rankings }) {
         return (
           <div
             key={`${palace}-${index}`}
-            className={`mini-board-cell ${getMiniBoardToneClass(score)} ${palace === bestPalace ? 'is-best' : ''}`}
+            className={`mini-board-cell ${getMiniBoardToneClass(score, item?.palaceScore)} ${palace === bestPalace ? 'is-best' : ''}`}
           >
             <span className="mini-board-dir">{item?.label || '-'}</span>
             <strong className="mini-board-score">{scoreText(score)}</strong>

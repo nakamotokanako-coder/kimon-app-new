@@ -113,7 +113,7 @@ export function scanSpecialKakkyoku({ startDate, days = 30, selectedNames, sortM
             timeLabel: slot.label,
             score: palaceScore.score,
             scoreText: scoreText(palaceScore.score),
-            tone: getScoreTone(palaceScore.score),
+            tone: getScoreTone(palaceScore.score, palaceScore),
             matches,
             practicals: matches.map((name) => ({ name, text: getPractical(name) })).filter((item) => item.text),
             hachimon: palaceData?.hachimon || '',

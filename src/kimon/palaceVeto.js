@@ -10,10 +10,13 @@
 //     亦不為凶」）。空亡は「時が来れば填実・冲空で実る」＝効果が遅れやすい扱いにとどめる。
 // 判定は classifyPalace の Level 1 と同一にして、解説側と食い違わせない。
 // 盤レベルの反吟・伏吟は ban_level_minus で減点済みなので対象外。
+// 三大凶格（伏宮格・飛宮格・戦格）も拒否権だが、#138 の方針（点数は変えずトーンのみ凶。
+// kyoVeto.js / getScoreTone）に従い点数上限の対象外。空亡の救済（遅効）は妨げる。
 // 根拠: docs/palace_veto_policy_v1.md
 
 import { lookupChito } from './loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
+import { SANDAI_KYOKAKU } from '../kaisetsu/kyoVeto.js';
 
 export const VETO_KYO_SCORE_CAP = -20;
 
@@ -43,8 +46,9 @@ export function isKuubouRelieved(vetoes, gate) {
 }
 
 export function applyVetoCap(score, vetoes, gate = '') {
-  if (!vetoes?.length) return score;
-  const hardVeto = vetoes.some((name) => name !== '空亡');
+  const capping = (vetoes || []).filter((name) => !SANDAI_KYOKAKU.includes(name));
+  if (!capping.length) return score;
+  const hardVeto = capping.some((name) => name !== '空亡');
   if (hardVeto) return Math.min(score, VETO_KYO_SCORE_CAP);
   if (isKuubouRelieved(vetoes, gate)) return score;
   return Math.min(score, 0);

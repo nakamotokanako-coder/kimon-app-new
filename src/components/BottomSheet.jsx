@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import shouiDict from '../../data/shoui_dict.json';
+import { detectSandaiKyokaku } from '../kaisetsu/kyoVeto.js';
 import './BottomSheet.css';
 
 const AXES = [
@@ -126,7 +127,8 @@ const BREAKDOWN_LABELS = {
   junri_bonus: '順利ボーナス',
 };
 
-function getBadge(score = 0) {
+export function getBadge(score = 0, scoreResult = null) {
+  if (detectSandaiKyokaku(scoreResult)) return { label: '凶', className: 'kyo' };
   if (score >= 60) return { label: '大吉', className: 'kichi' };
   if (score >= 20) return { label: '吉', className: 'kichi' };
   if (score >= -10) return { label: '中立', className: 'chu' };
@@ -246,6 +248,10 @@ function computeAxisScores(palace) {
   const data = palace?.data || {};
   const kakkyokuNames = palace?.score?.detected_kakkyoku?.map((item) => item.name).filter(Boolean) || [];
 
+  if (detectSandaiKyokaku(palace?.score)) {
+    return AXES.map((axis) => ({ ...axis, score: baseScore, symbol: '×', className: 'bad' }));
+  }
+
   return AXES.map((axis) => {
     const rules = AXIS_RULES[axis.key];
     let axisScore = baseScore;
@@ -331,7 +337,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
   }, [onClose, palace]);
 
   const score = palace?.score?.score;
-  const badge = getBadge(score);
+  const badge = getBadge(score, palace?.score);
   const kakkyoku = normalizeKakkyoku(palace?.score?.detected_kakkyoku?.[0]);
   const axisScores = useMemo(() => computeAxisScores(palace), [palace]);
   const activeAxisItem = axisScores[activeAxis] || axisScores[0];

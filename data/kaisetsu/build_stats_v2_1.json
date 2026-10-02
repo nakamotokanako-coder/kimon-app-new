@@ -12,15 +12,15 @@
     },
     "mid": {
       "min": 35,
-      "avg": 78.4,
+      "avg": 78.5,
       "median": 73,
       "max": 129,
       "over_160": 0
     },
     "full": {
       "min": 79,
-      "avg": 150.4,
-      "median": 149,
+      "avg": 150.8,
+      "median": 150,
       "max": 269,
       "over_320": 0,
       "band_220_280": 0.018,
@@ -29,8 +29,8 @@
   },
   "nanoni": {
     "by_type": {
-      "none": 32280,
-      "sukinai": 9250,
+      "none": 32250,
+      "sukinai": 9280,
       "warukinai": 1670
     },
     "rate": 0.253,
@@ -38,10 +38,10 @@
   },
   "full_slots": {
     "lead_src": {
-      "veto": 23025,
+      "veto": 22800,
       "shoui_up": 2400,
-      "shoui": 6745,
-      "gate": 11030,
+      "shoui": 7300,
+      "gate": 10700,
       "star": 0
     },
     "reinforce_src": {
@@ -50,21 +50,21 @@
       "none": 4290
     },
     "extra_src": {
-      "hint": 8760,
-      "exception": 12245,
-      "none": 22195
+      "hint": 9315,
+      "exception": 11980,
+      "none": 21905
     },
-    "general_rate": 0.649,
-    "action_rate": 0.754,
-    "action_suppressed_palaces": 2126,
+    "general_rate": 0.656,
+    "action_rate": 0.747,
+    "action_suppressed_palaces": 2185,
     "action_suppressed_note": "▲×∩吉門(kichi3/chukichi)はactionsを出さない（吉前提文体が凶宮の結論と矛盾するため）。v2.1で代替締め文を入れる対象宮。",
     "shime_src": {
-      "veto": 1125,
+      "veto": 1095,
       "god": 0,
-      "fallback": 10630,
-      "none": 31445
+      "fallback": 10925,
+      "none": 31180
     },
-    "fallback_closing_adopted": 10630,
+    "fallback_closing_adopted": 10925,
     "fallback_closing_note": "fullのみ。▲×∩吉門で行動提案を出せない宮の締めに fallbackClosings を充当（死門は除外・hash決定的選択）。",
     "guard": {
       "none": 43200,
@@ -77,16 +77,16 @@
   },
   "mid_continuity": {
     "reason_src": {
-      "shoui": 12615,
-      "use": 18445,
-      "gate": 5340,
-      "star": 6800
+      "shoui": 12630,
+      "use": 18760,
+      "gate": 5180,
+      "star": 6630
     },
     "third_sentence_src": {
-      "veto": 1125,
-      "god": 2165,
-      "gate": 35790,
-      "none": 4120
+      "veto": 1095,
+      "god": 2130,
+      "gate": 35970,
+      "none": 4005
     }
   },
   "checks": {

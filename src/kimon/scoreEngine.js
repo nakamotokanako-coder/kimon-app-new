@@ -326,6 +326,7 @@ export function scoreBoard(board) {
     ps.kuubou_relieved = isKuubouRelieved(vetoes, board.palaces[palName]?.hachimon);
     if (ps.kuubou_relieved) continue;
     const capped = applyVetoCap(ps.score, vetoes, board.palaces[palName]?.hachimon);
+    if (capped === ps.score) continue;
     ps.breakdown = { ...ps.breakdown, pre_veto_score: ps.score };
     ps.score = capped;
     ps.usable = capped >= USABLE_THRESHOLD;

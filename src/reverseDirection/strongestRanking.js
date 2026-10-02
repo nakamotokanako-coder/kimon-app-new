@@ -161,7 +161,7 @@ export function buildDayCandidates(date) {
       date,
       ...dateMeta,
       score: palaceScore?.score || 0,
-      tone: getScoreTone(palaceScore?.score || 0),
+      tone: getScoreTone(palaceScore?.score || 0, palaceScore),
       hachimon: palaceData?.hachimon || '',
       hasshin: palaceData?.hasshin || '',
       palaceData,
