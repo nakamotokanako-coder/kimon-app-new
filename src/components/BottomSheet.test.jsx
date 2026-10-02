@@ -2,7 +2,31 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import BottomSheet from './BottomSheet.jsx';
+import BottomSheet, { getBadge } from './BottomSheet.jsx';
+import { computeAxisRanks } from '../reverseDirection/FusionCard.jsx';
+
+const KNOWN_KEY = '陰1局丁卯';
+
+function mockFetch({ me }) {
+  const calls = [];
+  global.fetch = vi.fn(async (url) => {
+    const href = String(url);
+    calls.push(href);
+    if (href === '/api/auth/me') return { ok: true, status: 200, json: async () => me };
+    if (href.startsWith('/api/kaisetsu-full?')) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ palaces: { kan: { goen: { mid: 'ご縁のmid解説です。' }, shigoto: { mid: '仕事のmid解説です。' } } } }),
+      };
+    }
+    if (href.startsWith('/api/kaisetsu?')) {
+      return { ok: true, status: 200, json: async () => ({ palaces: { kan: { goen: { short: 'ご縁のshort解説。' } } } }) };
+    }
+    throw new Error(`unexpected fetch: ${href}`);
+  });
+  return calls;
+}
 
 function makePalace(overrides = {}) {
   return {
@@ -103,11 +127,11 @@ describe('BottomSheet', () => {
     expect(document.body.querySelector('.kakkyoku-card')).toBe(null);
   });
 
-  it('軸セグメントのボタンをクリックすると activeAxis が切り替わる', () => {
+  it('テーマのタブをクリックすると選択が切り替わる', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
 
-    const goen = screen.getByRole('tab', { name: 'ご縁' });
-    const shigoto = screen.getByRole('tab', { name: '仕事' });
+    const goen = screen.getByRole('tab', { name: /ご縁/ });
+    const shigoto = screen.getByRole('tab', { name: /仕事/ });
 
     expect(goen.getAttribute('aria-selected')).toBe('true');
     fireEvent.click(shigoto);
@@ -115,51 +139,43 @@ describe('BottomSheet', () => {
     expect(goen.getAttribute('aria-selected')).toBe('false');
   });
 
-  it('5軸比較に実評価の記号を表示する', () => {
-    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+  it('5テーマの◎○×は吉方位タブと同じ classifyPalace の軸ランク（タブと一体で二重表示しない）', () => {
+    mockFetch({ me: { loggedIn: false } });
+    render(<BottomSheet palace={makePalace()} kaisetsuKey={KNOWN_KEY} onClose={() => {}} />);
 
-    const symbols = [...document.body.querySelectorAll('.axis-symbol')].map((node) => node.textContent);
-    expect(symbols).toHaveLength(5);
-    expect(symbols.every((symbol) => ['◎', '○', '△', '×'].includes(symbol))).toBe(true);
-    expect(screen.queryByText(/準備中/)).toBe(null);
+    const expected = computeAxisRanks(KNOWN_KEY, 'kan');
+    const symbols = [...document.body.querySelectorAll('.axis-btn .axis-symbol')].map((node) => node.textContent);
+    expect(symbols).toEqual(['goen', 'shigoto', 'kinun', 'kenko', 'benkyo'].map((k) => expected[k]));
+    expect(document.body.querySelector('.axis-compare-card')).toBe(null);
   });
 
-  it('kaisetsu-full API の軸別 mid 本文を表示する', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        palaces: {
-          kan: {
-            goen: { mid: 'ご縁のmid解説です。' },
-            shigoto: { mid: '仕事のmid解説です。' },
-          },
-        },
-      }),
-    });
+  it('全機能を使える人には kaisetsu-full の軸別 mid 本文を表示する', async () => {
+    mockFetch({ me: { loggedIn: true, email: 'a@example.com', status: 'free', full: true } });
 
-    render(<BottomSheet palace={makePalace()} kaisetsuKey="1甲" onClose={() => {}} />);
+    render(<BottomSheet palace={makePalace()} kaisetsuKey={KNOWN_KEY} onClose={() => {}} />);
 
     expect(await screen.findByText('ご縁のmid解説です。')).toBeTruthy();
-    fireEvent.click(screen.getByRole('tab', { name: '仕事' }));
+    fireEvent.click(screen.getByRole('tab', { name: /仕事/ }));
     expect(screen.getByText('仕事のmid解説です。')).toBeTruthy();
-    expect(global.fetch).toHaveBeenCalledWith('/api/kaisetsu-full?key=1%E7%94%B2', { credentials: 'same-origin' });
   });
 
-  it('kaisetsu-full API が403の時も月額プラン案内を表示しない', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 403,
-      json: async () => ({ error: 'forbidden' }),
-    });
+  it('未ログインではエラーにせず、短い解説＋ログインの案内を出す（kaisetsu-full は呼ばない）', async () => {
+    const calls = mockFetch({ me: { loggedIn: false } });
+    const onOpenAccountSettings = vi.fn();
 
-    render(<BottomSheet palace={makePalace()} kaisetsuKey="2乙" onClose={() => {}} />);
+    render(
+      <BottomSheet palace={makePalace()} kaisetsuKey={KNOWN_KEY} onClose={() => {}} onOpenAccountSettings={onOpenAccountSettings} />,
+    );
 
-    expect(await screen.findByText('解説を表示できませんでした。')).toBeTruthy();
-    expect(screen.queryByText(/月額プラン/)).toBe(null);
+    expect(await screen.findByText('ご縁のshort解説。')).toBeTruthy();
+    expect(screen.getByText('ログインすると、ベータ期間中は全機能を無料で使えます。')).toBeTruthy();
+    expect(screen.queryByText(/表示できませんでした/)).toBe(null);
+    expect(calls.some((url) => url.startsWith('/api/kaisetsu-full'))).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'ログインする' }));
+    expect(onOpenAccountSettings).toHaveBeenCalledTimes(1);
   });
 
-  it('「評価の解説」をクリックすると展開/折りたたみする', () => {
+  it('「評価の解説」は点数付きで、行を足すと総合評価になる', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
     const toggle = screen.getByRole('button', { name: '評価の解説' });
     const detail = document.body.querySelector('.why-detail');
@@ -168,16 +184,31 @@ describe('BottomSheet', () => {
     fireEvent.click(toggle);
     expect(detail.className).toContain('open');
     expect(screen.getByText('八門（休門）')).toBeTruthy();
-    expect(screen.getByText(/人間関係の調和を促し/)).toBeTruthy();
-    expect(screen.getByText(/文書がらみの争い/)).toBeTruthy();
-    expect(screen.getByText(/対外的な文章は1日寝かせて校閲/)).toBeTruthy();
-    expect(screen.getByText(/人間関係の調和を促し/).className).toContain('kichi');
-    expect(screen.getByText(/文書がらみの争い/).className).toContain('kyo');
-    expect(screen.queryByText('+40')).toBe(null);
-    expect(screen.queryByText('-10')).toBe(null);
+    expect(screen.getByText('和やかさをもたらす門。休息・仲直り・縁談に向く。')).toBeTruthy();
+    expect(screen.getByText('+40')).toBeTruthy();
+    expect(screen.getByText('-10')).toBeTruthy();
     expect(screen.getByText('総合評価')).toBeTruthy();
-    expect(screen.getAllByText('+70').length).toBeGreaterThanOrEqual(1);
+    const pts = [...detail.querySelectorAll('.why-row:not(.total) .pts')].map((el) => Number(el.textContent));
+    expect(pts.reduce((a, b) => a + b, 0)).toBe(70);
     fireEvent.click(toggle);
     expect(detail.className).not.toContain('open');
+  });
+
+  it('格局は全件カードで出し、仮置きの「墨絵」は出さない', () => {
+    const palace = makePalace();
+    palace.score.detected_kakkyoku = [
+      { name: '天遁', kichi_kyo: 'kichi', score: 10 },
+      { name: '天網四張', kichi_kyo: 'kyo', score: -10 },
+    ];
+    render(<BottomSheet palace={palace} onClose={() => {}} />);
+    expect(document.body.querySelectorAll('.kakkyoku-card')).toHaveLength(2);
+    expect(screen.queryByText('墨絵')).toBe(null);
+  });
+
+  it('吉凶バッジは吉方位タブと同じ基準（+10 は「吉」）', () => {
+    expect(getBadge(10).label).toBe('吉');
+    expect(getBadge(40).label).toBe('大吉');
+    expect(getBadge(0).label).toBe('中立');
+    expect(getBadge(-5).label).toBe('凶');
   });
 });

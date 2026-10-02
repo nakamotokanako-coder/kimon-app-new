@@ -8,11 +8,13 @@ import {
   scoreText,
 } from '../../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../../reverseDirection/reverseDirection.js';
-import { buildYohoBreakdown, yohoElementText, yohoToneClass } from '../../reverseDirection/yohoKaisetsuBreakdown.js';
+import { buildScoreBreakdown } from '../../kimon/palaceExplain.js';
+import { lockedMessage } from '../../../lib/accessPolicy.js';
 
 // 時盤お散歩モードのFusionCard（L2）をタップすると開く30秒の層（L3）。
 // 開閉の実装（createPortal・常時マウント・.openクラス・Escape対応）は
-// src/components/BottomSheet.jsx（盤タブ）と同じ方式を踏襲する（盤タブ側は変更しない）。
+// src/components/BottomSheet.jsx（盤タブ）と同じ方式。「評価の解説」も盤タブと同じ
+// kimon/palaceExplain.js を使う（点数付き・行を足すと総合点）。
 export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChange, onClose, onGoToSearch }) {
   const [whyOpen, setWhyOpen] = useState(false);
   const palace = best?.palace || null;
@@ -33,8 +35,8 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
   const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace), [boardKey, palace]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
   const breakdown = useMemo(
-    () => (best ? buildYohoBreakdown(best.palaceScore, best.palaceData) : []),
-    [best],
+    () => (best ? buildScoreBreakdown(best.palaceScore, best.palaceData, banLevel) : []),
+    [best, banLevel],
   );
 
   if (!best) return null;
@@ -64,7 +66,7 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
     readingNode = (
       <>
         <p className="l3-reading-text">{short || (palaces ? 'この方位・願いごとの解説はありません。' : '読み込み中…')}</p>
-        {short && <p className="l3-reading-cta">ログインすると続きが読めます。</p>}
+        {short && <p className="l3-reading-cta">{lockedMessage()}</p>}
       </>
     );
   }
@@ -141,14 +143,23 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
             </button>
             <div className={`l3-why-detail${whyOpen ? ' open' : ''}`}>
               {breakdown.length > 0 ? (
-                breakdown.map((item) => (
-                  <div className="l3-why-row" key={item.key}>
-                    <span className="l3-why-factor">{item.label}</span>
-                    <span className={`l3-why-desc shoui-${yohoToneClass(item.score)}`}>
-                      {yohoElementText(item.key, best.palaceScore, best.palaceData, banLevel)}
+                <>
+                  {breakdown.map((item) => (
+                    <div className="l3-why-row" key={item.key}>
+                      <span className="l3-why-factor">
+                        {item.label}
+                        <b className={`l3-why-pts shoui-${item.tone}`}>{scoreText(item.points)}</b>
+                      </span>
+                      <span className={`l3-why-desc shoui-${item.tone}`}>{item.desc}</span>
+                    </div>
+                  ))}
+                  <div className="l3-why-row l3-why-total">
+                    <span className="l3-why-factor">
+                      総合評価
+                      <b className="l3-why-pts">{scoreText(best.score)}</b>
                     </span>
                   </div>
-                ))
+                </>
               ) : (
                 <div className="l3-why-empty">評価内訳はありません</div>
               )}

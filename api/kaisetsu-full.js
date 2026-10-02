@@ -1,5 +1,6 @@
 // api/kaisetsu-full.js
-// 解説API（課金者向け・short+mid+full）: 有効セッション かつ user.status==='paid' のときだけ配信する。
+// 解説API（全機能の利用者向け・short+mid+full）: 有効セッション かつ 全機能を使える人だけに配信する
+// （判定は lib/accessPolicy.js。ベータ期間はログイン済みなら可、販売開始後は user.status==='paid'）。
 //
 //   GET /api/kaisetsu-full?key=<局key>
 //
@@ -10,20 +11,12 @@
 //
 // 課金判定はすべてサーバーサイド。クライアント出し分けは禁止。
 import { loadKaisetsu, buildPalaces } from '../lib/kaisetsuData.js';
-import { kv } from '../lib/kv.js';
-import { getSessionFromReq } from '../lib/session.js';
+import { getActiveSession } from '../lib/auth.js';
 
-/** Cookie検証 → user:{email}.status==='paid' のときだけ true。 */
-async function isPaid(req) {
-  const secret = process.env.SESSION_SECRET;
-  const session = secret ? getSessionFromReq(req, secret) : null;
-  if (!session) return false;
-  try {
-    const user = await kv().get(`user:${session.email}`);
-    return user?.status === 'paid';
-  } catch {
-    return false;
-  }
+/** 有効セッション かつ 全機能を使える人（lib/accessPolicy.js: ベータ期間はログイン済み、販売後は paid）だけ true。 */
+async function canReadFull(req) {
+  const active = await getActiveSession(req);
+  return Boolean(active?.full);
 }
 
 export default async function handler(req, res) {
@@ -39,8 +32,8 @@ export default async function handler(req, res) {
   const key = typeof req.query?.key === 'string' ? req.query.key.trim() : '';
   if (!key) return res.status(400).json({ error: 'bad_request' });
 
-  if (!(await isPaid(req))) {
-    // 未認証・free は full を一切返さない（存在は秘匿せず明示的に拒否）。
+  if (!(await canReadFull(req))) {
+    // 全機能を使えない人には full を一切返さない（存在は秘匿せず明示的に拒否）。
     return res.status(403).json({ error: 'forbidden' });
   }
 

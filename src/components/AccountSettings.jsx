@@ -1,32 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../auth/AuthContext.jsx';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
-// 認証状態・課金状態の判定はすべてサーバー側（/api/auth/me）。ここでは出し分けをしない。
+// 認証状態・利用範囲の判定はすべてサーバー側（/api/auth/me → AuthContext）。ここでは表示だけ。
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function planLabel(auth) {
+  if (auth.status === 'paid') return '有料会員';
+  if (auth.accessMode === 'beta' && auth.full) return 'ベータ版（全機能を無料で利用中）';
+  return '無料';
+}
+
 export default function AccountSettings() {
-  const [phase, setPhase] = useState('loading'); // loading | anon | sent | authed
+  const auth = useAuth();
+  const [sent, setSent] = useState(false);
   const [email, setEmail] = useState('');
-  const [account, setAccount] = useState(null); // { email, status }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-
-  const loadMe = async () => {
-    try {
-      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
-      const data = await res.json();
-      if (data.loggedIn) {
-        setAccount({ email: data.email, status: data.status });
-        setPhase('authed');
-      } else {
-        setPhase('anon');
-      }
-    } catch {
-      setPhase('anon');
-    }
-  };
-
-  useEffect(() => { loadMe(); }, []);
+  const [note, setNote] = useState('');
 
   const sendLink = async () => {
     const value = email.trim().toLowerCase();
@@ -48,7 +39,7 @@ export default function AccountSettings() {
       } else if (!res.ok) {
         setError('送信に失敗しました。時間をおいてお試しください。');
       } else {
-        setPhase('sent');
+        setSent(true);
       }
     } catch {
       setError('送信に失敗しました。時間をおいてお試しください。');
@@ -57,50 +48,58 @@ export default function AccountSettings() {
     }
   };
 
-  const logout = async () => {
+  const logout = async (all = false) => {
     setBusy(true);
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      await fetch(all ? '/api/auth/logout-all' : '/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
     } catch {
-      // 失敗してもUIはログアウト扱いに倒す
+      // 失敗しても表示はログアウト扱いに倒す（再取得で実際の状態に戻る）
     } finally {
       setBusy(false);
-      setAccount(null);
       setEmail('');
-      setPhase('anon');
+      setSent(false);
+      setNote(all ? 'すべての端末からログアウトしました。' : '');
+      auth.refresh?.();
     }
   };
 
-  if (phase === 'loading') {
+  if (auth.phase === 'loading') {
     return <div className="account-note">読み込み中…</div>;
   }
 
-  if (phase === 'authed' && account) {
+  if (auth.loggedIn) {
     return (
       <>
         <div className="settings-info-row">
           <span>メールアドレス</span>
-          <strong className="account-email">{account.email}</strong>
+          <strong className="account-email">{auth.email}</strong>
         </div>
-        <button type="button" className="account-btn account-btn-ghost" onClick={logout} disabled={busy}>
+        <div className="settings-info-row">
+          <span>ご利用プラン</span>
+          <strong>{planLabel(auth)}</strong>
+        </div>
+        <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>
           ログアウト
+        </button>
+        <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(true)} disabled={busy}>
+          すべての端末からログアウト
         </button>
       </>
     );
   }
 
-  if (phase === 'sent') {
+  if (sent) {
     return (
       <div className="account-note">
         メールを確認してください。<br />
-        届いたログインリンクを開くとログインが完了します（リンクの有効期限は15分です）。
+        届いたメールのリンクを開き、表示された「ログインする」ボタンを押すとログインが完了します（リンクの有効期限は15分です）。
       </div>
     );
   }
 
-  // anon
   return (
     <div className="account-login">
+      {note && <p className="account-note">{note}</p>}
       <label className="account-label" htmlFor="account-email-input">メールアドレスでログイン</label>
       <input
         id="account-email-input"

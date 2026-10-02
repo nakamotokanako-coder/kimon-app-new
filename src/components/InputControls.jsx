@@ -9,7 +9,8 @@ const DIRECTIONS = [
   { value: 'south_bottom', label: '南を下' },
 ];
 
-export default function InputControls({ date, hour, boardType, direction, onChange, onDirectionChange }) {
+// dateLocked: 全機能を使えない人（未ログインなど）は今日の盤だけ（日付を変えられない。lib/accessPolicy.js）。
+export default function InputControls({ date, hour, boardType, direction, onChange, onDirectionChange, dateLocked = false }) {
   const handleNow = () => {
     const now = new Date();
     const slotHour = getJishinSlotHour(now);
@@ -29,6 +30,8 @@ export default function InputControls({ date, hour, boardType, direction, onChan
           type="date"
           value={date}
           onChange={(e) => onChange({ date: e.target.value })}
+          disabled={dateLocked}
+          title={dateLocked ? '日付の変更はログイン後に使えます' : undefined}
         />
       </label>
 

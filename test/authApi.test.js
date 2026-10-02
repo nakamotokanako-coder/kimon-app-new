@@ -3,6 +3,7 @@ import requestHandler from '../api/auth/request.js';
 import verifyHandler from '../api/auth/verify.js';
 import meHandler from '../api/auth/me.js';
 import logoutHandler from '../api/auth/logout.js';
+import logoutAllHandler from '../api/auth/logout-all.js';
 import { setKvClient } from '../lib/kv.js';
 import {
   setEmailSender,
@@ -105,6 +106,19 @@ describe('POST /api/auth/request', () => {
     expect(res.statusCode).toBe(405);
   });
 
+  it('同じIPからは1時間に10通まで（アドレスを変えても11通目は 429）', async () => {
+    const headers = { 'x-forwarded-for': '203.0.113.7, 10.0.0.1' };
+    for (let i = 0; i < 10; i += 1) {
+      const res = createRes();
+      await requestHandler({ method: 'POST', body: { email: `ip${i}@example.com` }, headers }, res);
+      expect(res.statusCode).toBe(200);
+    }
+    const res = createRes();
+    await requestHandler({ method: 'POST', body: { email: 'ip10@example.com' }, headers }, res);
+    expect(res.statusCode).toBe(429);
+    expect(sent).toHaveLength(10);
+  });
+
   it('resolves from-address: env overrides, else onboarding@resend.dev fallback', () => {
     expect(DEFAULT_MAGIC_LINK_FROM).toBe('onboarding@resend.dev');
     expect(resolveMagicFrom({ MAGIC_LINK_FROM: 'login@verified.example' })).toBe('login@verified.example');
@@ -124,19 +138,39 @@ describe('POST /api/auth/request', () => {
   });
 });
 
-describe('GET /api/auth/verify (one-time token)', () => {
-  async function issueToken(email) {
-    const res = createRes();
-    await requestHandler({ method: 'POST', body: { email }, headers: {} }, res);
-    return tokenFromUrl(sent.at(-1).url);
-  }
+async function issueToken(email) {
+  const res = createRes();
+  await requestHandler({ method: 'POST', body: { email }, headers: {} }, res);
+  return tokenFromUrl(sent.at(-1).url);
+}
 
+describe('GET /api/auth/verify（確認ページ・トークンを消費しない）', () => {
+  it('有効なトークンなら「ログインする」ボタンのページを返し、トークンは残る（メールの事前チェック対策）', async () => {
+    const token = await issueToken('scan@example.com');
+    const res = createRes();
+    await verifyHandler({ method: 'GET', query: { token }, headers: {} }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.html).toContain('method="POST"');
+    expect(res.html).toContain(token);
+    expect(res.headers['Set-Cookie']).toBeUndefined();
+    expect(kvFake.store.get(`magic:${token}`)).toBe('scan@example.com');
+  });
+
+  it('無効なトークンは「リンクが無効です」', async () => {
+    const res = createRes();
+    await verifyHandler({ method: 'GET', query: { token: 'a'.repeat(64) }, headers: {} }, res);
+    expect(res.statusCode).toBe(400);
+    expect(res.html).toContain('リンクが無効です');
+  });
+});
+
+describe('POST /api/auth/verify (one-time token)', () => {
   it('creates a free user, sets a session cookie, and redirects', async () => {
     const token = await issueToken('new@example.com');
     const res = createRes();
-    await verifyHandler({ method: 'GET', query: { token }, headers: {} }, res);
+    await verifyHandler({ method: 'POST', body: { token }, headers: {} }, res);
 
-    expect(res.statusCode).toBe(302);
+    expect(res.statusCode).toBe(303);
     const cookie = res.headers['Set-Cookie'];
     expect(cookie).toContain(`${SESSION_COOKIE}=`);
     expect(cookie).toContain('HttpOnly');
@@ -148,11 +182,11 @@ describe('GET /api/auth/verify (one-time token)', () => {
     const token = await issueToken('once@example.com');
 
     const res1 = createRes();
-    await verifyHandler({ method: 'GET', query: { token }, headers: {} }, res1);
-    expect(res1.statusCode).toBe(302);
+    await verifyHandler({ method: 'POST', body: { token }, headers: {} }, res1);
+    expect(res1.statusCode).toBe(303);
 
     const res2 = createRes();
-    await verifyHandler({ method: 'GET', query: { token }, headers: {} }, res2);
+    await verifyHandler({ method: 'POST', body: { token }, headers: {} }, res2);
     expect(res2.statusCode).toBe(400);
     expect(res2.html).toContain('リンクが無効です');
   });
@@ -161,7 +195,8 @@ describe('GET /api/auth/verify (one-time token)', () => {
     const token = await issueToken('vip@example.com');
     kvFake.store.set('user:vip@example.com', { status: 'paid', createdAt: 'x' });
     const res = createRes();
-    await verifyHandler({ method: 'GET', query: { token }, headers: {} }, res);
+    await verifyHandler({ method: 'POST', body: `token=${token}`, headers: {} }, res); // フォーム送信（urlencoded 文字列）
+    expect(res.statusCode).toBe(303);
     expect(kvFake.store.get('user:vip@example.com')).toMatchObject({ status: 'paid' });
   });
 });
@@ -172,21 +207,51 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
     await requestHandler({ method: 'POST', body: { email }, headers: {} }, r);
     const token = tokenFromUrl(sent.at(-1).url);
     const v = createRes();
-    await verifyHandler({ method: 'GET', query: { token }, headers: {} }, v);
+    await verifyHandler({ method: 'POST', body: { token }, headers: {} }, v);
     return v.headers['Set-Cookie'].split(';')[0]; // "kimon_session=..."
   }
 
   it('reports loggedIn:false without a cookie', async () => {
     const res = createRes();
     await meHandler({ method: 'GET', headers: {} }, res);
-    expect(res.body).toEqual({ loggedIn: false });
+    expect(res.body).toEqual({ loggedIn: false, full: false, accessMode: 'beta' });
   });
 
-  it('reports loggedIn + email + status with a valid cookie', async () => {
+  it('reports loggedIn + email + status + full（ベータ期間はログインで全機能） with a valid cookie', async () => {
     const cookie = await login('me@example.com');
     const res = createRes();
     await meHandler({ method: 'GET', headers: { cookie } }, res);
-    expect(res.body).toEqual({ loggedIn: true, email: 'me@example.com', status: 'free' });
+    expect(res.body).toEqual({ loggedIn: true, email: 'me@example.com', status: 'free', full: true, accessMode: 'beta' });
+  });
+
+  it('壊れた %エンコードのCookieでも 500 にならず未ログイン扱い', async () => {
+    const res = createRes();
+    await meHandler({ method: 'GET', headers: { cookie: 'kimon_session=%E0%A4%A' } }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.loggedIn).toBe(false);
+  });
+
+  it('すべての端末からログアウト: それ以前のCookieはすべて無効になる', async () => {
+    const cookieA = await login('multi@example.com');
+    kvFake.store.delete('cooldown:multi@example.com');
+    const cookieB = await login('multi@example.com');
+
+    const out = createRes();
+    await logoutAllHandler({ method: 'POST', headers: { cookie: cookieA } }, out);
+    expect(out.statusCode).toBe(200);
+    expect(out.headers['Set-Cookie']).toContain('Max-Age=0');
+
+    for (const cookie of [cookieA, cookieB]) {
+      const res = createRes();
+      await meHandler({ method: 'GET', headers: { cookie } }, res);
+      expect(res.body.loggedIn).toBe(false);
+    }
+
+    kvFake.store.delete('cooldown:multi@example.com');
+    const cookieC = await login('multi@example.com');
+    const res = createRes();
+    await meHandler({ method: 'GET', headers: { cookie: cookieC } }, res);
+    expect(res.body.loggedIn).toBe(true);
   });
 
   it('logout returns a clearing cookie', async () => {

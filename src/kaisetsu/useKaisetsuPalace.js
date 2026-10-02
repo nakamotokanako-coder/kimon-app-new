@@ -1,45 +1,34 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../auth/AuthContext.jsx';
 
-// KaisetsuPanel.jsx と統合カード(FusionCard.jsx)で共有する解説データ取得hook。
-// 局key単位で /api/kaisetsu（short・認証非依存）と /api/kaisetsu-full（paid限定・mid/full）
-// を取得し、認証状態・キャッシュ・エラー状態を一元管理する。
+// 解説データ取得hook（盤のシート・統合カード(FusionCard)・L3・KaisetsuPanel で共有）。
+// 局key単位で /api/kaisetsu（short・認証非依存）と /api/kaisetsu-full（全機能の利用者限定・mid/full）
+// を取得する。ログイン状態は AuthContext（/api/auth/me を1回だけ取得）を使う。
+//
+// 返り値の isPaid は「全機能を使える（詳しい解説を読める）」の意味（lib/accessPolicy.js の full）。
+// ベータ期間はログインで true、販売開始後は有料会員で true。
 
 export function useKaisetsuPalace(key) {
+  const auth = useAuth();
   const [cache, setCache] = useState({}); // 局key -> palaces（short のみ）
-  const [auth, setAuth] = useState({ phase: 'loading', loggedIn: false, status: 'free' });
-  const [fullCache, setFullCache] = useState({}); // 局key -> palaces（paid のみ: short+mid+full+axisRanks）
+  const [fullCache, setFullCache] = useState({}); // 局key -> palaces（short+mid+full+axisRanks）
   const [fullErrorKey, setFullErrorKey] = useState(null);
+  const [fullDenied, setFullDenied] = useState(false); // サーバーに 403 で断られた（権限が変わった等）
 
   // 局key が変わったら full の一時エラーも畳む。
   useEffect(() => {
     setFullErrorKey(null);
   }, [key]);
 
-  // 認証状態は hook 単独で取得する。full API は paid 確認後の effect だけから呼ぶ。
+  // ログイン状態が変わったら、断られた記録と full のキャッシュを捨てる。
   useEffect(() => {
-    let alive = true;
-    fetch('/api/auth/me', { credentials: 'same-origin' })
-      .then((r) => (r.ok ? r.json() : { loggedIn: false }))
-      .then((data) => {
-        if (!alive) return;
-        if (data?.loggedIn) {
-          setAuth({ phase: 'ready', loggedIn: true, email: data.email, status: data.status || 'free' });
-        } else {
-          setAuth({ phase: 'ready', loggedIn: false, status: 'free' });
-          setFullCache({});
-        }
-      })
-      .catch(() => {
-        if (!alive) return;
-        setAuth({ phase: 'ready', loggedIn: false, status: 'free' });
-        setFullCache({});
-      });
-    return () => { alive = false; };
-  }, []);
+    setFullDenied(false);
+    if (!auth.full) setFullCache({});
+  }, [auth.full, auth.email]);
 
   // short を API から取得（局keyごと1回だけ・取得済みは再フェッチしない）。
   useEffect(() => {
-    if (!key || cache[key]) return;
+    if (!key || cache[key]) return undefined;
     let alive = true;
     fetch(`/api/kaisetsu?key=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
@@ -52,16 +41,16 @@ export function useKaisetsuPalace(key) {
     return () => { alive = false; };
   }, [key, cache]);
 
-  // paid 確認後だけ full API を取得する。free/未ログインでは 403 を踏みに行かない。
+  // 全機能の利用者だけ full API を取得する。未ログイン等では 403 を踏みに行かない。
   useEffect(() => {
-    if (!key || auth.phase !== 'ready' || !auth.loggedIn || auth.status !== 'paid') return;
-    if (fullCache[key] || fullErrorKey === key) return;
+    if (!key || auth.phase !== 'ready' || !auth.full || fullDenied) return undefined;
+    if (fullCache[key] || fullErrorKey === key) return undefined;
     let alive = true;
     fetch(`/api/kaisetsu-full?key=${encodeURIComponent(key)}`, { credentials: 'same-origin' })
       .then(async (r) => {
         if (r.status === 403) {
           if (alive) {
-            setAuth((current) => ({ ...current, status: 'free' }));
+            setFullDenied(true);
             setFullCache({});
           }
           return null;
@@ -78,13 +67,13 @@ export function useKaisetsuPalace(key) {
         if (alive) setFullErrorKey(key);
       });
     return () => { alive = false; };
-  }, [key, auth.phase, auth.loggedIn, auth.status, fullCache, fullErrorKey]);
+  }, [key, auth.phase, auth.full, fullDenied, fullCache, fullErrorKey]);
 
   const palaces = cache[key] || null;
   const fullPalaces = fullCache[key] || null;
-  const isPaid = auth.phase === 'ready' && auth.loggedIn && auth.status === 'paid';
+  const isPaid = auth.phase === 'ready' && auth.full && !fullDenied;
   const isAnon = auth.phase === 'ready' && !auth.loggedIn;
-  const isFree = auth.phase === 'ready' && auth.loggedIn && auth.status !== 'paid';
+  const isFree = auth.phase === 'ready' && auth.loggedIn && !isPaid;
 
   return { auth, palaces, fullPalaces, fullErrorKey, isPaid, isAnon, isFree };
 }

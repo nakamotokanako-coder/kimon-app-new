@@ -8194,3 +8194,90 @@ body {
   color: var(--text-secondary);
   font-size: 12px;
 }
+
+/* L3「評価の解説」: 項目名の右に点数（盤タブのシートと同じ内訳。kimon/palaceExplain.js） */
+.l3-why-factor {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.l3-why-pts {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.l3-why-total .l3-why-factor {
+  font-weight: 800;
+}
+
+.l3-why-row {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.l3-why-row .l3-why-factor {
+  width: auto;
+}
+
+/* 未ログイン・無料の人への案内（盤タブ・吉方位タブ。文言は lib/accessPolicy.js） */
+.access-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.access-notice p {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.access-notice-cta {
+  flex: none;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #111;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.locked-view {
+  padding: 24px 16px 120px;
+}
+
+.locked-card {
+  max-width: 520px;
+  margin: 40px auto 0;
+  padding: 24px 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  color: var(--text-main);
+  line-height: 1.8;
+}
+
+.locked-card h2 {
+  margin: 4px 0 12px;
+}
+
+.locked-card p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+
+.locked-card-strong {
+  font-weight: 800;
+}
