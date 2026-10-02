@@ -127,7 +127,13 @@ function buildRankings(board) {
       purposeBonus: 0,
       purposeMatches: [],
       tone: getScoreTone(finalScore),
-      reasons: getMainReasons(palaceData, palaceScore),
+      // 拒否権（空亡・三奇入墓など）に該当する宮は、その理由を先頭に出す。
+      // 空亡でも吉門が救う宮は点数そのままで「空亡（遅効）」と注記する。
+      vetoes: palaceScore?.vetoes || [],
+      reasons: [...new Set([
+        ...(palaceScore?.kuubou_relieved ? ['空亡（遅効）'] : (palaceScore?.vetoes || [])),
+        ...getMainReasons(palaceData, palaceScore),
+      ])].slice(0, 4),
       palaceData,
       palaceScore,
     };

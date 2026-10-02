@@ -21,10 +21,12 @@ describe('classifyPalace 固定ケース（陰1局丁卯）', () => {
     expect(j.shoui).toContain('丙奇得使');
   });
 
-  it('ken(北西): 生門でも空亡が勝つ → ×', () => {
+  it('ken(北西): 空亡でも生門が同宮なら×にせず上限○（docs/palace_veto_policy_v1.md）', () => {
     const j = classifyPalace(row, 'ken');
-    expect(j.vetoes).toContain('空亡');
-    expect(j.rank).toBe('×');
+    expect(j.vetoes).toEqual(['空亡']);
+    expect(j.gate).toBe('生門');
+    expect(j.kuubouRelief).toBe(true);
+    expect(j.rank).toBe('○');
   });
 
   it('son(南東): 死門は直符・青龍耀明があっても × ', () => {
@@ -178,9 +180,26 @@ describe('axisRanks', () => {
     expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['×']));
   });
 
-  it('空亡の宮は全軸 × に固定する', () => {
+  it('空亡の宮（開休生門なし）は全軸 × に固定する', () => {
+    const j = classifyPalace(lookupChito('陰1局丁丑'), 'kun');
+    expect(j.vetoes).toEqual(['空亡']);
+    expect(j.kuubouRelief).toBe(false);
+    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['×']));
+  });
+
+  it('空亡＋開休生門の宮は軸別も上限○（◎・×固定にしない）', () => {
     const j = classifyPalace(lookupChito('陰1局丁卯'), 'ken');
-    expect(j.vetoes).toContain('空亡');
+    expect(j.kuubouRelief).toBe(true);
+    expect(Object.values(j.axisRanks)).not.toContain('◎');
+    expect(Object.values(j.axisRanks)).toContain('○');
+  });
+
+  it('空亡に三奇入墓が重なれば吉門でも × 固定（陰6局壬申・乾）', () => {
+    const j = classifyPalace(lookupChito('陰6局壬申'), 'ken');
+    expect(j.gate).toBe('休門');
+    expect(j.vetoes).toEqual(['空亡', '三奇入墓']);
+    expect(j.kuubouRelief).toBe(false);
+    expect(j.rank).toBe('×');
     expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['×']));
   });
 

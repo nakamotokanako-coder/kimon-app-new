@@ -26,6 +26,8 @@ const RANK_LADDER = ['×', '▲', '△', '○', '◎'];
 const SANKI = ['乙', '丙', '丁'];
 /** 三吉門 */
 const SANKICHI_MON = ['開門', '休門', '生門'];
+/** 空亡を和らげる吉門（三吉門） */
+const KUUBOU_RELIEF_GATES = SANKICHI_MON;
 
 /**
  * 八門 → { gateClass, base }（Level 2: 基礎ランク）
@@ -318,7 +320,13 @@ export function classifyPalace(row, palace) {
   for (const { term, name } of PALACE_VETO_TERMS) {
     if (shouiNames.some((n) => n.includes(term))) vetoes.push(name);
   }
-  const hardVeto = vetoes.length > 0;
+  // 空亡だけで開・休・生の吉門が同宮なら、×固定にせず通常判定＋上限○（◎にしない）。
+  // 出行で「所往之方遇空亡，但臨開休生吉門…亦不為凶」。空亡は填実・冲空で実る＝遅れて効く扱い。
+  // 総合スコア側（src/kimon/palaceVeto.js isKuubouRelieved）と同じ条件。
+  const kuubouRelief = vetoes.length > 0
+    && vetoes.every((v) => v === '空亡')
+    && KUUBOU_RELIEF_GATES.includes(gate);
+  const hardVeto = vetoes.length > 0 && !kuubouRelief;
 
   // 盤レベル拒否権は vetoes 末尾に（×固定ではなく上限cap）
   let vetoRelief = null;
@@ -366,6 +374,7 @@ export function classifyPalace(row, palace) {
 
   // 宮の拒否権は ×固定（全てに優先）
   if (hardVeto) rank = '×';
+  if (kuubouRelief) rank = capRank(rank, '○');
 
   // ---- Level 4: 願い5軸 ----
   const axes = { goen: 0, shigoto: 0, kinun: 0, kenko: 0, benkyo: 0 };
@@ -381,6 +390,9 @@ export function classifyPalace(row, palace) {
   }
   for (const k of AXIS_KEYS) axes[k] = Math.max(-2, Math.min(2, axes[k]));
   const axisRanks = buildAxisRanks(axes, { boardFukugin, boardHangin, hardVeto, vetoRelief });
+  if (kuubouRelief) {
+    for (const k of AXIS_KEYS) axisRanks[k] = capRank(axisRanks[k], '○');
+  }
 
   // ---- Level 5: 八神 ----
   let godClass = GOD_KICHI.includes(god) ? 'kichi' : (GOD_KYO.includes(god) ? 'kyo' : 'kichi');
@@ -404,6 +416,7 @@ export function classifyPalace(row, palace) {
     rank,
     vetoes,
     vetoRelief,
+    kuubouRelief,
     gate,
     gateClass,
     gateForce,

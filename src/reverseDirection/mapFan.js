@@ -279,6 +279,34 @@ export function outerEdgeKm(center, corners, margin = 1.15) {
   return max * margin;
 }
 
+// 方位ラベルを地図の枠内に収める（画面ピクセル座標）。
+// ラベル位置は外縁距離（＝対角の四隅基準）から決めるため、縦長のスマホ地図では
+// 東西・南のラベルが枠外へ出ていた。基準点→ラベルの線上で、枠から inset だけ内側に
+// 収まる位置まで引き戻す（方位の向きは保つ）。基準点自体が枠外なら単純に枠へ寄せる。
+export function clampLabelPoint(origin, target, size, inset) {
+  const minX = inset.x;
+  const maxX = size.x - inset.x;
+  const minY = inset.y;
+  const maxY = size.y - inset.y;
+  if (maxX <= minX || maxY <= minY) return target;
+  const inside = (p) => p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY;
+  if (inside(target)) return target;
+  if (!inside(origin)) {
+    return {
+      x: Math.max(minX, Math.min(maxX, target.x)),
+      y: Math.max(minY, Math.min(maxY, target.y)),
+    };
+  }
+  const dx = target.x - origin.x;
+  const dy = target.y - origin.y;
+  let t = 1;
+  if (dx > 0) t = Math.min(t, (maxX - origin.x) / dx);
+  if (dx < 0) t = Math.min(t, (minX - origin.x) / dx);
+  if (dy > 0) t = Math.min(t, (maxY - origin.y) / dy);
+  if (dy < 0) t = Math.min(t, (minY - origin.y) / dy);
+  return { x: origin.x + dx * t, y: origin.y + dy * t };
+}
+
 // フェード帯を解決する。
 // - outerKm が未指定/不正/confirmKm以下なら、従来どおり profile.fadeBands をそのまま使う（後方互換）。
 // - 有効な outerKm が来たら、確定ゾーン(0→confirmKm)は実距離のまま固定し、

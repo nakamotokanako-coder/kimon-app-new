@@ -21,10 +21,12 @@ const len = (s) => [...s].length;
 // mid は v2.1（低頻度象意74種の phrase 改訂）で変化するため、再生成後の値へ更新。
 // fix-chito-inyo7-hachimon: chito_v2 の「陰7局丁亥」行hachimon対冲入れ替わり
 // 修正に伴い、同キー8宮ぶんの解説文が変化したため再度更新。
-const MID_SORTED_SHA256 = 'a75c2da6e36337ef077689569bf8c04f9562a6507efb580125130e6fd943be61';
+// palace-veto-policy: 空亡＋開休生門の宮（551宮）を×固定から「上限○・遅れて届きやすい」注記へ
+// 変更したため、該当宮の short/mid が変化（docs/palace_veto_policy_v1.md・意図した変更）。
+const MID_SORTED_SHA256 = 'f8d5464edfcd7dddbed72db558c253b4b02fea28a2d687c00d8cc479d2d00f2d';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
-const SHORT_SORTED_SHA256 = '6ac3abc7a6474a7c3ff3c8c8c48f9a40082ebf37557604b8cbb0f071ac0a9b58';
+const SHORT_SORTED_SHA256 = '069a4cce4e63e3b22dbae572bc9d1aad9d510be58aa4c30c82b2e288aa1e131d';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {
@@ -105,11 +107,20 @@ describe('full v2 代表ケース（§2-4）', () => {
     expect(d.full).toContain('九地');
   });
 
-  it('陰1局丁卯×北西(ken)×金運: 主役=veto「空亡」＋なのに文(好材料負け型)', () => {
-    const j = classifyPalace(lookupChito('陰1局丁卯'), 'ken');
+  it('陰1局丁丑×南西(kun)×金運: 主役=veto「空亡」＋なのに文(好材料負け型)', () => {
+    const j = classifyPalace(lookupChito('陰1局丁丑'), 'kun');
     const d = composeDetail(j, 'kinun', bank);
     expect(d.full).toContain('空亡');
     expect(d.full).toContain('入ってはいるものの');
+  });
+
+  it('陰1局丁卯×北西(ken)×金運: 空亡＋生門は凶にせず「遅れて届きやすい」で締める', () => {
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'ken');
+    const d = composeDetail(j, 'kinun', bank);
+    expect(d.full).not.toContain('入ってはいるものの');
+    expect(d.full.startsWith('空亡')).toBe(false);
+    expect(d.mid).toContain('遅れて届きやすい');
+    expect(d.full).toContain('遅れて届きやすい');
   });
 
   it('陰1局丁卯×南東(son)×仕事: 門主役(死門)＋行動提案(終わらせる)', () => {

@@ -3075,6 +3075,15 @@ body {
   font-size: 0.7rem;
 }
 
+/* スマホ幅ではボタンと同じ行に入りきらず1文字ずつ縦に折り返していたため、説明文は2行目へ回す。 */
+@media (max-width: 480px) {
+  .direction-map-note {
+    order: 10;
+    flex: 1 1 100%;
+    white-space: nowrap;
+  }
+}
+
 .direction-map-action {
   min-width: 58px;
   border: 1px solid var(--border-subtle);
@@ -3713,7 +3722,7 @@ body {
 .direction-ring-label {
   color: var(--accent);
   font: 800 10px var(--font-body);
-  text-align: center;
+  text-align: left;
   text-shadow: 0 1px 3px #000, 0 0 4px #000;
   white-space: nowrap;
 }

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   approximateWestDeclination,
   bearingFor,
+  clampLabelPoint,
   buildFanLayerSpecs,
   BEARING_STORAGE_KEY,
   DEFAULT_BEARING_SETTINGS,
@@ -163,5 +164,24 @@ describe('bearing settings persistence', () => {
     // 不正値で書いても保存はサニタイズ済み（デフォルト補完）になる
     writeBearingSettings({ mode: 'bogus', declination: 'nope' });
     expect(readBearingSettings()).toEqual(DEFAULT_BEARING_SETTINGS);
+  });
+});
+
+describe('clampLabelPoint', () => {
+  const size = { x: 326, y: 400 };
+  const inset = { x: 26, y: 18 };
+  it('枠内ならそのまま', () => {
+    expect(clampLabelPoint({ x: 163, y: 200 }, { x: 200, y: 100 }, size, inset)).toEqual({ x: 200, y: 100 });
+  });
+  it('東に枠外なら同じ高さのまま枠内へ引き戻す', () => {
+    expect(clampLabelPoint({ x: 163, y: 200 }, { x: 380, y: 200 }, size, inset)).toEqual({ x: 300, y: 200 });
+  });
+  it('斜めは方位の向きを保って引き戻す', () => {
+    const p = clampLabelPoint({ x: 163, y: 200 }, { x: -100, y: 463 }, size, inset);
+    expect(p.x).toBeCloseTo(26);
+    expect(p.y).toBeCloseTo(337);
+  });
+  it('基準点が枠外なら単純に枠へ寄せる', () => {
+    expect(clampLabelPoint({ x: -500, y: 200 }, { x: -300, y: 500 }, size, inset)).toEqual({ x: 26, y: 382 });
   });
 });
