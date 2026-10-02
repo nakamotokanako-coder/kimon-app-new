@@ -23,33 +23,32 @@ export const VETO_KYO_SCORE_CAP = -20;
 /**
  * @param {string} boardKey - 局数＋干支（例 '陰6局壬申'）
  * @param {string} palace - 'kan' | 'gon' | ...
- * @returns {string[]} 拒否権の名前（空亡・三奇入墓 など）。該当なし/判定不能は []
+ * @returns {{ vetoes: string[], kuubouRelief: boolean }}
+ *   vetoes: 拒否権の名前（空亡・三奇入墓 など。盤レベルの反吟・伏吟は除く）。該当なし/判定不能は []
+ *   kuubouRelief: 空亡だけで開休生門が救っている（＝上限なし・効果が遅れやすい）。判定は classifyPalace と同一
  */
-export function getPalaceVetoes(boardKey, palace) {
-  if (!boardKey) return [];
+export function getPalaceVetoInfo(boardKey, palace) {
+  if (!boardKey) return { vetoes: [], kuubouRelief: false };
   try {
-    return classifyPalace(lookupChito(boardKey), palace).vetoes
-      .filter((name) => name !== '反吟' && name !== '伏吟');
+    const j = classifyPalace(lookupChito(boardKey), palace);
+    return {
+      vetoes: j.vetoes.filter((name) => name !== '反吟' && name !== '伏吟'),
+      kuubouRelief: Boolean(j.kuubouRelief),
+    };
   } catch {
-    return [];
+    return { vetoes: [], kuubouRelief: false };
   }
 }
 
-/** 空亡でも上限を掛けない吉門（開・休・生） */
-export const KUUBOU_RELIEF_GATES = ['開門', '休門', '生門'];
-
-/** 空亡だけで、吉門が救っている（＝上限なし・効果が遅れやすい）か */
-export function isKuubouRelieved(vetoes, gate) {
-  return Boolean(vetoes?.length)
-    && vetoes.every((name) => name === '空亡')
-    && KUUBOU_RELIEF_GATES.includes(gate);
+export function getPalaceVetoes(boardKey, palace) {
+  return getPalaceVetoInfo(boardKey, palace).vetoes;
 }
 
-export function applyVetoCap(score, vetoes, gate = '') {
+export function applyVetoCap(score, vetoes, kuubouRelief = false) {
   const capping = (vetoes || []).filter((name) => !SANDAI_KYOKAKU.includes(name));
   if (!capping.length) return score;
   const hardVeto = capping.some((name) => name !== '空亡');
   if (hardVeto) return Math.min(score, VETO_KYO_SCORE_CAP);
-  if (isKuubouRelieved(vetoes, gate)) return score;
+  if (kuubouRelief) return score;
   return Math.min(score, 0);
 }
