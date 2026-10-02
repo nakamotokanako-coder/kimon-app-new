@@ -17,6 +17,7 @@ import {
   scorePalaceBanLevel,
 } from './banLevel.js';
 import { detectJunri } from './junri.js';
+import { applyVetoCap, getPalaceVetoes, isKuubouRelieved } from './palaceVeto.js';
 
 // ============================================================
 // スコア定義（講座p80）
@@ -310,6 +311,26 @@ export function scoreBoard(board) {
     };
     ps.score = clippedScore;
     ps.usable = clippedScore >= USABLE_THRESHOLD;
+  }
+
+  // 拒否権（空亡・三奇入墓・六儀撃刑・五不遇時・天網四張）の点数上限（palaceVeto.js）。
+  // 空亡のみ＋開休生門の宮は上限なし（kuubou_relieved=true・効果が遅れやすい注記用）。
+  // 上限前の点数は breakdown.pre_veto_score に保持する。
+  const boardKey = board.meta?.kyokusu && board.meta?.eto ? `${board.meta.kyokusu}${board.meta.eto}` : null;
+  for (const palName of PALACE_NAMES) {
+    const ps = palaceScores[palName];
+    if (!ps) continue;
+    const vetoes = getPalaceVetoes(boardKey, palName);
+    ps.vetoes = vetoes;
+    if (!vetoes.length) continue;
+    ps.kuubou_relieved = isKuubouRelieved(vetoes, board.palaces[palName]?.hachimon);
+    if (ps.kuubou_relieved) continue;
+    const capped = applyVetoCap(ps.score, vetoes, board.palaces[palName]?.hachimon);
+    if (capped === ps.score) continue;
+    ps.breakdown = { ...ps.breakdown, pre_veto_score: ps.score };
+    ps.score = capped;
+    ps.usable = capped >= USABLE_THRESHOLD;
+    ps.is_junri = false;
   }
 
   // 使用可能な宮（順利ボーナスとクリップ後のスコアで判定）

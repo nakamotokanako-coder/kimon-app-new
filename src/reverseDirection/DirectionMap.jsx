@@ -6,6 +6,7 @@ import {
   MAP_FAN_COLORS,
   bearingFor,
   buildFanLayerSpecs,
+  clampLabelPoint,
   destPoint,
   directionIndexFor,
   getDistanceProfile,
@@ -130,6 +131,40 @@ export function buildCenterReticleHtml(centerOffset) {
       <div class="direction-map-reticle-kichi" style="background: ${kichi.color};">${escapeHtml(kichi.label)} ${scoreText(direction?.score ?? 0)}</div>
     </div>
   `;
+}
+
+// 距離リングのラベル位置（基準点からの方位角）と、表示する最小の輪の半径(px)。
+const RING_LABEL_BEARING = 70;
+const RING_LABEL_MIN_PX = 44;
+
+// 方位ラベルを地図の枠内へ引き戻す（縦長のスマホ地図で東西・南が枠外に出るのを防ぐ）。
+// 枠の隅に寄せたラベルがズームボタン・地図切替などのコントロールに隠れる場合は、
+// 基準点側へさらに引き戻す。
+function fitLabelInView(map, center, labelPoint, labelSize) {
+  const size = map.getSize();
+  const origin = map.latLngToContainerPoint(center);
+  let fitted = clampLabelPoint(
+    origin,
+    map.latLngToContainerPoint(labelPoint),
+    size,
+    { x: labelSize[0] / 2 + 4, y: labelSize[1] / 2 + 4 },
+  );
+  const containerRect = map.getContainer().getBoundingClientRect();
+  const controlRects = [...map.getContainer().querySelectorAll('.leaflet-control:not(.leaflet-control-attribution)')]
+    .map((el) => el.getBoundingClientRect())
+    .filter((r) => r.width > 0 && r.height > 0)
+    .map((r) => ({
+      left: r.left - containerRect.left - labelSize[0] / 2,
+      right: r.right - containerRect.left + labelSize[0] / 2,
+      top: r.top - containerRect.top - labelSize[1] / 2,
+      bottom: r.bottom - containerRect.top + labelSize[1] / 2,
+    }));
+  const hidden = (p) => controlRects.some((r) => p.x > r.left && p.x < r.right && p.y > r.top && p.y < r.bottom);
+  const start = fitted;
+  for (let t = 0.95; t > 0.3 && hidden(fitted); t -= 0.05) {
+    fitted = { x: origin.x + (start.x - origin.x) * t, y: origin.y + (start.y - origin.y) * t };
+  }
+  return map.containerPointToLatLng(L.point(fitted.x, fitted.y));
 }
 
 function escapeHtml(value) {
@@ -887,13 +922,22 @@ export default function DirectionMap({
         interactive: false,
       }).bindTooltip(ring.label, { permanent: false, direction: 'top' }).addTo(layerGroup);
 
-      const labelPoint = destPoint(center, 65, ring.km * 1000);
+      // 中央の照準リング（◎基準点）と重ならないよう、ラベルは輪の外側へ左端揃えで置き、
+      // 輪が小さすぎる（照準リングに隠れる）ズームでは出さない。
+      const labelPoint = destPoint(center, RING_LABEL_BEARING, ring.km * 1000);
+      const labelPx = map.latLngToContainerPoint(labelPoint);
+      const ringPx = labelPx.distanceTo(map.latLngToContainerPoint(center));
+      if (ringPx < RING_LABEL_MIN_PX) return;
+      // 枠外にはみ出すラベルは出さない（縦長のスマホ地図で外側の輪のラベルが切れるため）。
+      const mapSize = map.getSize();
+      const labelWidthPx = ring.label.length * 9 + 8;
+      if (labelPx.x + labelWidthPx > mapSize.x || labelPx.y < 8 || labelPx.y > mapSize.y - 8) return;
       L.marker(labelPoint, {
         icon: L.divIcon({
           className: '',
           html: `<div class="direction-ring-label">${ring.label}</div>`,
           iconSize: [96, 16],
-          iconAnchor: [48, 8],
+          iconAnchor: [-4, 8],
         }),
         interactive: false,
       }).addTo(layerGroup);
@@ -901,15 +945,16 @@ export default function DirectionMap({
 
     (rankings || []).forEach((item) => {
       const labelAngle = bearingFor(directionIndexFor(item), fanBearingOptions);
-      const labelPoint = destPoint(center, labelAngle, labelOuterM * 0.72);
+      const labelSize = isFullscreen ? [54, 38] : [44, 28];
+      const labelPoint = fitLabelInView(map, center, destPoint(center, labelAngle, labelOuterM * 0.72), labelSize);
       const score = labelMode.showScore
         ? `<br><span style="color:${scoreColor(item.tone)}">${scoreText(item.score)}</span>`
         : '';
       const icon = L.divIcon({
         className: '',
         html: `<div class="direction-map-label ${labelMode.className}">${item.label}${score}</div>`,
-        iconSize: isFullscreen ? [54, 38] : [44, 28],
-        iconAnchor: isFullscreen ? [27, 19] : [22, 14],
+        iconSize: labelSize,
+        iconAnchor: [labelSize[0] / 2, labelSize[1] / 2],
       });
       L.marker(labelPoint, { icon, interactive: false }).addTo(layerGroup);
     });

@@ -150,7 +150,11 @@ export function composeDetail(judgment, axis, bank) {
   const isPositive = rank === '◎' || rank === '○';
   let third = '';
   let thirdSrc = 'none';
-  if (isPositive && vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.caution) {
+  if (isPositive && judgment.kuubouRelief && bank.vetoes?.['空亡']?.relief) {
+    // 空亡＋開休生門（classifyPalace kuubouRelief）: 凶ではなく「遅れて効く」注記。
+    third = bank.vetoes['空亡'].relief;
+    thirdSrc = 'veto';
+  } else if (isPositive && vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.caution) {
     third = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.vetoes[vetoes[0]].caution);
     thirdSrc = 'veto';
   } else if (isPositive && vetoes.length === 0 && godClass === 'kyo' && bank.gods?.[god]?.caution) {
@@ -229,8 +233,8 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   const shouiHit = rankDir !== 0
     ? shoui.find((n) => bank.shoui?.[n] && bank.shoui[n].polarity === rankDir && bank.shoui[n].phrase)
     : null;
-  if (vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.phrase) {
-    lead = bank.vetoes[vetoes[0]].phrase;                 // 第1位: 拒否権
+  if (vetoes.length > 0 && !judgment.kuubouRelief && bank.vetoes?.[vetoes[0]]?.phrase) {
+    lead = bank.vetoes[vetoes[0]].phrase;                 // 第1位: 拒否権（吉門で和らぐ空亡は主役にしない）
     leadSrc = 'veto';
   } else if (rankUpName) {
     lead = bank.shoui[rankUpName].phrase;                 // 第2位: ◎昇格象意
@@ -337,7 +341,10 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   // ---- 6. 締め（注意文・現行ルール・◎○のみ。悪材料負け型で語った凶神は二重にしない）----
   let shime = '';
   let shimeSrc = 'none';
-  if (isPositive && vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.caution) {
+  if (isPositive && judgment.kuubouRelief && bank.vetoes?.['空亡']?.relief) {
+    shime = bank.vetoes['空亡'].relief;
+    shimeSrc = 'veto';
+  } else if (isPositive && vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.caution) {
     shime = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.vetoes[vetoes[0]].caution);
     shimeSrc = 'veto';
   } else if (isPositive && vetoes.length === 0 && godClass === 'kyo'
