@@ -17,7 +17,7 @@ import {
   scorePalaceBanLevel,
 } from './banLevel.js';
 import { detectJunri } from './junri.js';
-import { applyVetoCap, getPalaceVetoes, isKuubouRelieved } from './palaceVeto.js';
+import { applyVetoCap, getPalaceVetoInfo } from './palaceVeto.js';
 
 // ============================================================
 // スコア定義（講座p80）
@@ -320,12 +320,12 @@ export function scoreBoard(board) {
   for (const palName of PALACE_NAMES) {
     const ps = palaceScores[palName];
     if (!ps) continue;
-    const vetoes = getPalaceVetoes(boardKey, palName);
+    const { vetoes, kuubouRelief } = getPalaceVetoInfo(boardKey, palName);
     ps.vetoes = vetoes;
     if (!vetoes.length) continue;
-    ps.kuubou_relieved = isKuubouRelieved(vetoes, board.palaces[palName]?.hachimon);
+    ps.kuubou_relieved = kuubouRelief;
     if (ps.kuubou_relieved) continue;
-    const capped = applyVetoCap(ps.score, vetoes, board.palaces[palName]?.hachimon);
+    const capped = applyVetoCap(ps.score, vetoes, kuubouRelief);
     if (capped === ps.score) continue;
     ps.breakdown = { ...ps.breakdown, pre_veto_score: ps.score };
     ps.score = capped;

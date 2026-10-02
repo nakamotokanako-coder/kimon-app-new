@@ -24,12 +24,15 @@ const len = (s) => [...s].length;
 // PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
 // palace-veto-policy: 空亡＋開休生門の宮を×固定から「上限○・遅れて届きやすい」注記へ
 // 変更したため、該当宮の short/mid が変化（docs/palace_veto_policy_v1.md・意図した変更）。
-const MID_SORTED_SHA256 = '0a1a0551cb1d4ba1d2c6a822dd43f0dc49de2acbaec3b31e7a85248c6808e39b';
+// kaisetsu-axis-rank: 文章の吉凶を総合ランクから軸ランク（テーマ別◎○×）基準へ変更し、
+// 逆向きフレーズ・吉神/吉星の褒め文・重複文・「です、」連結を除去（全件監査で矛盾0件・意図した変更）。
+const MID_SORTED_SHA256 = 'ca192f95a73d13748b470708b8009b30e3b12b099e5faca20ece93537fd2342f';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
 // PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
 // palace-veto-policy: 同上（空亡＋開休生門の543宮）。
-const SHORT_SORTED_SHA256 = '218c9dee183973ec401ad6648c152331d0741edbc09bd09d3a36e72fbf49ee84';
+// kaisetsu-axis-rank: 同上（結論文は軸ランクの骨子から選ぶ。「この盤で最も」は比較できないため廃止）。
+const SHORT_SORTED_SHA256 = '93932fcc5eb9b07c9fd5159d45ddc7619b5213f0686ea3598427096b5b13c59b';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {
@@ -78,7 +81,7 @@ describe('full v2 全43,200件の不変条件', () => {
     expect(worstFull).toBeLessThanOrEqual(320);
     expect(worstMid).toBeLessThanOrEqual(160);
     expect(failures).toEqual([]);
-  });
+  }, 30000); // 全43,200件を合成するため並列実行時は5秒を超えうる
 
   it('short・mid は改修前と全件一致（差分ゼロ・ハッシュロック）', () => {
     const chito = loadChito();
@@ -99,15 +102,41 @@ describe('full v2 全43,200件の不変条件', () => {
     const shortHash = createHash('sha256').update(shorts.join('')).digest('hex');
     expect(midHash).toBe(MID_SORTED_SHA256);
     expect(shortHash).toBe(SHORT_SORTED_SHA256);
-  });
+  }, 30000); // 全43,200件を合成するため並列実行時は5秒を超えうる
 });
 
 describe('full v2 代表ケース（§2-4）', () => {
-  it('陰1局丁卯×南西(kun)×ご縁: 主役=象意「丙」＋補強=神「九地」', () => {
+  it('陰1局丁卯×南西(kun)×仕事(軸◎): 主役=象意「丙」＋補強=神「九地」', () => {
     const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
-    const d = composeDetail(j, 'goen', bank);
+    expect(j.axisRanks.shigoto).toBe('◎');
+    const d = composeDetail(j, 'shigoto', bank);
     expect(d.full).toContain('丙');
     expect(d.full).toContain('九地');
+  });
+
+  it('文章の吉凶は軸ランクに従う: 総合◎でも軸△のご縁は絶賛文・結論を出さない', () => {
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
+    expect(j.rank).toBe('◎');
+    expect(j.axisRanks.goen).toBe('△');
+    const d = composeDetail(j, 'goen', bank);
+    expect(bank.skeletons['△'].map((t) => t.replace('{axis}', 'ご縁'))).toContain(d.short);
+    expect(d.full).not.toContain('最大限に働く');
+  });
+
+  it('凶の軸に吉門の「追い風」フレーズ・吉神の同居文を付けない', () => {
+    const j = classifyPalace(lookupChito('陰1局甲子'), 'ken'); // 開門・螣蛇、ご縁×
+    expect(j.axisRanks.goen).toBe('×');
+    const d = composeDetail(j, 'goen', bank);
+    expect(d.mid).not.toContain('追い風');
+    const k = classifyPalace(lookupChito('陰1局甲子'), 'shin'); // 九地、ご縁×
+    expect(k.axisRanks.goen).toBe('×');
+    expect(composeDetail(k, 'goen', bank).full).not.toContain('長く続く土台');
+  });
+
+  it('健康以外の軸に天心の「通院や検査」を出さない', () => {
+    const j = classifyPalace(lookupChito('陰1局癸未'), 'kan');
+    expect(j.star).toBe('天心');
+    expect(composeDetail(j, 'goen', bank).full).not.toContain('通院');
   });
 
   it('陰1局丁丑×南西(kun)×金運: 主役=veto「空亡」＋なのに文(好材料負け型)', () => {
@@ -135,8 +164,8 @@ describe('full v2 代表ケース（§2-4）', () => {
   });
 
   it('◎○ランクで凶神同居: なのに文(悪材料負け型)「も同居していますが」', () => {
-    const j = classifyPalace(lookupChito('陰1局丙寅'), 'kun'); // ◎・凶神同居・主役は門以外（飛鳥跌穴の吉格が支配要素）
-    expect(['◎', '○']).toContain(j.rank);
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'da'); // ご縁◎・朱雀（凶神）・主役は象意
+    expect(['◎', '○']).toContain(j.axisRanks.goen);
     expect(j.godClass === 'kyo' || j.godClass === 'kyo_muko').toBe(true);
     const d = composeDetail(j, 'goen', bank);
     expect(d.nanoniType).toBe('warukinai');
@@ -253,10 +282,10 @@ describe('mid 凶の使い道（§4 / §2-3）', () => {
 });
 
 describe('mid 代表ケース', () => {
-  it('陰1局丁卯×南西(kun)×ご縁: mid は「ご縁」を含む結論文＋吉象意の理由文・160字以内', () => {
+  it('陰1局丁卯×南西(kun)×仕事: mid は「仕事」を含む結論文＋吉象意の理由文・160字以内', () => {
     const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
-    const d = composeDetail(j, 'goen', bank);
-    expect(d.mid).toContain('ご縁');
+    const d = composeDetail(j, 'shigoto', bank);
+    expect(d.mid).toContain('仕事');
     expect(d.reasonSrc).toBe('shoui');
     expect(len(d.mid)).toBeLessThanOrEqual(160);
   });

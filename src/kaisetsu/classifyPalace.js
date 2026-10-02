@@ -325,9 +325,11 @@ export function classifyPalace(row, palace) {
   // 空亡だけで開・休・生の吉門が同宮なら、×固定にせず通常判定＋上限○（◎にしない）。
   // 出行で「所往之方遇空亡，但臨開休生吉門…亦不為凶」。空亡は填実・冲空で実る＝遅れて効く扱い。
   // 総合スコア側（src/kimon/palaceVeto.js isKuubouRelieved）と同じ条件。
+  // 盤全体が伏吟・反吟の日は足踏み・転覆が重なるため救済しない。
   const kuubouRelief = vetoes.length > 0
     && vetoes.every((v) => v === '空亡')
-    && KUUBOU_RELIEF_GATES.includes(gate);
+    && KUUBOU_RELIEF_GATES.includes(gate)
+    && !boardFukugin && !boardHangin;
   const hardVeto = vetoes.length > 0 && !kuubouRelief;
 
   // 盤レベル拒否権は vetoes 末尾に（×固定ではなく上限cap）

@@ -6,65 +6,65 @@
   "length": {
     "short": {
       "min": 14,
-      "avg": 16.9,
+      "avg": 17.2,
       "median": 16,
       "max": 22
     },
     "mid": {
-      "min": 35,
-      "avg": 78.5,
-      "median": 73,
-      "max": 129,
+      "min": 14,
+      "avg": 71.6,
+      "median": 74,
+      "max": 128,
       "over_160": 0
     },
     "full": {
-      "min": 79,
-      "avg": 150.8,
-      "median": 150,
-      "max": 269,
+      "min": 51,
+      "avg": 133.4,
+      "median": 129,
+      "max": 274,
       "over_320": 0,
-      "band_220_280": 0.018,
-      "under_220": 0.982
+      "band_220_280": 0.004,
+      "under_220": 0.996
     }
   },
   "nanoni": {
     "by_type": {
-      "none": 32250,
-      "sukinai": 9280,
-      "warukinai": 1670
+      "none": 32809,
+      "sukinai": 9450,
+      "warukinai": 941
     },
-    "rate": 0.253,
+    "rate": 0.241,
     "note": "好材料負け型=宮ローカル拒否権∩(kichi3門 or 実吉神5)。盤全体(伏吟/反吟)は対象外。悪材料負け型=◎○∩凶神。"
   },
   "full_slots": {
     "lead_src": {
-      "veto": 22800,
-      "shoui_up": 2400,
-      "shoui": 7300,
-      "gate": 10700,
-      "star": 0
+      "veto": 23990,
+      "shoui_up": 1051,
+      "shoui": 4844,
+      "gate": 12700,
+      "star": 615
     },
     "reinforce_src": {
-      "god": 34075,
-      "star": 4835,
-      "none": 4290
+      "god": 23977,
+      "star": 5416,
+      "none": 13807
     },
     "extra_src": {
-      "hint": 9315,
-      "exception": 11980,
-      "none": 21905
+      "hint": 5698,
+      "exception": 7905,
+      "none": 29597
     },
-    "general_rate": 0.656,
-    "action_rate": 0.747,
-    "action_suppressed_palaces": 2185,
+    "general_rate": 0.44,
+    "action_rate": 0.746,
+    "action_suppressed_palaces": 2223,
     "action_suppressed_note": "▲×∩吉門(kichi3/chukichi)はactionsを出さない（吉前提文体が凶宮の結論と矛盾するため）。v2.1で代替締め文を入れる対象宮。",
     "shime_src": {
-      "veto": 1095,
+      "veto": 812,
       "god": 0,
-      "fallback": 10925,
-      "none": 31180
+      "fallback": 10957,
+      "none": 31431
     },
-    "fallback_closing_adopted": 10925,
+    "fallback_closing_adopted": 10957,
     "fallback_closing_note": "fullのみ。▲×∩吉門で行動提案を出せない宮の締めに fallbackClosings を充当（死門は除外・hash決定的選択）。",
     "guard": {
       "none": 43200,
@@ -77,16 +77,16 @@
   },
   "mid_continuity": {
     "reason_src": {
-      "shoui": 12630,
-      "use": 18760,
-      "gate": 5180,
-      "star": 6630
+      "shoui": 18123,
+      "use": 6832,
+      "gate": 11404,
+      "star": 6841
     },
     "third_sentence_src": {
-      "veto": 1095,
-      "god": 2130,
-      "gate": 35970,
-      "none": 4005
+      "veto": 812,
+      "god": 1308,
+      "gate": 19827,
+      "none": 21253
     }
   },
   "checks": {

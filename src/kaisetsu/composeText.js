@@ -73,7 +73,12 @@ function clip(s) {
  * 語彙そのものの展開（医薬例の通院/検査など）は v1.2 のバンク改訂で扱う。
  */
 function toOneSentence(s) {
-  return clip(String(s || '').replace(/。(?=.)/gu, '、'));
+  // 「〜配置です。重要な…」を1文にするとき「です、」にならないよう「で、」へつなぐ。
+  // 「重さを帯びた星。ただ、〜」は「重さを帯びた星だが、〜」へ（「、ただ、」の重なりを避ける）。
+  return clip(String(s || '')
+    .replace(/です。(?=.)/gu, 'で、')
+    .replace(/。ただ、/gu, 'だが、')
+    .replace(/。(?=.)/gu, '、'));
 }
 
 /** 文の配列を「。」で連結し、句読点の崩れを正規化する */
@@ -83,6 +88,65 @@ function finalize(parts) {
   let s = body.join('。') + '。';
   s = s.replace(/。{2,}/gu, '。').replace(/、。/gu, '。');
   return s;
+}
+
+/**
+ * 文言の向き（肯定=+1 / 否定=-1 / どちらとも言えない=0）。
+ * 八門の軸フレーズは軸の吉凶と独立に書かれているため、凶の軸に「追い風」、吉の軸に「不向き」が
+ * 付いて矛盾していた。向きが軸と逆のフレーズは出さないために使う。
+ * 「〜なら働く」「〜だけは進む」のような条件付きの使い道は 0（どちらの軸にも置ける）。
+ */
+const NEGATIVE_WORDS = /不向き|避けたい|控えめが無難|距離を保ちたい|不適|向かず|消耗|止まる|閉じ気味/;
+
+function phraseTone(text) {
+  const t = String(text || '');
+  if (!t) return 0;
+  if (/なら|だけは|むしろ/.test(t)) return 0;
+  if (NEGATIVE_WORDS.test(t)) return -1;
+  if (/追い風|最良|好適|絶好|最も適した|すんなり通る|滞りなく通り|整えてくれる|勢いを与える|光が当たり|実りに変わる|強い$|運が整う/.test(t)) return 1;
+  return 0;
+}
+
+/** 吉門（開・休・生＝kichi3 / 景＝chukichi）。軸フレーズ・使い道はすべて吉前提の文体 */
+const GOOD_GATE_CLASSES = new Set(['kichi3', 'chukichi']);
+
+/**
+ * 軸の吉凶と逆向きのフレーズなら空にする。
+ *   凶の軸: 吉門のフレーズ（すべて吉前提）は置かない。凶門の「〜なら働く」等の使い道は残す。
+ *   吉の軸: 「〜には不向きだが…なら働く」のような否定語を含むフレーズも置かない。
+ */
+function alignTone(text, dir, gateClass = '') {
+  if (dir < 0 && GOOD_GATE_CLASSES.has(gateClass)) return '';
+  if (dir > 0 && NEGATIVE_WORDS.test(text)) return '';
+  return phraseTone(text) * dir < 0 ? '' : text;
+}
+
+/** 九星のうち特定の軸にしか当てはまらない文言（天心＝通院や検査）。それ以外の軸では出さない */
+const STAR_AXIS_ONLY = { '天心': ['kenko'] };
+
+function starPhraseFor(bank, star, axis) {
+  const only = STAR_AXIS_ONLY[star];
+  if (only && !only.includes(axis)) return '';
+  return bank.stars?.[star]?.phrase || '';
+}
+
+/** 言い換えの重複検出に使う並びの長さ（8字以上同じなら同じ内容とみなす） */
+const OVERLAP_N = 8;
+
+function ngrams(text) {
+  const out = [];
+  for (let i = 0; i + OVERLAP_N <= text.length; i++) out.push(text.slice(i, i + OVERLAP_N));
+  return out;
+}
+
+/**
+ * 文章で主に語る拒否権。宮ローカルの重い拒否権（三奇入墓・六儀撃刑など）を空亡より優先し、
+ * 盤全体の伏吟・反吟は最後。空亡と三奇入墓が重なる宮で「空亡」だけ語っていたのを防ぐ。
+ */
+function mainVeto(vetoes) {
+  return vetoes.find((v) => CELL_LOCAL_VETOES.has(v) && v !== '空亡')
+    || vetoes.find((v) => v === '空亡')
+    || vetoes[0];
 }
 
 /** rank の向き（吉=+1 / 凶=-1 / 中立=0）。理由文の polarity 一致判定に使う */
@@ -100,7 +164,11 @@ function rankDirection(rank) {
  *             leadSrc:string, nanoniType:string, reinforceSrc:string, shimeSrc:string,
  *             actionUsed:boolean, fullGuard:string, length:number }}
  */
-export function composeDetail(judgment, axis, bank) {
+export function composeDetail(rawJudgment, axis, bank) {
+  // 文章の吉凶は、画面で同じ行に出る「テーマ別の◎○×」（軸ランク）に合わせる。
+  // 総合ランクで組むと、軸チップ×の下に「追い風が吹く方位」が出るなど食い違っていた（約26%）。
+  const axisRank = rawJudgment.axisRanks?.[axis];
+  const judgment = axisRank ? { ...rawJudgment, rank: axisRank } : rawJudgment;
   const { rank, gate, star, starRank, god, godClass, vetoes, shoui, key, palace } = judgment;
   const axisLabel = bank.axisLabels?.[axis] || axis;
   const h = hashSeed(`${key}|${palace}|${axis}`);
@@ -119,12 +187,15 @@ export function composeDetail(judgment, axis, bank) {
   const isMourning = gateUse.includes('弔');
   const negativeRank = rank === '▲' || rank === '×';
   const hasKuubou = vetoes.includes('空亡');
-  const gateAxisPhrase = bank.gates?.[gate]?.axes?.[axis] || '';
+  const gateAxisPhrase = alignTone(bank.gates?.[gate]?.axes?.[axis] || '', rankDirection(rank), judgment.gateClass);
+  const starPhrase = starPhraseFor(bank, star, axis);
 
   let reason = '';
   let reasonSrc = 'gate';
-  if (negativeRank && gateUse && !isMourning && !hasKuubou) {
+  if (negativeRank && gateUse && !isMourning && !hasKuubou && !GOOD_GATE_CLASSES.has(judgment.gateClass)) {
     // §4 凶の使い道: ▲/× は「◯◯の用事なら、むしろ向いている」。
+    // 吉門の宮（拒否権や軸の事情で凶に落ちた）では「新規の開始ならむしろ向く」等が結論と矛盾するため出さない
+    // （full の行動提案の修正(c)と同じ扱い）。
     // §2-3: 空亡セルは「やっても空回り」の本質と矛盾するため使い道文を出さない。
     reason = `${gateUse}の用事なら、むしろ向いている`;
     reasonSrc = 'use';
@@ -137,8 +208,8 @@ export function composeDetail(judgment, axis, bank) {
       reason = hit.phrase;          // a. 象意（rank の向きと一致する最上位1件）
       reasonSrc = 'shoui';
     } else if (starRank === 'jokichi' || starRank === 'daikyo') {
-      reason = bank.stars?.[star]?.phrase || gateAxisPhrase;  // c. 上吉/大凶の星
-      reasonSrc = bank.stars?.[star]?.phrase ? 'star' : 'gate';
+      reason = starPhrase || gateAxisPhrase;  // c. 上吉/大凶の星
+      reasonSrc = starPhrase ? 'star' : 'gate';
     } else {
       reason = gateAxisPhrase;       // b. 門の軸フレーズ
       reasonSrc = 'gate';
@@ -154,8 +225,8 @@ export function composeDetail(judgment, axis, bank) {
     // 空亡＋開休生門（classifyPalace kuubouRelief）: 凶ではなく「遅れて効く」注記。
     third = bank.vetoes['空亡'].relief;
     thirdSrc = 'veto';
-  } else if (isPositive && vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.caution) {
-    third = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.vetoes[vetoes[0]].caution);
+  } else if (isPositive && vetoes.length > 0 && bank.vetoes?.[mainVeto(vetoes)]?.caution) {
+    third = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.vetoes[mainVeto(vetoes)].caution);
     thirdSrc = 'veto';
   } else if (isPositive && vetoes.length === 0 && godClass === 'kyo' && bank.gods?.[god]?.caution) {
     third = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.gods[god].caution);
@@ -229,12 +300,15 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   // ---- 2. 主役文（判定階層に一致した優先順で1要素を選ぶ）----
   let lead = '';
   let leadSrc = 'gate';
-  const rankUpName = shoui.find((n) => RANK_UP_GENERAL.has(n) && bank.shoui?.[n]?.phrase);
+  // ◎昇格象意（「最大限に働く」等の絶賛文）は、この軸が吉のときだけ主役にする。
+  const rankUpName = isPositive
+    ? shoui.find((n) => RANK_UP_GENERAL.has(n) && bank.shoui?.[n]?.phrase)
+    : null;
   const shouiHit = rankDir !== 0
     ? shoui.find((n) => bank.shoui?.[n] && bank.shoui[n].polarity === rankDir && bank.shoui[n].phrase)
     : null;
-  if (vetoes.length > 0 && !judgment.kuubouRelief && bank.vetoes?.[vetoes[0]]?.phrase) {
-    lead = bank.vetoes[vetoes[0]].phrase;                 // 第1位: 拒否権（吉門で和らぐ空亡は主役にしない）
+  if (vetoes.length > 0 && !judgment.kuubouRelief && bank.vetoes?.[mainVeto(vetoes)]?.phrase) {
+    lead = bank.vetoes[mainVeto(vetoes)].phrase;          // 第1位: 拒否権（吉門で和らぐ空亡は主役にしない）
     leadSrc = 'veto';
   } else if (rankUpName) {
     lead = bank.shoui[rankUpName].phrase;                 // 第2位: ◎昇格象意
@@ -246,8 +320,8 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
     // 第4位: 門。門が主役のときは門ラベルを冠して門名を明示する。
     lead = gateLabel ? `${clip(gateLabel)}。${clip(gateAxisPhrase)}` : gateAxisPhrase;
     leadSrc = 'gate';
-  } else if (bank.stars?.[star]?.phrase) {
-    lead = bank.stars[star].phrase;                       // 第5位: 星
+  } else if (starPhraseFor(bank, star, axis) && !(isNegative && starRank === 'jokichi')) {
+    lead = starPhraseFor(bank, star, axis);               // 第5位: 星（凶の軸で上吉星は主役にしない）
     leadSrc = 'star';
     usedStar = true;
   }
@@ -262,21 +336,25 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
     const ht = bank.shoui?.[nm]?.hint || '';
     if (ht && !lead.includes(ht) && !ht.includes(lead)) hintText = ht;
   } else if (leadSrc === 'veto') {
-    const exc = bank.vetoes?.[vetoes[0]]?.exception || '';
+    const lv = mainVeto(vetoes);
+    // 伏吟の例外「財の整理や貯蓄など、守りの用事だけは向く」は金運の話なので金運のときだけ。
+    const exc = (lv === '伏吟' && axis !== 'kinun') ? '' : (bank.vetoes?.[lv]?.exception || '');
     if (exc) excText = `ただし${clip(exc)}`;
   }
 
   // ---- 4. なのに文（補強より先に確定し要素を予約。1宮最大1本）----
   let nanoni = '';
   let nanoniType = 'none';
-  const hasCellLocalVeto = vetoes.some((v) => CELL_LOCAL_VETOES.has(v));
+  // 吉門で救済された空亡（kuubouRelief）は「影響が勝つ」主因にしない。
+  const hasCellLocalVeto = vetoes.some((v) => CELL_LOCAL_VETOES.has(v) && !(v === '空亡' && judgment.kuubouRelief));
   if (isNegative && hasCellLocalVeto) {
     // 好材料負け型: 宮ローカル拒否権 ∩ (kichi3門 or 実吉神5)
     const goodGate = gateClass === 'kichi3';
     const goodGod = GOD_KICHI.includes(god);
     if (goodGate || goodGod) {
       const goodLabel = goodGate ? gateLabel : godLabel;
-      const localVeto = vetoes.find((v) => CELL_LOCAL_VETOES.has(v));
+      const localVeto = vetoes.find((v) => CELL_LOCAL_VETOES.has(v) && v !== '空亡')
+        || vetoes.find((v) => v === '空亡' && !judgment.kuubouRelief);
       const dominantLabel = bank.vetoes?.[localVeto]?.label || '';
       if (goodLabel && dominantLabel) {
         nanoni = `${clip(goodLabel)}が入ってはいるものの、${clip(dominantLabel)}の影響が勝つため、その力は十分に発揮されません`;
@@ -303,11 +381,15 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   // ---- 3. 補強文（0〜1本。なのにで予約済みの要素は使わない）----
   let reinforce = '';
   let reinforceSrc = 'none';
-  if (!usedGod && (godClass === 'kichi' || godClass === 'kyo') && bank.gods?.[god]?.copresence) {
+  // 凶の軸で吉神の同居文（「長く続く土台があります」等）をそのまま出すと結論と逆を向くので出さない。
+  const godFits = godClass === 'kyo' || (godClass === 'kichi' && !isNegative);
+  if (!usedGod && godFits && bank.gods?.[god]?.copresence) {
     reinforce = bank.gods[god].copresence;
     reinforceSrc = 'god';
-  } else if (!usedStar && (starRank === 'jokichi' || starRank === 'daikyo') && bank.stars?.[star]?.phrase) {
-    reinforce = bank.stars[star].phrase;
+  } else if (!usedStar && (starRank === 'daikyo' || (starRank === 'jokichi' && !isNegative))
+             && starPhraseFor(bank, star, axis)) {
+    // 凶の軸で上吉星の褒め文（「幅広く力を貸す」等）は出さない（吉神の同居文と同じ扱い）。
+    reinforce = starPhraseFor(bank, star, axis);
     reinforceSrc = 'star';
   }
 
@@ -315,7 +397,8 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   // 主役が第4位経路（門）または なのにで門ラベルを使った場合は、門の話が重複するため出さない。
   let general = '';
   const gateReferenced = leadSrc === 'gate' || usedGoodGate;
-  if (!gateReferenced) general = bank.gates?.[gate]?.general || '';
+  // 凶の軸では吉門の総説（「万事の入口を開く吉門」等）も結論と逆を向くので出さない。
+  if (!gateReferenced && !(isNegative && GOOD_GATE_CLASSES.has(gateClass))) general = bank.gates?.[gate]?.general || '';
 
   // ---- 5. 行動提案文 ----
   let action = bank.gates?.[gate]?.actions?.[axis] || '';
@@ -344,8 +427,8 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   if (isPositive && judgment.kuubouRelief && bank.vetoes?.['空亡']?.relief) {
     shime = bank.vetoes['空亡'].relief;
     shimeSrc = 'veto';
-  } else if (isPositive && vetoes.length > 0 && bank.vetoes?.[vetoes[0]]?.caution) {
-    shime = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.vetoes[vetoes[0]].caution);
+  } else if (isPositive && vetoes.length > 0 && bank.vetoes?.[mainVeto(vetoes)]?.caution) {
+    shime = CAUTION_TYPES[h % CAUTION_TYPES.length](bank.vetoes[mainVeto(vetoes)].caution);
     shimeSrc = 'veto';
   } else if (isPositive && vetoes.length === 0 && godClass === 'kyo'
              && bank.gods?.[god]?.caution && nanoniType !== 'warukinai' && reinforceSrc !== 'god') {
@@ -375,14 +458,23 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   return { full, leadSrc, nanoniType, reinforceSrc, shimeSrc, actionUsed, generalUsed: !!general, extraSrc, fullGuard };
 }
 
-/** full の文連結。空・完全一致の重複パートを除いて finalize する（同一フレーズの二重防止）。 */
+/**
+ * full の文連結。空・重複パートを除いて finalize する（同一フレーズの二重防止）。
+ * 完全一致に加え、先に置いた文と8字以上同じ並びを含む言い換え（hint と主役文など）も落とす。
+ */
 function assembleFull(parts) {
-  const seen = new Set();
   const out = [];
+  const seenSentences = new Set();
+  const seenGrams = new Set();
   for (const p of parts) {
     const c = clip(p);
-    if (!c || seen.has(c)) continue;
-    seen.add(c);
+    if (!c) continue;
+    const own = c.split('。').filter(Boolean);
+    if (own.some((x) => seenSentences.has(x) || ngrams(x).some((g) => seenGrams.has(g)))) continue;
+    for (const x of own) {
+      seenSentences.add(x);
+      for (const g of ngrams(x)) seenGrams.add(g);
+    }
     out.push(c);
   }
   return finalize(out);
