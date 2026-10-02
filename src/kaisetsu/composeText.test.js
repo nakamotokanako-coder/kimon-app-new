@@ -26,14 +26,14 @@ const len = (s) => [...s].length;
 // 変更したため、該当宮の short/mid が変化（docs/palace_veto_policy_v1.md・意図した変更）。
 // kaisetsu-axis-rank: 文章の吉凶を総合ランクから軸ランク（テーマ別◎○×）基準へ変更し、
 // 逆向きフレーズ・吉神/吉星の褒め文・重複文・「です、」連結を除去（全件監査で矛盾0件・意図した変更）。
-const MID_SORTED_SHA256 = '21ea54cedb5fec820dbaff99d4e6252360ccb9545b733a4693dacbaff8bdc6a6';
+const MID_SORTED_SHA256 = '17c2c45e7ed335d448774d083a85bc923ceeb1bc55581d863435b7ea39201f4f';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
 // PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
 // palace-veto-policy: 同上（空亡＋開休生門の543宮）。
 // kaisetsu-axis-rank: 同上（結論文は軸ランクの骨子から選ぶ。「この盤で最も」は比較できないため廃止。
 // 「健康の用事」「金運を動かす」等の不自然な言い回しは {topic}（bank.axisTopics）で置き換え）。
-const SHORT_SORTED_SHA256 = '2310aa00f74cd090ff7e80aff0a0ef66384e42bc7d71257536c814d69a8cd2fd';
+const SHORT_SORTED_SHA256 = '6f05ec07178c1932792ae97e4b7dc18220a7bbca9a2b9573dc9a43cf7f27e4b0';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {
@@ -120,7 +120,7 @@ describe('full v2 代表ケース（§2-4）', () => {
     expect(j.rank).toBe('◎');
     expect(j.axisRanks.goen).toBe('△');
     const d = composeDetail(j, 'goen', bank);
-    expect(bank.skeletons['△'].map((t) => t.replace('{axis}', 'ご縁').replace('{topic}', bank.axisTopics.goen))).toContain(d.short);
+    expect(bank.skeletons['△'].map((t) => t.replace('{axis}', 'ご縁').replace('{topic}', bank.axisTopics.goen).replace('{start}', bank.axisStarts.goen))).toContain(d.short);
     expect(d.full).not.toContain('最大限に働く');
   });
 

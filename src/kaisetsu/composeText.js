@@ -177,10 +177,12 @@ export function composeDetail(rawJudgment, axis, bank) {
   const skeletons = bank.skeletons?.[rank] || [''];
   // {topic} は「健康の用事」「金運を動かす」のような不自然な言い回しを避けるためのテーマ別の言い方
   // （健康→「健康に関する用事」、金運→「お金の用事」など。bank.axisTopics）。
+  // {start} は ◎「〜なら、まずこの方角。」の書き出し（金運だけ「金運を動かすなら」。bank.axisStarts）。
   const axisTopic = bank.axisTopics?.[axis] || axisLabel;
   const conclusion = skeletons[h % skeletons.length]
     .replace(/\{axis\}/gu, axisLabel)
-    .replace(/\{topic\}/gu, axisTopic);
+    .replace(/\{topic\}/gu, axisTopic)
+    .replace(/\{start\}/gu, bank.axisStarts?.[axis] || `${axisTopic}なら`);
   const short = finalize([conclusion]);
 
   // ====================================================================
