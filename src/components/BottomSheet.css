@@ -612,3 +612,91 @@
     font-size: 24px;
   }
 }
+
+/* 5テーマの評価（タブに◎○×を一体化。旧「5軸ざっくり比較」カードとタブの二重表示を解消） */
+.sh-axis-title {
+  margin: 16px 0 0;
+}
+
+.axis-btn .axis-symbol {
+  display: inline-block;
+  min-width: 0;
+  margin-left: 6px;
+  font-size: 15px;
+  vertical-align: -1px;
+}
+
+/* 評価の解説: 項目名と点数を1行目、説明を2行目に */
+.why-item:not(.total) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 12px;
+  row-gap: 4px;
+}
+
+.why-item:not(.total) .why-desc {
+  grid-column: 1 / -1;
+  font-weight: 500;
+}
+
+.why-item .why-desc.chu {
+  color: var(--bs-card-text-muted);
+}
+
+/* 未ログイン・無料の人への案内（全画面共通の文言: lib/accessPolicy.js） */
+.reading-lock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.reading-lock-note {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.reading-lock-cta {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #c8a24e;
+  color: #111;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 格局は全件並べる（旧: 1件目だけ）。連続するカードの間隔を詰め、吉凶どちらでもない格局は落ち着いた色に */
+.kakkyoku-card + .kakkyoku-card {
+  margin-top: -8px;
+}
+
+.kakkyoku-card.chu {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.10) 100%),
+    #8a7a55;
+  box-shadow: var(--glass-highlight), var(--glass-edge), var(--glass-bottom);
+}
+
+/* スマホ幅でも5テーマのタブが1列に収まるように詰める */
+@media (max-width: 480px) {
+  .axis-seg {
+    gap: 4px;
+  }
+
+  .axis-seg .axis-btn {
+    flex: 1 1 0;
+    padding: 9px 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .axis-btn .axis-symbol {
+    margin-left: 2px;
+    font-size: 13px;
+  }
+}

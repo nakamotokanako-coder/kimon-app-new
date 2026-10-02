@@ -80,6 +80,23 @@ describe('cookie parsing / serialization', () => {
 describe('buildOrigin (案D: APP_BASE_URL > VERCEL_URL > host)', () => {
   const req = { headers: { host: 'preview-xyz.vercel.app', 'x-forwarded-proto': 'https' } };
 
+  it('本番は VERCEL_PROJECT_PRODUCTION_URL を最優先（APP_BASE_URL が古いままでも本番ドメインへ）', () => {
+    expect(buildOrigin({ headers: {} }, {
+      VERCEL_ENV: 'production',
+      VERCEL_PROJECT_PRODUCTION_URL: 'kimon-tonko.vercel.app',
+      APP_BASE_URL: 'https://old-name.vercel.app',
+      VERCEL_URL: 'kimon-tonko-abc123.vercel.app',
+    })).toBe('https://kimon-tonko.vercel.app');
+  });
+
+  it('プレビューでは VERCEL_PROJECT_PRODUCTION_URL を使わない', () => {
+    expect(buildOrigin({ headers: {} }, {
+      VERCEL_ENV: 'preview',
+      VERCEL_PROJECT_PRODUCTION_URL: 'kimon-tonko.vercel.app',
+      VERCEL_URL: 'kimon-tonko-abc123.vercel.app',
+    })).toBe('https://kimon-tonko-abc123.vercel.app');
+  });
+
   it('prefers APP_BASE_URL (本番のカスタムドメイン固定)', () => {
     expect(buildOrigin(req, { APP_BASE_URL: 'https://kimon.example.com/', VERCEL_URL: 'x.vercel.app' }))
       .toBe('https://kimon.example.com');

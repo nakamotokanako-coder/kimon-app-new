@@ -1,3 +1,4 @@
+import { ACCESS_MODE, hasFullAccess } from '../lib/accessPolicy.js';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -38,7 +39,7 @@ function cookie(email) {
 
 const forged = `${SESSION_COOKIE}=eyJlbWFpbCI6InhAeS5jb20iLCJleHAiOjk5OTk5OTk5OTk5OTl9.deadbeef`;
 
-describe('kaisetsu-full API (paid のみ / no-store / 非CDNキャッシュ)', () => {
+describe('kaisetsu-full API (全機能の利用者のみ / no-store / 非CDNキャッシュ)', () => {
   beforeAll(() => {
     process.env.SESSION_SECRET = SECRET;
     if (!existsSync(DATA_PATH)) {
@@ -70,10 +71,11 @@ describe('kaisetsu-full API (paid のみ / no-store / 非CDNキャッシュ)', (
     expect(res.statusCode).toBe(403);
   });
 
-  it('有効Cookie + free は 403', async () => {
+  it('有効Cookie + free はベータ期間（ACCESS_MODE=beta）中は 200（lib/accessPolicy.js）', async () => {
+    expect(ACCESS_MODE).toBe('beta');
     setKvClient(fakeKvWithUser('free@example.com', 'free'));
     const res = await call({ cookie: cookie('free@example.com') });
-    expect(res.statusCode).toBe(403);
+    expect(res.statusCode).toBe(200);
   });
 
   it('有効Cookie + paid は 200 で mid/full を含む', async () => {
@@ -109,5 +111,19 @@ describe('kaisetsu-full API (paid のみ / no-store / 非CDNキャッシュ)', (
     await handler({ method: 'POST', query: { key: KNOWN_KEY }, headers: {} }, res);
     expect(res.statusCode).toBe(405);
     expect(res.headers['Cache-Control']).toBe('private, no-store');
+  });
+});
+
+describe('accessPolicy（全機能を使えるか）', () => {
+  it('未ログインは常に不可', () => {
+    expect(hasFullAccess({ loggedIn: false }, 'beta')).toBe(false);
+    expect(hasFullAccess({ loggedIn: false, status: 'paid' }, 'paid')).toBe(false);
+  });
+  it('ベータ期間はログインすれば可', () => {
+    expect(hasFullAccess({ loggedIn: true, status: 'free' }, 'beta')).toBe(true);
+  });
+  it('販売開始後（paid モード）は有料会員だけ可', () => {
+    expect(hasFullAccess({ loggedIn: true, status: 'free' }, 'paid')).toBe(false);
+    expect(hasFullAccess({ loggedIn: true, status: 'paid' }, 'paid')).toBe(true);
   });
 });

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
+import { lockedMessage } from '../../lib/accessPolicy.js';
 
 // 表示順は ShouiPanel と同一の8宮並び（盤の論理順とは独立）。
 const PALACE_ORDER = ['son', 'ri', 'kun', 'shin', 'da', 'gon', 'kan', 'ken'];
@@ -181,7 +182,7 @@ export default function KaisetsuPanel({ board, onOpenAccountSettings }) {
               {auth.phase === 'loading' && <p className="kp-lock-note">読み込み中…</p>}
               {isAnon && (
                 <>
-                  <p className="kp-lock-note">フルリーディングはログイン後にご利用いただけます。</p>
+                  <p className="kp-lock-note">{lockedMessage()}</p>
                   <button type="button" className="kp-cta" onClick={onOpenAccountSettings}>
                     <span className="kp-cta-icon" aria-hidden="true">🔒</span>
                     ログインして読む
@@ -189,7 +190,7 @@ export default function KaisetsuPanel({ board, onOpenAccountSettings }) {
                 </>
               )}
               {isFree && (
-                <p className="kp-lock-note">フルリーディングはプロ版で解放されます。プロ版は現在準備中です。</p>
+                <p className="kp-lock-note">{lockedMessage()}</p>
               )}
             </div>
           </>

@@ -11,6 +11,8 @@ import NotificationBell from './components/NotificationBell.jsx';
 import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
+import { useAuth } from './auth/AuthContext.jsx';
+import { lockedMessage } from '../lib/accessPolicy.js';
 import packageJson from '../package.json';
 
 const DEFAULT_THEME = 'void';
@@ -101,6 +103,10 @@ function applyInitialTheme() {
 const INITIAL_THEME = applyInitialTheme();
 
 export default function App() {
+  const auth = useAuth();
+  // 全機能を使えない人（未ログインなど）は「今日の盤の閲覧」だけ（lib/accessPolicy.js）。
+  // 判定中（loading）は今日の盤のまま表示し、確定してから絞る（ちらつき防止）。
+  const limited = auth.phase === 'ready' && !auth.full;
   const [state, setState] = useState({
     date: getBoardDate(),
     hour: 0,
@@ -138,6 +144,13 @@ export default function App() {
   }, [state.date, state.hour, state.boardType]);
 
   const handleChange = (patch) => setState((s) => ({ ...s, ...patch }));
+
+  // 制限中は日付を今日に固定する（ログアウト直後など、別の日付のままにしない）。
+  useEffect(() => {
+    if (!limited) return;
+    const today = getBoardDate();
+    setState((s) => (s.date === today ? s : { ...s, date: today }));
+  }, [limited]);
   const openFullBoard = ({ date, hour = 0, boardType }) => {
     setState({ date, hour, boardType });
     setBoardReturnTab(activeTab);
@@ -244,7 +257,20 @@ export default function App() {
           direction={direction}
           onChange={handleChange}
           onDirectionChange={setDirection}
+          dateLocked={limited}
         />
+
+        {limited && (
+          <div className="access-notice">
+            <p>
+              未ログインでは今日の盤だけ表示できます。
+              {lockedMessage()}
+            </p>
+            <button type="button" className="access-notice-cta" onClick={openAccountSettings}>
+              ログインする
+            </button>
+          </div>
+        )}
 
         {error && <div className="error">エラー: {error}</div>}
 
@@ -261,6 +287,7 @@ export default function App() {
                 junshu={board.meta?.junshu}
                 tenbanJunshuPalace={board.meta?.tenban_junshu_p}
                 chibanJunshuPalace={board.meta?.chiban_junshu_p}
+                onOpenAccountSettings={openAccountSettings}
               />
               <MetaPanel meta={board.meta} banLevel={board.banLevel} />
             </div>
@@ -451,7 +478,22 @@ export default function App() {
     <div className="app app-with-tabs">
       <div className="vig" aria-hidden="true" />
       {activeTab === 'board' && boardView}
-      {hasVisitedDirection && (
+      {activeTab === 'direction' && limited && (
+        <main className="locked-view">
+          <section className="locked-card">
+            <span className="board-kicker lat">LUCKY DIRECTION</span>
+            <h2 className="maru">吉方位</h2>
+            <p>
+              時盤お散歩・日盤遠出・ランキング・格局検索・地図での行き先探しは、ログインするとご利用いただけます。
+            </p>
+            <p className="locked-card-strong">{lockedMessage()}</p>
+            <button type="button" className="access-notice-cta" onClick={openAccountSettings}>
+              ログインする
+            </button>
+          </section>
+        </main>
+      )}
+      {hasVisitedDirection && !limited && (
         <div hidden={activeTab !== 'direction'}>
           <ReverseDirectionView
             isActive={activeTab === 'direction'}

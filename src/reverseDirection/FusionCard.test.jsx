@@ -23,7 +23,7 @@ const BEST = {
   palaceData: { hachimon: '開門', hasshin: '直符', kyusei: '天輔', tenban: '乙', chiban: '丁' },
   palaceScore: {
     score: 30,
-    breakdown: { hachimon: 12, kyusei: 8, ban_level_minus: -10 },
+    breakdown: { hachimon: 30, kyusei: 10, ban_level_minus: -10 },
     detected_kakkyoku: [],
     detected_jukkan: [],
   },
@@ -155,7 +155,7 @@ describe('FusionCard フォールバック', () => {
 
     expect(calls.some((url) => url.startsWith('/api/kaisetsu-full?'))).toBe(false);
     expect(document.body.textContent).not.toContain(MID_TEXT_GOEN);
-    expect(document.body.textContent).toContain('ログインすると続きが読めます。');
+    expect(document.body.textContent).toContain('ログインすると、ベータ期間中は全機能を無料で使えます。');
   });
 
   it('paid中のfull取得失敗ではクラッシュせず「読み込みに失敗しました」を表示する', async () => {
@@ -220,10 +220,10 @@ describe('FusionCard → L3ボトムシート（PR-5）', () => {
     const dialog = await screen.findByRole('dialog');
 
     expect(within(dialog).getAllByText(SHORT_TEXT).length).toBeGreaterThan(0);
-    expect(within(dialog).getByText('ログインすると続きが読めます。')).toBeTruthy();
+    expect(within(dialog).getByText('ログインすると、ベータ期間中は全機能を無料で使えます。')).toBeTruthy();
   });
 
-  it('「評価の解説」内に点数パターン（+N/-N）が表示されない', async () => {
+  it('「評価の解説」は点数付きで、盤のシートと同じ内訳（行を足すと総合点）', async () => {
     mockFetchAuth({ loggedIn: false });
     render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
@@ -234,6 +234,9 @@ describe('FusionCard → L3ボトムシート（PR-5）', () => {
 
     const detail = dialog.querySelector('.l3-why-detail');
     expect(detail).toBeTruthy();
-    expect(detail.textContent).not.toMatch(/[+-]\d/);
+    expect(within(detail).getByText('総合評価')).toBeTruthy();
+    const pts = [...detail.querySelectorAll('.l3-why-row:not(.l3-why-total) .l3-why-pts')].map((el) => Number(el.textContent));
+    expect(pts.length).toBeGreaterThan(0);
+    expect(pts.reduce((a, b) => a + b, 0)).toBe(BEST.score);
   });
 });

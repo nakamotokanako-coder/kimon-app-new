@@ -4,6 +4,7 @@ import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { getMiniBoardToneClass } from './reverseDirection.js';
 import L3Sheet from '../components/yoho/L3Sheet.jsx';
+import { lockedMessage } from '../../lib/accessPolicy.js';
 
 // 願い5軸（classifyPalace / kaisetsu API と同一キー。KaisetsuPanel.jsx と同じ表示ラベル）。
 export const AXES = [
@@ -107,7 +108,7 @@ export default function FusionCard({
     }
   } else {
     leadText = short || (palaces ? 'この方位・願いごとの解説はありません。' : '読み込み中…');
-    if (short) bodyNode = <div className="m-body m-cta">ログインすると続きが読めます。</div>;
+    if (short) bodyNode = <div className="m-body m-cta">{lockedMessage()}</div>;
   }
 
   return (

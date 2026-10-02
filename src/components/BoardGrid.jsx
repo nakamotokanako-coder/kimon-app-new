@@ -101,6 +101,7 @@ export default function BoardGrid({
   junshu = null,               // 旬首干（例 "庚"）
   tenbanJunshuPalace = null,   // 天盤旬首がある宮の日本語名（例 "離"）
   chibanJunshuPalace = null,   // 地盤旬首がある宮の日本語名（例 "兌"）
+  onOpenAccountSettings,       // 盤のシートの「ログインする」から設定タブへ
 }) {
   const [selectedPalace, setSelectedPalace] = useState(null);
   const items = getItems(direction);
@@ -189,6 +190,7 @@ export default function BoardGrid({
         kaisetsuKey={kaisetsuKey}
         onClose={() => setSelectedPalace(null)}
         onOverlayTap={handleOverlayTap}
+        onOpenAccountSettings={onOpenAccountSettings}
       />
     </>
   );

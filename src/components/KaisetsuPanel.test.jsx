@@ -143,18 +143,18 @@ describe('KaisetsuPanel フルリーディング配線', () => {
     const calls = mockFetchAuth({ loggedIn: false });
     render(<KaisetsuPanel board={makeBoard()} />);
 
-    await screen.findByText('フルリーディングはログイン後にご利用いただけます。');
+    await screen.findByText('ログインすると、ベータ期間中は全機能を無料で使えます。');
 
     expect(calls.some((url) => url.startsWith('/api/kaisetsu-full?'))).toBe(false);
     expect(document.body.textContent).not.toContain(MID_TEXT);
     expect(document.body.textContent).not.toContain(FULL_TEXT);
   });
 
-  it('ログイン済みfreeでは kaisetsu-full をfetchせず、mid/full由来テキストをDOMに出さない', async () => {
-    const calls = mockFetchAuth({ loggedIn: true, email: 'free@example.com', status: 'free' });
+  it('全機能を使えないログイン済み（販売開始後の無料会員: full=false）では kaisetsu-full をfetchしない', async () => {
+    const calls = mockFetchAuth({ loggedIn: true, email: 'free@example.com', status: 'free', full: false });
     render(<KaisetsuPanel board={makeBoard()} />);
 
-    await screen.findByText('フルリーディングはプロ版で解放されます。プロ版は現在準備中です。');
+    await screen.findByText('ログインすると、ベータ期間中は全機能を無料で使えます。');
 
     expect(calls.some((url) => url.startsWith('/api/kaisetsu-full?'))).toBe(false);
     expect(screen.queryByText('ログインして読む')).toBe(null);
@@ -192,7 +192,7 @@ describe('KaisetsuPanel フルリーディング配線', () => {
     render(<KaisetsuPanel board={makeBoard()} />);
 
     await waitFor(() => {
-      expect(screen.getByText('フルリーディングはプロ版で解放されます。プロ版は現在準備中です。')).toBeTruthy();
+      expect(screen.getByText('ログインすると、ベータ期間中は全機能を無料で使えます。')).toBeTruthy();
     });
     expect(document.body.textContent).not.toContain(MID_TEXT);
     expect(document.body.textContent).not.toContain(FULL_TEXT);

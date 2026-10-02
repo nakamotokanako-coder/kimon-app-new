@@ -1,7 +1,7 @@
 // api/auth/request.js
 // POST /api/auth/request  body: { email }
 //   - email を小文字化・trim・形式検証
-//   - レート制限: cooldown:{email} TTL60秒（期間内は 429）
+//   - レート制限: cooldown:{email} TTL60秒（期間内は 429）＋ 同一IPは1時間10通まで
 //   - ワンタイムトークン（randomBytes 32B hex）を magic:{token}→email TTL15分で保存
 //   - Resend でマジックリンク送信（/api/auth/verify?token=...）
 //   - 存在秘匿のため成功は常に同形（登録済みか否かを返さない）
@@ -9,9 +9,13 @@ import { randomBytes } from 'node:crypto';
 import { kv } from '../../lib/kv.js';
 import { sendMagicLink, magicFromSource } from '../../lib/email.js';
 import { buildOrigin } from '../../lib/session.js';
+import { clientIp } from '../../lib/auth.js';
 
 const MAGIC_TTL_SEC = 15 * 60;
 const COOLDOWN_TTL_SEC = 60;
+// 同じIPからの送信は1時間に10通まで（アドレスを変えて大量に送らせる悪用・送信元の評判悪化を防ぐ）。
+const IP_LIMIT = 10;
+const IP_WINDOW_SEC = 60 * 60;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function readEmail(req) {
@@ -36,6 +40,14 @@ export default async function handler(req, res) {
 
   const origin = buildOrigin(req);
   if (!origin) return res.status(500).json({ error: 'origin_unavailable' });
+
+  // IP単位の上限（厳密な原子性は不要。概算で十分）。
+  const ipKey = `ratelimit:ip:${clientIp(req)}`;
+  const ipCount = Number(await kv().get(ipKey)) || 0;
+  if (ipCount >= IP_LIMIT) {
+    return res.status(429).json({ error: 'rate_limited' });
+  }
+  await kv().set(ipKey, ipCount + 1, { ex: IP_WINDOW_SEC });
 
   // レート制限（NXで原子的に確保。既存なら 429）。
   const reserved = await kv().set(`cooldown:${email}`, '1', { nx: true, ex: COOLDOWN_TTL_SEC });
