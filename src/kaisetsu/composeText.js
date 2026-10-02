@@ -175,7 +175,12 @@ export function composeDetail(rawJudgment, axis, bank) {
 
   // ---- 1. 結論文（skeletons[rank] から決定的に1本）= short 文 ----
   const skeletons = bank.skeletons?.[rank] || [''];
-  const conclusion = skeletons[h % skeletons.length].replace(/\{axis\}/gu, axisLabel);
+  // {topic} は「健康の用事」「金運を動かす」のような不自然な言い回しを避けるためのテーマ別の言い方
+  // （健康→「健康に関する用事」、金運→「お金の用事」など。bank.axisTopics）。
+  const axisTopic = bank.axisTopics?.[axis] || axisLabel;
+  const conclusion = skeletons[h % skeletons.length]
+    .replace(/\{axis\}/gu, axisLabel)
+    .replace(/\{topic\}/gu, axisTopic);
   const short = finalize([conclusion]);
 
   // ====================================================================

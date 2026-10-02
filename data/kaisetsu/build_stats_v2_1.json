@@ -5,23 +5,23 @@
   "patterns": "short(結論1文) / mid(現行3文・文面不変) / full(v2・5〜6文の鑑定文)",
   "length": {
     "short": {
-      "min": 14,
-      "avg": 17.2,
+      "min": 12,
+      "avg": 18.2,
       "median": 16,
-      "max": 22
+      "max": 30
     },
     "mid": {
-      "min": 14,
-      "avg": 71.6,
+      "min": 13,
+      "avg": 72.5,
       "median": 74,
-      "max": 128,
+      "max": 133,
       "over_160": 0
     },
     "full": {
-      "min": 51,
-      "avg": 133.4,
-      "median": 129,
-      "max": 274,
+      "min": 52,
+      "avg": 134.4,
+      "median": 130,
+      "max": 271,
       "over_320": 0,
       "band_220_280": 0.004,
       "under_220": 0.996
