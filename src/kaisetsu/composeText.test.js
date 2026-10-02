@@ -26,7 +26,8 @@ const len = (s) => [...s].length;
 // 変更したため、該当宮の short/mid が変化（docs/palace_veto_policy_v1.md・意図した変更）。
 // kaisetsu-axis-rank: 文章の吉凶を総合ランクから軸ランク（テーマ別◎○×）基準へ変更し、
 // 逆向きフレーズ・吉神/吉星の褒め文・重複文・「です、」連結を除去（全件監査で矛盾0件・意図した変更）。
-const MID_SORTED_SHA256 = '17c2c45e7ed335d448774d083a85bc923ceeb1bc55581d863435b7ea39201f4f';
+// shoui-axis-lines: 象意のテーマ別の文（104種類×5テーマ）を mid の理由文に採用（意図した変更）。
+const MID_SORTED_SHA256 = '6aac7094e7ea8142b150d5d5c92d6d375b5c79f36bb26129733f2e26d5e3c42d';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
 // PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
@@ -132,6 +133,22 @@ describe('full v2 代表ケース（§2-4）', () => {
     const k = classifyPalace(lookupChito('陰1局甲子'), 'shin'); // 九地、ご縁×
     expect(k.axisRanks.goen).toBe('×');
     expect(composeDetail(k, 'goen', bank).full).not.toContain('長く続く土台');
+  });
+
+  it('象意のテーマ別の文: mid はテーマ別の文、full は総論＋テーマ別の文で、テーマ非依存の hint を出さない', () => {
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun'); // 丙奇得使・健康○
+    expect(j.axisRanks.kenko).toBe('○');
+    const d = composeDetail(j, 'kenko', bank);
+    const line = bank.shoui['丙奇得使'].axes.kenko;
+    expect(d.full).toContain(`発信力と華やかさを司る丙の力が最大限に働く配置。${line}`);
+    expect(d.full).not.toContain('PRの成果');
+    expect(d.full).not.toContain('プレゼンや公表');
+  });
+
+  it('象意のテーマ別の文は104種類×5テーマすべてそろっている', () => {
+    for (const [name, e] of Object.entries(bank.shoui)) {
+      for (const ax of AXES) expect(e.axes?.[ax], `${name}/${ax}`).toBeTruthy();
+    }
   });
 
   it('健康以外の軸に天心の「通院や検査」を出さない', () => {

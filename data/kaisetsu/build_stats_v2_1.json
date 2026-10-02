@@ -12,19 +12,19 @@
     },
     "mid": {
       "min": 13,
-      "avg": 72.5,
-      "median": 74,
-      "max": 133,
+      "avg": 65,
+      "median": 68,
+      "max": 114,
       "over_160": 0
     },
     "full": {
       "min": 52,
-      "avg": 134.4,
+      "avg": 133.4,
       "median": 130,
-      "max": 271,
+      "max": 250,
       "over_320": 0,
-      "band_220_280": 0.004,
-      "under_220": 0.996
+      "band_220_280": 0.002,
+      "under_220": 0.998
     }
   },
   "nanoni": {
@@ -50,9 +50,9 @@
       "none": 13807
     },
     "extra_src": {
-      "hint": 5698,
+      "hint": 0,
       "exception": 7905,
-      "none": 29597
+      "none": 35295
     },
     "general_rate": 0.44,
     "action_rate": 0.746,

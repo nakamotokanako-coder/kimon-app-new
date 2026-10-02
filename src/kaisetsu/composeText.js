@@ -149,6 +149,18 @@ function mainVeto(vetoes) {
     || vetoes[0];
 }
 
+/**
+ * 象意の文。テーマ別の文（bank.shoui[名].axes[軸]）があれば「総論（phrase の1文目）＋テーマ別の文」、
+ * なければ従来の phrase。象意の phrase はテーマ非依存で、勉強のテーマに「商いごとに追い風」が
+ * 出るなど関係の薄い内容になっていたため（docs/shoui_axis_review_v1.md）。
+ */
+function shouiPhrase(entry, axis) {
+  if (!entry?.phrase) return '';
+  const line = entry.axes?.[axis];
+  if (!line) return entry.phrase;
+  return `${clip(entry.phrase.split('。')[0])}。${clip(line)}`;
+}
+
 /** rank の向き（吉=+1 / 凶=-1 / 中立=0）。理由文の polarity 一致判定に使う */
 function rankDirection(rank) {
   if (rank === '◎' || rank === '○') return 1;
@@ -212,7 +224,9 @@ export function composeDetail(rawJudgment, axis, bank) {
       ? shoui.map((n) => bank.shoui?.[n]).find((e) => e && e.polarity === dir && e.phrase)
       : null;
     if (hit) {
-      reason = hit.phrase;          // a. 象意（rank の向きと一致する最上位1件）
+      // a. 象意（rank の向きと一致する最上位1件）。mid は3文の短い構成なので、テーマ別の文があれば
+      //    それだけを理由文にする（総論と1文につなぐと長く、言い回しも重なるため。総論は full で出す）。
+      reason = hit.axes?.[axis] || hit.phrase;
       reasonSrc = 'shoui';
     } else if (starRank === 'jokichi' || starRank === 'daikyo') {
       reason = starPhrase || gateAxisPhrase;  // c. 上吉/大凶の星
@@ -318,10 +332,10 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
     lead = bank.vetoes[mainVeto(vetoes)].phrase;          // 第1位: 拒否権（吉門で和らぐ空亡は主役にしない）
     leadSrc = 'veto';
   } else if (rankUpName) {
-    lead = bank.shoui[rankUpName].phrase;                 // 第2位: ◎昇格象意
+    lead = shouiPhrase(bank.shoui[rankUpName], axis);     // 第2位: ◎昇格象意
     leadSrc = 'shoui_up';
   } else if (shouiHit) {
-    lead = bank.shoui[shouiHit].phrase;                   // 第3位: rank方向の象意
+    lead = shouiPhrase(bank.shoui[shouiHit], axis);       // 第3位: rank方向の象意
     leadSrc = 'shoui';
   } else if (gateAxisPhrase) {
     // 第4位: 門。門が主役のときは門ラベルを冠して門名を明示する。
@@ -340,7 +354,8 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   let excText = '';
   if (leadSrc === 'shoui_up' || leadSrc === 'shoui') {
     const nm = leadSrc === 'shoui_up' ? rankUpName : shouiHit;
-    const ht = bank.shoui?.[nm]?.hint || '';
+    // テーマ別の文がある象意では、テーマ非依存の hint は出さない（主役文がテーマ別に具体化済み）。
+    const ht = bank.shoui?.[nm]?.axes?.[axis] ? '' : (bank.shoui?.[nm]?.hint || '');
     if (ht && !lead.includes(ht) && !ht.includes(lead)) hintText = ht;
   } else if (leadSrc === 'veto') {
     const lv = mainVeto(vetoes);
