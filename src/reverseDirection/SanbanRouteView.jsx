@@ -93,7 +93,6 @@ export default function SanbanRouteView({
           <h3>奇門三盤ルート</h3>
           <span>続く門の顔ぶれで、ルートの名前が変わります</span>
         </div>
-        <b className="pro-badge" aria-label="プロ機能">PRO</b>
       </div>
 
       <div className="sanban-route-basis base-inline-hidden">
