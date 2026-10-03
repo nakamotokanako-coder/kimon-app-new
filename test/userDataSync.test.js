@@ -1,8 +1,8 @@
 /* @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  BASE_POINT_STORAGE_KEY, FAVORITES_CHANGED_EVENT, SYNC_META_KEY, USER_DATA_SYNCED_EVENT,
-  planSync, startUserDataSync, syncUserData, unionFavorites,
+  BASE_POINT_STORAGE_KEY, FAVORITES_CHANGED_EVENT, SYNC_META_KEY, SYNC_SETTING_CHANGED_EVENT, USER_DATA_SYNCED_EVENT,
+  disableUserDataSync, enableUserDataSync, isSyncEnabled, planSync, startUserDataSync, syncUserData, unionFavorites,
 } from '../src/sync/userDataSync.js';
 import { MAP_SEARCH_STORAGE_KEY } from '../src/reverseDirection/mapSearch.js';
 
@@ -71,22 +71,25 @@ describe('planSync（何を端末に書き、何をサーバーへ送るか）',
 });
 
 describe('同期の通し（サーバーは偽物）', () => {
-  let server;
+  let server; // null = アカウントに保存なし（オフ）
   let stop;
   const readLocal = (key) => JSON.parse(window.localStorage.getItem(key) || 'null');
+  const puts = () => global.fetch.mock.calls.filter(([, o]) => o?.method === 'PUT');
 
   beforeEach(() => {
     window.localStorage.clear();
-    server = { ...emptyServer };
+    server = null;
     let clock = 100;
     global.fetch = vi.fn(async (url, opts = {}) => {
       if (opts.method === 'PUT') {
         const body = JSON.parse(opts.body);
         clock += 1;
+        server = { ...emptyServer, ...(server || {}) };
         if (body.favorites) server = { ...server, favorites: body.favorites, favoritesAt: clock };
         if (body.basePoint) server = { ...server, basePoint: body.basePoint, basePointAt: clock };
       }
-      return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(server)) };
+      if (opts.method === 'DELETE') server = null;
+      return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify({ ...emptyServer, ...(server || {}), enabled: Boolean(server) })) };
     });
   });
 
@@ -97,29 +100,48 @@ describe('同期の通し（サーバーは偽物）', () => {
     delete global.fetch;
   });
 
-  it('新しい端末でログインすると、アカウントのお気に入りと基準点が入る', async () => {
+  it('最初はオフ。オンにするまで、端末の外には何も送らない', () => {
+    expect(isSyncEnabled()).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('オンにすると、今この端末にあるお気に入りと基準点がアカウントに保存される', async () => {
+    window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify([KYOTO]));
+    window.localStorage.setItem(BASE_POINT_STORAGE_KEY, JSON.stringify(BP(TOKYO)));
+    expect(await enableUserDataSync(EMAIL)).toBe(true);
+    expect(isSyncEnabled()).toBe(true);
+    expect(names(server.favorites)).toEqual(['京都駅']);
+    expect(server.basePoint.location.name).toBe('東京駅');
+    expect(readLocal(SYNC_META_KEY)).toMatchObject({ email: EMAIL, favoritesAt: server.favoritesAt });
+  });
+
+  it('お気に入りが1件もなくても、オンにできる（アカウント側にオンの印が残る）', async () => {
+    expect(await enableUserDataSync(EMAIL)).toBe(true);
+    expect(server).not.toBe(null);
+    expect(puts()).toHaveLength(1);
+  });
+
+  it('新しい端末でオンにすると、アカウントのお気に入りと基準点が入る（端末にあった分も残る）', async () => {
     server = { favorites: [TOKYO, OSAKA], favoritesAt: 50, basePoint: BP(OSAKA), basePointAt: 50 };
+    window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify([KYOTO]));
     const synced = vi.fn();
     window.addEventListener(USER_DATA_SYNCED_EVENT, synced);
-    stop = startUserDataSync(EMAIL);
-    await syncUserData();
-    expect(names(readLocal(MAP_SEARCH_STORAGE_KEY))).toEqual(['東京駅', '大阪駅']);
+    expect(await enableUserDataSync(EMAIL)).toBe(true);
+    expect(names(readLocal(MAP_SEARCH_STORAGE_KEY))).toEqual(['東京駅', '大阪駅', '京都駅']);
+    expect(names(server.favorites)).toEqual(['東京駅', '大阪駅', '京都駅']);
     expect(readLocal(BASE_POINT_STORAGE_KEY).location.name).toBe('大阪駅');
-    expect(readLocal(SYNC_META_KEY)).toMatchObject({ email: EMAIL, favoritesAt: 50, basePointAt: 50 });
     expect(synced).toHaveBeenCalled();
-    expect(global.fetch.mock.calls.filter(([, o]) => o?.method === 'PUT')).toHaveLength(0);
     window.removeEventListener(USER_DATA_SYNCED_EVENT, synced);
   });
 
-  it('今まで端末にあったお気に入りは、最初の同期でアカウントに上がる', async () => {
-    window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify([KYOTO]));
-    stop = startUserDataSync(EMAIL);
-    await syncUserData();
-    expect(names(server.favorites)).toEqual(['京都駅']);
-    expect(readLocal(SYNC_META_KEY).favoritesAt).toBe(server.favoritesAt);
+  it('オンにできなかったら（通信の失敗）、オフのまま', async () => {
+    global.fetch = vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) }));
+    expect(await enableUserDataSync(EMAIL)).toBe(false);
+    expect(isSyncEnabled()).toBe(false);
   });
 
   it('端末でお気に入りを変えると、少し待ってからアカウントに送られる', async () => {
+    await enableUserDataSync(EMAIL);
     stop = startUserDataSync(EMAIL);
     await syncUserData();
     vi.useFakeTimers();
@@ -134,6 +156,7 @@ describe('同期の通し（サーバーは偽物）', () => {
   });
 
   it('通信に失敗しても端末の内容はそのまま、送れていない印も残る', async () => {
+    await enableUserDataSync(EMAIL);
     stop = startUserDataSync(EMAIL);
     await syncUserData();
     window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify([TOKYO]));
@@ -142,5 +165,41 @@ describe('同期の通し（サーバーは偽物）', () => {
     expect(await syncUserData()).toBe(false);
     expect(names(readLocal(MAP_SEARCH_STORAGE_KEY))).toEqual(['東京駅']);
     expect(readLocal(SYNC_META_KEY).favoritesDirty).toBe(true);
+    expect(isSyncEnabled()).toBe(true);
+  });
+
+  it('オフにすると、アカウントの分は消え、この端末の分は残る', async () => {
+    window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify([KYOTO]));
+    await enableUserDataSync(EMAIL);
+    const changed = vi.fn();
+    window.addEventListener(SYNC_SETTING_CHANGED_EVENT, changed);
+    expect(await disableUserDataSync()).toBe(true);
+    expect(server).toBe(null);
+    expect(isSyncEnabled()).toBe(false);
+    expect(readLocal(SYNC_META_KEY)).toBe(null);
+    expect(names(readLocal(MAP_SEARCH_STORAGE_KEY))).toEqual(['京都駅']);
+    expect(changed).toHaveBeenCalled();
+    window.removeEventListener(SYNC_SETTING_CHANGED_EVENT, changed);
+  });
+
+  it('消せなかったら（通信の失敗）、オンのまま（消えていないのにオフと見せない）', async () => {
+    await enableUserDataSync(EMAIL);
+    global.fetch = vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) }));
+    expect(await disableUserDataSync()).toBe(false);
+    expect(isSyncEnabled()).toBe(true);
+  });
+
+  it('他の端末でオフにされたら、この端末もオフに戻る（端末のお気に入りは消さない・送り直さない）', async () => {
+    window.localStorage.setItem(MAP_SEARCH_STORAGE_KEY, JSON.stringify([KYOTO]));
+    await enableUserDataSync(EMAIL);
+    stop = startUserDataSync(EMAIL);
+    await syncUserData();
+    server = null; // 他の端末がオフにした
+    const before = puts().length;
+    await syncUserData();
+    expect(isSyncEnabled()).toBe(false);
+    expect(names(readLocal(MAP_SEARCH_STORAGE_KEY))).toEqual(['京都駅']);
+    expect(server).toBe(null);
+    expect(puts()).toHaveLength(before);
   });
 });

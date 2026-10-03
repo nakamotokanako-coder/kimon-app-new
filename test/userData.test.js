@@ -136,7 +136,30 @@ describe('GET / PUT /api/auth/me?data=1', () => {
     expect(mine.body.basePoint.location.name).toBe('大阪駅');
     expect(mine.headers['Cache-Control']).toBe('no-store');
 
-    expect((await call('GET', other)).body).toMatchObject({ favorites: [], basePoint: null });
+    expect((await call('GET', other)).body).toMatchObject({ enabled: false, favorites: [], basePoint: null });
+  });
+
+  it('最初はオフ（保存なし）。保存するとオン、DELETE でオフに戻り、中身はキーごと消える', async () => {
+    const cookie = await login('me@example.com');
+    expect((await call('GET', cookie)).body.enabled).toBe(false);
+    expect(kvFake.store.has('userdata:me@example.com')).toBe(false);
+
+    expect((await call('PUT', cookie, { favorites: [], favoritesBase: null })).body.enabled).toBe(true);
+    expect((await call('GET', cookie)).body.enabled).toBe(true);
+
+    const off = await call('DELETE', cookie);
+    expect(off.body).toMatchObject({ enabled: false, favorites: [] });
+    expect(kvFake.store.has('userdata:me@example.com')).toBe(false);
+    expect(kvFake.store.has('user:me@example.com')).toBe(true); // 会員情報は消さない
+  });
+
+  it('DELETE は自分の分だけ消す。未ログインでは消せない', async () => {
+    const me = await login('me@example.com');
+    const other = await login('other@example.com');
+    await call('PUT', other, { favorites: [TOKYO], favoritesBase: null });
+    await call('DELETE', me);
+    expect((await call('DELETE')).statusCode).toBe(401);
+    expect((await call('GET', other)).body.favorites).toHaveLength(1);
   });
 
   it('JSON 以外・中身のない送信・壊れた内容は受け付けない', async () => {

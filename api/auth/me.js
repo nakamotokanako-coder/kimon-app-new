@@ -1,7 +1,7 @@
 // api/auth/me.js
 // GET /api/auth/me → { loggedIn, email, status, paidUntil, full, accessMode }（未ログインは loggedIn:false）
 //   full: 全機能を使えるか（lib/accessPolicy.js の判定。ベータ期間はログインで true）
-// GET / PUT /api/auth/me?data=1 → アカウントに保存したお気に入りと基準点（lib/userData.js）
+// GET / PUT / DELETE /api/auth/me?data=1 → アカウントに保存したお気に入りと基準点（lib/userData.js。利用者がオンにしたときだけ）
 //   （Vercel の Hobby プランは関数が12個までのため、この関数に同居させている）
 import { getActiveSession } from '../../lib/auth.js';
 import { ACCESS_MODE } from '../../lib/accessPolicy.js';
@@ -10,8 +10,8 @@ import { handleUserData } from '../../lib/userData.js';
 
 export default async function handler(req, res) {
   const wantsData = req.query?.data === '1';
-  if (req.method !== 'GET' && !(wantsData && req.method === 'PUT')) {
-    res.setHeader('Allow', wantsData ? 'GET, PUT' : 'GET');
+  if (req.method !== 'GET' && !(wantsData && (req.method === 'PUT' || req.method === 'DELETE'))) {
+    res.setHeader('Allow', wantsData ? 'GET, PUT, DELETE' : 'GET');
     return res.status(405).end();
   }
 

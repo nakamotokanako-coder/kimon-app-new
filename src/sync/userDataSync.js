@@ -1,6 +1,9 @@
 // src/sync/userDataSync.js
 // お気に入りと基準点を、アカウント（/api/auth/me?data=1。lib/userData.js）と端末の間で合わせる。
 //
+// 場所の情報なので、利用者が設定で「オン」にした端末でだけ動く（SYNC_ENABLED_KEY。最初はオフ）。
+// オフにすると、アカウントに保存した分を消す（端末の分は残る）。他の端末でオフにされたら、この端末もオフに戻る。
+//
 // 画面は今までどおり端末の保存（localStorage）を読み書きする。ここはその裏で、
 //   - ログイン直後・アプリに戻ってきたとき: サーバーの内容を取りに行き、端末に反映する
 //   - 端末で変えたとき: 少し待ってからサーバーへ送る
@@ -13,6 +16,10 @@ import { MAP_SEARCH_STORAGE_KEY, favoriteKey } from '../reverseDirection/mapSear
 
 export const BASE_POINT_STORAGE_KEY = 'kimon_go_base_point_v1';
 export const SYNC_META_KEY = 'kimon_sync_meta_v1';
+/** この端末で同期をオンにしているか（'true'）。設定の他の項目と同じ置き場所 */
+export const SYNC_ENABLED_KEY = 'kimon-setting-sync-user-data';
+/** オン・オフが変わったとき（設定のスイッチ、または他の端末でオフにされたとき） */
+export const SYNC_SETTING_CHANGED_EVENT = 'kimon-sync-setting-changed';
 export const FAVORITES_CHANGED_EVENT = 'kimon-map-favorites-changed';
 /** 端末で基準点を変えたとき（ReverseDirectionView が出す） */
 export const BASE_POINT_CHANGED_EVENT = 'kimon-base-point-changed';
@@ -41,6 +48,27 @@ function writeJson(key, value) {
 }
 
 const readMeta = () => readJson(SYNC_META_KEY, null) || {};
+
+export function isSyncEnabled() {
+  try {
+    return window.localStorage.getItem(SYNC_ENABLED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function setSyncEnabledLocal(on) {
+  try {
+    if (on) window.localStorage.setItem(SYNC_ENABLED_KEY, 'true');
+    else {
+      window.localStorage.removeItem(SYNC_ENABLED_KEY);
+      window.localStorage.removeItem(SYNC_META_KEY); // 次にオンにしたときは、初めての同期として足し合わせる
+    }
+  } catch {
+    // 保存できない環境ではオフのまま
+  }
+  window.dispatchEvent(new CustomEvent(SYNC_SETTING_CHANGED_EVENT, { detail: { enabled: on } }));
+}
 const readLocalFavorites = () => {
   const list = readJson(MAP_SEARCH_STORAGE_KEY, []);
   return Array.isArray(list) ? list : [];
@@ -137,8 +165,13 @@ async function request(method, body) {
   return res.json();
 }
 
-async function runSync(email) {
+async function runSync(email, { enabling = false } = {}) {
   const server = await request('GET');
+  if (!server.enabled && !enabling) {
+    // 他の端末でオフにされた（アカウントの分は消えている）。この端末もオフに戻す。端末のお気に入りは残す。
+    setSyncEnabledLocal(false);
+    return;
+  }
   const plan = planSync({
     email,
     server,
@@ -148,6 +181,11 @@ async function runSync(email) {
   });
   applyLocal(plan.local);
   let meta = plan.meta;
+  // オンにした直後は、送るものが無くても一度保存する（アカウント側に「オン」の印を作る）。
+  if (enabling && !server.enabled && !plan.push.favorites) {
+    plan.push.favorites = readLocalFavorites();
+    plan.push.favoritesBase = server.favoritesAt ?? null;
+  }
   if (Object.keys(plan.push).length > 0) {
     const saved = await request('PUT', plan.push);
     // サーバーが足し合わせた結果（別の端末と重なったとき）を端末にも反映する。
@@ -165,11 +203,11 @@ async function runSync(email) {
 }
 
 /** サーバーと合わせる。同時に2回は走らせない。失敗しても投げない（次の機会にやり直す）。 */
-export function syncUserData(email = currentEmail) {
+export function syncUserData(email = currentEmail, options = {}) {
   if (!email || typeof window === 'undefined') return Promise.resolve(false);
   if (running) return running;
   startedAt = Date.now();
-  running = runSync(email)
+  running = runSync(email, options)
     .then(() => true)
     .catch(() => false)
     .finally(() => { running = null; });
@@ -183,6 +221,30 @@ function markDirty(field) {
   writeJson(SYNC_META_KEY, { ...meta, [`${field}Dirty`]: true, dirtySince: Date.now() });
   window.clearTimeout(pushTimer);
   pushTimer = window.setTimeout(() => { syncUserData(); }, PUSH_DELAY_MS);
+}
+
+/**
+ * 設定のスイッチをオンにする: 今この端末にあるお気に入りと基準点をアカウントに保存し、以後は合わせ続ける。
+ * @returns {Promise<boolean>} 保存できたら true（できなければオフのまま）
+ */
+export async function enableUserDataSync(email) {
+  const ok = await syncUserData(email, { enabling: true });
+  if (ok) setSyncEnabledLocal(true);
+  return ok;
+}
+
+/**
+ * 設定のスイッチをオフにする: アカウントに保存した分を消す。この端末のお気に入りと基準点は残る。
+ * @returns {Promise<boolean>} 消せたら true（消せなければオンのまま。消えていないのにオフと見せない）
+ */
+export async function disableUserDataSync() {
+  try {
+    await request('DELETE');
+  } catch {
+    return false;
+  }
+  setSyncEnabledLocal(false);
+  return true;
 }
 
 /**
