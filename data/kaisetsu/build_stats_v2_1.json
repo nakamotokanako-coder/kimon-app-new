@@ -12,15 +12,15 @@
     },
     "mid": {
       "min": 13,
-      "avg": 65.2,
-      "median": 69,
+      "avg": 66.3,
+      "median": 70,
       "max": 114,
       "over_160": 0
     },
     "full": {
       "min": 52,
-      "avg": 136.5,
-      "median": 132,
+      "avg": 138.1,
+      "median": 133,
       "max": 250,
       "over_320": 0,
       "band_220_280": 0.003,
@@ -54,17 +54,17 @@
       "exception": 7905,
       "none": 35295
     },
-    "general_rate": 0.472,
-    "action_rate": 0.788,
+    "general_rate": 0.431,
+    "action_rate": 0.747,
     "action_suppressed_palaces": 1829,
     "action_suppressed_note": "▲×∩吉門(kichi3/chukichi)はactionsを出さない（吉前提文体が凶宮の結論と矛盾するため）。v2.1で代替締め文を入れる対象宮。",
     "shime_src": {
       "veto": 2877,
       "god": 0,
-      "fallback": 9138,
-      "none": 31185
+      "fallback": 10912,
+      "none": 29411
     },
-    "fallback_closing_adopted": 9138,
+    "fallback_closing_adopted": 10912,
     "fallback_closing_note": "fullのみ。▲×∩吉門で行動提案を出せない宮の締めに fallbackClosings を充当（死門は除外・hash決定的選択）。",
     "guard": {
       "none": 43200,
@@ -79,14 +79,14 @@
     "reason_src": {
       "shoui": 17577,
       "use": 4923,
-      "gate": 12911,
-      "star": 7789
+      "gate": 11763,
+      "star": 7163
     },
     "third_sentence_src": {
       "veto": 2877,
       "god": 1308,
-      "gate": 18637,
-      "none": 20378
+      "gate": 18011,
+      "none": 21004
     }
   },
   "checks": {

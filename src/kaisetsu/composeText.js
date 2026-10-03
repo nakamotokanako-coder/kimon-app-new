@@ -121,6 +121,26 @@ function alignTone(text, dir, gateClass = '') {
   return phraseTone(text) * dir < 0 ? '' : text;
 }
 
+/**
+ * △（どちらでもない）で、拒否権と吉門が同居する宮の「折り合いをつけた」文の材料。
+ * 「大きく動かず」と「最も向いています」を並べると矛盾して読めるため、
+ * 「大きくは動かないが、この門の用事を無理のない範囲で進めるなら吉」という一本の筋にまとめる。
+ * 文型は bank.vetoes[拒否権].neutral（伏吟・反吟）。無い拒否権は null（従来の文に、控えめな締めだけ足す）。
+ */
+function neutralVetoPlan(judgment, axis, bank) {
+  const { rank, vetoes, gate, gateClass } = judgment;
+  if (rankDirection(rank) !== 0 || !vetoes.length || judgment.kuubouRelief) return null;
+  if (!GOOD_GATE_CLASSES.has(gateClass)) return null;
+  const veto = mainVeto(vetoes);
+  const tpl = bank.vetoes?.[veto]?.neutral || null;
+  // 吉門の行動提案「〜に（最も）向いています。」から、用事の部分だけを取り出す。
+  const stem = String(bank.gates?.[gate]?.actions?.[axis] || '').replace(/(そのもの)?に(最も)?向いています。$/u, '');
+  const gateLabel = clip(bank.gates?.[gate]?.label || '');
+  if (!tpl || !stem || !gateLabel) return { veto, simple: true, gateLabel };
+  const fill = (t) => String(t || '').replace(/\{stem\}/gu, stem).replace(/\{gate\}/gu, gateLabel);
+  return { veto, simple: false, gateLabel, lead: tpl.lead, turn: fill(tpl.turn), close: fill(tpl.close), mid: fill(tpl.mid) };
+}
+
 /** 九星のうち特定の軸にしか当てはまらない文言（天心＝通院や検査）。それ以外の軸では出さない */
 const STAR_AXIS_ONLY = { '天心': ['kenko'] };
 
@@ -223,7 +243,13 @@ export function composeDetail(rawJudgment, axis, bank) {
 
   let reason = '';
   let reasonSrc = 'gate';
-  if (negativeRank && gateUse && !isMourning && !hasKuubou && !GOOD_GATE_CLASSES.has(judgment.gateClass)) {
+  // △（どちらでもない）で拒否権がある宮: 結論「控えめに」の理由は拒否権。吉門の褒め文を理由にすると結論と逆を向く。
+  const plan = neutralVetoPlan(judgment, axis, bank);
+  const neutralVeto = plan ? (plan.simple ? (bank.vetoes?.[plan.veto]?.phrase || '') : plan.mid) : '';
+  if (neutralVeto) {
+    reason = neutralVeto;
+    reasonSrc = 'veto';
+  } else if (negativeRank && gateUse && !isMourning && !hasKuubou && !GOOD_GATE_CLASSES.has(judgment.gateClass)) {
     // §4 凶の使い道: ▲/× は「◯◯の用事なら、むしろ向いている」。
     // 吉門の宮（拒否権や軸の事情で凶に落ちた）では「新規の開始ならむしろ向く」等が結論と矛盾するため出さない
     // （full の行動提案の修正(c)と同じ扱い）。
@@ -248,7 +274,7 @@ export function composeDetail(rawJudgment, axis, bank) {
       reasonSrc = 'gate';
     }
   }
-  reason = toOneSentence(reason);
+  reason = neutralVeto && !plan.simple ? clip(reason) : toOneSentence(reason);
 
   // ---- 3. 3文目（注意 or 補足）----
   const isPositive = rank === '◎' || rank === '○';
@@ -266,7 +292,7 @@ export function composeDetail(rawJudgment, axis, bank) {
     thirdSrc = 'god';
   } else {
     // 補足: 軸の具体性を3文目で出す。理由文と重複する場合は置かない（2文に収める）。
-    const suppl = toOneSentence(gateAxisPhrase);
+    const suppl = neutralVeto ? '' : toOneSentence(gateAxisPhrase);
     if (suppl && suppl !== reason) {
       third = suppl;
       thirdSrc = 'gate';
@@ -452,6 +478,24 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
       fallbackClose = fc[h % fc.length];
     }
   }
+  // △（どちらでもない）で主役が拒否権（伏吟・反吟など）の宮: 吉門の総説・行動提案は吉前提の文体
+  // （「最も向いています」）で、主役文「大きく動かず」と逆を向く。出さずに、門を踏まえた控えめな締めに替える。
+  let neutralClose = '';
+  const plan = leadSrc === 'veto' ? neutralVetoPlan(judgment, axis, bank) : null;
+  if (plan) {
+    general = '';
+    action = '';
+    if (plan.simple) {
+      neutralClose = `${plan.gateLabel}が入ってはいますが、今日は下見や準備までにとどめておくのが無難です。`;
+    } else {
+      // 順: 結論 → 拒否権の影響 → 「一方で」門の用事 → 「また／なお」神 → 門を踏まえた締め
+      lead = plan.lead;
+      excText = plan.turn;
+      hintText = '';
+      if (reinforceSrc === 'god') reinforce = `${godClass === 'kichi' ? 'また、' : 'なお、'}${reinforce}`;
+      neutralClose = plan.close;
+    }
+  }
   // 死門特別ルール: goen軸は弔事文を無条件採用可。その他の軸は「むしろ向いています」へ強調しない。
   if (gate === '死門' && axis !== 'goen' && action.includes('むしろ向いています')) action = '';
   const actionUsed = !!action;
@@ -475,6 +519,10 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   //   従来 ▲× は締め無し（行動提案で終わるか、それも無い）。空いた締めスロットに充当する。
   if (fallbackClose && !shime) {
     shime = fallbackClose;
+    shimeSrc = 'fallback';
+  }
+  if (neutralClose && !shime) {
+    shime = neutralClose;
     shimeSrc = 'fallback';
   }
 
