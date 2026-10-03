@@ -8443,3 +8443,11 @@ html[data-text-size='large'] {
   resize: vertical;
   font: inherit;
 }
+
+/* 設定 > アカウント > プロ版の申し込み・解約 */
+.billing-box {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 14px;
+}

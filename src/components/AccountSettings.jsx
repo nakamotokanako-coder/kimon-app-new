@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { isBillingUiVisible, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
 // 認証状態・利用範囲の判定はすべてサーバー側（/api/auth/me → AuthContext）。ここでは表示だけ。
@@ -95,6 +96,72 @@ function DeviceList({ email }) {
   );
 }
 
+const BILLING_PREVIEW_KEY = 'kimon-billing-preview';
+
+/** 申し込みボタンを出すか。販売開始後は全員、それまでは ?billing=preview で開いた端末だけ（動作確認用）。 */
+function billingVisible() {
+  if (isBillingUiVisible()) return true;
+  try {
+    if (new URLSearchParams(window.location.search).get('billing') === 'preview') {
+      window.localStorage.setItem(BILLING_PREVIEW_KEY, '1');
+    }
+    return window.localStorage.getItem(BILLING_PREVIEW_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+// プロ版の申し込み・解約（Stripe のページへ移動する）。
+function BillingSection({ auth }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  if (!auth.billing?.available || !billingVisible()) return null;
+
+  const go = async (action) => {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/billing?action=${action}`, { method: 'POST', credentials: 'same-origin' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      setError(data.error === 'already_subscribed'
+        ? 'すでにプロ版をご利用中です。'
+        : '手続きのページを開けませんでした。時間をおいてお試しください。');
+    } catch {
+      setError('手続きのページを開けませんでした。時間をおいてお試しください。');
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="billing-box">
+      {auth.billing.subscribed ? (
+        <>
+          <p className="account-note">
+            {auth.billing.cancelAtPeriodEnd
+              ? '解約の手続き済みです。有効期限まではプロ版をご利用いただけます。'
+              : `プロ版（${PRO_PRICE_LABEL}）をご利用中です。1か月ごとに自動で更新されます。`}
+          </p>
+          <button type="button" className="account-btn account-btn-ghost" onClick={() => go('portal')} disabled={busy}>
+            お支払い方法の変更・解約
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="account-note">プロ版：{PRO_PRICE_LABEL}。1か月ごとに自動で更新され、いつでも解約できます。</p>
+          <button type="button" className="account-btn" onClick={() => go('checkout')} disabled={busy}>
+            プロ版に申し込む
+          </button>
+        </>
+      )}
+      {error && <p className="account-error">{error}</p>}
+    </div>
+  );
+}
+
 function planLabel(auth) {
   if (auth.status === 'paid') {
     const t = Date.parse(auth.paidUntil || '');
@@ -180,7 +247,7 @@ export default function AccountSettings() {
   const logout = async (all = false) => {
     setBusy(true);
     try {
-      await fetch(all ? '/api/auth/logout-all' : '/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      await fetch(all ? '/api/auth/logout?all=1' : '/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
     } catch {
       // 失敗しても表示はログアウト扱いに倒す（再取得で実際の状態に戻る）
     } finally {
@@ -207,6 +274,7 @@ export default function AccountSettings() {
           <span>ご利用プラン</span>
           <strong>{planLabel(auth)}</strong>
         </div>
+        <BillingSection auth={auth} />
         <DeviceList email={auth.email} />
         <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>

@@ -17,6 +17,7 @@ export function normalizeMe(data) {
     email: data.email,
     status,
     paidUntil: data.paidUntil || null,
+    billing: data.billing || { available: false, subscribed: false, cancelAtPeriodEnd: false },
     full: typeof data.full === 'boolean'
       ? data.full
       : hasFullAccess({ loggedIn: true, status, paidUntil: data.paidUntil }),
