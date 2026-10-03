@@ -504,6 +504,16 @@ html.sheet-scroll-lock body {
   color: rgba(255,255,255,0.96);
 }
 
+/* 解説文（4段落）。段落の間をあけ、太字は見出しとしめの1か所だけ */
+.reading .prose-text p + p {
+  margin-top: 0.85em;
+}
+
+.reading .prose-text strong {
+  font-weight: 800;
+  color: #fff;
+}
+
 .reading-state.locked,
 .reading-state.empty,
 .reading-state.error,

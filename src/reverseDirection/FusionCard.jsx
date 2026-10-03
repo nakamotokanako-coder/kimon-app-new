@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
+import { splitProse, stripBold } from '../kaisetsu/renderProse.jsx';
 import { getMiniBoardToneClass } from './reverseDirection.js';
 import L3Sheet from '../components/yoho/L3Sheet.jsx';
 import { lockedMessage } from '../../lib/accessPolicy.js';
@@ -37,9 +38,14 @@ export function computeAxisRanks(key, palace) {
   }
 }
 
-// mid本文（2〜3文）を「1文目=リード」「2文目以降=本文」に分割する。
+// mid本文を「見出し=リード」「残り=本文」に分割する。
+// 段落つきの文章（見出し＋空行＋本文。src/kaisetsu/composeProse.js）は段落で、1段落だけの文は最初の句点で分ける。
 export function splitMid(mid) {
   if (!mid) return { lead: '', body: '' };
+  if (mid.includes('\n\n')) {
+    const split = splitProse(mid);
+    return { lead: split.lead, body: stripBold(split.body) };
+  }
   const idx = mid.indexOf('。');
   if (idx === -1) return { lead: mid, body: '' };
   const lead = mid.slice(0, idx + 1);

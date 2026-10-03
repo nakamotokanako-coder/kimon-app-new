@@ -8063,6 +8063,20 @@ body {
   color: var(--text-primary);
 }
 
+.l3-reading-text.prose-text p,
+.kp-full-body .prose-text p {
+  margin: 0;
+}
+
+.l3-reading-text.prose-text p + p,
+.kp-full-body .prose-text p + p {
+  margin-top: 0.85em;
+}
+
+.prose-text strong {
+  font-weight: 800;
+}
+
 .l3-reading-cta {
   margin: 4px 0 0;
   font-size: 12px;

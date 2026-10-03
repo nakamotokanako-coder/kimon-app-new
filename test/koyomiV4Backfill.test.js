@@ -57,7 +57,7 @@ describe('koyomi v4 埋め戻し（1900-2002）', () => {
       expect(r.inton_youton).toMatch(/^[陽陰]$/);
       expect(['上元', '中元', '下元']).toContain(r.sangen);
     }
-  });
+  }, 30000); // 全行を調べるため、並列実行時は5秒を超えうる
 
   it('1922-12-22 以降の time_kyokusu は v2 正本と一致', () => {
     const v2 = parse(read('koyomi_v2.csv'));

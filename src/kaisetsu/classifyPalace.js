@@ -447,7 +447,7 @@ export function classifyPalace(row, palace) {
   const shoui = shouiNames.slice(0, 4);
 
   return {
-    // 局key・宮（Phase 2 composeText の決定的バリエーション hash 用）
+    // 局key・宮（composeProse の決定的バリエーション hash 用）
     key: row.key,
     palace,
     rank,
@@ -463,7 +463,7 @@ export function classifyPalace(row, palace) {
     godClass,
     shoui,
     shouiTop,
-    // 同名で意味が違う十干剋応の組み合わせ番号（{ 名前: no }）。composeText が文言の出し分けに使う。
+    // 同名で意味が違う十干剋応の組み合わせ番号（{ 名前: no }）。composeProse が文言の出し分けに使う。
     shouiVariant: resolveShouiVariants(tenban, row[`chiban_${palace}`] || '', shouiNames),
     axes,
     axisRanks,

@@ -4,6 +4,7 @@ import { computeAxisRanks, BADGE_LABEL } from '../reverseDirection/FusionCard.js
 import { getMiniBoardToneClass } from '../reverseDirection/reverseDirection.js';
 import { buildScoreBreakdown, listKakkyoku } from '../kimon/palaceExplain.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
+import { ProseText } from '../kaisetsu/renderProse.jsx';
 import { lockedMessage } from '../../lib/accessPolicy.js';
 import './BottomSheet.css';
 
@@ -12,6 +13,7 @@ import './BottomSheet.css';
 //   吉凶バッジ … reverseDirection.getMiniBoardToneClass（吉方位タブと同じ基準）
 //   5テーマの◎○× … classifyPalace の軸ランク（FusionCard.computeAxisRanks）
 //   解説文 … /api/kaisetsu・/api/kaisetsu-full（useKaisetsuPalace。出し分けは lib/accessPolicy.js）
+//             全機能を使える人には、吉方位タブと同じ4段落の文章（full）を出す
 //   評価の解説 … kimon/palaceExplain.js（点数付き。行を足すと総合点になる）
 
 const AXES = [
@@ -90,16 +92,21 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
   const axisLabel = AXES.find((a) => a.key === activeAxis)?.label || '';
 
   const short = palaces?.[palace.key]?.[activeAxis]?.short || null;
-  const mid = fullPalaces?.[palace.key]?.[activeAxis]?.mid || null;
+  const cell = fullPalaces?.[palace.key]?.[activeAxis];
+  const reading = cell?.full || cell?.mid || null;
   let readingNode;
   if (isPaid) {
     if (fullErrorKey === kaisetsuKey) {
       readingNode = <p className="reading-state error">解説を取得できませんでした。時間をおいてもう一度お試しください。</p>;
     } else {
       readingNode = (
-        <p className={`reading-state ${mid ? 'ready' : 'loading'}`}>
-          {mid || (fullPalaces ? 'この願いごとの詳しい解説はまだありません。' : '解説を読み込んでいます。')}
-        </p>
+        reading
+          ? <ProseText text={reading} className="reading-state ready" />
+          : (
+            <p className="reading-state loading">
+              {fullPalaces ? 'この願いごとの詳しい解説はまだありません。' : '解説を読み込んでいます。'}
+            </p>
+          )
       );
     }
   } else {

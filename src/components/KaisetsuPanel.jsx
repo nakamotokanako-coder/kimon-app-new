@@ -3,6 +3,7 @@ import { ic } from '../utils/icons.js';
 import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
+import { ProseText } from '../kaisetsu/renderProse.jsx';
 import { lockedMessage } from '../../lib/accessPolicy.js';
 
 // 表示順は ShouiPanel と同一の8宮並び（盤の論理順とは独立）。
@@ -166,11 +167,15 @@ export default function KaisetsuPanel({ board, onOpenAccountSettings }) {
         <div className="kp-full-label">フルリーディング</div>
         {isPaid ? (
           <div className="kp-full-body">
-            <p>
-              {fullErrorKey === key
-                ? '読み込みに失敗しました'
-                : full || (fullPalaces ? 'この方位・願いごとのフルリーディングはありません。' : '読み込み中…')}
-            </p>
+            {fullErrorKey !== key && full
+              ? <ProseText text={full} />
+              : (
+                <p>
+                  {fullErrorKey === key
+                    ? '読み込みに失敗しました'
+                    : (fullPalaces ? 'この方位・願いごとのフルリーディングはありません。' : '読み込み中…')}
+                </p>
+              )}
           </div>
         ) : (
           <>
