@@ -64,6 +64,15 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose, palace]);
 
+  // 開いている間は後ろのページを止める（指の動きが後ろのページに取られて、シートが動かなくなるのを防ぐ）。
+  const isOpen = Boolean(palace);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const root = document.documentElement;
+    root.classList.add('sheet-scroll-lock');
+    return () => root.classList.remove('sheet-scroll-lock');
+  }, [isOpen]);
+
   const axisRanks = useMemo(() => computeAxisRanks(kaisetsuKey, palace?.key), [kaisetsuKey, palace?.key]);
   const breakdown = useMemo(
     () => buildScoreBreakdown(palace?.score, palace?.data, palace?.banLevel),
@@ -123,12 +132,12 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
         aria-modal="true"
         aria-label={`${palace.label}の詳細`}
       >
-        <button
-          type="button"
-          className="sheet-handle"
-          aria-label="閉じる"
-          onClick={onClose}
-        />
+        <div className="sheet-top">
+          <div className="sheet-handle" aria-hidden="true" onClick={onClose} />
+          <button type="button" className="sheet-close-btn" aria-label="閉じる" onClick={onClose}>
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
 
         <div className="sheet-content">
           <div className="sh-header">
