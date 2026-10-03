@@ -8294,3 +8294,69 @@ body {
   font-size: 0.75rem;
   opacity: 0.8;
 }
+
+/* 設定 > アカウント > ログイン中の端末 */
+.device-list {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+}
+
+.device-list-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.device-list-head small,
+.device-seen {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.device-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+}
+
+.device-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.device-seen {
+  flex-basis: 100%;
+}
+
+.device-label {
+  font-weight: 700;
+}
+
+.device-current {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #111;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.device-logout {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}

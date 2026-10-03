@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
@@ -27,6 +27,72 @@ function writePending(email) {
   } catch {
     // 保存領域が使えなくても通常どおり動く
   }
+}
+
+function formatSeen(iso) {
+  const t = Date.parse(iso || '');
+  if (!t) return '';
+  const d = new Date(t);
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// ログイン中の端末（最大3台）。この端末以外は個別にログアウトできる。
+function DeviceList({ email }) {
+  const [state, setState] = useState({ phase: 'loading', max: 3, sessions: [] });
+  const [busyId, setBusyId] = useState('');
+
+  const load = async () => {
+    try {
+      const r = await fetch('/api/auth/sessions', { credentials: 'same-origin' });
+      if (!r.ok) throw new Error('failed');
+      const j = await r.json();
+      setState({ phase: 'ready', max: j.max || 3, sessions: j.sessions || [] });
+    } catch {
+      setState((s) => ({ ...s, phase: 'error' }));
+    }
+  };
+
+  useEffect(() => { load(); }, [email]);
+
+  const revoke = async (id) => {
+    setBusyId(id);
+    try {
+      await fetch('/api/auth/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ id }),
+      });
+    } finally {
+      setBusyId('');
+      load();
+    }
+  };
+
+  return (
+    <div className="device-list">
+      <div className="device-list-head">
+        <strong>ログイン中の端末</strong>
+        <small>{state.max}台まで（超えると一番使っていない端末がログアウトされます）</small>
+      </div>
+      {state.phase === 'loading' && <p className="account-note">読み込み中…</p>}
+      {state.phase === 'error' && <p className="account-note">端末の一覧を読み込めませんでした。</p>}
+      {state.phase === 'ready' && state.sessions.map((d) => (
+        <div className="device-row" key={d.id}>
+          <div>
+            <span className="device-label">{d.label}</span>
+            {d.current && <span className="device-current">この端末</span>}
+            <small className="device-seen">最終利用 {formatSeen(d.lastSeenAt)}</small>
+          </div>
+          {!d.current && (
+            <button type="button" className="device-logout" onClick={() => revoke(d.id)} disabled={busyId === d.id}>
+              ログアウト
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function planLabel(auth) {
@@ -136,6 +202,8 @@ export default function AccountSettings() {
           <span>ご利用プラン</span>
           <strong>{planLabel(auth)}</strong>
         </div>
+        <DeviceList email={auth.email} />
+        <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>
           ログアウト
         </button>

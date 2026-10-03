@@ -79,7 +79,7 @@ export default async function handler(req, res) {
   if (!email) return invalidHtml(res);
   await kv().del(`magic:${token}`);
 
-  if (!(await issueSession(res, email))) return res.status(500).json({ error: 'server_misconfigured' });
+  if (!(await issueSession(res, email, req))) return res.status(500).json({ error: 'server_misconfigured' });
   // リンクでログインしたら、同じメール宛てのコードも使えないようにする（片方だけ有効）。
   await kv().del(`otp:${email}`);
 
