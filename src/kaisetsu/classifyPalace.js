@@ -167,6 +167,36 @@ const SHOUI_AXIS = {
 const AXIS_KEYS = ['goen', 'shigoto', 'kinun', 'kenko', 'benkyo'];
 
 /**
+ * 同じ名前で意味が違う十干剋応（天盤×地盤の組み合わせ違い）。no は shoui_dict.json の通し番号
+ * （no = 天盤index*9 + 地盤index + 1。乙〜癸）。名前だけで文言を引くと取り違えるため、
+ * どちらの組み合わせかを判定オブジェクトに載せる（shouiVariant）。
+ *   華蓋蓬星: 9=乙＋癸 / 73=癸＋乙   華蓋孛師: 18=丙＋癸(凶) / 74=癸＋丙(吉)   凶蛇入獄: 62=辛＋壬 / 68=壬＋己
+ * ドリフトは classifyPalace.test.js が shoui_dict.json と突き合わせて検出する。
+ */
+export const HOMONYM_JUKKAN = {
+  9: '華蓋蓬星', 73: '華蓋蓬星',
+  18: '華蓋孛師', 74: '華蓋孛師',
+  62: '凶蛇入獄', 68: '凶蛇入獄',
+};
+const KAN_ORDER = ['乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+
+/** 宮の天盤・地盤（寄宮で2文字のこともある）から、同名の十干剋応がどちらの組み合わせかを返す */
+export function resolveShouiVariants(tenban, chiban, names) {
+  const out = {};
+  for (const t of String(tenban || '')) {
+    for (const c of String(chiban || '')) {
+      const ti = KAN_ORDER.indexOf(t);
+      const ci = KAN_ORDER.indexOf(c);
+      if (ti < 0 || ci < 0) continue;
+      const no = ti * 9 + ci + 1;
+      const name = HOMONYM_JUKKAN[no];
+      if (name && names.includes(name) && out[name] == null) out[name] = no;
+    }
+  }
+  return out;
+}
+
+/**
  * 象意の言及順（shoui_priority.json の priority_order を内蔵・順序の正本）。
  * src/kaisetsu は data/*.json を直接 import すると node(.mjs スクリプト)と vitest で
  * JSON import 属性の互換が割れるため、ここに同期コピーを持つ。
@@ -214,8 +244,11 @@ function buildAxisRanks(axes, { boardFukugin, boardHangin, hardVeto, vetoRelief 
     ranks.kinun = '△';
   }
 
-  if (boardHangin) {
-    for (const k of AXIS_KEYS) ranks[k] = vetoRelief ? '△' : '×';
+  // 反吟: 門・星の性質は残る（煙波釣叟歌「八門返伏皆如此、生在生兮死在死」）。全軸×にはせず、
+  // 物事が反転・行って戻りやすい日として◎だけ○に抑える。三奇＋吉門が重なる宮（vetoRelief）は
+  // 凶意が和らぐので抑えない。凶の軸はそのまま。根拠: docs/hangin_policy_v1.md
+  if (boardHangin && !vetoRelief) {
+    for (const k of AXIS_KEYS) ranks[k] = capRank(ranks[k], '○');
   }
 
   if (hardVeto) {
@@ -372,9 +405,9 @@ export function classifyPalace(row, palace) {
 
   let rank = RANK_LADDER[idx];
 
-  // 盤レベル上限cap（伏吟=▲ / 反吟=▲、ただし奇門で蓋う宮は△）
+  // 盤レベル上限cap（伏吟=▲ / 反吟=○まで。反吟でも三奇＋吉門が重なる宮は抑えない）
   if (boardFukugin) rank = capRank(rank, '▲');
-  if (boardHangin) rank = capRank(rank, vetoRelief ? '△' : '▲');
+  if (boardHangin && !vetoRelief) rank = capRank(rank, '○');
 
   // 宮の拒否権は ×固定（全てに優先）
   if (hardVeto) rank = '×';
@@ -430,6 +463,8 @@ export function classifyPalace(row, palace) {
     godClass,
     shoui,
     shouiTop,
+    // 同名で意味が違う十干剋応の組み合わせ番号（{ 名前: no }）。composeText が文言の出し分けに使う。
+    shouiVariant: resolveShouiVariants(tenban, row[`chiban_${palace}`] || '', shouiNames),
     axes,
     axisRanks,
     patternId,

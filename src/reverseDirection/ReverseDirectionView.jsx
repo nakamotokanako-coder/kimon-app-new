@@ -1052,7 +1052,7 @@ export default function ReverseDirectionView({
               </div>
 
               <div className="reverse-card reverse-aux-card">
-                <p><strong>補助</strong>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。出発時刻の時盤併用を出すかは先生確認事項です。</p>
+                <p><strong>補助</strong>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。</p>
               </div>
             </>
           )}

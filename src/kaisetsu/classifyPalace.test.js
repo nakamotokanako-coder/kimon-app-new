@@ -4,7 +4,7 @@
 //   TZ=Asia/Tokyo npx vitest run src/kaisetsu/
 
 import { describe, it, expect } from 'vitest';
-import { classifyPalace, PRIORITY_ORDER, RANK_LADDER } from './classifyPalace.js';
+import { HOMONYM_JUKKAN, resolveShouiVariants, classifyPalace, PRIORITY_ORDER, RANK_LADDER } from './classifyPalace.js';
 import { lookupChito } from '../kimon/loadChito.js';
 import shouiPriority from '../../data/shoui_priority.json';
 
@@ -79,7 +79,7 @@ describe('classifyPalace 盤レベル拒否権', () => {
 });
 
 describe('反吟の奇門緩和', () => {
-  it('三奇＋三吉門 同居の宮は △ まで緩和し vetoRelief を立てる', () => {
+  it('三奇＋三吉門 同居の宮は vetoRelief を立て、反吟でも抑えない（docs/hangin_policy_v1.md）', () => {
     const synthetic = {
       hachimon_kan: '生門',     // 三吉門
       kyusei_kan: '天禽',
@@ -94,8 +94,9 @@ describe('反吟の奇門緩和', () => {
     const j = classifyPalace(synthetic, 'kan');
     expect(j.vetoes).toContain('反吟');
     expect(j.vetoRelief).toBe('反吟だが奇門が蓋う');
-    expect(j.rank).toBe('△');
-    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['△']));
+    const plain = classifyPalace({ ...synthetic, ban_level: '' }, 'kan');
+    expect(j.rank).toBe(plain.rank);
+    expect(j.axisRanks).toEqual(plain.axisRanks);
   });
 });
 
@@ -163,21 +164,35 @@ describe('axisRanks', () => {
     });
   });
 
-  it('反吟は緩和なしなら全軸 × に固定する', () => {
-    const synthetic = {
-      hachimon_kan: '杜門',
-      kyusei_kan: '天禽',
-      hasshin_kan: '六合',
+  it('反吟（緩和なし）は門の性質を残し、◎だけ○に抑える（全軸×にしない）', () => {
+    const base = {
+      hachimon_kan: '生門',
+      kyusei_kan: '天心',
+      hasshin_kan: '九地',
       tenban_kan: '戊',
       chiban_kan: '庚',
       jukkan_kokuou_kan: '',
       kakkyoku_kan: '',
-      ban_level: '反吟',
       kuubou: '',
     };
-    const j = classifyPalace(synthetic, 'kan');
-    expect(j.vetoes).toContain('反吟');
-    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['×']));
+    const plain = classifyPalace({ ...base, ban_level: '' }, 'kan');
+    const hangin = classifyPalace({ ...base, ban_level: '反吟' }, 'kan');
+    expect(Object.values(plain.axisRanks)).toContain('◎');
+    expect(hangin.vetoes).toContain('反吟');
+    expect(hangin.vetoRelief).toBe(null);
+    expect(Object.values(hangin.axisRanks)).not.toContain('◎');
+    for (const k of axisKeys) {
+      expect(hangin.axisRanks[k]).toBe(plain.axisRanks[k] === '◎' ? '○' : plain.axisRanks[k]);
+    }
+    expect(['◎']).not.toContain(hangin.rank);
+  });
+
+  it('反吟でも凶の門は凶のまま（生在生兮死在死）', () => {
+    const j = classifyPalace({
+      hachimon_kan: '死門', kyusei_kan: '天禽', hasshin_kan: '六合', tenban_kan: '戊', chiban_kan: '庚',
+      jukkan_kokuou_kan: '', kakkyoku_kan: '', ban_level: '反吟', kuubou: '',
+    }, 'kan');
+    for (const r of Object.values(j.axisRanks)) expect(['▲', '×']).toContain(r);
   });
 
   it('空亡の宮（開休生門なし）は全軸 × に固定する', () => {
@@ -246,5 +261,24 @@ describe('judgment オブジェクトの形', () => {
       expect(j.axes[a]).toBeLessThanOrEqual(2);
       expect(RANK_LADDER).toContain(j.axisRanks[a]);
     }
+  });
+});
+
+describe('同じ名前で意味が違う十干剋応（shouiVariant）', () => {
+  it('HOMONYM_JUKKAN は shoui_dict.json の同名エントリと一致する', async () => {
+    const { readFileSync } = await import('node:fs');
+    const dict = JSON.parse(readFileSync(new URL('../../data/shoui_dict.json', import.meta.url), 'utf8'));
+    const expected = {};
+    for (const [name, nos] of Object.entries(dict.jukan_index_by_name)) {
+      if (nos.length > 1) for (const no of nos) expected[no] = name;
+    }
+    expect(HOMONYM_JUKKAN).toEqual(expected);
+  });
+
+  it('華蓋孛師: 癸＋丙は 74（吉）、丙＋癸は 18（凶）', () => {
+    expect(resolveShouiVariants('癸', '丙', ['華蓋孛師'])).toEqual({ 華蓋孛師: 74 });
+    expect(resolveShouiVariants('丙', '癸', ['華蓋孛師'])).toEqual({ 華蓋孛師: 18 });
+    expect(resolveShouiVariants('乙癸', '丙', ['華蓋孛師'])).toEqual({ 華蓋孛師: 74 }); // 寄宮で2文字
+    expect(resolveShouiVariants('癸', '丙', ['別の象意'])).toEqual({});
   });
 });

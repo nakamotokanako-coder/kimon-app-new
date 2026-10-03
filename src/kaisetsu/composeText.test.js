@@ -27,14 +27,15 @@ const len = (s) => [...s].length;
 // kaisetsu-axis-rank: 文章の吉凶を総合ランクから軸ランク（テーマ別◎○×）基準へ変更し、
 // 逆向きフレーズ・吉神/吉星の褒め文・重複文・「です、」連結を除去（全件監査で矛盾0件・意図した変更）。
 // shoui-axis-lines: 象意のテーマ別の文（104種類×5テーマ）を mid の理由文に採用（意図した変更）。
-const MID_SORTED_SHA256 = '6aac7094e7ea8142b150d5d5c92d6d375b5c79f36bb26129733f2e26d5e3c42d';
+// hangin-homonym: 反吟を「全軸×」から「◎だけ○に抑える」へ、同名の十干剋応を組み合わせ別の文へ（意図した変更）。
+const MID_SORTED_SHA256 = 'de34a03c5ac757537b817104b97e16429cacc9a3331a750bbb5051817c68ecc4';
 // fix-chito-inyo7-hachimon: 同上の理由で short も更新（本番表示中のため
 // このPRのマージ＝本番の解説文字列も変わることを意味する。意図した変更）。
 // PR-V1 三大凶格拒否権追加による意図的な更新。影響250宮
 // palace-veto-policy: 同上（空亡＋開休生門の543宮）。
 // kaisetsu-axis-rank: 同上（結論文は軸ランクの骨子から選ぶ。「この盤で最も」は比較できないため廃止。
 // 「健康の用事」「金運を動かす」等の不自然な言い回しは {topic}（bank.axisTopics）で置き換え）。
-const SHORT_SORTED_SHA256 = '6f05ec07178c1932792ae97e4b7dc18220a7bbca9a2b9573dc9a43cf7f27e4b0';
+const SHORT_SORTED_SHA256 = 'db620dcb74291b7434d15b3d2472c39fbc843e929c8290922780b48e45c86105';
 
 describe('composeText 決定性', () => {
   it('同一入力2回で完全一致（ランダム禁止・full含む）', () => {
@@ -148,6 +149,32 @@ describe('full v2 代表ケース（§2-4）', () => {
   it('象意のテーマ別の文は104種類×5テーマすべてそろっている', () => {
     for (const [name, e] of Object.entries(bank.shoui)) {
       for (const ax of AXES) expect(e.axes?.[ax], `${name}/${ax}`).toBeTruthy();
+    }
+  });
+
+  it('同じ名前で意味が逆の華蓋孛師を取り違えない（丙＋癸の凶に「喜び事」を出さない）', () => {
+    const chito = loadChito();
+    let checked = 0;
+    for (const row of Object.values(chito)) {
+      for (const palace of PALACES) {
+        const j = classifyPalace(row, palace);
+        if (j.shouiVariant?.['華蓋孛師'] !== 18) continue;
+        for (const axis of AXES) {
+          const d = composeDetail(j, axis, bank);
+          expect(d.full, `${row.key} ${palace} ${axis}`).not.toContain('喜び事');
+          expect(d.mid, `${row.key} ${palace} ${axis}`).not.toContain('思わぬ活力');
+        }
+        checked += 1;
+      }
+    }
+    expect(checked).toBeGreaterThan(50);
+  }, 30000);
+
+  it('同名の象意の出し分け（variants）にも5テーマの文がそろっている', () => {
+    for (const name of ['華蓋孛師', '華蓋蓬星', '凶蛇入獄']) {
+      const variants = Object.values(bank.shoui[name].variants);
+      expect(variants).toHaveLength(2);
+      for (const v of variants) for (const ax of AXES) expect(v.axes[ax], `${name}/${ax}`).toBeTruthy();
     }
   });
 

@@ -161,6 +161,18 @@ function shouiPhrase(entry, axis) {
   return `${clip(entry.phrase.split('。')[0])}。${clip(line)}`;
 }
 
+/**
+ * 象意の文言エントリ。同じ名前で意味が違う十干剋応（華蓋孛師・華蓋蓬星・凶蛇入獄）は、
+ * 判定オブジェクトの shouiVariant（天盤×地盤の組み合わせ番号）で bank.shoui[名].variants を引く。
+ */
+function shouiEntry(bank, name, judgment) {
+  const base = bank.shoui?.[name];
+  if (!base) return null;
+  const no = judgment?.shouiVariant?.[name];
+  const variant = no != null ? base.variants?.[String(no)] : null;
+  return variant ? { ...base, ...variant } : base;
+}
+
 /** rank の向き（吉=+1 / 凶=-1 / 中立=0）。理由文の polarity 一致判定に使う */
 function rankDirection(rank) {
   if (rank === '◎' || rank === '○') return 1;
@@ -221,7 +233,7 @@ export function composeDetail(rawJudgment, axis, bank) {
   } else {
     const dir = rankDirection(rank);
     const hit = dir !== 0
-      ? shoui.map((n) => bank.shoui?.[n]).find((e) => e && e.polarity === dir && e.phrase)
+      ? shoui.map((n) => shouiEntry(bank, n, judgment)).find((e) => e && e.polarity === dir && e.phrase)
       : null;
     if (hit) {
       // a. 象意（rank の向きと一致する最上位1件）。mid は3文の短い構成なので、テーマ別の文があれば
@@ -323,19 +335,19 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   let leadSrc = 'gate';
   // ◎昇格象意（「最大限に働く」等の絶賛文）は、この軸が吉のときだけ主役にする。
   const rankUpName = isPositive
-    ? shoui.find((n) => RANK_UP_GENERAL.has(n) && bank.shoui?.[n]?.phrase)
+    ? shoui.find((n) => RANK_UP_GENERAL.has(n) && shouiEntry(bank, n, judgment)?.phrase)
     : null;
   const shouiHit = rankDir !== 0
-    ? shoui.find((n) => bank.shoui?.[n] && bank.shoui[n].polarity === rankDir && bank.shoui[n].phrase)
+    ? shoui.find((n) => { const e = shouiEntry(bank, n, judgment); return e && e.polarity === rankDir && e.phrase; })
     : null;
   if (vetoes.length > 0 && !judgment.kuubouRelief && bank.vetoes?.[mainVeto(vetoes)]?.phrase) {
     lead = bank.vetoes[mainVeto(vetoes)].phrase;          // 第1位: 拒否権（吉門で和らぐ空亡は主役にしない）
     leadSrc = 'veto';
   } else if (rankUpName) {
-    lead = shouiPhrase(bank.shoui[rankUpName], axis);     // 第2位: ◎昇格象意
+    lead = shouiPhrase(shouiEntry(bank, rankUpName, judgment), axis); // 第2位: ◎昇格象意
     leadSrc = 'shoui_up';
   } else if (shouiHit) {
-    lead = shouiPhrase(bank.shoui[shouiHit], axis);       // 第3位: rank方向の象意
+    lead = shouiPhrase(shouiEntry(bank, shouiHit, judgment), axis);   // 第3位: rank方向の象意
     leadSrc = 'shoui';
   } else if (gateAxisPhrase) {
     // 第4位: 門。門が主役のときは門ラベルを冠して門名を明示する。
@@ -355,7 +367,8 @@ function buildFull(judgment, axis, bank, conclusion, gateAxisPhrase, h) {
   if (leadSrc === 'shoui_up' || leadSrc === 'shoui') {
     const nm = leadSrc === 'shoui_up' ? rankUpName : shouiHit;
     // テーマ別の文がある象意では、テーマ非依存の hint は出さない（主役文がテーマ別に具体化済み）。
-    const ht = bank.shoui?.[nm]?.axes?.[axis] ? '' : (bank.shoui?.[nm]?.hint || '');
+    const nmEntry = shouiEntry(bank, nm, judgment);
+    const ht = nmEntry?.axes?.[axis] ? '' : (nmEntry?.hint || '');
     if (ht && !lead.includes(ht) && !ht.includes(lead)) hintText = ht;
   } else if (leadSrc === 'veto') {
     const lv = mainVeto(vetoes);
