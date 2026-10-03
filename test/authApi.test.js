@@ -3,7 +3,6 @@ import requestHandler from '../api/auth/request.js';
 import verifyHandler from '../api/auth/verify.js';
 import meHandler from '../api/auth/me.js';
 import logoutHandler from '../api/auth/logout.js';
-import logoutAllHandler from '../api/auth/logout-all.js';
 import verifyCodeHandler from '../api/auth/verify-code.js';
 import sessionsHandler from '../api/auth/sessions.js';
 import { deviceLabel, MAX_DEVICES } from '../lib/auth.js';
@@ -225,7 +224,8 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
     const cookie = await login('me@example.com');
     const res = createRes();
     await meHandler({ method: 'GET', headers: { cookie } }, res);
-    expect(res.body).toEqual({ loggedIn: true, email: 'me@example.com', status: 'free', paidUntil: null, full: true, accessMode: 'beta' });
+    expect(res.body).toMatchObject({ loggedIn: true, email: 'me@example.com', status: 'free', paidUntil: null, full: true, accessMode: 'beta' });
+    expect(res.body.billing).toMatchObject({ subscribed: false, cancelAtPeriodEnd: false });
   });
 
   it('壊れた %エンコードのCookieでも 500 にならず未ログイン扱い', async () => {
@@ -241,7 +241,7 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
     const cookieB = await login('multi@example.com');
 
     const out = createRes();
-    await logoutAllHandler({ method: 'POST', headers: { cookie: cookieA } }, out);
+    await logoutHandler({ method: 'POST', query: { all: '1' }, headers: { cookie: cookieA } }, out);
     expect(out.statusCode).toBe(200);
     expect(out.headers['Set-Cookie']).toContain('Max-Age=0');
 

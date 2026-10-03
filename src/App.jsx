@@ -143,6 +143,31 @@ export default function App() {
   const [feedbackState, setFeedbackState] = useState('idle'); // idle | sending | sent | error | limited
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
+  // Stripe のページから戻ったとき（?billing=success など）: 結果を知らせ、会員状態を取り直す。
+  // 有料への切り替えは Stripe からの通知（Webhook）で行われるため、数秒遅れることがある。
+  const [billingNotice, setBillingNotice] = useState('');
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const params = new URLSearchParams(window.location.search);
+    const result = params.get('billing');
+    if (!['success', 'cancel', 'portal'].includes(result)) return undefined;
+    params.delete('billing');
+    const rest = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}`);
+    setActiveTab('settings');
+    if (result === 'cancel') {
+      setBillingNotice('申し込みは完了していません。');
+      return undefined;
+    }
+    setBillingNotice(result === 'success'
+      ? 'お申し込みありがとうございます。反映まで数秒かかることがあります。'
+      : '');
+    // Webhook の反映を待って、何度か取り直す。
+    const timers = [0, 3000, 8000].map((ms) => window.setTimeout(() => auth.refresh?.(), ms));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 表示の設定を <html> に反映（アイコン切替・文字サイズ）。
   useEffect(() => {
     applyDisplaySettings({ iconStyle, textSize });
@@ -502,6 +527,7 @@ export default function App() {
             <h3 className="maru">アカウント</h3>
             <span className="lat">Account</span>
           </div>
+          {billingNotice && <p className="account-note">{billingNotice}</p>}
           <AccountSettings />
         </div>
 
