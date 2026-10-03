@@ -37,6 +37,18 @@ const PALACE_DISPLAY = {
   ken: { label: '乾', direction: '北西' },
 };
 
+// シートの「前の方位／次の方位」で巡る順番（北から時計回り）
+export const PALACE_CLOCKWISE = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
+
+/** 時計回りで隣の方位（step: +1 = 次、-1 = 前） */
+export function neighborPalace(palaceKey, step) {
+  const i = PALACE_CLOCKWISE.indexOf(palaceKey);
+  if (i < 0) return null;
+  const n = PALACE_CLOCKWISE.length;
+  const key = PALACE_CLOCKWISE[(i + step + n) % n];
+  return { key, ...PALACE_DISPLAY[key] };
+}
+
 /** 北を下（南を上）= デフォルト＝先生Excel と同じ orientation の構成要素 */
 const NB_ITEMS = [
   // ── 上辺（巽真上=巳・離真上=午・坤真上=未）──
@@ -190,6 +202,9 @@ export default function BoardGrid({
         kaisetsuKey={kaisetsuKey}
         onClose={() => setSelectedPalace(null)}
         onOverlayTap={handleOverlayTap}
+        prev={neighborPalace(selectedPalace, -1)}
+        next={neighborPalace(selectedPalace, 1)}
+        onNavigate={setSelectedPalace}
         onOpenAccountSettings={onOpenAccountSettings}
       />
     </>
