@@ -8360,3 +8360,86 @@ body {
   font-size: 0.75rem;
   cursor: pointer;
 }
+
+/* 三盤ルートの名前（続く門の顔ぶれで決まる。sanbanRoute.js sanbanRouteName） */
+.sanban-route-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-bottom: 6px;
+}
+
+.sanban-route-name strong {
+  color: var(--text-accent);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.sanban-route-name small {
+  flex-basis: 100%;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.sanban-route-triple {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #111;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+/* 設定「文字サイズ」: <html data-text-size> で全体の文字を拡大・縮小する。
+   スマホ（タッチ端末）は text-size-adjust で px 指定も含めた全部の文字を変える。
+   パソコンは text-size-adjust が効かないので、ルートの font-size（rem 指定の文字）で変える。
+   両方を同時に効かせると rem の文字だけ二重に拡大されるため、どちらか一方だけにする。 */
+html[data-text-size='small'] {
+  font-size: 14.5px;
+}
+
+html[data-text-size='large'] {
+  font-size: 18px;
+}
+
+@media (pointer: coarse) {
+  html[data-text-size='small'] {
+    font-size: 16px;
+    -webkit-text-size-adjust: 90%;
+    text-size-adjust: 90%;
+  }
+
+  html[data-text-size='large'] {
+    font-size: 16px;
+    -webkit-text-size-adjust: 115%;
+    text-size-adjust: 115%;
+  }
+}
+
+/* 設定 > このアプリについて */
+.settings-link-row.is-disabled {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  opacity: 0.6;
+  cursor: default;
+}
+
+.settings-link-row.is-disabled small {
+  font-size: 0.72rem;
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 4px;
+}
+
+.feedback-input {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  font: inherit;
+}

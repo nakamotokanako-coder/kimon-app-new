@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ic } from '../utils/icons.js';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import FavoritesStrip from './FavoritesStrip.jsx';
@@ -203,6 +204,8 @@ export default function ReverseDirectionView({
   onOpenBoard,
   unreadNotificationCount = 0,
   onOpenNotifications,
+  showBad,            // 設定「凶も見る」（App が保存）。渡されたときは「吉のみ表示」と連動する
+  onShowBadChange,
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
   const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
@@ -212,7 +215,13 @@ export default function ReverseDirectionView({
   const [query, setQuery] = useState('');
   const [basePointCandidates, setBasePointCandidates] = useState([]);
   const [basePointSearching, setBasePointSearching] = useState(false);
-  const [goodOnly, setGoodOnly] = useState(true);
+  // 「吉のみ表示」は設定の「凶も見る」と同じ値（App が保存する）。単体で使うときは自前の state。
+  const [localGoodOnly, setLocalGoodOnly] = useState(true);
+  const goodOnly = typeof showBad === 'boolean' ? !showBad : localGoodOnly;
+  const setGoodOnly = (value) => {
+    if (typeof showBad === 'boolean' && onShowBadChange) onShowBadChange(!value);
+    else setLocalGoodOnly(value);
+  };
   const [mode, setMode] = useState('time');
   const [dayDate, setDayDate] = useState(getBoardDate());
   const [status, setStatus] = useState('');
@@ -543,7 +552,7 @@ export default function ReverseDirectionView({
     <div className="kiten-panel">
       <div className="kiten-primary-actions">
         <button type="button" className="kiten-current-button" onClick={useCurrentLocation}>
-          <span aria-hidden="true">📍</span>
+          <span aria-hidden="true">{ic('📍')}</span>
           <span>現在地を使う</span>
         </button>
       </div>
@@ -558,7 +567,7 @@ export default function ReverseDirectionView({
   const renderPickerRow = (favorite) => {
     const selected = currentMode === 'favorite' && selectedFavoriteId === favorite.id;
     const subAddress = favorite.label?.trim() ? favorite.name : '';
-    const icon = favoriteKind(favorite) === 'home' ? '🏠' : '⭐';
+    const icon = ic(favoriteKind(favorite) === 'home' ? '🏠' : '⭐');
     return (
       <button
         type="button"
@@ -580,7 +589,7 @@ export default function ReverseDirectionView({
   const basePointPicker = (
     <div className="kiten-picker">
       <button type="button" className="kiten-pick-now" onClick={useCurrentLocation}>
-        <span className="kiten-pick-now-ic" aria-hidden="true">📍</span>
+        <span className="kiten-pick-now-ic" aria-hidden="true">{ic('📍')}</span>
         <span className="kiten-pick-now-tx">
           <span className="kiten-pick-now-b">現在地を使う</span>
           <span className="kiten-pick-now-s">押すと位置情報の確認が出ます</span>
@@ -596,7 +605,7 @@ export default function ReverseDirectionView({
             onClick={() => setHomeGroupOpen((value) => !value)}
             aria-expanded={homeGroupOpen}
           >
-            <span className="kiten-pick-grp-ic" aria-hidden="true">🏠</span>
+            <span className="kiten-pick-grp-ic" aria-hidden="true">{ic('🏠')}</span>
             <span className="kiten-pick-grp-t">自宅・拠点</span>
             <span className="kiten-pick-grp-cnt">{homeFavorites.length}件</span>
             <span className="kiten-pick-grp-ln" aria-hidden="true" />
@@ -616,7 +625,7 @@ export default function ReverseDirectionView({
             onClick={() => setSpotGroupOpen((value) => !value)}
             aria-expanded={spotGroupOpen}
           >
-            <span className="kiten-pick-grp-ic" aria-hidden="true">⭐</span>
+            <span className="kiten-pick-grp-ic" aria-hidden="true">{ic('⭐')}</span>
             <span className="kiten-pick-grp-t">お気に入りから</span>
             <span className="kiten-pick-grp-cnt">{spotFavorites.length}件</span>
             <span className="kiten-pick-grp-ln" aria-hidden="true" />
@@ -634,7 +643,7 @@ export default function ReverseDirectionView({
         onClick={() => setAddrSearchOpen((value) => !value)}
         aria-expanded={addrSearchOpen}
       >
-        <span aria-hidden="true">🔍</span>
+        <span aria-hidden="true">{ic('🔍')}</span>
         <span>住所や地名で探す</span>
         <span className="kiten-pick-grp-car" aria-hidden="true">▼</span>
       </button>

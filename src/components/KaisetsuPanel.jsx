@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { ic } from '../utils/icons.js';
 import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
@@ -184,7 +185,7 @@ export default function KaisetsuPanel({ board, onOpenAccountSettings }) {
                 <>
                   <p className="kp-lock-note">{lockedMessage()}</p>
                   <button type="button" className="kp-cta" onClick={onOpenAccountSettings}>
-                    <span className="kp-cta-icon" aria-hidden="true">🔒</span>
+                    <span className="kp-cta-icon" aria-hidden="true">{ic('🔒')}</span>
                     ログインして読む
                   </button>
                 </>

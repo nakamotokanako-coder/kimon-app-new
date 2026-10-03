@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ic } from '../../utils/icons.js';
 import BasePointSheet from './BasePointSheet.jsx';
 import { getLongitudeCorrectionMinutes } from '../../reverseDirection/reverseDirection.js';
 
@@ -28,7 +29,7 @@ export default function BasePointBar({
     <>
       <div className="base-bar" aria-label="基準点">
         <div className="base-meta">
-          <span className="base-pin" aria-hidden="true">📍</span>
+          <span className="base-pin" aria-hidden="true">{ic('📍')}</span>
           <strong>{baseName || '現在地'}</strong>
           <span className="base-mono">{formatCorrection(correction)}</span>
           <span className="base-mono">経度{longitudeLabel}</span>
