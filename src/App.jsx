@@ -13,6 +13,7 @@ import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
 import { lockedMessage } from '../lib/accessPolicy.js';
+import { computeDynamicNotices } from './notifications/dynamicNotices.js';
 import packageJson from '../package.json';
 
 const DEFAULT_THEME = 'void';
@@ -102,6 +103,18 @@ function applyInitialTheme() {
 
 const INITIAL_THEME = applyInitialTheme();
 
+/** 表示の設定（アイコン切替・文字サイズ）を <html> に反映する。CSS と utils/icons.js がこれを読む。 */
+function applyDisplaySettings({ iconStyle, textSize }) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.iconStyle = iconStyle === 'line' ? 'line' : 'emoji';
+  document.documentElement.dataset.textSize = ['small', 'large'].includes(textSize) ? textSize : 'medium';
+}
+
+applyDisplaySettings({
+  iconStyle: readStoredSetting('icon-style', 'emoji'),
+  textSize: readStoredSetting('text-size', 'medium'),
+});
+
 export default function App() {
   const auth = useAuth();
   // 全機能を使えない人（未ログインなど）は「今日の盤の閲覧」だけ（lib/accessPolicy.js）。
@@ -126,6 +139,44 @@ export default function App() {
   const [favoriteBestNotify, setFavoriteBestNotify] = useState(() => readStoredBoolSetting('favorite-best-notify'));
   const [showBadDirections, setShowBadDirections] = useState(() => readStoredBoolSetting('show-bad-directions'));
   const [readNotificationIds, setReadNotificationIds] = useState(() => readStoredJsonArray(NOTIFICATION_READ_KEY));
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackState, setFeedbackState] = useState('idle'); // idle | sending | sent | error | limited
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  // 表示の設定を <html> に反映（アイコン切替・文字サイズ）。
+  useEffect(() => {
+    applyDisplaySettings({ iconStyle, textSize });
+  }, [iconStyle, textSize]);
+
+  // 通知の設定に応じたお知らせ（今日のお守り・お気に入りが最高方位）。タブを切り替えるたびに計算し直す。
+  const dynamicNotices = useMemo(
+    () => computeDynamicNotices({ omamoriReminder, favoriteBestNotify }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [omamoriReminder, favoriteBestNotify, activeTab],
+  );
+  const notifications = useMemo(() => [...dynamicNotices, ...NOTIFICATIONS], [dynamicNotices]);
+
+  const sendFeedback = async () => {
+    const message = feedbackText.trim();
+    if (!message) return;
+    setFeedbackState('sending');
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ message }),
+      });
+      if (res.ok) {
+        setFeedbackText('');
+        setFeedbackState('sent');
+      } else {
+        setFeedbackState(res.status === 429 ? 'limited' : 'error');
+      }
+    } catch {
+      setFeedbackState('error');
+    }
+  };
 
   const board = useMemo(() => {
     try {
@@ -189,7 +240,7 @@ export default function App() {
     setter(next);
     saveSetting(key, next);
   };
-  const unreadNotificationCount = NOTIFICATIONS.filter((item) => !readNotificationIds.includes(item.id)).length;
+  const unreadNotificationCount = notifications.filter((item) => !readNotificationIds.includes(item.id)).length;
   const openNotifications = () => {
     setPreviousTab(activeTab === 'notifications' ? previousTab : activeTab);
     setActiveTab('notifications');
@@ -346,7 +397,7 @@ export default function App() {
           <div className="settings-row">
             <div>
               <strong>アイコン切替</strong>
-              <small>絵文字 / 線アイコン</small>
+              <small>絵文字 / 色のつかない線の記号</small>
             </div>
             <div className="settings-segment" role="group" aria-label="アイコン切替">
               {[
@@ -398,7 +449,7 @@ export default function App() {
           <div className="settings-row">
             <div>
               <strong>お守りリマインド</strong>
-              <small>後で通知機能に接続</small>
+              <small>今日のお守りを引いていないとき、アプリを開くとお知らせします</small>
             </div>
             <button
               type="button"
@@ -412,7 +463,7 @@ export default function App() {
           <div className="settings-row">
             <div>
               <strong>お気に入りが最高方位になったら通知</strong>
-              <small>後でお気に入り通知に接続</small>
+              <small>今の時間帯の最高方位にお気に入りがあるとき、アプリを開くとお知らせします</small>
             </div>
             <button
               type="button"
@@ -433,7 +484,7 @@ export default function App() {
           <div className="settings-row">
             <div>
               <strong>凶も見る</strong>
-              <small>既定OFF。後で詳細表示に接続</small>
+              <small>吉方位タブで、凶の方位・時間帯も表示します（「吉のみ表示」と連動）</small>
             </div>
             <button
               type="button"
@@ -463,12 +514,46 @@ export default function App() {
             <span>バージョン</span>
             <strong className="lat">{APP_VERSION}</strong>
           </div>
-          {['利用規約', 'プライバシーポリシー', 'フィードバック'].map((label) => (
-            <button key={label} type="button" className="settings-link-row">
+          {['利用規約', 'プライバシーポリシー'].map((label) => (
+            <div key={label} className="settings-link-row is-disabled" aria-disabled="true">
               <span>{label}</span>
-              <b aria-hidden="true">›</b>
-            </button>
+              <small>準備中</small>
+            </div>
           ))}
+          <button
+            type="button"
+            className="settings-link-row"
+            aria-expanded={feedbackOpen}
+            onClick={() => setFeedbackOpen((v) => !v)}
+          >
+            <span>フィードバック</span>
+            <b aria-hidden="true">{feedbackOpen ? '▾' : '›'}</b>
+          </button>
+          {feedbackOpen && (
+            <div className="feedback-form">
+              <label className="account-label" htmlFor="feedback-input">気づいた点やご要望をお送りください</label>
+              <textarea
+                id="feedback-input"
+                className="account-input feedback-input"
+                rows={4}
+                maxLength={2000}
+                value={feedbackText}
+                onChange={(e) => { setFeedbackText(e.target.value); if (feedbackState !== 'sending') setFeedbackState('idle'); }}
+                disabled={feedbackState === 'sending'}
+              />
+              {feedbackState === 'sent' && <p className="account-note">送信しました。ありがとうございます。</p>}
+              {feedbackState === 'error' && <p className="account-error">送信に失敗しました。時間をおいてお試しください。</p>}
+              {feedbackState === 'limited' && <p className="account-error">短時間に複数回送信されています。少し時間をおいてお試しください。</p>}
+              <button
+                type="button"
+                className="account-btn"
+                onClick={sendFeedback}
+                disabled={feedbackState === 'sending' || !feedbackText.trim()}
+              >
+                {feedbackState === 'sending' ? '送信中…' : '送信する'}
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </main>
@@ -498,6 +583,8 @@ export default function App() {
           <ReverseDirectionView
             isActive={activeTab === 'direction'}
             onOpenBoard={openFullBoard}
+            showBad={showBadDirections}
+            onShowBadChange={updateSetting('show-bad-directions', setShowBadDirections)}
             unreadNotificationCount={unreadNotificationCount}
             onOpenNotifications={openNotifications}
           />
@@ -506,7 +593,7 @@ export default function App() {
       {activeTab === 'settings' && settingsView}
       {activeTab === 'notifications' && (
         <NotificationsView
-          items={NOTIFICATIONS}
+          items={notifications}
           readIds={readNotificationIds}
           onRead={markNotificationRead}
           onBack={() => setActiveTab(previousTab)}

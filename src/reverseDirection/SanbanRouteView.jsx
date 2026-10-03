@@ -21,6 +21,13 @@ function SanbanRouteCard({ route, onSelectRoute }) {
   const date = formatRankingDate(route.date);
   return (
     <article className="sanban-result-card">
+      {route.routeName && (
+        <div className="sanban-route-name">
+          <strong>{route.routeName.name}</strong>
+          {route.routeName.triple && <b className="sanban-route-triple">三連</b>}
+          <small>{route.routeName.tagline}</small>
+        </div>
+      )}
       <div className="sanban-result-head">
         <strong>{route.hasStar && '★ '}{date.text}（{date.weekday}）</strong>
         <b>合計{scoreText(route.totalScore)}点</b>
@@ -82,9 +89,9 @@ export default function SanbanRouteView({
     <div className="sanban-route-view" aria-label="奇門三盤ルート">
       <div className="sanban-route-hero">
         <div>
-          <p>玉の輿ツアー</p>
+          <p>吉を3つつないで巡る</p>
           <h3>奇門三盤ルート</h3>
-          <span>1日に吉方位を3つ連続で巡る</span>
+          <span>続く門の顔ぶれで、ルートの名前が変わります</span>
         </div>
         <b className="pro-badge" aria-label="プロ機能">PRO</b>
       </div>

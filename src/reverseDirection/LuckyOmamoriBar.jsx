@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { ic } from '../utils/icons.js';
+import { markOmamoriOpened } from '../notifications/dynamicNotices.js';
 import { getClosing, getOmamori } from '../kimon/luckyOmamori.js';
 
 const CATEGORIES = [
@@ -47,7 +49,7 @@ export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
         type="button"
         className={`omamori-bar ${isOpen ? 'is-open' : ''}`}
         aria-expanded={isOpen}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => { markOmamoriOpened(); setIsOpen((current) => !current); }}
       >
         <span className="omamori-bar-sweep" aria-hidden="true" />
         <span className="omamori-bar-icon" aria-hidden="true">福</span>
@@ -69,7 +71,7 @@ export default function LuckyOmamoriBar({ bestPalace, isActive, seed }) {
             <div className="omamori-crest maru" aria-hidden="true">福</div>
             <div className="omamori-title maru">開運のお守り</div>
             <div className="omamori-category">
-              <span aria-hidden="true">{categoryIcon}</span>
+              <span aria-hidden="true">{ic(categoryIcon)}</span>
               {categoryLabel}
             </div>
             <div className="omamori-body">

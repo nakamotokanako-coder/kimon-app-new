@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TIME_SLOTS } from '../src/reverseDirection/reverseDirection.js';
 import {
+  sanbanRouteName,
   findBestRouteForDay,
   isUsableDirection,
   scanSanbanRoutes,
@@ -155,5 +156,18 @@ describe('三盤ルート 期間スキャン', () => {
     });
     expect(result.rows).toHaveLength(0);
     expect(progress).toEqual([[1, 3], [2, 3], [3, 3]]);
+  });
+});
+
+describe('sanbanRouteName（続く門でルートの名前が変わる）', () => {
+  const slots = (...gates) => gates.map((hachimon) => ({ hachimon }));
+  it('生門が2つ以上は億万長者、休門はシンデレラ、開門は成り上がり', () => {
+    expect(sanbanRouteName(slots('生門', '生門', '開門')).name).toBe('億万長者ルート');
+    expect(sanbanRouteName(slots('休門', '景門', '休門')).name).toBe('シンデレラルート');
+    expect(sanbanRouteName(slots('開門', '開門', '開門'))).toMatchObject({ name: '成り上がりルート', triple: true });
+  });
+  it('景門が多い・3つとも違う門は人生大逆転', () => {
+    expect(sanbanRouteName(slots('景門', '景門', '開門')).name).toBe('人生大逆転ルート');
+    expect(sanbanRouteName(slots('開門', '休門', '生門'))).toMatchObject({ name: '人生大逆転ルート', triple: false });
   });
 });

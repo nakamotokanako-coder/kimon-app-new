@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { ic } from '../../utils/icons.js';
 import { createPortal } from 'react-dom';
 import {
   MAP_SEARCH_STORAGE_KEY,
@@ -144,12 +145,12 @@ export default function BasePointSheet({
 
         <section className="sheet-section">
           <button type="button" className="sheet-action" onClick={useCurrentLocation}>
-            📍 現在地を使う
+            {ic('📍')} 現在地を使う
           </button>
         </section>
 
         <section className="sheet-section">
-          <label className="sheet-label" htmlFor="base-point-search">🔍 場所・地名で検索</label>
+          <label className="sheet-label" htmlFor="base-point-search">{ic('🔍')} 場所・地名で検索</label>
           <form onSubmit={searchPlace}>
             <input
               id="base-point-search"
@@ -163,7 +164,7 @@ export default function BasePointSheet({
         </section>
 
         <section className="sheet-section">
-          <span className="sheet-label">⭐ お気に入りから選ぶ</span>
+          <span className="sheet-label">{ic('⭐')} お気に入りから選ぶ</span>
           <div className="favorite-row">
             {favoriteChips.length > 0 ? favoriteChips.map((favorite) => (
               <button

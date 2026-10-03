@@ -52,3 +52,4 @@ temp/
 
 # 解説エンジン: 全文生成物はコミットしない（ペイウォール資産・配信方式はPhase 3で決定）
 data/kaisetsu/generated/
+.env*

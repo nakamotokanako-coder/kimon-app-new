@@ -10,6 +10,31 @@ function compareDirections(a, b) {
   return b.score - a.score || PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace);
 }
 
+/**
+ * ルートの名前。3つの時間帯で続く門の顔ぶれで決める（ルートに入るのは吉門だけ）。
+ *   生門が2つ以上 → 億万長者ルート（財を生む門が続く）
+ *   休門が2つ以上 → シンデレラルート（縁と和合の門が続く）
+ *   開門が2つ以上 → 成り上がりルート（道を開く門が続く）
+ *   それ以外（景門が多い・3つとも違う門） → 人生大逆転ルート（違う吉が入れ替わりで続く）
+ * 3つとも同じ門なら triple=true（例: 開門・開門・開門）。
+ * 名前は門の傾向を表す愛称で、結果を約束するものではない。
+ */
+export const SANBAN_ROUTE_NAMES = {
+  '生門': { name: '億万長者ルート', tagline: '財を生む生門が続く、お金を育てる流れ' },
+  '休門': { name: 'シンデレラルート', tagline: '和合の休門が続く、良縁を引き寄せる流れ' },
+  '開門': { name: '成り上がりルート', tagline: '道を開く開門が続く、仕事で上を目指す流れ' },
+};
+const SANBAN_ROUTE_DEFAULT = { name: '人生大逆転ルート', tagline: '違う吉門が入れ替わりで続く、流れを一気に変える巡り' };
+
+export function sanbanRouteName(slots) {
+  const gates = (slots || []).map((slot) => slot.hachimon).filter(Boolean);
+  const counts = {};
+  for (const g of gates) counts[g] = (counts[g] || 0) + 1;
+  const main = Object.keys(SANBAN_ROUTE_NAMES).find((g) => (counts[g] || 0) >= 2);
+  const base = main ? SANBAN_ROUTE_NAMES[main] : SANBAN_ROUTE_DEFAULT;
+  return { ...base, gate: main || null, triple: gates.length === 3 && new Set(gates).size === 1 };
+}
+
 export function isUsableDirection(candidate, threshold = DEFAULT_SANBAN_THRESHOLD) {
   if (!candidate) return false;
   if (BAD_HACHIMON.has(candidate.hachimon || candidate.palaceData?.hachimon)) return false;
@@ -44,6 +69,7 @@ export function findBestRouteForDay(date, slots, threshold = DEFAULT_SANBAN_THRE
     const starCount = routeSlots.filter((slot) => slot.score >= 100).length;
     routes.push({
       date,
+      routeName: sanbanRouteName(routeSlots),
       slots: routeSlots,
       totalScore: routeSlots.reduce((sum, slot) => sum + slot.score, 0),
       starCount,

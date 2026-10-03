@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ic } from '../utils/icons.js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -513,7 +514,7 @@ export default function DirectionMap({
 
   const buildSearchError = (error) => ({
     main: '検索範囲が広すぎる可能性があります。',
-    hint: '地図右上の 🔍 ボタンで検索可能な範囲に合わせられます。（時間をおいて再試行も有効）',
+    hint: `地図右上の ${ic('🔍')} ボタンで検索可能な範囲に合わせられます。（時間をおいて再試行も有効）`,
     detail: error?.message || '',
   });
 
@@ -604,7 +605,7 @@ export default function DirectionMap({
         button.title = '検索可能な範囲に合わせる';
         button.setAttribute('role', 'button');
         button.setAttribute('aria-label', '検索可能な範囲に合わせる');
-        button.innerHTML = '🔍';
+        button.innerHTML = ic('🔍');
         L.DomEvent.on(button, 'click', (event) => {
           L.DomEvent.preventDefault(event);
           L.DomEvent.stopPropagation(event);
@@ -676,7 +677,7 @@ export default function DirectionMap({
       );
       gsiPale.addTo(map);
       const control = L.control.layers(
-        { '🗺 地図': gsiPale, '📷 航空写真': gsiPhoto },
+        { [`${ic('🗺')} 地図`]: gsiPale, [`${ic('📷')} 航空写真`]: gsiPhoto },
         null,
         { position: 'bottomright', collapsed: false },
       );
@@ -981,7 +982,7 @@ export default function DirectionMap({
           ? '<button class="direction-popup-button" data-remove-favorite="1">お気に入りから削除</button>'
           : '<button class="direction-popup-button" data-add-favorite="1">お気に入りに追加</button>',
         // 拠点トグル（ベタ金は「お気に入りに追加」のみ＝こちらは控えめ表示）。未保存→home追加 / 保存済→home⇄spot。
-        `<button class="direction-popup-button direction-popup-home${isHome ? ' is-on' : ''}" data-toggle-home="1">${isHome ? '🏠 拠点を解除' : '🏠 拠点にする'}</button>`,
+        `<button class="direction-popup-button direction-popup-home${isHome ? ' is-on' : ''}" data-toggle-home="1">${isHome ? `${ic('🏠')} 拠点を解除` : `${ic('🏠')} 拠点にする`}</button>`,
       ].filter(Boolean).join('<br>');
       const marker = L.marker([item.latitude, item.longitude], {
         icon: L.divIcon({
@@ -1181,7 +1182,7 @@ export default function DirectionMap({
                 onClick={() => setFullscreenSearchOpen((value) => !value)}
                 aria-expanded={fullscreenSearchOpen}
               >
-                {fullscreenSearchOpen ? '🔍 検索を閉じる' : '🔍 検索'}
+                {fullscreenSearchOpen ? `${ic('🔍')} 検索を閉じる` : `${ic('🔍')} 検索`}
               </button>
               {fullscreenSearchOpen && (
                 <div className="direction-map-search">
@@ -1359,7 +1360,7 @@ export default function DirectionMap({
             </label>
             <p>{editingFavorite.name}</p>
             <label className="direction-favorite-home-toggle">
-              <span>🏠 拠点にする<small>出発点リストの上に表示</small></span>
+              <span>{ic('🏠')} 拠点にする<small>出発点リストの上に表示</small></span>
               <input
                 type="checkbox"
                 checked={favoriteKind(editingFavorite) === 'home'}
