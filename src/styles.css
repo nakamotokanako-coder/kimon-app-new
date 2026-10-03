@@ -8281,3 +8281,16 @@ body {
 .locked-card-strong {
   font-weight: 800;
 }
+
+/* ログインコードの入力欄（6桁を大きく） */
+.account-code-input {
+  font-size: 1.5rem;
+  letter-spacing: 0.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-note-small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
