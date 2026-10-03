@@ -3,13 +3,14 @@
 //   - email を小文字化・trim・形式検証
 //   - レート制限: cooldown:{email} TTL60秒（期間内は 429）＋ 同一IPは1時間10通まで
 //   - ワンタイムトークン（randomBytes 32B hex）を magic:{token}→email TTL15分で保存
-//   - Resend でマジックリンク送信（/api/auth/verify?token=...）
+//   - 6桁のログインコードを otp:{email}→{hash,attempts,token} TTL15分で保存（コードは HMAC で保存）
+//   - Resend でマジックリンク＋コードを送信（/api/auth/verify?token=... / POST /api/auth/verify-code）
 //   - 存在秘匿のため成功は常に同形（登録済みか否かを返さない）
 import { randomBytes } from 'node:crypto';
 import { kv } from '../../lib/kv.js';
 import { sendMagicLink, magicFromSource } from '../../lib/email.js';
 import { buildOrigin } from '../../lib/session.js';
-import { clientIp } from '../../lib/auth.js';
+import { clientIp, generateLoginCode, hashLoginCode } from '../../lib/auth.js';
 
 const MAGIC_TTL_SEC = 15 * 60;
 const COOLDOWN_TTL_SEC = 60;
@@ -58,12 +59,20 @@ export default async function handler(req, res) {
   const token = randomBytes(32).toString('hex');
   await kv().set(`magic:${token}`, email, { ex: MAGIC_TTL_SEC });
 
+  // 6桁のコード（ホーム画面のアプリ内で入力してログインする用）。リンクと同じ15分で失効。
+  const code = generateLoginCode();
+  await kv().set(
+    `otp:${email}`,
+    { hash: hashLoginCode(email, code, process.env.SESSION_SECRET), attempts: 0, token },
+    { ex: MAGIC_TTL_SEC },
+  );
+
   const url = `${origin}/api/auth/verify?token=${token}`;
   // env が効いているかを常に可視化（'env' なら MAGIC_LINK_FROM 適用、'fallback' なら未適用）。
   // アドレス自体は出さず env|fallback の区別だけ。
   console.log('[auth] from source:', magicFromSource());
   try {
-    await sendMagicLink(email, url);
+    await sendMagicLink(email, url, code);
   } catch (err) {
     // 存在秘匿のため送信成否に関わらず 200 を維持。失敗はログにのみ残す。
     // err.message は 'resend_error:<name>' 形式（詳細な error は lib 側で記録済み）。

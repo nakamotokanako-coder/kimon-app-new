@@ -7,8 +7,8 @@
 //   - 無効/期限切れは「リンクが無効です」の簡易HTML
 //   - user:{email} 未作成時は { status:"free", sv:0, createdAt } で作成
 import { kv } from '../../lib/kv.js';
-import { signSession, buildSessionCookie, buildOrigin, SESSION_MAX_AGE_SEC } from '../../lib/session.js';
-import { sessionVersionOf } from '../../lib/auth.js';
+import { buildOrigin } from '../../lib/session.js';
+import { issueSession } from '../../lib/auth.js';
 
 const PAGE_STYLE = 'font-family:sans-serif;max-width:30rem;margin:4rem auto;padding:0 1rem;line-height:1.8';
 
@@ -79,20 +79,9 @@ export default async function handler(req, res) {
   if (!email) return invalidHtml(res);
   await kv().del(`magic:${token}`);
 
-  const secret = process.env.SESSION_SECRET;
-  if (!secret) return res.status(500).json({ error: 'server_misconfigured' });
-
-  // user レコードが無ければ free で作成。
-  const userKey = `user:${email}`;
-  let user = await kv().get(userKey);
-  if (!user) {
-    user = { status: 'free', sv: 0, createdAt: new Date().toISOString() };
-    await kv().set(userKey, user);
-  }
-
-  const exp = Date.now() + SESSION_MAX_AGE_SEC * 1000;
-  const cookie = buildSessionCookie(signSession({ email, exp, sv: sessionVersionOf(user) }, secret));
-  res.setHeader('Set-Cookie', cookie);
+  if (!(await issueSession(res, email))) return res.status(500).json({ error: 'server_misconfigured' });
+  // リンクでログインしたら、同じメール宛てのコードも使えないようにする（片方だけ有効）。
+  await kv().del(`otp:${email}`);
 
   const origin = buildOrigin(req) || '';
   res.setHeader('Location', `${origin}/`);

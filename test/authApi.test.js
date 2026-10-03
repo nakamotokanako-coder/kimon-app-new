@@ -4,6 +4,7 @@ import verifyHandler from '../api/auth/verify.js';
 import meHandler from '../api/auth/me.js';
 import logoutHandler from '../api/auth/logout.js';
 import logoutAllHandler from '../api/auth/logout-all.js';
+import verifyCodeHandler from '../api/auth/verify-code.js';
 import { setKvClient } from '../lib/kv.js';
 import {
   setEmailSender,
@@ -56,7 +57,7 @@ beforeEach(() => {
   kvFake = makeFakeKv();
   setKvClient(kvFake);
   sent = [];
-  setEmailSender((email, url) => { sent.push({ email, url }); });
+  setEmailSender((email, url, code) => { sent.push({ email, url, code }); });
 });
 
 afterEach(() => {
@@ -259,5 +260,79 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
     await logoutHandler({ method: 'POST', headers: {} }, res);
     expect(res.statusCode).toBe(200);
     expect(res.headers['Set-Cookie']).toContain('Max-Age=0');
+  });
+});
+
+describe('POST /api/auth/verify-code（ホーム画面のアプリ内でコード入力してログイン）', () => {
+  async function requestCode(email) {
+    const res = createRes();
+    await requestHandler({ method: 'POST', body: { email }, headers: {} }, res);
+    return sent.at(-1);
+  }
+
+  it('メールに6桁のコードが載り、平文では保存されない', async () => {
+    const mail = await requestCode('code@example.com');
+    expect(mail.code).toMatch(/^\d{6}$/);
+    const stored = kvFake.store.get('otp:code@example.com');
+    expect(stored.hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(JSON.stringify(stored)).not.toContain(mail.code);
+  });
+
+  it('正しいコードでログインでき、コードと同じメールのリンクは使えなくなる', async () => {
+    const mail = await requestCode('ok@example.com');
+    const res = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email: 'OK@example.com ', code: mail.code }, headers: {} }, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['Set-Cookie']).toContain(`${SESSION_COOKIE}=`);
+
+    const me = createRes();
+    await meHandler({ method: 'GET', headers: { cookie: res.headers['Set-Cookie'].split(';')[0] } }, me);
+    expect(me.body).toMatchObject({ loggedIn: true, email: 'ok@example.com' });
+
+    const link = createRes();
+    await verifyHandler({ method: 'POST', body: { token: tokenFromUrl(mail.url) }, headers: {} }, link);
+    expect(link.statusCode).toBe(400);
+
+    const again = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email: 'ok@example.com', code: mail.code }, headers: {} }, again);
+    expect(again.statusCode).toBe(400);
+  });
+
+  it('リンクでログインしたら、同じメールのコードは使えなくなる', async () => {
+    const mail = await requestCode('link@example.com');
+    const link = createRes();
+    await verifyHandler({ method: 'POST', body: { token: tokenFromUrl(mail.url) }, headers: {} }, link);
+    expect(link.statusCode).toBe(303);
+    const res = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email: 'link@example.com', code: mail.code }, headers: {} }, res);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('間違いは5回まで。5回目でコードが無効になり、正しいコードでも入れなくなる', async () => {
+    const mail = await requestCode('brute@example.com');
+    const wrong = mail.code === '000000' ? '111111' : '000000';
+    for (let i = 1; i <= 4; i += 1) {
+      const res = createRes();
+      await verifyCodeHandler({ method: 'POST', body: { email: 'brute@example.com', code: wrong }, headers: {} }, res);
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toEqual({ error: 'invalid_code', remaining: 5 - i });
+    }
+    const fifth = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email: 'brute@example.com', code: wrong }, headers: {} }, fifth);
+    expect(fifth.body).toEqual({ error: 'too_many_attempts' });
+
+    const right = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email: 'brute@example.com', code: mail.code }, headers: {} }, right);
+    expect(right.statusCode).toBe(400);
+    expect(right.headers['Set-Cookie']).toBeUndefined();
+  });
+
+  it('形式が違うコードや GET は受け付けない', async () => {
+    const bad = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email: 'x@example.com', code: '12ab' }, headers: {} }, bad);
+    expect(bad.statusCode).toBe(400);
+    const get = createRes();
+    await verifyCodeHandler({ method: 'GET', headers: {} }, get);
+    expect(get.statusCode).toBe(405);
   });
 });
