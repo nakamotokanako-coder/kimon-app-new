@@ -7,6 +7,7 @@
 //     （palaceVeto.js）も行として出す。行の点数を足すと必ず総合点になる（テストで固定）。
 import shouiDict from '../../data/shoui_dict.json';
 import { ELEMENT_TEXTS } from './elementTexts.generated.js';
+import { getJukanShouiByPair } from './loadShouiDict.js';
 
 /** 天盤干（三奇・六儀）の意味 */
 const KAN_TEXTS = {
@@ -37,10 +38,14 @@ const BAN_LEVEL_FLAGS = [
   ['gofuguuji', '五不遇時'],
 ];
 
-function findJukkanEntry(name) {
-  if (!name) return null;
-  const indexes = shouiDict.jukan_index_by_name?.[name] || [];
-  return shouiDict.jukan_kokuou?.find((item) => indexes.includes(item.no) || item.name === name) || null;
+// 十干剋応は「天盤×地盤」の組み合わせで引く。名前だけで引くと、同じ名前で意味が逆の組み合わせ
+// （華蓋孛師: 癸＋丙＝吉 / 丙＋癸＝凶、ほかに華蓋蓬星・凶蛇入獄）を取り違えるため。
+function findJukkanEntry(item) {
+  if (!item) return null;
+  const byPair = getJukanShouiByPair(item.tenban, item.chiban);
+  if (byPair && (!item.name || byPair.name === item.name)) return byPair;
+  const indexes = shouiDict.jukan_index_by_name?.[item.name] || [];
+  return indexes.length === 1 ? shouiDict.jukan_kokuou?.find((e) => e.no === indexes[0]) || null : null;
 }
 
 function findKakkyokuEntry(name) {
@@ -110,9 +115,9 @@ export function buildScoreBreakdown(palaceScore, palaceData, banLevel) {
   push('kyusei', `九星（${data.kyusei || '—'}）`, b.kyusei, ELEMENT_TEXTS.stars[data.kyusei] || '');
   push('hasshin', `八神（${data.hasshin || '—'}）`, b.hasshin, ELEMENT_TEXTS.gods[data.hasshin] || '');
 
-  const jukkanNames = (palaceScore?.detected_jukkan || []).map((j) => j.name).filter(Boolean);
-  push('jukkan_kokuou', `十干剋応${jukkanNames.length ? `（${jukkanNames.join('・')}）` : ''}`, b.jukkan_kokuou,
-    jukkanNames.map((n) => dictText(findJukkanEntry(n))).filter(Boolean).join(' / '));
+  const jukkan = (palaceScore?.detected_jukkan || []).filter((j) => j?.name);
+  push('jukkan_kokuou', `十干剋応${jukkan.length ? `（${jukkan.map((j) => j.name).join('・')}）` : ''}`, b.jukkan_kokuou,
+    jukkan.map((j) => dictText(findJukkanEntry(j))).filter(Boolean).join(' / '));
 
   const kakkyoku = listKakkyoku(palaceScore);
   push('kakkyoku', `格局${kakkyoku.length ? `（${kakkyoku.map((k) => k.name).join('・')}）` : ''}`, b.kakkyoku,

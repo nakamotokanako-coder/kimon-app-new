@@ -6,65 +6,65 @@
   "length": {
     "short": {
       "min": 12,
-      "avg": 18.2,
+      "avg": 18,
       "median": 16,
       "max": 30
     },
     "mid": {
       "min": 13,
-      "avg": 65,
-      "median": 68,
+      "avg": 65.2,
+      "median": 69,
       "max": 114,
       "over_160": 0
     },
     "full": {
       "min": 52,
-      "avg": 133.4,
-      "median": 130,
+      "avg": 136.5,
+      "median": 132,
       "max": 250,
       "over_320": 0,
-      "band_220_280": 0.002,
-      "under_220": 0.998
+      "band_220_280": 0.003,
+      "under_220": 0.997
     }
   },
   "nanoni": {
     "by_type": {
-      "none": 32809,
+      "none": 32327,
       "sukinai": 9450,
-      "warukinai": 941
+      "warukinai": 1423
     },
-    "rate": 0.241,
+    "rate": 0.252,
     "note": "好材料負け型=宮ローカル拒否権∩(kichi3門 or 実吉神5)。盤全体(伏吟/反吟)は対象外。悪材料負け型=◎○∩凶神。"
   },
   "full_slots": {
     "lead_src": {
       "veto": 23990,
       "shoui_up": 1051,
-      "shoui": 4844,
-      "gate": 12700,
-      "star": 615
+      "shoui": 4790,
+      "gate": 12757,
+      "star": 612
     },
     "reinforce_src": {
-      "god": 23977,
-      "star": 5416,
-      "none": 13807
+      "god": 26155,
+      "star": 5033,
+      "none": 12012
     },
     "extra_src": {
       "hint": 0,
       "exception": 7905,
       "none": 35295
     },
-    "general_rate": 0.44,
-    "action_rate": 0.746,
-    "action_suppressed_palaces": 2223,
+    "general_rate": 0.472,
+    "action_rate": 0.788,
+    "action_suppressed_palaces": 1829,
     "action_suppressed_note": "▲×∩吉門(kichi3/chukichi)はactionsを出さない（吉前提文体が凶宮の結論と矛盾するため）。v2.1で代替締め文を入れる対象宮。",
     "shime_src": {
-      "veto": 812,
+      "veto": 2877,
       "god": 0,
-      "fallback": 10957,
-      "none": 31431
+      "fallback": 9138,
+      "none": 31185
     },
-    "fallback_closing_adopted": 10957,
+    "fallback_closing_adopted": 9138,
     "fallback_closing_note": "fullのみ。▲×∩吉門で行動提案を出せない宮の締めに fallbackClosings を充当（死門は除外・hash決定的選択）。",
     "guard": {
       "none": 43200,
@@ -77,16 +77,16 @@
   },
   "mid_continuity": {
     "reason_src": {
-      "shoui": 18123,
-      "use": 6832,
-      "gate": 11404,
-      "star": 6841
+      "shoui": 17577,
+      "use": 4923,
+      "gate": 12911,
+      "star": 7789
     },
     "third_sentence_src": {
-      "veto": 812,
+      "veto": 2877,
       "god": 1308,
-      "gate": 19827,
-      "none": 21253
+      "gate": 18637,
+      "none": 20378
     }
   },
   "checks": {

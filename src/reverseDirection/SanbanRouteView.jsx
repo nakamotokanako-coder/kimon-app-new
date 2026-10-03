@@ -82,7 +82,7 @@ export default function SanbanRouteView({
     <div className="sanban-route-view" aria-label="奇門三盤ルート">
       <div className="sanban-route-hero">
         <div>
-          <p>先生流・玉の輿ツアー</p>
+          <p>玉の輿ツアー</p>
           <h3>奇門三盤ルート</h3>
           <span>1日に吉方位を3つ連続で巡る</span>
         </div>

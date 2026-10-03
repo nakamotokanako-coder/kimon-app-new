@@ -44,8 +44,8 @@ const NOTIFICATIONS = [
   },
   {
     id: 'teacher-2026-06-04',
-    type: 'teacher',
-    sender: '先生',
+    type: 'ops',
+    sender: '運営',
     title: '吉方位を見るときの目安',
     body: '短い外出は時盤、遠出や予定づくりは日盤を中心に見ると整理しやすくなります。',
     date: '2026/06/04',
