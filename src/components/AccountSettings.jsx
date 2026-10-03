@@ -277,6 +277,9 @@ export default function AccountSettings() {
         <BillingSection auth={auth} />
         <DeviceList email={auth.email} />
         <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
+        {auth.full && (
+          <p className="account-note account-note-small">お気に入りと基準点はアカウントに保存され、ログインしたどの端末でも同じものが使えます（現在地を基準点にしている場合を除く）。</p>
+        )}
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>
           ログアウト
         </button>
