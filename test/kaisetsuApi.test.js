@@ -52,7 +52,7 @@ describe('kaisetsu API (short-only / 認証非依存 / CDNキャッシュ可)', 
     const res = getBody(undefined);
     expect(res.statusCode).toBe(200);
     expect(res.body.key).toBe(KNOWN_KEY);
-    expect(res.body.version).toBe('2.1');
+    expect(res.body.version).toBe('v3');
     expect(Object.keys(res.body.palaces).sort()).toEqual([...PALACES].sort());
     for (const palace of PALACES) {
       const axes = res.body.palaces[palace];

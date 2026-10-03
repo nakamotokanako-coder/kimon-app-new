@@ -9,6 +9,7 @@ import {
 } from '../../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../../reverseDirection/reverseDirection.js';
 import { buildScoreBreakdown } from '../../kimon/palaceExplain.js';
+import { ProseText } from '../../kaisetsu/renderProse.jsx';
 import { lockedMessage } from '../../../lib/accessPolicy.js';
 
 // 時盤お散歩モードのFusionCard（L2）をタップすると開く30秒の層（L3）。
@@ -58,9 +59,9 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
     readingNode = <p className="l3-reading-text">読み込みに失敗しました</p>;
   } else if (isPaid) {
     readingNode = (
-      <p className="l3-reading-text">
-        {full || (fullPalaces ? 'この方位・願いごとの解説はありません。' : '読み込み中…')}
-      </p>
+      full
+        ? <ProseText text={full} className="l3-reading-text" />
+        : <p className="l3-reading-text">{fullPalaces ? 'この方位・願いごとの解説はありません。' : '読み込み中…'}</p>
     );
   } else {
     readingNode = (

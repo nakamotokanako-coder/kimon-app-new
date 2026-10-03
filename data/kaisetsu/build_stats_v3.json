@@ -1,0 +1,60 @@
+{
+  "generated_at_note": "タイムスタンプは決定性のため記録しない（同入力→同出力）",
+  "bank_version": "v3",
+  "total": 43200,
+  "patterns": "short(見出し) / mid(見出し＋主な理由) / full(4段落)",
+  "length": {
+    "short": {
+      "min": 17,
+      "avg": 23.5,
+      "median": 23,
+      "max": 28
+    },
+    "mid": {
+      "min": 53,
+      "avg": 83.4,
+      "median": 91,
+      "max": 141
+    },
+    "full": {
+      "min": 152,
+      "avg": 243.2,
+      "median": 241,
+      "max": 309
+    }
+  },
+  "parts": {
+    "tone": {
+      "neg": 22477,
+      "neu": 11419,
+      "pos": 9304
+    },
+    "veto": {
+      "伏吟": 5450,
+      "六儀撃刑": 4050,
+      "三奇入墓": 2040,
+      "空亡": 5715,
+      "反吟": 6060,
+      "none": 18945,
+      "天網四張": 940
+    },
+    "shoui": {
+      "none": 8640,
+      "weigh": 26241,
+      "support": 3784,
+      "caution": 4535
+    },
+    "guard": {
+      "none": 43200
+    },
+    "shouiLed": 1031
+  },
+  "checks": {
+    "problems": {},
+    "limits": {
+      "mid": 200,
+      "full": 380
+    }
+  },
+  "ok": true
+}
