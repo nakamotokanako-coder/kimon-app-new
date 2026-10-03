@@ -2752,21 +2752,6 @@ body {
   color: var(--text-accent);
 }
 
-.pro-badge {
-  display: inline-block;
-  margin-left: 3px;
-  padding: 1px 5px;
-  border-radius: 5px;
-  background: var(--accent-grad);
-  color: var(--accent-ink);
-  font-size: 0.62em;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  line-height: 1.5;
-  vertical-align: middle;
-  box-shadow: 0 1px 6px -2px var(--accent-glow);
-}
-
 .reverse-card {
   padding: 13px 14px;
 }
@@ -5439,10 +5424,6 @@ body {
   font-size: 1.15rem;
 }
 
-.sanban-route-hero b {
-  font-size: 1rem;
-}
-
 .sanban-route-basis,
 .sanban-threshold {
   display: grid;
@@ -5697,7 +5678,6 @@ body {
 .kakkyoku-result-score,
 .reverse-score-text,
 .mini-board-score,
-.sanban-route-hero b,
 .sanban-result-head b,
 .sanban-result-slot span,
 .sanban-result-slot b,

@@ -27,9 +27,9 @@ describe('6タブ注釈撤廃', () => {
     expect(reverseDirectionViewSrc).toContain(label);
   });
 
-  it('奇門三盤ルートタブが南京錠ではなく PRO バッジで表示される', () => {
+  it('奇門三盤ルートタブに南京錠も PRO バッジも付かない（全機能が同じ料金に含まれるため）', () => {
     expect(reverseDirectionViewSrc).not.toContain('奇門三盤ルート 🔒');
-    expect(reverseDirectionViewSrc).toMatch(/奇門三盤ルート\s*<span className="pro-badge"/);
+    expect(reverseDirectionViewSrc).not.toContain('pro-badge');
   });
 
   it.each([
@@ -62,9 +62,9 @@ describe('奇門三盤ルート 本実装画面', () => {
     expect(sanbanRouteViewSrc).toMatch(/検索する/);
   });
 
-  it('PRO バッジが飾りとして含まれる（南京錠は撤廃）', () => {
+  it('南京錠も PRO バッジも表示しない', () => {
     expect(sanbanRouteViewSrc).not.toMatch(/🔒/);
-    expect(sanbanRouteViewSrc).toMatch(/className="pro-badge"/);
+    expect(sanbanRouteViewSrc).not.toMatch(/pro-badge/);
   });
 
   it('ReverseDirectionView が SanbanRouteView を import し mode=range で描画', () => {

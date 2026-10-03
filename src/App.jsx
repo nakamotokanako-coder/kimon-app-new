@@ -464,6 +464,20 @@ export default function App() {
               ))}
             </div>
           </div>
+          <div className="settings-row">
+            <div>
+              <strong>凶も見る</strong>
+              <small>吉方位タブで、凶の方位・時間帯も表示します（「吉のみ表示」と連動）</small>
+            </div>
+            <button
+              type="button"
+              className={`settings-switch${showBadDirections ? ' is-on' : ''}`}
+              aria-pressed={showBadDirections}
+              onClick={() => toggleSetting('show-bad-directions', setShowBadDirections)(showBadDirections)}
+            >
+              <span />
+            </button>
+          </div>
         </div>
 
         <div className="settings-section settings-panel-section">
@@ -495,27 +509,6 @@ export default function App() {
               className={`settings-switch${favoriteBestNotify ? ' is-on' : ''}`}
               aria-pressed={favoriteBestNotify}
               onClick={() => toggleSetting('favorite-best-notify', setFavoriteBestNotify)(favoriteBestNotify)}
-            >
-              <span />
-            </button>
-          </div>
-        </div>
-
-        <div className="settings-section settings-panel-section">
-          <div className="settings-section-head">
-            <h3 className="maru">プロ</h3>
-            <span className="lat">Pro</span>
-          </div>
-          <div className="settings-row">
-            <div>
-              <strong>凶も見る</strong>
-              <small>吉方位タブで、凶の方位・時間帯も表示します（「吉のみ表示」と連動）</small>
-            </div>
-            <button
-              type="button"
-              className={`settings-switch${showBadDirections ? ' is-on' : ''}`}
-              aria-pressed={showBadDirections}
-              onClick={() => toggleSetting('show-bad-directions', setShowBadDirections)(showBadDirections)}
             >
               <span />
             </button>
