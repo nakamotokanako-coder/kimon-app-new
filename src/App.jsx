@@ -12,6 +12,7 @@ import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
+import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
@@ -155,6 +156,18 @@ export default function App() {
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackState, setFeedbackState] = useState('idle'); // idle | sending | sent | error | limited
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  // 紹介ページ: 初めて来た未ログインの人に1回だけ出す。アドレスに ?about を付けても開ける。
+  const [introOpen, setIntroOpen] = useState(() => (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('about')
+  ));
+  useEffect(() => {
+    if (auth.phase === 'ready' && !auth.loggedIn && !hasSeenIntro()) setIntroOpen(true);
+  }, [auth.phase, auth.loggedIn]);
+  const closeIntro = () => {
+    markIntroSeen();
+    setIntroOpen(false);
+  };
 
   // Stripe のページから戻ったとき（?billing=success など）: 結果を知らせ、会員状態を取り直す。
   // 有料への切り替えは Stripe からの通知（Webhook）で行われるため、数秒遅れることがある。
@@ -546,6 +559,10 @@ export default function App() {
             <span>バージョン</span>
             <strong className="lat">{APP_VERSION}</strong>
           </div>
+          <button type="button" className="settings-link-row" onClick={() => setIntroOpen(true)}>
+            <span>このアプリの紹介</span>
+            <b aria-hidden="true">›</b>
+          </button>
           {['利用規約', 'プライバシーポリシー'].map((label) => (
             <div key={label} className="settings-link-row is-disabled" aria-disabled="true">
               <span>{label}</span>
@@ -594,6 +611,13 @@ export default function App() {
   return (
     <div className="app app-with-tabs">
       <div className="vig" aria-hidden="true" />
+      {introOpen && (
+        <IntroPage
+          loggedIn={auth.loggedIn}
+          onClose={closeIntro}
+          onLogin={() => { closeIntro(); openAccountSettings(); }}
+        />
+      )}
       {activeTab === 'board' && boardView}
       {activeTab === 'direction' && limited && (
         <main className="locked-view">
