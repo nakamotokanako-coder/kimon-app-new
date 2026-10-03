@@ -45,6 +45,6 @@ export default async function handler(req, res) {
 
   await kv().del(key);
   if (stored.token) await kv().del(`magic:${stored.token}`);
-  if (!(await issueSession(res, email))) return res.status(500).json({ error: 'server_misconfigured' });
+  if (!(await issueSession(res, email, req))) return res.status(500).json({ error: 'server_misconfigured' });
   return res.status(200).json({ ok: true });
 }

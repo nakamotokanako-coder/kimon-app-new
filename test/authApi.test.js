@@ -5,6 +5,9 @@ import meHandler from '../api/auth/me.js';
 import logoutHandler from '../api/auth/logout.js';
 import logoutAllHandler from '../api/auth/logout-all.js';
 import verifyCodeHandler from '../api/auth/verify-code.js';
+import sessionsHandler from '../api/auth/sessions.js';
+import { deviceLabel, MAX_DEVICES } from '../lib/auth.js';
+import { SESSION_MAX_AGE_SEC } from '../lib/session.js';
 import { setKvClient } from '../lib/kv.js';
 import {
   setEmailSender,
@@ -334,5 +337,92 @@ describe('POST /api/auth/verify-code（ホーム画面のアプリ内でコー�
     const get = createRes();
     await verifyCodeHandler({ method: 'GET', headers: {} }, get);
     expect(get.statusCode).toBe(405);
+  });
+});
+
+describe('端末の上限（3台）と有効期間（30日）', () => {
+  const UA = {
+    iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+    mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36',
+  };
+
+  async function loginOn(email, ua) {
+    kvFake.store.delete(`cooldown:${email}`);
+    const r = createRes();
+    await requestHandler({ method: 'POST', body: { email }, headers: {} }, r);
+    const mail = sent.at(-1);
+    const v = createRes();
+    await verifyCodeHandler({ method: 'POST', body: { email, code: mail.code }, headers: { 'user-agent': ua } }, v);
+    return v.headers['Set-Cookie'].split(';')[0];
+  }
+
+  async function isLoggedIn(cookie) {
+    const res = createRes();
+    await meHandler({ method: 'GET', headers: { cookie } }, res);
+    return res.body.loggedIn;
+  }
+
+  it('有効期間は30日', () => {
+    expect(SESSION_MAX_AGE_SEC).toBe(30 * 24 * 60 * 60);
+  });
+
+  it('4台目でログインすると、一番使っていない端末がログアウトされる', async () => {
+    expect(MAX_DEVICES).toBe(3);
+    const email = 'share@example.com';
+    const c1 = await loginOn(email, UA.iphone);
+    const c2 = await loginOn(email, UA.mac);
+    const c3 = await loginOn(email, UA.iphone);
+    // 1台目を「一番使っていない」状態にする
+    const user = kvFake.store.get(`user:${email}`);
+    user.sessions[0].lastSeenAt = '2026-01-01T00:00:00.000Z';
+    const c4 = await loginOn(email, UA.mac);
+
+    expect(await isLoggedIn(c1)).toBe(false);
+    expect(await isLoggedIn(c2)).toBe(true);
+    expect(await isLoggedIn(c3)).toBe(true);
+    expect(await isLoggedIn(c4)).toBe(true);
+    expect(kvFake.store.get(`user:${email}`).sessions).toHaveLength(3);
+  });
+
+  it('30日を過ぎたセッションは無効', async () => {
+    const email = 'old@example.com';
+    const c1 = await loginOn(email, UA.iphone);
+    const user = kvFake.store.get(`user:${email}`);
+    user.sessions[0].createdAt = new Date(Date.now() - (SESSION_MAX_AGE_SEC + 60) * 1000).toISOString();
+    expect(await isLoggedIn(c1)).toBe(false);
+  });
+
+  it('端末の一覧と、他の端末だけのログアウト', async () => {
+    const email = 'list@example.com';
+    const phone = await loginOn(email, UA.iphone);
+    const mac = await loginOn(email, UA.mac);
+
+    const list = createRes();
+    await sessionsHandler({ method: 'GET', headers: { cookie: phone } }, list);
+    expect(list.body.max).toBe(3);
+    expect(list.body.sessions.map((s) => s.label).sort()).toEqual(['Mac・Chrome', 'iPhone・Safari']);
+    const macEntry = list.body.sessions.find((s) => !s.current);
+
+    const revoke = createRes();
+    await sessionsHandler({ method: 'POST', body: { id: macEntry.id }, headers: { cookie: phone } }, revoke);
+    expect(revoke.statusCode).toBe(200);
+    expect(await isLoggedIn(mac)).toBe(false);
+    expect(await isLoggedIn(phone)).toBe(true);
+  });
+
+  it('この端末のログアウトは他の端末に影響しない', async () => {
+    const email = 'single@example.com';
+    const phone = await loginOn(email, UA.iphone);
+    const mac = await loginOn(email, UA.mac);
+    const out = createRes();
+    await logoutHandler({ method: 'POST', headers: { cookie: phone } }, out);
+    expect(await isLoggedIn(phone)).toBe(false);
+    expect(await isLoggedIn(mac)).toBe(true);
+  });
+
+  it('端末名は User-Agent から', () => {
+    expect(deviceLabel(UA.iphone)).toBe('iPhone・Safari');
+    expect(deviceLabel(UA.mac)).toBe('Mac・Chrome');
+    expect(deviceLabel('')).toBe('その他の端末');
   });
 });

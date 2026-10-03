@@ -27,14 +27,23 @@ function createRes() {
   };
 }
 
+const TEST_SID = 'test-session-id';
+
 function fakeKvWithUser(email, status) {
   const store = new Map();
-  if (email) store.set(`user:${email}`, { status, createdAt: '2026-01-01T00:00:00.000Z' });
+  const now = new Date().toISOString();
+  if (email) {
+    store.set(`user:${email}`, {
+      status,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      sessions: [{ sid: TEST_SID, label: 'iPhone・Safari', createdAt: now, lastSeenAt: now }],
+    });
+  }
   return { async get(key) { return store.has(key) ? store.get(key) : null; } };
 }
 
 function cookie(email) {
-  return `${SESSION_COOKIE}=${signSession({ email, exp: Date.now() + 60_000 }, SECRET)}`;
+  return `${SESSION_COOKIE}=${signSession({ email, exp: Date.now() + 60_000, sid: TEST_SID }, SECRET)}`;
 }
 
 const forged = `${SESSION_COOKIE}=eyJlbWFpbCI6InhAeS5jb20iLCJleHAiOjk5OTk5OTk5OTk5OTl9.deadbeef`;
