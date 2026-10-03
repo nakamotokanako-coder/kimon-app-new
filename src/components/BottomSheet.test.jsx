@@ -106,6 +106,30 @@ describe('BottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('×ボタンは常に1つだけ出る', () => {
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+
+    expect(screen.getAllByRole('button', { name: '閉じる' })).toHaveLength(1);
+  });
+
+  it('前の方位・次の方位のボタンで隣の方位へ移る', () => {
+    const onNavigate = vi.fn();
+    render(
+      <BottomSheet
+        palace={makePalace()}
+        onClose={() => {}}
+        prev={{ key: 'ken', direction: '北西' }}
+        next={{ key: 'gon', direction: '北東' }}
+        onNavigate={onNavigate}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '次の方位（北東）' }));
+    fireEvent.click(screen.getByRole('button', { name: '前の方位（北西）' }));
+
+    expect(onNavigate.mock.calls).toEqual([['gon'], ['ken']]);
+  });
+
   it('格局がある宮では格局カードが表示される', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
 

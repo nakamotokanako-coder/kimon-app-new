@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { computeAxisRanks, BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../reverseDirection/reverseDirection.js';
@@ -46,13 +46,16 @@ function rankClass(symbol) {
   return 'neutral';
 }
 
-export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap, onOpenAccountSettings }) {
+export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap, onOpenAccountSettings, prev, next, onNavigate }) {
+  const contentRef = useRef(null);
   const [activeAxis, setActiveAxis] = useState('goen');
   const [whyOpen, setWhyOpen] = useState(false);
   const { palaces, fullPalaces, fullErrorKey, isPaid, auth } = useKaisetsuPalace(palace ? kaisetsuKey : null);
 
+  // 隣の方位へ移ったら先頭から読めるように戻す。「評価の解説」の開閉は見比べやすいようにそのまま、閉じたら畳む。
   useEffect(() => {
-    setWhyOpen(false);
+    if (!palace?.key) setWhyOpen(false);
+    else if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [palace?.key]);
 
   useEffect(() => {
@@ -63,6 +66,15 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose, palace]);
+
+  // 開いている間は後ろのページを止める（指の動きが後ろのページに取られて、シートが動かなくなるのを防ぐ）。
+  const isOpen = Boolean(palace);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const root = document.documentElement;
+    root.classList.add('sheet-scroll-lock');
+    return () => root.classList.remove('sheet-scroll-lock');
+  }, [isOpen]);
 
   const axisRanks = useMemo(() => computeAxisRanks(kaisetsuKey, palace?.key), [kaisetsuKey, palace?.key]);
   const breakdown = useMemo(
@@ -123,14 +135,24 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
         aria-modal="true"
         aria-label={`${palace.label}の詳細`}
       >
-        <button
-          type="button"
-          className="sheet-handle"
-          aria-label="閉じる"
-          onClick={onClose}
-        />
+        <div className="sheet-top">
+          <div className="sheet-handle" aria-hidden="true" onClick={onClose} />
+          {onNavigate && prev && next && (
+            <div className="sheet-nav">
+              <button type="button" className="sheet-nav-btn" aria-label={`前の方位（${prev.direction}）`} onClick={() => onNavigate(prev.key)}>
+                <span aria-hidden="true">‹</span> {prev.direction}
+              </button>
+              <button type="button" className="sheet-nav-btn" aria-label={`次の方位（${next.direction}）`} onClick={() => onNavigate(next.key)}>
+                {next.direction} <span aria-hidden="true">›</span>
+              </button>
+            </div>
+          )}
+          <button type="button" className="sheet-close-btn" aria-label="閉じる" onClick={onClose}>
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
 
-        <div className="sheet-content">
+        <div className="sheet-content" ref={contentRef}>
           <div className="sh-header">
             <div className="sh-dir">
               <span className="sh-dir-name">{palace.label}（{palace.direction}）</span>

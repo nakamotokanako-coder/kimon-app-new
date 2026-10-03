@@ -50,6 +50,14 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  touch-action: none;
+}
+
+/* シートを開いている間、後ろのページはスクロールさせない */
+html.sheet-scroll-lock,
+html.sheet-scroll-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .sheet-overlay.open {
@@ -65,6 +73,7 @@
   display: flex;
   flex-direction: column;
   max-height: 80vh;
+  max-height: 80dvh;
   background: var(--bs-sheet-bg);
   border-top: 1px solid var(--accent-edge);
   border-top-left-radius: 28px;
@@ -80,7 +89,14 @@
   transform: translateY(0);
 }
 
-.sheet-handle {
+.sheet-top {
+  position: relative;
+  flex: none;
+  height: 46px;
+  touch-action: none;
+}
+
+.sheet .sheet-handle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,6 +105,60 @@
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.sheet-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 前の方位／次の方位（閉じずに隣の方位と見比べる） */
+.sheet-nav {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-nav-btn {
+  min-width: 68px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sheet-nav-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.sheet-close-btn:active {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .sheet-handle::before {
@@ -105,11 +175,12 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 0 16px 16px;
+  touch-action: pan-y;
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 .sh-header {
-  padding: 16px 0 12px;
+  padding: 2px 0 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
 }
 
@@ -323,13 +394,13 @@
   z-index: 10;
   display: flex;
   gap: 8px;
-  margin: 12px 0 0;
-  padding: 6px 0 16px;
+  margin: 6px -16px 0;
+  padding: 8px 16px 12px;
   overflow: hidden;
   overflow-x: auto;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: var(--bs-sheet-bg);
   scrollbar-width: none;
 }
 
