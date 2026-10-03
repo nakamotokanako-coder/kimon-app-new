@@ -279,6 +279,20 @@ export default function DirectionMap({
       return [];
     }
   });
+  // アカウントから届いたお気に入り（別の端末で追加・削除したもの）を地図にも反映する。
+  useEffect(() => {
+    const handleSynced = (event) => {
+      if (!event.detail?.favorites) return;
+      try {
+        const saved = window.localStorage.getItem(MAP_SEARCH_STORAGE_KEY);
+        setFavorites(saved ? JSON.parse(saved) : []);
+      } catch {
+        // 読めないときは今の表示のまま
+      }
+    };
+    window.addEventListener('kimon-userdata-synced', handleSynced);
+    return () => window.removeEventListener('kimon-userdata-synced', handleSynced);
+  }, []);
   const mapRef = useRef(null);
   const mapNodeRef = useRef(null);
   const layerGroupRef = useRef(null);

@@ -12,6 +12,7 @@ import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
+import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
 import packageJson from '../package.json';
@@ -117,6 +118,18 @@ applyDisplaySettings({
 
 export default function App() {
   const auth = useAuth();
+  // お気に入りと基準点をアカウントに保存し、他の端末と合わせる。
+  // 設定でオンにした人だけ（場所の情報なので、選ばない限り端末の外に出さない）。全機能を使える人向け。
+  const [syncEnabled, setSyncEnabled] = useState(() => isSyncEnabled());
+  useEffect(() => {
+    const onChange = () => setSyncEnabled(isSyncEnabled());
+    window.addEventListener(SYNC_SETTING_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(SYNC_SETTING_CHANGED_EVENT, onChange);
+  }, []);
+  useEffect(() => {
+    if (!syncEnabled || auth.phase !== 'ready' || !auth.loggedIn || !auth.full || !auth.email) return undefined;
+    return startUserDataSync(auth.email);
+  }, [syncEnabled, auth.phase, auth.loggedIn, auth.full, auth.email]);
   // 全機能を使えない人（未ログインなど）は「今日の盤の閲覧」だけ（lib/accessPolicy.js）。
   // 判定中（loading）は今日の盤のまま表示し、確定してから絞る（ちらつき防止）。
   const limited = auth.phase === 'ready' && !auth.full;

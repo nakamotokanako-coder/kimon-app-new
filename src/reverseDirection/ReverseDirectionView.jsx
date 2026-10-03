@@ -43,6 +43,9 @@ const DEFAULT_LOCATIONS = [
 
 const MAP_SEARCH_CHANGED_EVENT = 'kimon-map-favorites-changed';
 const GO_BASE_POINT_STORAGE_KEY = 'kimon_go_base_point_v1';
+// アカウントとの同期（src/sync/userDataSync.js）とやり取りする合図
+const BASE_POINT_CHANGED_EVENT = 'kimon-base-point-changed';
+const USER_DATA_SYNCED_EVENT = 'kimon-userdata-synced';
 const BASE_POINT_MODES = new Set(['gps', 'favorite', 'search']);
 const BASE_POINT_CANDIDATE_LIMIT = 8;
 const FACILITY_TITLE_RE = /(労働局|労働基準監督署|公共職業安定所|株式会社|有限会社|学校|大学|病院|郵便局|消防|警察|駅|線|用水路|水道|センター|支社|支店|出張所|庁舎|局|署|組合|小学校|中学校|高等学校|短期大学)/;
@@ -87,6 +90,7 @@ function writeStoredBasePoint(next) {
       location,
       selectedFavoriteId: next?.selectedFavoriteId || null,
     }));
+    window.dispatchEvent(new CustomEvent(BASE_POINT_CHANGED_EVENT));
   } catch {
     // localStorage may be unavailable in private or restricted contexts.
   }
@@ -382,10 +386,21 @@ export default function ReverseDirectionView({
     const handleStorage = (event) => {
       if (event.key === MAP_SEARCH_STORAGE_KEY) refreshFavorites();
     };
+    // 別の端末で選んだ基準点がアカウントから届いたら、この画面にも反映する。
+    const handleSynced = (event) => {
+      if (!event.detail?.basePoint) return;
+      const synced = readStoredBasePoint();
+      if (!synced) return;
+      setLocation(synced.location);
+      setCurrentMode(synced.mode);
+      setSelectedFavoriteId(synced.selectedFavoriteId);
+    };
+    window.addEventListener(USER_DATA_SYNCED_EVENT, handleSynced);
     window.addEventListener(MAP_SEARCH_CHANGED_EVENT, handleFavoritesChanged);
     window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', handleFavoritesChanged);
     return () => {
+      window.removeEventListener(USER_DATA_SYNCED_EVENT, handleSynced);
       window.removeEventListener(MAP_SEARCH_CHANGED_EVENT, handleFavoritesChanged);
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('focus', handleFavoritesChanged);

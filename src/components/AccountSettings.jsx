@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { isBillingUiVisible, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
+import {
+  isSyncEnabled, enableUserDataSync, disableUserDataSync, SYNC_SETTING_CHANGED_EVENT,
+} from '../sync/userDataSync.js';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
 // 認証状態・利用範囲の判定はすべてサーバー側（/api/auth/me → AuthContext）。ここでは表示だけ。
@@ -109,6 +112,53 @@ function billingVisible() {
   } catch {
     return false;
   }
+}
+
+// お気に入りと基準点をアカウントに保存するかどうか（最初はオフ。場所の情報なので本人が選ぶ）。
+function SyncSetting({ email }) {
+  const [enabled, setEnabled] = useState(() => isSyncEnabled());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const onChange = () => setEnabled(isSyncEnabled());
+    window.addEventListener(SYNC_SETTING_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(SYNC_SETTING_CHANGED_EVENT, onChange);
+  }, []);
+
+  const toggle = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    const ok = enabled ? await disableUserDataSync() : await enableUserDataSync(email);
+    if (!ok) setError(enabled ? 'オフにできませんでした。時間をおいてもう一度お試しください。' : 'オンにできませんでした。時間をおいてもう一度お試しください。');
+    setBusy(false);
+  };
+
+  return (
+    <>
+      <div className="settings-row">
+        <div>
+          <strong>お気に入りを他の端末でも使う</strong>
+          <small>
+            オンにすると、お気に入りと基準点（名前と位置）をアカウントに保存し、ログインした他の端末でも使えます。
+            オフにすると、アカウントに保存した分を消します（この端末の分は残ります）。現在地は保存しません。
+          </small>
+        </div>
+        <button
+          type="button"
+          className={`settings-switch${enabled ? ' is-on' : ''}`}
+          aria-pressed={enabled}
+          aria-label="お気に入りを他の端末でも使う"
+          onClick={toggle}
+          disabled={busy}
+        >
+          <span />
+        </button>
+      </div>
+      {error && <p className="account-note account-note-small">{error}</p>}
+    </>
+  );
 }
 
 // プロ版の申し込み・解約（Stripe のページへ移動する）。
@@ -277,6 +327,7 @@ export default function AccountSettings() {
         <BillingSection auth={auth} />
         <DeviceList email={auth.email} />
         <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
+        {auth.full && <SyncSetting email={auth.email} />}
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>
           ログアウト
         </button>
