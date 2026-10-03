@@ -16,7 +16,10 @@ export function normalizeMe(data) {
     loggedIn: true,
     email: data.email,
     status,
-    full: typeof data.full === 'boolean' ? data.full : hasFullAccess({ loggedIn: true, status }),
+    paidUntil: data.paidUntil || null,
+    full: typeof data.full === 'boolean'
+      ? data.full
+      : hasFullAccess({ loggedIn: true, status, paidUntil: data.paidUntil }),
     accessMode: data.accessMode || ACCESS_MODE,
   };
 }

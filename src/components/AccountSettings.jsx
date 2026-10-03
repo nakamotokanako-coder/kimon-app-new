@@ -96,7 +96,12 @@ function DeviceList({ email }) {
 }
 
 function planLabel(auth) {
-  if (auth.status === 'paid') return '有料会員';
+  if (auth.status === 'paid') {
+    const t = Date.parse(auth.paidUntil || '');
+    if (!t) return '有料会員';
+    const d = new Date(t);
+    return `有料会員（${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} まで）`;
+  }
   if (auth.accessMode === 'beta' && auth.full) return 'ベータ版（全機能を無料で利用中）';
   return '無料';
 }

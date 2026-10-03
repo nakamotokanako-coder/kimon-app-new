@@ -1,4 +1,4 @@
-import { ACCESS_MODE, hasFullAccess } from '../lib/accessPolicy.js';
+import { ACCESS_MODE, hasFullAccess, isPaidActive } from '../lib/accessPolicy.js';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -134,5 +134,19 @@ describe('accessPolicy（全機能を使えるか）', () => {
   it('販売開始後（paid モード）は有料会員だけ可', () => {
     expect(hasFullAccess({ loggedIn: true, status: 'free' }, 'paid')).toBe(false);
     expect(hasFullAccess({ loggedIn: true, status: 'paid' }, 'paid')).toBe(true);
+  });
+});
+
+describe('有料期限（paidUntil）', () => {
+  const now = Date.parse('2026-10-03T00:00:00Z');
+  it('期限が未来なら有効、過ぎたら無効、未設定は有効（手動付与）', () => {
+    expect(isPaidActive({ status: 'paid', paidUntil: '2026-11-02T00:00:00Z' }, now)).toBe(true);
+    expect(isPaidActive({ status: 'paid', paidUntil: '2026-10-02T23:59:59Z' }, now)).toBe(false);
+    expect(isPaidActive({ status: 'paid' }, now)).toBe(true);
+    expect(isPaidActive({ status: 'free', paidUntil: '2026-11-02T00:00:00Z' }, now)).toBe(false);
+  });
+  it('販売開始後（paid モード）は、期限切れの有料会員は全機能を使えない', () => {
+    expect(hasFullAccess({ loggedIn: true, status: 'paid', paidUntil: '2026-10-02T00:00:00Z' }, 'paid', now)).toBe(false);
+    expect(hasFullAccess({ loggedIn: true, status: 'paid', paidUntil: '2026-11-02T00:00:00Z' }, 'paid', now)).toBe(true);
   });
 });

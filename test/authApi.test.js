@@ -225,7 +225,7 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
     const cookie = await login('me@example.com');
     const res = createRes();
     await meHandler({ method: 'GET', headers: { cookie } }, res);
-    expect(res.body).toEqual({ loggedIn: true, email: 'me@example.com', status: 'free', full: true, accessMode: 'beta' });
+    expect(res.body).toEqual({ loggedIn: true, email: 'me@example.com', status: 'free', paidUntil: null, full: true, accessMode: 'beta' });
   });
 
   it('壊れた %エンコードのCookieでも 500 にならず未ログイン扱い', async () => {
