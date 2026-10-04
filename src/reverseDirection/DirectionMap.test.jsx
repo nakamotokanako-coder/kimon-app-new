@@ -1,8 +1,8 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import DirectionMap, { buildCenterReticleHtml } from './DirectionMap.jsx';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import DirectionMap, { describeDirection } from './DirectionMap.jsx';
 import { getFanColor } from './mapFan.js';
 
 const LOCATION = { name: '東京駅', latitude: 35.681, longitude: 139.767 };
@@ -207,7 +207,7 @@ describe('DirectionMap GOゾーン再構成（PR-2.6 jiban → PR-D2 nichiban展
     expect(document.querySelector('.direction-map-legend--overlay')).toBe(null);
   });
 
-  it('「吉方位だけ」がチップ列内の点線トグルとして機能する（フィルタ挙動は既存ロジックのまま）', () => {
+  it('「吉方位のみ表示」は場所の種類とは別の行のスイッチ（単体では自前で切り替わる）', () => {
     render(
       <DirectionMap
         location={LOCATION}
@@ -216,35 +216,31 @@ describe('DirectionMap GOゾーン再構成（PR-2.6 jiban → PR-D2 nichiban展
         profileKey="jiban"
       />,
     );
-    const toggle = screen.getByRole('button', { name: '✓ 吉方位だけ' });
-    expect(toggle.className).toContain('direction-map-chip-toggle');
+    const chips = document.querySelector('.direction-map-chips');
+    expect([...chips.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['コンビニ', '駅', 'カフェ', 'スーパー', '公園', '神社']);
+    const toggle = screen.getByRole('button', { name: '吉方位のみ表示' });
+    expect(toggle.closest('.direction-map-filter')).toBeTruthy();
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
-
     fireEvent.click(toggle);
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    expect(toggle.className).toContain('on');
-
-    // 従来のチェックボックス版は出ない（置き場所だけ移した）。
-    expect(document.querySelector('.direction-kichi-filter')).toBe(null);
   });
 
-  it('nichibanもjibanと同じくチップ列内の点線トグル版の「吉方位だけ」になる（PR-D2）', () => {
+  it('「吉方位のみ表示」は、設定の「凶方位の表示」と同じ値を使う（渡されたとき）', () => {
+    const onGoodOnlyChange = vi.fn();
     render(
       <DirectionMap
         location={LOCATION}
         rankings={RANKINGS}
         bestPalace="kan"
         profileKey="nichiban"
+        goodOnly
+        onGoodOnlyChange={onGoodOnlyChange}
       />,
     );
-    const toggle = screen.getByRole('button', { name: '✓ 吉方位だけ' });
-    expect(toggle.className).toContain('direction-map-chip-toggle');
-
-    fireEvent.click(toggle);
+    const toggle = screen.getByRole('button', { name: '吉方位のみ表示' });
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
-
-    // 従来のチェックボックス版は出ない（置き場所だけ移した）。
-    expect(document.querySelector('.direction-kichi-filter')).toBe(null);
+    fireEvent.click(toggle);
+    expect(onGoodOnlyChange).toHaveBeenCalledWith(false);
   });
 
   it('showFavoritesSection=false ではお気に入りの従来リスト節を出さない（jibanの既定）', () => {
@@ -335,103 +331,142 @@ describe('DirectionMap 地図中心インジケータ（jiban/nichiban共通）'
   });
 });
 
-describe('buildCenterReticleHtml（レティクルのHTML生成・純関数）', () => {
-  it('isNearBaseのときは「◎ 基準点」を出す', () => {
-    const html = buildCenterReticleHtml({ isNearBase: true, distanceM: 10, direction: null });
-    expect(html).toContain('direction-map-reticle-label">◎</span>');
-    expect(html).toContain('◎ 基準点');
-  });
+const EIGHT = [
+  { palace: 'gon', label: '北東', short: 'NE', angle: 45, score: 70, tone: 'great', reasons: ['開門', '九天', '青龍返首'], palaceData: { hachimon: '開門' } },
+  { palace: 'son', label: '南東', short: 'SE', angle: 135, score: 10, tone: 'weak', reasons: ['生門'], palaceData: { hachimon: '生門' } },
+  { palace: 'kan', label: '北', short: 'N', angle: 0, score: -60, tone: 'bad-strong', reasons: ['死門', '白虎'], palaceData: { hachimon: '死門' } },
+];
 
-  it('離れた地点の方位・吉凶・色を反映する（great）', () => {
-    const html = buildCenterReticleHtml({
-      isNearBase: false,
-      distanceM: 24700,
-      direction: { palace: 'ken', label: '北西', short: 'NW', score: 70, tone: 'great' },
-    });
-    expect(html).toContain('北西');
-    expect(html).toContain('大吉 +70');
-    expect(html).toContain(`--reticle-color: ${getFanColor('great')};`);
-  });
-
-  it('凶方位ではラベル・色がgreatと異なる', () => {
-    const html = buildCenterReticleHtml({
-      isNearBase: false,
-      distanceM: 5000,
-      direction: { palace: 'shin', label: '東', short: 'E', score: -30, tone: 'bad-strong' },
-    });
-    expect(html).toContain('東');
-    expect(html).toContain('凶 -30');
-    expect(html).toContain(`--reticle-color: ${getFanColor('bad-strong')};`);
-    expect(getFanColor('bad-strong')).not.toBe(getFanColor('great'));
-  });
-
-  it('centerOffsetがnullなら空文字を返す', () => {
-    expect(buildCenterReticleHtml(null)).toBe('');
+describe('DirectionMap 地図の中央は基準点だけ（選んだ方位の情報は下のパネルに出す）', () => {
+  it('地図の中央に基準点の名前を出し、照準リング（方位名・吉凶・点数）は出さない', () => {
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    expect(document.querySelector('.direction-base-label').textContent).toBe('◎ 東京駅');
+    expect(document.querySelector('.direction-map-reticle')).toBe(null);
   });
 });
 
-describe('DirectionMap 地図中心レティクル（照準リング・jiban/nichiban共通）', () => {
-  it('マウント直後は地図中心=基準点のためレティクルに「基準点」が表示される（jiban）', () => {
+describe('DirectionMap 方位を選ぶ（BEST と 選択中 は別）', () => {
+  it('方位のラベルを押すと、その方位を選ぶ。BEST の印は一番評価の高い方位に付いたまま', () => {
+    const onSelectPalace = vi.fn();
     render(
       <DirectionMap
         location={LOCATION}
-        rankings={RANKINGS}
-        bestPalace="kan"
+        rankings={EIGHT}
+        bestPalace="gon"
         profileKey="jiban"
+        onSelectPalace={onSelectPalace}
       />,
     );
-    const reticle = document.querySelector('.direction-map-reticle');
-    expect(reticle).toBeTruthy();
-    expect(reticle.textContent).toContain('基準点');
+    const labels = [...document.querySelectorAll('.direction-map-label')];
+    expect(labels).toHaveLength(3);
+    expect(labels.filter((el) => el.querySelector('.direction-map-label-best')).map((el) => el.textContent)).toEqual(['BEST北東+70']);
+    expect(document.querySelector('.direction-map-label.is-selected')).toBe(null);
+    expect(screen.getByText('地図の方位を押すと、その方位にある場所を探せます。')).toBeTruthy();
+    expect(document.querySelector('.direction-select-panel')).toBe(null);
+
+    fireEvent.click(labels.find((el) => el.textContent.includes('南東')));
+    expect(onSelectPalace).toHaveBeenCalledWith('son');
   });
 
-  it('マウント直後は地図中心=基準点のためレティクルに「基準点」が表示される（nichiban）', () => {
+  it('扇そのものも押せる（方位ごとに当たり判定がある）', () => {
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" onSelectPalace={() => {}} />);
+    expect(document.querySelectorAll('.direction-fan-hit')).toHaveLength(3);
+  });
+
+  it('選んだ方位だけ選択状態になり、ほかは少し薄くなる（BEST は別のまま）', () => {
     render(
       <DirectionMap
         location={LOCATION}
-        rankings={RANKINGS}
-        bestPalace="kan"
-        profileKey="nichiban"
-      />,
-    );
-    const reticle = document.querySelector('.direction-map-reticle');
-    expect(reticle).toBeTruthy();
-    expect(reticle.textContent).toContain('基準点');
-  });
-
-  it('主描画（扇・ラベル）が再構築されてもレティクルは独立レイヤーのため消えない', () => {
-    const { rerender } = render(
-      <DirectionMap
-        location={LOCATION}
-        rankings={RANKINGS}
-        bestPalace="kan"
+        rankings={EIGHT}
+        bestPalace="gon"
+        selectedPalace="son"
+        onSelectPalace={() => {}}
         profileKey="jiban"
       />,
     );
-    expect(document.querySelector('.direction-map-reticle')).toBeTruthy();
-
-    // rankings/bestPalaceの変更は主描画エフェクト（layerGroupRef.clearLayers()）を再実行させる。
-    rerender(
-      <DirectionMap
-        location={LOCATION}
-        rankings={[{ palace: 'shin', label: '東', short: 'E', angle: 90, score: -10, tone: 'bad', reasons: [] }]}
-        bestPalace="shin"
-        profileKey="jiban"
-      />,
-    );
-    expect(document.querySelector('.direction-map-reticle')).toBeTruthy();
+    expect(document.querySelector('.direction-map-label.is-selected').textContent).toBe('南東+10');
+    expect(document.querySelectorAll('.direction-map-label.is-dim')).toHaveLength(2);
+    expect(document.querySelector('.direction-map-label-best').parentElement.textContent).toContain('北東');
   });
+});
 
-  it('フルスクリーンでもレティクルが表示され続ける', () => {
+describe('DirectionMap 選んだ方位のパネル（次に何をするかを主にする）', () => {
+  const setup = (props = {}) => {
+    const onSelectPalace = vi.fn();
+    const onOpenDetail = vi.fn();
     render(
       <DirectionMap
         location={LOCATION}
-        rankings={RANKINGS}
-        bestPalace="kan"
+        rankings={EIGHT}
+        bestPalace="gon"
+        selectedPalace="son"
+        onSelectPalace={onSelectPalace}
+        onOpenDetail={onOpenDetail}
+        conditionLabel="17:00-19:00 の時盤"
         profileKey="jiban"
+        {...props}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
-    expect(document.querySelector('.direction-map-reticle')).toBeTruthy();
+    return { onSelectPalace, onOpenDetail, panel: document.querySelector('.direction-select-panel') };
+  };
+
+  it('方位・点数・吉凶・八門・短い説明と、条件を出す', () => {
+    const { panel } = setup();
+    expect(panel.querySelector('.direction-select-head').textContent).toBe('南東+10吉');
+    expect(panel.querySelector('.direction-select-gate').textContent).toBe('生門');
+    expect(panel.querySelector('.direction-select-cond').textContent).toBe('17:00-19:00 の時盤');
+    expect(panel.querySelector('.direction-select-text').textContent).toBe('使いやすい方位です。');
+    expect(screen.queryByText('地図の方位を押すと、その方位にある場所を探せます。')).toBe(null);
+  });
+
+  it('一番評価の高い方位を選んだときだけ、パネルにも BEST を出す', () => {
+    expect(setup().panel.querySelector('.direction-select-best')).toBe(null);
+    cleanup();
+    expect(setup({ selectedPalace: 'gon' }).panel.querySelector('.direction-select-best').textContent).toBe('BEST');
+  });
+
+  it('ボタンの文言は選んだ方位で変わる。場所の種類を選べる', () => {
+    const { panel } = setup();
+    expect(within(panel).getByRole('button', { name: '南東でスポットを探す →' })).toBeTruthy();
+    const cats = within(within(panel).getByRole('group', { name: '探す場所の種類' }));
+    expect(cats.getByRole('button', { name: 'カフェ' }).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(cats.getByRole('button', { name: '神社' }));
+    expect(cats.getByRole('button', { name: '神社' }).getAttribute('aria-pressed')).toBe('true');
+    expect(cats.getByRole('button', { name: 'カフェ' }).getAttribute('aria-pressed')).toBe('false');
+    cleanup();
+    expect(within(setup({ selectedPalace: 'gon' }).panel).getByRole('button', { name: '北東でスポットを探す →' })).toBeTruthy();
+  });
+
+  it('× で選択をやめ、「詳しく見る」で方位詳細へ', () => {
+    const { panel, onSelectPalace, onOpenDetail } = setup();
+    fireEvent.click(within(panel).getByRole('button', { name: 'この方位を詳しく見る ›' }));
+    expect(onOpenDetail).toHaveBeenCalledWith(expect.objectContaining({ palace: 'son' }));
+    fireEvent.click(within(panel).getByRole('button', { name: '方位の選択をやめる' }));
+    expect(onSelectPalace).toHaveBeenCalledWith(null);
+  });
+
+  it('短い説明は、吉凶と、その方位に入っているものだけで作る（八門は見出しに出すので重ねない）', () => {
+    expect(describeDirection(EIGHT[0])).toBe('とくに使いやすい方位です。九天・青龍返首が入っています。');
+    expect(describeDirection(EIGHT[2])).toBe('できれば避けたい方位です。白虎が入っています。');
+    expect(describeDirection(null)).toBe('');
+  });
+});
+
+describe('DirectionMap 方位設定・距離の切り替え', () => {
+  it('方位の引き方は常設せず、「方位設定」を押したときだけ開く', () => {
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    expect(document.querySelector('.direction-map-controls')).toBe(null);
+    fireEvent.click(screen.getByRole('button', { name: /方位設定/ }));
+    expect(document.querySelector('.direction-map-controls.is-compact')).toBeTruthy();
+    expect(document.querySelector('.direction-bearing-now').textContent).toBe('方位の引き方：平面・補正なし');
+  });
+
+  it('距離は盤に合わせて出す（時盤は近場、日盤は遠出）', () => {
+    const names = () => [...document.querySelectorAll('.direction-distance button')].map((b) => b.textContent);
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    expect(names()).toEqual(['500m', '2km', '5km', '10km']);
+    cleanup();
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="nichiban" />);
+    expect(names()).toEqual(['50km', '100km', '200km']);
   });
 });

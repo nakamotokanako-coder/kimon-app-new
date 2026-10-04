@@ -306,7 +306,9 @@ export default function ReverseDirectionView({
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   // 一覧で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
   const pickedItem = pickedPalace ? reverse.rankings.find((item) => item.palace === pickedPalace) : null;
-  const best = pickedItem || visibleRankings[0] || null;
+  // topItem = 一番評価の高い方位（BEST）。best = 詳しく見せる方位（選んでいればそれ、なければ BEST）。
+  const topItem = visibleRankings[0] || null;
+  const best = pickedItem || topItem;
   const favoriteChips = useMemo(() => (
     decoratePlaces(favorites, [location.latitude, location.longitude], reverse.rankings)
   ), [favorites, location.latitude, location.longitude, reverse.rankings]);
@@ -326,7 +328,8 @@ export default function ReverseDirectionView({
   // 吉日検索で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
   const [dayPickedPalace, setDayPickedPalace] = useState(null);
   const dayPickedItem = dayPickedPalace ? (dayReverse?.rankings || []).find((item) => item.palace === dayPickedPalace) : null;
-  const dayBest = dayPickedItem || dayVisibleRankings[0] || null;
+  const dayTopItem = dayVisibleRankings[0] || null;
+  const dayBest = dayPickedItem || dayTopItem;
   const dayFavoriteChips = useMemo(() => (
     dayReverse
       ? decoratePlaces(favorites, [location.latitude, location.longitude], dayReverse.rankings)
@@ -414,6 +417,12 @@ export default function ReverseDirectionView({
 
   // L3ボトムシートのCTA「この方位で行き先を探す」用。GOゾーンの検索窓へ
   // スクロール＋フォーカスする（DirectionMap.jsx側のid付与とセット）。
+  // 地図の「この方位を詳しく見る」用。方位詳細（統合カード）まで送る。
+  const scrollToDirectionDetail = useCallback(() => {
+    if (typeof document === 'undefined') return;
+    document.getElementById('yoho-direction-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const scrollToGoSearch = useCallback(() => {
     if (typeof document === 'undefined') return;
     const el = document.getElementById('yoho-go-search-input');
@@ -775,6 +784,9 @@ export default function ReverseDirectionView({
     onFocusKey,
     onShowAll,
     showFavoritesSection,
+    selectedPalace,
+    onSelectPalace,
+    conditionLabel,
   }) => (
     <div className="reverse-zone reverse-go-zone reverse-go-zone--nichiban">
       <div className="reverse-zone-title">
@@ -791,6 +803,11 @@ export default function ReverseDirectionView({
           showScale={showScale}
           focusFavoriteKey={focusedKey}
           showFavoritesSection={showFavoritesSection}
+          selectedPalace={selectedPalace}
+          onSelectPalace={onSelectPalace}
+          conditionLabel={conditionLabel}
+          goodOnly={goodOnly}
+          onGoodOnlyChange={setGoodOnly}
         />
       </div>
 
@@ -819,6 +836,12 @@ export default function ReverseDirectionView({
           showSearchControls
           showPlacePanel
           showFavoritesSection={showFavoritesList}
+          selectedPalace={pickedPalace}
+          onSelectPalace={setPickedPalace}
+          conditionLabel={`${getTimeSlotLabel(slotHour)} の時盤`}
+          goodOnly={goodOnly}
+          onGoodOnlyChange={setGoodOnly}
+          onOpenDetail={scrollToDirectionDetail}
         />
       </div>
 
@@ -859,7 +882,7 @@ export default function ReverseDirectionView({
 
   return (
     <section className={`reverse-view${mode === 'time' ? ' reverse-view--walk' : ''}`} aria-label="逆引き方位検索">
-      <div className="reverse-header">
+      <div className={`reverse-header${variant === 'map' ? ' reverse-header--map' : ''}`}>
         <div>
           {variant === 'search' && onBackToSearch && (
             <button type="button" className="reverse-back" onClick={onBackToSearch}>‹ 探す</button>
@@ -867,7 +890,7 @@ export default function ReverseDirectionView({
           {modeTitle ? (
             <>
               <h2 className="maru"><Ja>{mode === 'time' && isPickedTime ? `${getTimeSlotLabel(slotHour)}に吉方位へ` : modeTitle.title}</Ja></h2>
-              <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>
+              {variant !== 'map' && <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>}
             </>
           ) : (
             <>
@@ -875,7 +898,7 @@ export default function ReverseDirectionView({
               <h2 className="maru">吉方位</h2>
             </>
           )}
-          {modeTitle && (
+          {modeTitle && variant !== 'map' && (
             <p className="reverse-tech">
               {modeTitle.tech} / {location.name}
               {mode === 'time' ? ` / 自然時補正 ${formatCorrection(correction)}` : ''}
@@ -959,11 +982,6 @@ export default function ReverseDirectionView({
       {mode === 'time' && (
         <div className="reverse-walk-body">
           <div className="reverse-zone">
-            <div className="reverse-zone-title">
-              <span className="reverse-section-kicker lat">{isPickedTime ? 'selected' : 'now'}</span>
-              <h3 className="maru">{isPickedTime ? `${getTimeSlotLabel(slotHour)} の吉方位` : '今の吉方位'}</h3>
-            </div>
-
             {/* 時間帯を選ぶ（今日の12の時辰）。今の時間帯を押すと「今」に戻る */}
             <div className="reverse-slot-picker" role="group" aria-label="時間帯を選ぶ" ref={slotPickerRef}>
               {timeline.map((slot) => {
@@ -991,19 +1009,17 @@ export default function ReverseDirectionView({
               })}
             </div>
 
-            {(isPickedTime || pickedPalace) && (
+            {isPickedTime && (
               <div className="reverse-picked-note">
                 <span>
-                  {isPickedTime
-                    ? `選んだ時間帯（${getTimeSlotLabel(slotHour)}）の盤を表示しています。今は ${getTimeSlotLabel(liveSlotHour)} です。`
-                    : '選んだ方位を表示しています。'}
+                  {`選んだ時間帯（${getTimeSlotLabel(slotHour)}）の盤を表示しています。今は ${getTimeSlotLabel(liveSlotHour)} です。`}
                 </span>
-                <button type="button" onClick={clearPicked}>今の時間・最良方位に戻す</button>
+                <button type="button" onClick={clearPicked}>今の時間に戻す</button>
               </div>
             )}
 
             {!isPickedTime && (
-            <div className="reverse-current-window">
+            <div className="reverse-current-window is-compact">
               <span>現在の時間帯</span>
               <b className="lat">{currentTimeWindow.clockRange}</b>
               <small>
@@ -1013,6 +1029,14 @@ export default function ReverseDirectionView({
             </div>
             )}
 
+          </div>
+
+          {renderJibanGoZone({
+            rankings: reverse.rankings,
+            bestPalace: topItem?.palace,
+          })}
+
+          <div className="reverse-zone" id="yoho-direction-detail">
             <FusionCard
               best={best}
               boardKey={makeKaisetsuKey(reverse.board.meta)}
@@ -1046,11 +1070,6 @@ export default function ReverseDirectionView({
               )}
             </div>
           </div>
-
-          {renderJibanGoZone({
-            rankings: reverse.rankings,
-            bestPalace: best?.palace,
-          })}
 
           {/* 日盤の「この日の方位ランキング」と同じ一覧を、時盤にも出す（今の時間帯の8方位） */}
           <div className="reverse-timeline">
@@ -1093,12 +1112,6 @@ export default function ReverseDirectionView({
 
       {mode === 'day' && (
         <>
-          {dayPickedItem && (
-            <div className="reverse-picked-note">
-              <span>選んだ方位（{dayPickedItem.label}）を表示しています。</span>
-              <button type="button" onClick={() => setDayPickedPalace(null)}>この日の最良方位に戻す</button>
-            </div>
-          )}
           <div className="reverse-card reverse-day-card">
             <div className="reverse-card-title">
               <div>
@@ -1126,7 +1139,10 @@ export default function ReverseDirectionView({
             <>
               {renderGoZone({
                 rankings: dayReverse.rankings,
-                bestPalace: dayBest?.palace,
+                bestPalace: dayTopItem?.palace,
+                selectedPalace: dayPickedPalace,
+                onSelectPalace: setDayPickedPalace,
+                conditionLabel: `${formatDisplayDate(dayDate)} の日盤`,
                 profileKey: 'nichiban',
                 showScale: true,
                 chips: dayFavoriteChips,

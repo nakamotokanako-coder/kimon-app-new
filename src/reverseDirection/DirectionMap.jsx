@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
   BEARING_LABELS,
+  MAP_FAN,
   MAP_FAN_COLORS,
   bearingFor,
   buildFanLayerSpecs,
@@ -95,43 +96,33 @@ function describeCenterIndicatorKichi(direction) {
   };
 }
 
-// 地図中心レティクル（照準リング）。位置は L.marker.setLatLng で移動するだけの
-// 静的マーカーとして扱い、HTML（中身）だけを centerOffset の変化で差し替える。
-const CENTER_RETICLE_ICON_SIZE = [130, 100];
-const CENTER_RETICLE_ICON_ANCHOR = [65, 32]; // リングの中心（幅中央・高さ32px）を基準点に合わせる
+// 距離を切り替えるボタンの選択肢(km)。時盤は近場、日盤は遠出の距離。
+const DISTANCE_CHOICES = {
+  jiban: [0.5, 2, 5, 10],
+  nichiban: [50, 100, 200],
+};
+// 方位を選んで場所を探すとき、何kmまでを探すか（距離を選んでいないときの既定）。
+const DEFAULT_DIRECTION_SEARCH_KM = { jiban: 2, nichiban: 100 };
 
-// export: HTML生成のみを純関数として単体テストするため（Leafletのmove/moveend実配線は
-// jsdomでは検証しないため、中身の組み立てロジックはここで直接検証する）。
-export function buildCenterReticleHtml(centerOffset) {
-  if (!centerOffset) return '';
-  const ticks = `
-    <span class="direction-map-reticle-tick is-n" aria-hidden="true"></span>
-    <span class="direction-map-reticle-tick is-e" aria-hidden="true"></span>
-    <span class="direction-map-reticle-tick is-s" aria-hidden="true"></span>
-    <span class="direction-map-reticle-tick is-w" aria-hidden="true"></span>
-  `;
-  if (centerOffset.isNearBase) {
-    return `
-      <div class="direction-map-reticle">
-        <div class="direction-map-reticle-ring" style="--reticle-color: var(--accent);">
-          ${ticks}
-          <span class="direction-map-reticle-label">◎</span>
-        </div>
-        <div class="direction-map-reticle-kichi" style="background: var(--accent);">◎ 基準点</div>
-      </div>
-    `;
-  }
-  const { direction } = centerOffset;
-  const kichi = describeCenterIndicatorKichi(direction);
-  return `
-    <div class="direction-map-reticle">
-      <div class="direction-map-reticle-ring" style="--reticle-color: ${kichi.color};">
-        ${ticks}
-        <span class="direction-map-reticle-label">${escapeHtml(direction?.label || '-')}</span>
-      </div>
-      <div class="direction-map-reticle-kichi" style="background: ${kichi.color};">${escapeHtml(kichi.label)} ${scoreText(direction?.score ?? 0)}</div>
-    </div>
-  `;
+function distanceChoiceLabel(km) {
+  return km < 1 ? `${Math.round(km * 1000)}m` : `${km}km`;
+}
+
+// 選んだ方位の短い説明。点数・吉凶と、その方位に入っているもの（reverseDirection.js の reasons）だけで作る。
+const DIRECTION_TONE_TEXT = {
+  daikichi: 'とくに使いやすい方位です。',
+  shokichi: '使いやすい方位です。',
+  churitsu: '良くも悪くもない方位です。',
+  kyo: 'できれば避けたい方位です。',
+};
+
+export function describeDirection(item) {
+  if (!item) return '';
+  const tone = getMiniBoardToneClass(item.score, item.palaceScore);
+  const gate = item.palaceData?.hachimon;
+  const others = (item.reasons || []).filter((reason) => reason && reason !== gate).slice(0, 3);
+  const lead = DIRECTION_TONE_TEXT[tone] || '';
+  return others.length ? `${lead}${others.join('・')}が入っています。` : lead;
 }
 
 // 距離リングのラベル位置（基準点からの方位角）と、表示する最小の輪の半径(px)。
@@ -239,6 +230,13 @@ export default function DirectionMap({
   // PR-2.6/PR-D2: お気に入りの「フルリスト」節を独立して開閉する（既定は従来どおり表示）。
   // 時盤お散歩(jiban)・日盤遠出(nichiban)の新レイアウトが「すべて見る」タップで true にする。
   showFavoritesSection = true,
+  // 選んでいる方位（ユーザーが押した方位）。bestPalace（一番評価の高い方位）とは別に持つ。
+  selectedPalace = null,
+  onSelectPalace,
+  conditionLabel = '',   // 選んだ方位のパネルに小さく出す条件（例: 17:00-19:00 の時盤）
+  goodOnly,              // 設定「凶方位の表示」の逆（渡されたときは「吉方位のみ表示」と連動する）
+  onGoodOnlyChange,
+  onOpenDetail,          // 選んだ方位の詳しい内容（方位詳細）へ
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jiban・日盤遠出=nichiban共通）。
@@ -258,6 +256,11 @@ export default function DirectionMap({
   const [searchResults, setSearchResults] = useState([]);
   const [kichiOnlyPlaces, setKichiOnlyPlaces] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null);
+  // 選んだ方位のパネルで選んでいる場所の種類と、距離の切り替え
+  const [panelCategory, setPanelCategory] = useState('カフェ');
+  const [distanceKm, setDistanceKm] = useState(null);
+  const onSelectPalaceRef = useRef(onSelectPalace);
+  onSelectPalaceRef.current = onSelectPalace;
   const [editingFavoriteKey, setEditingFavoriteKey] = useState(null);
   const [favoriteLabelDraft, setFavoriteLabelDraft] = useState('');
   const [liveOn, setLiveOn] = useState(false);
@@ -297,9 +300,6 @@ export default function DirectionMap({
   const mapNodeRef = useRef(null);
   const layerGroupRef = useRef(null);
   const liveLayerRef = useRef(null);
-  // 地図中心レティクル: 主描画（layerGroupRef）の clearLayers() の影響を受けないよう独立レイヤーに置く。
-  const centerReticleLayerRef = useRef(null);
-  const centerReticleMarkerRef = useRef(null);
   const watchIdRef = useRef(null);
   const viewKeyRef = useRef('');
   const lastAreaSearchRef = useRef(null);
@@ -328,10 +328,24 @@ export default function DirectionMap({
     () => decoratePlaces(favorites, center, rankings, bearingOptions),
     [bearingOptions, center, favorites, rankings],
   );
-  const visibleSearchResults = useMemo(
-    () => filterKichiPlaces(searchResults, kichiOnlyPlaces),
-    [kichiOnlyPlaces, searchResults],
+  // 「吉方位のみ表示」: 設定の「凶方位の表示」と同じ値を使う（単体で使うときは自前の state）。
+  const kichiOnly = typeof goodOnly === 'boolean' ? goodOnly : kichiOnlyPlaces;
+  const setKichiOnly = (value) => {
+    if (typeof goodOnly === 'boolean' && onGoodOnlyChange) onGoodOnlyChange(value);
+    else setKichiOnlyPlaces(value);
+  };
+  const selectedItem = useMemo(
+    () => (selectedPalace ? (rankings || []).find((item) => item.palace === selectedPalace) || null : null),
+    [rankings, selectedPalace],
   );
+  // 方位を選んでいるときは、その方位の中にある場所だけを出す（方位 × 場所の種類）。
+  const visibleSearchResults = useMemo(
+    () => (selectedItem
+      ? searchResults.filter((place) => place.direction?.palace === selectedItem.palace)
+      : filterKichiPlaces(searchResults, kichiOnly)),
+    [kichiOnly, searchResults, selectedItem],
+  );
+  const distanceChoices = DISTANCE_CHOICES[profileKey] || DISTANCE_CHOICES.jiban;
   const numberedSearchResults = useMemo(
     () => visibleSearchResults.slice(0, 8).map((item, index) => ({
       item,
@@ -564,6 +578,30 @@ export default function DirectionMap({
     }
   };
 
+  // 距離を切り替える: 基準点からその距離までが入るように地図を合わせる。
+  const fitDistance = (km) => {
+    setDistanceKm(km);
+    const map = mapRef.current;
+    if (!map) return;
+    map.fitBounds(L.latLng(center[0], center[1]).toBounds(km * 2000), { animate: false });
+  };
+
+  // 選んだ方位の扇の中を探す: 地図をその扇に合わせてから、今までどおりの検索をする。
+  // 結果は visibleSearchResults で、その方位に入る場所だけに絞られる。
+  const runDirectionSearch = async (word) => {
+    const map = mapRef.current;
+    if (map && selectedItem) {
+      const angle = bearingFor(directionIndexFor(selectedItem), bearingOptions);
+      const half = MAP_FAN.sectorDeg / 2;
+      const km = distanceKm || DEFAULT_DIRECTION_SEARCH_KM[profileKey] || DEFAULT_DIRECTION_SEARCH_KM.jiban;
+      map.fitBounds(
+        L.latLngBounds(sectorPolygon(center, angle - half, angle + half, km * 1000, 0)),
+        { animate: false, padding: [16, 16] },
+      );
+    }
+    await runMapSearch(word);
+  };
+
   const runAreaSearch = async () => {
     const last = lastAreaSearchRef.current;
     if (!last || mapSearching) return;
@@ -635,7 +673,6 @@ export default function DirectionMap({
 
     layerGroupRef.current = L.layerGroup().addTo(map);
     liveLayerRef.current = L.layerGroup().addTo(map);
-    centerReticleLayerRef.current = L.layerGroup().addTo(map);
   }, [center, profile.initialZoom]);
 
   // map-first(PR-1)レイアウトではコンテナ高さが flex:1 で可変になるため、
@@ -693,7 +730,7 @@ export default function DirectionMap({
       const control = L.control.layers(
         { [`${ic('🗺')} 地図`]: gsiPale, [`${ic('📷')} 航空写真`]: gsiPhoto },
         null,
-        { position: 'bottomright', collapsed: false },
+        { position: 'topright', collapsed: true },
       );
       control.addTo(map);
       baseLayersRef.current = [gsiPale, gsiPhoto];
@@ -763,47 +800,6 @@ export default function DirectionMap({
       map.off('moveend zoomend', updateCenterOffset);
     };
   }, [rankings, bearingOptions]);
-
-  // 地図中心レティクル(位置)。このハンドラは位置更新（setLatLng）専用。
-  // 重い処理・DOM生成・状態更新を追加してはならない（ドラッグ中に毎フレーム発火するため）。
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return undefined;
-    const handleMove = () => {
-      centerReticleMarkerRef.current?.setLatLng(map.getCenter());
-    };
-    map.on('move', handleMove);
-    return () => {
-      map.off('move', handleMove);
-    };
-  }, []);
-
-  // 地図中心レティクル(中身): 方位名・吉凶ラベル・色は centerOffset（上のmoveend/zoomend
-  // エフェクトが更新）の変化でのみ差し替える。フルスクリーン切替時も位置・中身を
-  // 明示的に一度再計算する。layerGroupRef（主描画）とは独立した centerReticleLayerRef
-  // に描画するため、主描画のclearLayers()の影響を受けない。
-  useEffect(() => {
-    const map = mapRef.current;
-    const layer = centerReticleLayerRef.current;
-    if (!map || !layer || !centerOffset) return;
-    const icon = L.divIcon({
-      className: '',
-      html: buildCenterReticleHtml(centerOffset),
-      iconSize: CENTER_RETICLE_ICON_SIZE,
-      iconAnchor: CENTER_RETICLE_ICON_ANCHOR,
-    });
-    if (!centerReticleMarkerRef.current) {
-      centerReticleMarkerRef.current = L.marker(map.getCenter(), {
-        icon,
-        interactive: false,
-        keyboard: false,
-        zIndexOffset: 500,
-      }).addTo(layer);
-    } else {
-      centerReticleMarkerRef.current.setIcon(icon);
-      centerReticleMarkerRef.current.setLatLng(map.getCenter());
-    }
-  }, [centerOffset, isFullscreen]);
 
   useEffect(() => {
     if (!liveOn) return undefined;
@@ -899,13 +895,35 @@ export default function DirectionMap({
     const fanOuterKm = Number.isFinite(viewEdgeKm) && viewEdgeKm > profile.confirmKm ? viewEdgeKm : null;
     const labelOuterM = (fanOuterKm || profile.fadeMaxKm) * 1000;
 
-    const specs = buildFanLayerSpecs(rankings, bestPalace, fanBearingOptions, profileKey, fanOuterKm);
+    // 金の輪郭は「選んでいる方位」に付ける（一番評価の高い方位は、ラベルの BEST で示す）。
+    const specs = buildFanLayerSpecs(rankings, selectedPalace || null, fanBearingOptions, profileKey, fanOuterKm);
     specs.forEach((spec) => {
+      // 方位を選んだあとは、ほかの方位を少し薄くする（消しはしない。8方位を比べられるように）。
+      const dim = Boolean(selectedPalace) && spec.item.palace !== selectedPalace;
+      const options = dim
+        ? {
+          ...spec.options,
+          opacity: (spec.options.opacity ?? 1) * 0.6,
+          fillOpacity: (spec.options.fillOpacity ?? 0) * 0.5,
+        }
+        : spec.options;
       L.polygon(
         sectorPolygon(center, spec.from, spec.to, spec.outer, spec.inner),
-        spec.options,
+        options,
       ).addTo(layerGroup);
     });
+
+    // 扇そのものを「方位を選ぶボタン」にする（見えない当たり判定を扇の形で重ねる）。
+    if (onSelectPalaceRef.current) {
+      (rankings || []).forEach((item) => {
+        const angle = bearingFor(directionIndexFor(item), fanBearingOptions);
+        const half = MAP_FAN.sectorDeg / 2;
+        L.polygon(
+          sectorPolygon(center, angle - half, angle + half, labelOuterM, 0),
+          { stroke: false, fillColor: '#000', fillOpacity: 0, className: 'direction-fan-hit' },
+        ).on('click', () => onSelectPalaceRef.current?.(item.palace)).addTo(layerGroup);
+      });
+    }
 
     L.circleMarker(center, {
       radius: 6,
@@ -914,6 +932,17 @@ export default function DirectionMap({
       fillOpacity: 1,
       weight: 2,
     }).bindTooltip(`基準点: ${location.name}`, { permanent: false }).addTo(layerGroup);
+    // 地図の中央（基準点）には、基準点の名前だけを出す。選んだ方位の情報は地図の下のパネルに出す。
+    L.marker(center, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div class="direction-base-label">◎ ${escapeHtml(location.name)}</div>`,
+        iconSize: [140, 20],
+        iconAnchor: [70, -8],
+      }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(layerGroup);
 
     profile.rings.forEach((ring) => {
       const isConfirm = ring.km === profile.confirmKm;
@@ -960,18 +989,22 @@ export default function DirectionMap({
 
     (rankings || []).forEach((item) => {
       const labelAngle = bearingFor(directionIndexFor(item), fanBearingOptions);
-      const labelSize = isFullscreen ? [54, 38] : [44, 28];
+      const labelSize = isFullscreen ? [58, 44] : [50, 40];
+      const isSelected = item.palace === selectedPalace;
+      const isBest = item.palace === bestPalace;
       const labelPoint = fitLabelInView(map, center, destPoint(center, labelAngle, labelOuterM * 0.72), labelSize);
       const score = labelMode.showScore
         ? `<br><span style="color:${scoreColor(item.tone)}">${scoreText(item.score)}</span>`
         : '';
       const icon = L.divIcon({
         className: '',
-        html: `<div class="direction-map-label ${labelMode.className}">${item.label}${score}</div>`,
+        html: `<div class="direction-map-label ${labelMode.className} ${toneClass(item.tone)}${isSelected ? ' is-selected' : ''}${selectedPalace && !isSelected ? ' is-dim' : ''}">${isBest ? '<i class="direction-map-label-best">BEST</i>' : ''}${item.label}${score}</div>`,
         iconSize: labelSize,
         iconAnchor: [labelSize[0] / 2, labelSize[1] / 2],
       });
-      L.marker(labelPoint, { icon, interactive: false }).addTo(layerGroup);
+      const canSelect = Boolean(onSelectPalaceRef.current);
+      const labelMarker = L.marker(labelPoint, { icon, interactive: canSelect, keyboard: false }).addTo(layerGroup);
+      if (canSelect) labelMarker.on('click', () => onSelectPalaceRef.current?.(item.palace));
     });
 
     [
@@ -1030,6 +1063,7 @@ export default function DirectionMap({
     profileKey,
     rankings,
     searchResults,
+    selectedPalace,
     selectedPlace,
     viewEdgeKm,
     visibleSearchResults,
@@ -1080,20 +1114,41 @@ export default function DirectionMap({
         )}
         <button
           type="button"
-          className="direction-map-action"
-          onClick={() => setIsFullscreen((value) => !value)}
-        >
-          {isFullscreen ? '閉じる' : '⛶ 全画面'}
-        </button>
-        <button
-          type="button"
           className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
           onClick={toggleLiveLocation}
           aria-pressed={liveOn}
         >
           {liveOn ? '現在地ON' : '現在地'}
         </button>
+        {!isFullscreen && (
+          <button
+            type="button"
+            className={`direction-map-action direction-bearing-button ${bearingPanelOpen ? 'is-open' : ''}`}
+            aria-expanded={bearingPanelOpen}
+            onClick={() => setBearingPanelOpen((value) => !value)}
+          >
+            方位設定 <span aria-hidden="true">{bearingPanelOpen ? '▾' : '›'}</span>
+          </button>
+        )}
+        <button
+          type="button"
+          className="direction-map-action"
+          onClick={() => setIsFullscreen((value) => !value)}
+        >
+          {isFullscreen ? '閉じる' : '⛶ 全画面'}
+        </button>
       </div>
+
+      {!isFullscreen && bearingPanelOpen && (
+        <div className="direction-bearing-body">
+          <p className="direction-bearing-now">{BEARING_LABELS.heading}：{bearingSummary}</p>
+          <BearingControls
+            variant="compact"
+            value={{ mode: bearingMode, declination: useDeclination }}
+            onChange={handleBearingChange}
+          />
+        </div>
+      )}
 
       {isFullscreen && (
         <BearingControls
@@ -1131,52 +1186,45 @@ export default function DirectionMap({
                 {mapError.detail && <p className="direction-map-error-detail">詳細: {mapError.detail}</p>}
               </div>
             )}
-            {mapStatus && (!kichiOnlyPlaces || searchResults.length === 0) && <p className="direction-map-status">{mapStatus}</p>}
+            {selectedItem && searchResults.length > 0 && (
+              <p className="direction-map-status">
+                {visibleSearchResults.length > 0
+                  ? `${selectedItem.label}の範囲に${visibleSearchResults.length}件あります。`
+                  : `${selectedItem.label}の範囲には見つかりませんでした。距離を広げるか、ほかの種類でお試しください。`}
+              </p>
+            )}
+            {mapStatus && (selectedItem ? searchResults.length === 0 : (!kichiOnly || searchResults.length === 0)) && <p className="direction-map-status">{mapStatus}</p>}
             {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
           </>
         );
 
-        // PR-2.6/PR-D2: 「吉方位だけ」をチップ列の先頭へ移設
-        // （点線ボーダーの見た目違いで区別、フィルタ挙動そのものは既存のまま）。
-        // jiban（時盤お散歩）・nichiban（日盤遠出）共通の表示。
-        const searchBody = (profileKey === 'jiban' || profileKey === 'nichiban') ? (
+        const searchBody = (
           <>
             {searchForm}
-            <div className="direction-map-chips">
+            <div className="direction-map-chips" role="group" aria-label="場所の種類で探す">
+              {FACILITY_PRESETS.slice(0, 6).map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  disabled={mapSearching}
+                  onClick={() => (selectedItem ? runDirectionSearch(preset.label) : runMapSearch(preset.label))}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <div className="direction-map-filter">
+              <span>吉方位のみ表示</span>
               <button
                 type="button"
-                className={`direction-map-chip-toggle ${kichiOnlyPlaces ? 'on' : ''}`}
-                aria-pressed={kichiOnlyPlaces}
-                onClick={() => setKichiOnlyPlaces((value) => !value)}
+                className={`settings-switch${kichiOnly ? ' is-on' : ''}`}
+                aria-pressed={kichiOnly}
+                aria-label="吉方位のみ表示"
+                onClick={() => setKichiOnly(!kichiOnly)}
               >
-                ✓ 吉方位だけ
+                <span />
               </button>
-              {FACILITY_PRESETS.slice(0, 6).map((preset) => (
-                <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
-                  {preset.label}
-                </button>
-              ))}
             </div>
-            {searchStatusBlock}
-          </>
-        ) : (
-          <>
-            {searchForm}
-            <div className="direction-map-chips">
-              {FACILITY_PRESETS.slice(0, 6).map((preset) => (
-                <button key={preset.label} type="button" disabled={mapSearching} onClick={() => runMapSearch(preset.label)}>
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-            <label className="direction-kichi-filter">
-              <input
-                type="checkbox"
-                checked={kichiOnlyPlaces}
-                onChange={(event) => setKichiOnlyPlaces(event.target.checked)}
-              />
-              吉方位だけ
-            </label>
             {searchStatusBlock}
           </>
         );
@@ -1214,30 +1262,6 @@ export default function DirectionMap({
         );
       })()}
 
-      {!isFullscreen && (
-        <div className={`direction-bearing-accordion ${bearingPanelOpen ? 'is-open' : ''}`}>
-          <button
-            type="button"
-            className="direction-bearing-head"
-            aria-expanded={bearingPanelOpen}
-            onClick={() => setBearingPanelOpen((value) => !value)}
-          >
-            <span className="direction-bearing-label">{BEARING_LABELS.heading}</span>
-            <span className="direction-bearing-now">{bearingSummary}</span>
-            <span className="direction-bearing-caret" aria-hidden="true">{bearingPanelOpen ? '▲' : '▼'}</span>
-          </button>
-          {bearingPanelOpen && (
-            <div className="direction-bearing-body">
-              <BearingControls
-                variant="compact"
-                value={{ mode: bearingMode, declination: useDeclination }}
-                onChange={handleBearingChange}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Leaflet上へのposition:absoluteオーバーレイUIは実機でペイント不発の実績あり
           （PR-2.5, PR-2.6）。in-flow配置（このヘッダー行・下の凡例）を維持すること。 */}
       <div ref={mapNodeRef} className="direction-map" aria-label="地図上の吉方位扇表示" />
@@ -1251,6 +1275,83 @@ export default function DirectionMap({
           このエリアを検索
         </button>
       )}
+
+      {!isFullscreen && (
+        <div className="direction-distance" role="group" aria-label="地図に入れる距離">
+          {distanceChoices.map((km) => (
+            <button
+              key={km}
+              type="button"
+              className={distanceKm === km ? 'is-active' : ''}
+              aria-pressed={distanceKm === km}
+              onClick={() => fitDistance(km)}
+            >
+              {distanceChoiceLabel(km)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!isFullscreen && onSelectPalace && !selectedItem && (
+        <p className="direction-select-hint">地図の方位を押すと、その方位にある場所を探せます。</p>
+      )}
+
+      {!isFullscreen && selectedItem && (() => {
+        const tone = getMiniBoardToneClass(selectedItem.score, selectedItem.palaceScore);
+        const gate = selectedItem.palaceData?.hachimon;
+        return (
+          <div className="direction-select-panel" aria-label="選んだ方位">
+            <button
+              type="button"
+              className="direction-select-close"
+              aria-label="方位の選択をやめる"
+              onClick={() => onSelectPalace?.(null)}
+            >
+              ×
+            </button>
+            <div className="direction-select-info">
+              {conditionLabel && <p className="direction-select-cond">{conditionLabel}</p>}
+              <div className="direction-select-head">
+                <strong>{selectedItem.label}</strong>
+                <b className="lat">{scoreText(selectedItem.score)}</b>
+                <span className={`direction-select-badge is-${tone}`}>{BADGE_LABEL[tone]}</span>
+                {selectedItem.palace === bestPalace && <span className="direction-select-best lat">BEST</span>}
+              </div>
+              {gate && <p className="direction-select-gate">{gate}</p>}
+              <p className="direction-select-text">{describeDirection(selectedItem)}</p>
+              {onOpenDetail && (
+                <button type="button" className="direction-select-detail" onClick={() => onOpenDetail(selectedItem)}>
+                  この方位を詳しく見る ›
+                </button>
+              )}
+            </div>
+            <div className="direction-select-search">
+              <p className="direction-select-lead">この方位にある場所を探す</p>
+              <div className="direction-select-cats" role="group" aria-label="探す場所の種類">
+                {FACILITY_PRESETS.slice(0, 6).map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    className={panelCategory === preset.label ? 'is-active' : ''}
+                    aria-pressed={panelCategory === preset.label}
+                    onClick={() => setPanelCategory(preset.label)}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="direction-select-cta"
+                disabled={mapSearching}
+                onClick={() => runDirectionSearch(panelCategory)}
+              >
+                {mapSearching ? '探しています…' : `${selectedItem.label}でスポットを探す →`}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {showPlacePanel && ((showFavoritesSection && decoratedFavorites.length > 0) || visibleSearchResults.length > 0 || selectedPlace) && (
         <div className="direction-place-panel">
