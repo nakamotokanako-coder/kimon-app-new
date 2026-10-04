@@ -16,6 +16,7 @@
     "@upstash/redis": "^1.38.0",
     "budoux": "^0.9.3",
     "leaflet": "^1.9.4",
+    "nodemailer": "^10.0.14",
     "papaparse": "^5.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

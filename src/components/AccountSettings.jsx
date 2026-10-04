@@ -365,6 +365,8 @@ export default function AccountSettings() {
         setError('短時間に複数回送信されています。少し時間をおいてお試しください。');
       } else if (res.status === 403) {
         setError('このアプリは現在、招待された方だけがご利用いただけます。');
+      } else if (res.status === 502) {
+        setError('メールを送れませんでした。時間をおいて、もう一度お試しください。');
       } else if (!res.ok) {
         setError('送信に失敗しました。時間をおいてお試しください。');
       } else {
