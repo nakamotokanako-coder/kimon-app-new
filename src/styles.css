@@ -8205,141 +8205,331 @@ html[data-text-size='large'] {
   display: grid;
   justify-items: center;
   gap: 6px;
-  padding-bottom: 26px;
+  padding-bottom: 34px;
   text-align: center;
 }
 
 .intro-mark {
-  width: 76px;
+  width: 64px;
   margin-bottom: 10px;
-  font-size: 1.9rem;
+  font-size: 1.6rem;
 }
 
 .intro-kicker {
   margin: 0;
   color: var(--text-accent);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: 0.28em;
 }
 
-.intro-title {
+.intro-name {
   margin: 0;
+  color: var(--text-secondary);
   font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
 }
 
-.intro-lead {
-  margin: 12px 0 0;
-  font-size: 1.02rem;
+.intro-title {
+  margin: 14px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 7.6vw, 2.2rem);
   font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.04em;
+  word-break: keep-all;
+}
+
+.intro-hero-body {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.intro-page p {
+  margin: 0;
+}
+
+.intro-hero-body p,
+.intro-question p,
+.intro-usage p,
+.intro-prose p,
+.intro-compare p,
+.intro-price p,
+.intro-final p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+
+.intro-hero-three {
+  display: grid;
+  gap: 2px;
+  color: var(--text-primary) !important;
+  font-family: var(--font-display);
+  font-size: 1.02rem !important;
+  font-weight: 700;
+}
+
+.intro-sub {
+  margin-top: 16px !important;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
   line-height: 1.8;
 }
 
-.intro-sub,
-.intro-note {
-  margin: 6px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  line-height: 1.7;
-}
-
 .intro-section {
-  padding: 22px 0;
-  border-top: 1px solid var(--border-subtle);
+  padding: 34px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
 }
 
 .intro-heading {
-  margin: 0 0 14px;
+  margin: 0 0 18px;
   color: var(--text-accent);
   font-family: var(--font-display);
-  font-size: 1rem;
-  letter-spacing: 0.12em;
+  font-size: 0.86rem;
+  letter-spacing: 0.2em;
 }
 
-.intro-features {
+/* 大きな一言（2つの使い方・盤は簡略化しない） */
+.intro-statement {
   display: grid;
-  gap: 16px;
+  gap: 2px;
+  margin: 0 0 18px !important;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 5.8vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* できること: 番号 → 大きな問い → 短い説明 */
+.intro-questions {
+  display: grid;
+  gap: 30px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.intro-feature {
+.intro-question {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
+  gap: 8px;
 }
 
-.intro-feature-no {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  aspect-ratio: 1;
-  border: 1px solid var(--accent-edge);
-  border-radius: 50%;
+.intro-question-no {
   color: var(--text-accent);
   font-size: 0.86rem;
   font-weight: 700;
+  letter-spacing: 0.14em;
 }
 
-.intro-feature strong {
-  display: block;
-  font-size: 0.98rem;
+.intro-question h4,
+.intro-usage h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 700;
   line-height: 1.5;
 }
 
-.intro-feature p,
-.intro-compare p,
-.intro-price {
-  margin: 4px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.86rem;
-  line-height: 1.8;
+/* 03「その方位には、何がある？」は、このアプリの一番の違い。少し大きく、薄いカードに載せる。 */
+.intro-question.is-featured {
+  padding: 20px 18px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 16px;
+  background: var(--bg-cell);
 }
 
-.intro-price {
+.intro-question.is-featured h4 {
+  font-size: 1.42rem;
+}
+
+.intro-emphasis {
+  display: grid;
+  margin-top: 6px !important;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--accent-edge) 70%, transparent);
+  color: var(--text-primary) !important;
+  font-family: var(--font-display);
+  font-size: 1.02rem !important;
+  font-weight: 700;
+  line-height: 1.7 !important;
+}
+
+.intro-question-list {
+  display: grid;
+  gap: 6px;
+  margin: 2px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intro-question-list li {
+  padding-left: 12px;
+  border-left: 2px solid var(--accent-edge);
   color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.intro-closing {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+}
+
+.intro-tag {
+  justify-self: start;
+  margin-top: 4px !important;
+  padding: 2px 10px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 90%, transparent);
+  border-radius: 999px;
+  color: var(--text-secondary) !important;
+  font-size: 0.72rem !important;
+  line-height: 1.7 !important;
+}
+
+/* 2つの使い方（時盤・日盤） */
+.intro-usages {
+  display: grid;
+  gap: 12px;
+}
+
+.intro-usage {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  border-radius: 16px;
+  background: var(--bg-cell);
+}
+
+.intro-usage-board {
+  color: var(--text-accent);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.intro-prose {
+  display: grid;
+  gap: 14px;
+}
+
+.intro-aside {
+  margin-top: 18px !important;
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent-edge);
+  background: color-mix(in srgb, var(--bg-elevated) 40%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.9;
+}
+
+/* ここから下はサービスの情報（ログイン・料金）。見た目を一段おとなしくする。 */
+.intro-section.is-service {
+  padding: 26px 0;
+}
+
+.intro-section.is-service .intro-heading {
+  margin-bottom: 12px;
+  color: var(--text-secondary);
 }
 
 .intro-compare {
   display: grid;
-  gap: 10px;
+  gap: 16px;
 }
 
 .intro-compare > div {
-  padding: 12px 14px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  background: var(--bg-card);
+  display: grid;
+  gap: 4px;
 }
 
-.intro-compare > div.is-full {
-  border-color: var(--accent-edge);
+.intro-compare strong {
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
-.intro-compare-label {
-  color: var(--text-accent);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.intro-compare p,
+.intro-price p {
+  font-size: 0.84rem;
+}
+
+.intro-price {
+  display: grid;
+  gap: 6px;
+}
+
+.intro-price-status {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.intro-price-plans {
+  display: grid;
+  gap: 2px;
+  margin: 8px 0 0;
+}
+
+.intro-price-plans dt {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.intro-price-plans dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.intro-price-note {
+  font-size: 0.76rem !important;
+}
+
+/* 最後の案内 */
+.intro-final {
+  display: grid;
+  gap: 14px;
+  padding: 40px 0 8px;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  text-align: center;
+}
+
+.intro-final-copy {
+  display: grid;
+  gap: 2px;
+  color: var(--text-primary) !important;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 6.4vw, 1.8rem) !important;
+  font-weight: 700;
+  line-height: 1.5 !important;
+}
+
+.intro-final-three span {
+  display: block;
+}
+
+.intro-final-three b {
+  color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .intro-actions {
   display: grid;
-  gap: 4px;
-  padding-top: 8px;
+  gap: 6px;
+  padding-top: 10px;
 }
 
 .intro-actions .account-btn {
   width: 100%;
-  min-height: 48px;
+  min-height: 50px;
 }
 
-@media (min-width: 560px) {
-  .intro-compare {
+@media (min-width: 600px) {
+  .intro-usages {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -9147,7 +9337,7 @@ html[data-text-size='large'] {
 .home-today-main,
 .hub-body strong,
 .intro-title,
-.intro-lead,
+.intro-statement,
 .reverse-header h2 {
   text-wrap: balance;
 }
