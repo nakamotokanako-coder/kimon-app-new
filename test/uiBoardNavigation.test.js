@@ -81,9 +81,10 @@ describe('共通フル盤導線', () => {
     expect(rankingSrc).toContain("onOpenBoard({ date: item.date, boardType: '日' })");
   });
 
-  it('格局検索結果の展開内から時盤を開ける', () => {
+  it('格局検索結果の展開内から、調べた盤（時盤・日盤）を開ける', () => {
     expect(kakkyokuSrc).toContain('<MiniBoardGrid rankings={rankings} />');
-    expect(kakkyokuSrc).toContain("onOpenBoard({ date: item.date, hour: item.hour, boardType: '時' })");
+    expect(kakkyokuSrc).toContain('{ date: item.date, hour: item.hour, boardType: TIME_BOARD_TYPE }');
+    expect(kakkyokuSrc).toContain('{ date: item.date, boardType: DAY_BOARD_TYPE }');
   });
 
   it('奇門三盤ルート結果も共通遷移で時盤を開く', () => {

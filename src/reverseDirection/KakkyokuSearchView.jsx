@@ -5,13 +5,27 @@ import {
   scanSpecialKakkyoku,
 } from './kakkyokuSearch.js';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
-import { buildReverseBoard } from './reverseDirection.js';
+import { buildDayReverseBoard, buildReverseBoard, DAY_BOARD_TYPE, TIME_BOARD_TYPE } from './reverseDirection.js';
 
-const PERIODS = [
-  { key: 'week', label: '7日', days: 7 },
-  { key: 'half', label: '14日', days: 14 },
-  { key: 'month', label: '30日', days: 30 },
+// 調べる盤。時盤は1日に12盤あるので期間は短め、日盤は1日1盤なので長い期間を選べる。
+const BOARD_TYPES = [
+  { key: TIME_BOARD_TYPE, label: '時盤', note: '近場・今日からの外出に' },
+  { key: DAY_BOARD_TYPE, label: '日盤', note: '遠出・旅行の日取りに' },
 ];
+
+const PERIODS_BY_BOARD = {
+  [TIME_BOARD_TYPE]: [
+    { key: 'week', label: '7日', days: 7 },
+    { key: 'half', label: '14日', days: 14 },
+    { key: 'month', label: '30日', days: 30 },
+  ],
+  [DAY_BOARD_TYPE]: [
+    { key: 'month', label: '1ヶ月', days: 31 },
+    { key: 'q', label: '3ヶ月', days: 92 },
+    { key: 'half', label: '半年', days: 183 },
+    { key: 'year', label: '1年', days: 365 },
+  ],
+};
 
 function weekdayClass(weekday) {
   if (weekday === '土') return 'is-sat';
@@ -20,7 +34,13 @@ function weekdayClass(weekday) {
 }
 
 function KakkyokuResultCard({ item, isFeatured, isOpen, onToggle, onOpenBoard }) {
-  const rankings = isOpen ? buildReverseBoard({ date: item.date, hour: item.hour }).rankings : [];
+  const isDay = item.boardType === DAY_BOARD_TYPE;
+  let rankings = [];
+  if (isOpen) {
+    rankings = isDay
+      ? buildDayReverseBoard({ date: item.date }).rankings
+      : buildReverseBoard({ date: item.date, hour: item.hour }).rankings;
+  }
   return (
     <div className="kakkyoku-result-wrap">
       <button
@@ -61,7 +81,9 @@ function KakkyokuResultCard({ item, isFeatured, isOpen, onToggle, onOpenBoard })
           <button
             type="button"
             className="reverse-full-board-button"
-            onClick={() => onOpenBoard({ date: item.date, hour: item.hour, boardType: '時' })}
+            onClick={() => onOpenBoard(isDay
+              ? { date: item.date, boardType: DAY_BOARD_TYPE }
+              : { date: item.date, hour: item.hour, boardType: TIME_BOARD_TYPE })}
           >
             フル盤を見る
           </button>
@@ -78,6 +100,7 @@ export default function KakkyokuSearchView({
   onOpenBoard,
 }) {
   const [selectedNames, setSelectedNames] = useState(['青龍返首', '飛鳥跌穴']);
+  const [boardType, setBoardType] = useState(TIME_BOARD_TYPE);
   const [periodKey, setPeriodKey] = useState('month');
   const [sortMode, setSortMode] = useState('date');
   const [hasSearched, setHasSearched] = useState(false);
@@ -85,7 +108,17 @@ export default function KakkyokuSearchView({
   const [openResultKey, setOpenResultKey] = useState(null);
 
   const selectedSet = useMemo(() => new Set(selectedNames), [selectedNames]);
-  const period = PERIODS.find((item) => item.key === periodKey) || PERIODS[2];
+  const periods = PERIODS_BY_BOARD[boardType];
+  const period = periods.find((item) => item.key === periodKey) || periods[0];
+  const changeBoardType = (next) => {
+    if (next === boardType) return;
+    setBoardType(next);
+    setPeriodKey('month');
+    // 盤を替えたら、前の盤の結果は消す（時盤の結果を日盤の結果と見間違えないように）。
+    setHasSearched(false);
+    setSearchParams(null);
+    setOpenResultKey(null);
+  };
   const selectedCount = selectedNames.length;
 
   const result = useMemo(() => {
@@ -95,6 +128,7 @@ export default function KakkyokuSearchView({
       days: searchParams.days,
       selectedNames: searchParams.selectedNames,
       sortMode,
+      boardType: searchParams.boardType,
     });
   }, [searchParams, sortMode, startDate]);
   const maxResultScore = useMemo(() => (
@@ -115,7 +149,7 @@ export default function KakkyokuSearchView({
   const search = () => {
     if (selectedCount === 0) return;
     setHasSearched(true);
-    setSearchParams({ days: period.days, selectedNames });
+    setSearchParams({ days: period.days, selectedNames, boardType });
   };
 
   return (
@@ -123,7 +157,7 @@ export default function KakkyokuSearchView({
       <div className="kakkyoku-hero">
         <div>
           <span className="reverse-section-kicker lat">special pattern</span>
-          <p>時盤専用</p>
+          <p>時盤・日盤</p>
           <h3>特別格局の出現検索</h3>
           <span>狙った大吉格が、いつ・どの方位に出るかを探す</span>
         </div>
@@ -136,9 +170,27 @@ export default function KakkyokuSearchView({
       </div>
 
       <div className="kakkyoku-period">
+        <p>調べる盤</p>
+        <div role="group" aria-label="調べる盤">
+          {BOARD_TYPES.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={boardType === item.key ? 'is-active' : ''}
+              aria-pressed={boardType === item.key}
+              onClick={() => changeBoardType(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <small className="kakkyoku-board-note">{BOARD_TYPES.find((item) => item.key === boardType)?.note}</small>
+      </div>
+
+      <div className="kakkyoku-period">
         <p>検索期間</p>
         <div>
-          {PERIODS.map((item) => (
+          {periods.map((item) => (
             <button
               key={item.key}
               type="button"

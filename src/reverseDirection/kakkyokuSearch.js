@@ -3,6 +3,7 @@ import { lookupChito } from '../kimon/loadChito.js';
 import { getJukanShoui, getKakkyokuShoui } from '../kimon/loadShouiDict.js';
 import { scoreBoard } from '../kimon/scoreEngine.js';
 import {
+  DAY_BOARD_TYPE,
   PALACE_DIRECTIONS,
   TIME_BOARD_TYPE,
   TIME_SLOTS,
@@ -79,18 +80,29 @@ export function sortKakkyokuSearchRows(rows, sortMode) {
   });
 }
 
-export function scanSpecialKakkyoku({ startDate, days = 30, selectedNames, sortMode = 'date' }) {
+/** 日盤は1日に盤が1つ（時刻なし） */
+const DAY_SLOTS = [{ hour: 0, label: '日盤' }];
+
+/**
+ * 選んだ格局が成立する日時と方位を探す。
+ * @param {string} [boardType] - '時'（既定。1日12の時盤を調べる）または '日'（1日1つの日盤を調べる）
+ */
+export function scanSpecialKakkyoku({ startDate, days = 30, selectedNames, sortMode = 'date', boardType = TIME_BOARD_TYPE }) {
   const selected = [...new Set((selectedNames || []).filter((name) => SPECIAL_KAKKYOKU_NAMES.includes(name)))];
   if (selected.length === 0) return { rows: [], errors: [] };
 
+  const isDay = boardType === DAY_BOARD_TYPE;
+  const slots = isDay ? DAY_SLOTS : TIME_SLOTS;
   const rows = [];
   const errors = [];
 
   for (let dayIndex = 0; dayIndex < days; dayIndex += 1) {
     const date = addDays(startDate, dayIndex);
-    for (const slot of TIME_SLOTS) {
+    for (const slot of slots) {
       try {
-        const board = buildBoard({ date, hour: slot.hour, boardType: TIME_BOARD_TYPE });
+        const board = isDay
+          ? buildBoard({ date, boardType: DAY_BOARD_TYPE })
+          : buildBoard({ date, hour: slot.hour, boardType: TIME_BOARD_TYPE });
         const score = scoreBoard(board);
         const chitoRow = lookupChito(`${board.meta.kyokusu}${board.meta.eto}`);
         const dateMeta = formatRankingDate(date);
@@ -109,6 +121,7 @@ export function scanSpecialKakkyoku({ startDate, days = 30, selectedNames, sortM
             ...direction,
             date,
             ...dateMeta,
+            boardType: isDay ? DAY_BOARD_TYPE : TIME_BOARD_TYPE,
             hour: slot.hour,
             timeLabel: slot.label,
             score: palaceScore.score,
