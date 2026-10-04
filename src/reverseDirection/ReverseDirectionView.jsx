@@ -33,6 +33,7 @@ import {
   favoriteKind,
 } from './mapSearch.js';
 import { DEFAULT_LOCATIONS } from './locations.js';
+import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
 
 // 画面の見出し。機能の名前ではなく使い方で呼び、専門の名前（tech）は小さく添える。
 // variant（'map' = 地図タブ / 'search' = 探すタブ）が渡されたときに使う。
@@ -966,7 +967,7 @@ export default function ReverseDirectionView({
 
             <FusionCard
               best={best}
-              boardKey={reverse.board.meta.kyokusu + reverse.board.meta.eto}
+              boardKey={makeKaisetsuKey(reverse.board.meta)}
               banLevel={reverse.board.score.ban_level}
               selAxis={selAxis}
               onAxisChange={setSelAxis}

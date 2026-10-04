@@ -8,7 +8,7 @@ import {
   scoreText,
 } from '../../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../../reverseDirection/reverseDirection.js';
-import { buildScoreBreakdown } from '../../kimon/palaceExplain.js';
+import { buildScoreBreakdown, dateBoundNote } from '../../kimon/palaceExplain.js';
 import { ProseText } from '../../kaisetsu/renderProse.jsx';
 import { lockedMessage } from '../../../lib/accessPolicy.js';
 
@@ -142,6 +142,7 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
             <div className="m-lead">{activeAxis.label}の読み</div>
             {readingNode}
           </div>
+          {dateBoundNote(best.palaceScore) && <p className="date-bound-note">{dateBoundNote(best.palaceScore)}</p>}
 
           <div className="l3-walk-tip">
             <p>500m以上・5分ほど滞在すると効果が出やすいとされます（目安の効果は5日）。</p>

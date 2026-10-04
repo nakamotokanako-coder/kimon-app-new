@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { computeAxisRanks, BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../reverseDirection/reverseDirection.js';
-import { buildScoreBreakdown, listKakkyoku } from '../kimon/palaceExplain.js';
+import { buildScoreBreakdown, dateBoundNote, listKakkyoku } from '../kimon/palaceExplain.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { ProseText } from '../kaisetsu/renderProse.jsx';
 import { lockedMessage } from '../../lib/accessPolicy.js';
@@ -214,6 +214,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
             <div className="reading-title">{axisLabel}</div>
             {readingNode}
           </div>
+          {dateBoundNote(palace.score) && <p className="date-bound-note">{dateBoundNote(palace.score)}</p>}
 
           <div className="why-card">
             <button

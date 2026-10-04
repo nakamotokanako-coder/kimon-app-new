@@ -7,7 +7,7 @@
 // 同一URLのレスポンスが Cookie で変わらないため、CDN(エッジ)で安全に長期キャッシュできる。
 // 課金者向けの mid・full は別エンドポイント /api/kaisetsu-full（private, no-store）で配信する。
 
-import { loadKaisetsu, buildPalaces } from '../lib/kaisetsuData.js';
+import { loadKaisetsu, buildPalaces, getBoard } from '../lib/kaisetsuData.js';
 
 export default function handler(req, res) {
   if (req.method !== 'GET') {
@@ -19,7 +19,7 @@ export default function handler(req, res) {
   if (!key) return res.status(400).json({ error: 'bad_request' });
 
   const { data, version } = loadKaisetsu();
-  const board = data[key];
+  const board = getBoard(data, key); // 日盤の鍵（…@日）なら日盤用の解説
   if (!board) return res.status(404).json({ error: 'unknown_key' });
 
   // short のみ（paid 指定なし）。認証非依存・short 固定なのでエッジで長期キャッシュ（3a-1 と同一）。

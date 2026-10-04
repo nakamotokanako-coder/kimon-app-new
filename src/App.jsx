@@ -14,6 +14,7 @@ import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
 import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
 import HomeView from './components/HomeView.jsx';
+import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
 import SearchHub from './components/SearchHub.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
@@ -400,7 +401,7 @@ export default function App() {
               <BoardGrid
                 palaces={board.palaces}
                 scores={board.score?.palaces}
-                kaisetsuKey={`${board.meta?.kyokusu || ''}${board.meta?.eto || ''}`}
+                kaisetsuKey={makeKaisetsuKey(board.meta)}
                 banLevel={board.banLevel}
                 direction={direction}
                 kuubou={board.banLevel?.kuubou_text}

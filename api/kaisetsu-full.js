@@ -10,7 +10,7 @@
 //   paid の mid/full が未認証ユーザーに配布される（ペイウォール崩壊）。付けてはならない。
 //
 // 課金判定はすべてサーバーサイド。クライアント出し分けは禁止。
-import { loadKaisetsu, buildPalaces } from '../lib/kaisetsuData.js';
+import { loadKaisetsu, buildPalaces, getBoard } from '../lib/kaisetsuData.js';
 import { getActiveSession } from '../lib/auth.js';
 
 /** 有効セッション かつ 全機能を使える人（lib/accessPolicy.js: ベータ期間はログイン済み、販売後は paid）だけ true。 */
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   }
 
   const { data, version } = loadKaisetsu();
-  const board = data[key];
+  const board = getBoard(data, key); // 日盤の鍵（…@日）なら日盤用の解説
   if (!board) return res.status(404).json({ error: 'unknown_key' });
 
   const palaces = buildPalaces(board, { paid: true });

@@ -79,6 +79,25 @@ export function banLevelText(banLevel) {
 }
 
 /** 宮に出た格局（全件）を { name, tone, meaning } で返す（1件目だけにしない） */
+/**
+ * その日付・時刻だけに付く凶格（年・月・日の干で決まる）。
+ * 解説の文章は「局と干支」ごとに前もって作ってあるので、日付で変わるこれらは文章に入らない。
+ * 点数と格局の一覧には入っているので、文章の下に「この日時は◯◯が重なっています」と添えるために使う。
+ */
+export const DATE_BOUND_KAKKYOKU = ['歳格', '月格', '日格', '伏干', '雲干'];
+
+export function listDateBoundKakkyoku(palaceScore) {
+  const names = (palaceScore?.detected_kakkyoku || []).map((k) => k.name);
+  return DATE_BOUND_KAKKYOKU.filter((name) => names.includes(name));
+}
+
+/** 文章の下に添える一文。該当なしは '' */
+export function dateBoundNote(palaceScore) {
+  const names = listDateBoundKakkyoku(palaceScore);
+  if (names.length === 0) return '';
+  return `この日時は、${names.join('・')}が重なっています（年・月・日の干で決まる凶格）。上の文章には入っていないので、「評価の解説」の点数も確かめてください。`;
+}
+
 export function listKakkyoku(palaceScore) {
   return (palaceScore?.detected_kakkyoku || []).map((k) => {
     const entry = findKakkyokuEntry(k.name);
