@@ -875,7 +875,7 @@ export default function ReverseDirectionView({
           {!modeTitle && (
           <p>
             {mode === 'kakkyoku'
-              ? `時盤・格局検索 / ${location.name}`
+              ? `格局検索（時盤・日盤） / ${location.name}`
               : mode === 'timeRanking'
               ? `時盤・時間帯ランキング / ${location.name}`
               : mode === 'ranking'

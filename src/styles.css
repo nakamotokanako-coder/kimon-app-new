@@ -9108,3 +9108,9 @@ html[data-text-size='large'] {
     grid-template-columns: 1fr;
   }
 }
+
+/* 格局検索: 調べる盤（時盤・日盤）の補足 */
+.kakkyoku-board-note {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}

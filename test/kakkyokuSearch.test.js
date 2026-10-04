@@ -54,4 +54,24 @@ describe('special kakkyoku lookup search', () => {
     expect(result.rows.every((row) => row.palaceScore.usable)).toBe(true);
     expect(result.rows.every((row) => row.matches.length > 0)).toBe(true);
   });
+  it('日盤も調べられる: 1日に1件ずつ、日盤として返る（時盤の結果と混ざらない）', () => {
+    const args = { startDate: '2026-10-04', days: 92, selectedNames: ['青龍返首', '飛鳥跌穴', '人遁', '玉女守門'], sortMode: 'date' };
+    const day = scanSpecialKakkyoku({ ...args, boardType: '日' });
+
+    expect(day.errors).toEqual([]);
+    expect(day.rows.length).toBeGreaterThan(0);
+    expect(day.rows.every((row) => row.boardType === '日' && row.timeLabel === '日盤' && row.hour === 0)).toBe(true);
+    expect(day.rows.every((row) => row.palaceScore.usable && row.matches.length > 0)).toBe(true);
+    // 同じ日・同じ方位は1行だけ（日盤は1日に盤が1つ）
+    const keys = day.rows.map((row) => `${row.date}/${row.palace}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('盤を指定しなければ今までどおり時盤を調べる', () => {
+    const args = { startDate: '2025-12-05', days: 7, selectedNames: ['青龍返首', '飛鳥跌穴'], sortMode: 'date' };
+    const implicit = scanSpecialKakkyoku(args);
+    const explicit = scanSpecialKakkyoku({ ...args, boardType: '時' });
+    expect(implicit.rows.map((r) => `${r.date}-${r.hour}-${r.palace}`)).toEqual(explicit.rows.map((r) => `${r.date}-${r.hour}-${r.palace}`));
+    expect(implicit.rows.every((row) => row.boardType === '時')).toBe(true);
+  });
 });
