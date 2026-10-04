@@ -12,13 +12,14 @@
 //      （Vercel の環境変数 STRIPE_WEBHOOK_SECRET に登録して使う。新しく作ったときだけ取得できる）
 import Stripe from 'stripe';
 import { writeFileSync } from 'node:fs';
-import { PRO_PRICE_LOOKUP_KEY } from '../lib/billing.js';
+import { PRO_PRICE_LOOKUP_KEY, PRO_PRICE_LOOKUP_KEYS } from '../lib/billing.js';
 import { WEBHOOK_EVENTS } from '../lib/billingApi/webhook.js';
 
 const APP_URL = (process.env.APP_URL || 'https://kimon-tonko.vercel.app').replace(/\/+$/, '');
 const WEBHOOK_URL = `${APP_URL}/api/billing?action=webhook`;
 const PRODUCT_NAME = '奇門遁甲Z プロ版';
 const PRICE_JPY = 980;
+const ANNUAL_PRICE_JPY = 10000;
 
 const key = process.env.STRIPE_RESTRICTED_KEY || process.env.STRIPE_SECRET_KEY;
 if (!key) {
@@ -49,10 +50,42 @@ if (price) {
   console.log(`- 価格: 作成しました（月額${PRICE_JPY}円・税込）`);
 }
 
-// 2. カスタマーポータル（解約・カード変更・領収書）
+// 1b. 年額の価格（年額10,000円・税込。lookup_key = kimon_pro_annual。月額と同じ商品にぶら下げる）
+let annual = (await stripe.prices.list({ lookup_keys: [PRO_PRICE_LOOKUP_KEYS.annual], active: true, limit: 1 })).data[0];
+if (annual) {
+  console.log(`- 年額の価格: 既にあります（${annual.unit_amount}${annual.currency} / ${annual.recurring?.interval}）`);
+} else {
+  annual = await stripe.prices.create({
+    product: typeof price.product === 'string' ? price.product : price.product.id,
+    currency: 'jpy',
+    unit_amount: ANNUAL_PRICE_JPY,
+    recurring: { interval: 'year' },
+    tax_behavior: 'inclusive',
+    lookup_key: PRO_PRICE_LOOKUP_KEYS.annual,
+  });
+  console.log(`- 年額の価格: 作成しました（年額${ANNUAL_PRICE_JPY}円・税込）`);
+}
+
+// 月額 ⇔ 年額 の切り替えを、カスタマーポータルでできるようにする設定
+const productId = typeof price.product === 'string' ? price.product : price.product.id;
+const subscriptionUpdate = {
+  enabled: true,
+  default_allowed_updates: ['price'],
+  proration_behavior: 'create_prorations',
+  products: [{ product: productId, prices: [price.id, annual.id] }],
+};
+
+// 2. カスタマーポータル（解約・カード変更・領収書・プランの切り替え）
 const portals = await stripe.billingPortal.configurations.list({ limit: 5 });
-if (portals.data.some((c) => c.is_default || c.active)) {
-  console.log('- カスタマーポータル: 既にあります');
+const currentPortal = portals.data.find((c) => c.is_default) || portals.data.find((c) => c.active);
+if (currentPortal) {
+  const listed = currentPortal.features?.subscription_update?.products?.[0]?.prices || [];
+  if (currentPortal.features?.subscription_update?.enabled && listed.includes(annual.id) && listed.includes(price.id)) {
+    console.log('- カスタマーポータル: 既にあります');
+  } else {
+    await stripe.billingPortal.configurations.update(currentPortal.id, { features: { subscription_update: subscriptionUpdate } });
+    console.log('- カスタマーポータル: 既にあります（月額⇔年額の切り替えを有効にしました）');
+  }
 } else {
   await stripe.billingPortal.configurations.create({
     business_profile: { headline: '奇門遁甲Z プロ版のお支払い' },
@@ -60,6 +93,7 @@ if (portals.data.some((c) => c.is_default || c.active)) {
       subscription_cancel: { enabled: true, mode: 'at_period_end' },
       payment_method_update: { enabled: true },
       invoice_history: { enabled: true },
+      subscription_update: subscriptionUpdate,
     },
   });
   console.log('- カスタマーポータル: 作成しました（解約は期間の終わりに反映）');

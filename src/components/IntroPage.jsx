@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import Ja from '../utils/Ja.jsx';
-import { ACCESS_MODE, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
+import { ACCESS_MODE, ANNUAL_PRICE_LABEL, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
 
 // アプリの紹介ページ。「何ができて、ログインすると何が増えて、いくらか」を1枚で伝える。
 //   - 初めて来た未ログインの人に1回だけ自動で出す（INTRO_SEEN_KEY）
@@ -46,8 +46,8 @@ const FEATURES = [
 
 export function priceLines(mode = ACCESS_MODE) {
   return mode === 'beta'
-    ? ['いまはベータ期間です。ログインすると、全機能を無料で使えます。', `正式版は${PRO_PRICE_LABEL}の予定です。`]
-    : [`プロ版は${PRO_PRICE_LABEL}。1か月ごとの自動更新で、いつでも解約できます。`];
+    ? ['いまはベータ期間です。ログインすると、全機能を無料で使えます。', `正式版は${PRO_PRICE_LABEL}、または${ANNUAL_PRICE_LABEL}の予定です。`]
+    : [`プロ版は${PRO_PRICE_LABEL}。1か月ごとの自動更新で、いつでも解約できます。`, `年額プランは${ANNUAL_PRICE_LABEL}。最大1年先まで吉日・吉方位を検索できます。`];
 }
 
 export default function IntroPage({ loggedIn, onClose, onLogin }) {

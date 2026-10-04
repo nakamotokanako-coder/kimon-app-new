@@ -61,3 +61,13 @@
 - 初めての同期は端末とアカウントを足し合わせる。以後は「後から変えたほう」を採り、2台で同時に変えたときは足し合わせる。
 - 現在地（GPS）を基準点にしている場合は保存しない（端末ごとのものなので）。
 - 退会の機能を作るときは `userdata:{email}` も消すこと。
+
+## 年額プラン（2026-10-04 追加）
+- **年額10,000円（税込）**・1年ごとに自動更新。Stripe の価格は `lookup_key = kimon_pro_annual`（月額と同じ商品にぶら下げる）。
+- 申し込みは `POST /api/billing?action=checkout&plan=annual`。指定なしは月額。
+- 年額かどうかは、サブスクの請求の間隔で決める（`lib/billing.js` の `planOfSubscription`）。Webhook が `user.plan`（`'annual'` / `'monthly'`）に書き込み、`/api/auth/me` が返す。
+- 月額 ⇔ 年額 の切り替えは、カスタマーポータルで行う（`scripts/stripe_setup.mjs` が有効にする。差額は日割り）。
+- **年額だけの機能**: 吉日・吉方位の検索で、3ヶ月・半年・1年の期間（月額の人も鍵つき）。
+  切り替えは `lib/accessPolicy.js` の `LONG_RANGE_REQUIRES_ANNUAL`。
+  - この鍵は画面側の制限（検索の計算は端末の中で行っている）。普通の使い方では越えられないが、仕組み上、完全に防ぐものではない。
+- テスト環境には年額の価格を作成済み。本番で始めるときは、本番のキーで `scripts/stripe_setup.mjs` を実行する。

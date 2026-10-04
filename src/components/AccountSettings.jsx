@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { isBillingUiVisible, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
+import { ANNUAL_PRICE_LABEL, isBillingUiVisible, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
 import {
   isSyncEnabled, enableUserDataSync, disableUserDataSync, SYNC_SETTING_CHANGED_EVENT,
 } from '../sync/userDataSync.js';
@@ -193,8 +193,15 @@ function BillingSection({ auth }) {
           <p className="account-note">
             {auth.billing.cancelAtPeriodEnd
               ? '解約の手続き済みです。有効期限まではプロ版をご利用いただけます。'
-              : `プロ版（${PRO_PRICE_LABEL}）をご利用中です。1か月ごとに自動で更新されます。`}
+              : (auth.plan === 'annual'
+                ? `プロ版・年額プラン（${ANNUAL_PRICE_LABEL}）をご利用中です。1年ごとに自動で更新されます。`
+                : `プロ版（${PRO_PRICE_LABEL}）をご利用中です。1か月ごとに自動で更新されます。`)}
           </p>
+          {auth.plan !== 'annual' && !auth.billing.cancelAtPeriodEnd && (
+            <p className="account-note account-note-small">
+              年額プラン（{ANNUAL_PRICE_LABEL}）にすると、最大1年先まで吉日・吉方位を検索できます。切り替えは下のボタンから行えます。
+            </p>
+          )}
           <button type="button" className="account-btn account-btn-ghost" onClick={() => go('portal')} disabled={busy}>
             お支払い方法の変更・解約
           </button>
@@ -203,7 +210,13 @@ function BillingSection({ auth }) {
         <>
           <p className="account-note">プロ版：{PRO_PRICE_LABEL}。1か月ごとに自動で更新され、いつでも解約できます。</p>
           <button type="button" className="account-btn" onClick={() => go('checkout')} disabled={busy}>
-            プロ版に申し込む
+            プロ版に申し込む（月額）
+          </button>
+          <p className="account-note">
+            年額プラン：{ANNUAL_PRICE_LABEL}。1年ごとに自動で更新されます。最大1年先まで吉日・吉方位を検索できます。
+          </p>
+          <button type="button" className="account-btn" onClick={() => go('checkout&plan=annual')} disabled={busy}>
+            年額プランに申し込む
           </button>
         </>
       )}

@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import billingHandler from '../api/billing.js';
 import { handleEvent, WEBHOOK_EVENTS } from '../lib/billingApi/webhook.js';
-import { entitlementFromSubscription, periodEndOf, setStripeClient, syncSubscription } from '../lib/billing.js';
+import { entitlementFromSubscription, periodEndOf, planOfSubscription, setStripeClient, syncSubscription } from '../lib/billing.js';
+import meHandler from '../api/auth/me.js';
+import { isLongRangeLocked } from '../lib/accessPolicy.js';
 import { hasFullAccess } from '../lib/accessPolicy.js';
 import { setKvClient } from '../lib/kv.js';
 import { signSession, SESSION_COOKIE } from '../lib/session.js';
@@ -48,7 +50,13 @@ function makeFakeStripe() {
   return {
     calls,
     subs,
-    prices: { list: async () => ({ data: [{ id: 'price_1', unit_amount: 980, currency: 'jpy' }] }) },
+    prices: {
+      list: async ({ lookup_keys: keys = [] } = {}) => ({
+        data: keys.includes('kimon_pro_annual')
+          ? [{ id: 'price_annual', unit_amount: 10000, currency: 'jpy' }]
+          : [{ id: 'price_1', unit_amount: 980, currency: 'jpy' }],
+      }),
+    },
     customers: { create: async (params) => { calls.customers.push(params); return { id: 'cus_1' }; } },
     checkout: { sessions: { create: async (params) => { calls.checkout.push(params); return { url: 'https://checkout.stripe.test/c/1' }; } } },
     billingPortal: { sessions: { create: async (params) => { calls.portal.push(params); return { url: 'https://billing.stripe.test/p/1' }; } } },
@@ -252,5 +260,52 @@ describe('Webhook', () => {
     for (const type of ['customer.subscription.deleted', 'invoice.paid', 'invoice.payment_failed', 'charge.refunded', 'charge.dispute.created']) {
       expect(WEBHOOK_EVENTS).toContain(type);
     }
+  });
+});
+
+describe('年額プラン（年額10,000円）', () => {
+  const yearly = (overrides = {}) => subscription({
+    items: { data: [{ current_period_end: NOW_SEC + 365 * 86400, price: { recurring: { interval: 'year' } } }] },
+    ...overrides,
+  });
+
+  it('plan=annual なら年額の価格で申し込む。指定なし・知らない値は月額', async () => {
+    seedUser();
+    for (const [plan, price] of [['annual', 'price_annual'], [undefined, 'price_1'], ['lifetime', 'price_1']]) {
+      const res = createRes();
+      await billingHandler({ method: 'POST', query: { action: 'checkout', ...(plan ? { plan } : {}) }, headers: { cookie: cookie() } }, res);
+      expect(res.statusCode).toBe(200);
+      expect(stripeFake.calls.checkout.at(-1).line_items).toEqual([{ price, quantity: 1 }]);
+    }
+  });
+
+  it('請求の間隔が1年のサブスクは年額、それ以外は月額。有料でなくなったらプランも消える', () => {
+    expect(planOfSubscription(yearly())).toBe('annual');
+    expect(planOfSubscription(subscription())).toBe('monthly');
+    expect(entitlementFromSubscription(yearly())).toMatchObject({ status: 'paid', plan: 'annual' });
+    expect(entitlementFromSubscription(subscription())).toMatchObject({ status: 'paid', plan: 'monthly' });
+    expect(entitlementFromSubscription(yearly({ status: 'canceled' }))).toMatchObject({ status: 'free', plan: null });
+  });
+
+  it('年額の人だけ、/api/auth/me が plan: annual を返す（3ヶ月以上の検索の鍵の判定に使う）', async () => {
+    seedUser({ stripeCustomerId: 'cus_1' });
+    kvFake.store.set('stripe_customer:cus_1', EMAIL);
+    const me = async () => {
+      const res = createRes();
+      await meHandler({ method: 'GET', headers: { cookie: cookie() } }, res);
+      return res.body;
+    };
+    expect((await me()).plan).toBe(null);
+
+    await syncSubscription(yearly());
+    expect(await me()).toMatchObject({ status: 'paid', plan: 'annual' });
+    expect(isLongRangeLocked(await me(), true)).toBe(false);
+
+    await syncSubscription(subscription());
+    expect(await me()).toMatchObject({ status: 'paid', plan: 'monthly' });
+    expect(isLongRangeLocked(await me(), true)).toBe(true);
+
+    await syncSubscription(subscription({ status: 'canceled' }));
+    expect((await me()).plan).toBe(null);
   });
 });

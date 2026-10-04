@@ -26,6 +26,8 @@ export default async function handler(req, res) {
     email: active.email,
     status: active.status,
     paidUntil: active.paidUntil,
+    // 有料会員のプラン（'monthly' | 'annual'）。有料でなければ null。
+    plan: active.status === 'paid' ? (active.user.plan || 'monthly') : null,
     full: active.full,
     accessMode: ACCESS_MODE,
     // 決済まわりの表示用（Stripe の顧客IDなどは返さない）
