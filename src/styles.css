@@ -7979,6 +7979,13 @@ body {
   color: var(--text-secondary);
 }
 
+/* 地図（Leaflet）は中で大きな重なり順（最大1000）を使う。外に漏れると、手前に出したシートやメニューの上に
+   地図がかぶるので、地図の中だけで完結させる。 */
+.leaflet-container {
+  isolation: isolate;
+  z-index: 0;
+}
+
 .l3-overlay {
   position: fixed;
   inset: 0;
@@ -7987,6 +7994,7 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  touch-action: none;
 }
 
 .l3-overlay.open {
@@ -8002,7 +8010,8 @@ body {
   z-index: 151;
   display: flex;
   flex-direction: column;
-  max-height: 72vh;
+  max-height: 82vh;
+  max-height: 82dvh;
   background: var(--bg-main);
   border-top: 1px solid var(--border-subtle);
   border-top-left-radius: 24px;
@@ -8017,6 +8026,13 @@ body {
   transform: translateY(0);
 }
 
+.l3-top {
+  position: relative;
+  flex: none;
+  height: 40px;
+  touch-action: none;
+}
+
 .l3-handle {
   display: flex;
   align-items: center;
@@ -8025,6 +8041,25 @@ body {
   padding: 0;
   border: 0;
   background: transparent;
+  cursor: pointer;
+}
+
+.l3-close {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  background: var(--bg-cell);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -8042,7 +8077,8 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 0 16px 20px;
+  touch-action: pan-y;
+  padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 .l3-header {
