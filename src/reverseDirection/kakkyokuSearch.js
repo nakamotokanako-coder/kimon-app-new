@@ -55,12 +55,24 @@ export function getKakkyokuLookupText(row, palace) {
   };
 }
 
+/** 「◯丁奇昇殿;×白虎猖狂」のような列の文字列を、名前の配列にする（先頭の吉凶の印は外す） */
+export function parseLookupNames(text) {
+  return String(text || '')
+    .split(';')
+    .map((token) => token.trim().replace(/^[◯〇○◎×△▲]/u, ''))
+    .filter(Boolean);
+}
+
+/**
+ * その宮で成立している、選んだ格局の名前。
+ * 名前は完全一致で比べる。部分一致にすると、九遁の「人遁」を探したときに、
+ * 別物である十干剋応の「人遁吉格」（天盤丁×地盤乙）まで拾ってしまう。
+ */
 export function findSpecialKakkyokuMatches(row, palace, selectedNames) {
   if (!row || !palace || !Array.isArray(selectedNames) || selectedNames.length === 0) return [];
   const { kakkyoku, jukkanKokuou } = getKakkyokuLookupText(row, palace);
-  return selectedNames.filter((name) => (
-    kakkyoku.includes(name) || jukkanKokuou.includes(name)
-  ));
+  const present = new Set([...parseLookupNames(kakkyoku), ...parseLookupNames(jukkanKokuou)]);
+  return selectedNames.filter((name) => present.has(name));
 }
 
 export function sortKakkyokuSearchRows(rows, sortMode) {

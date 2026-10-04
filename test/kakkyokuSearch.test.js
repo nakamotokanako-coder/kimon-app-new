@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
+  SPECIAL_KAKKYOKU_NAMES,
   findSpecialKakkyokuMatches,
   getKakkyokuLookupText,
+  parseLookupNames,
   scanSpecialKakkyoku,
   sortKakkyokuSearchRows,
 } from '../src/reverseDirection/kakkyokuSearch.js';
+import { buildBoard } from '../src/kimon/buildBoard.js';
+import { lookupChito } from '../src/kimon/loadChito.js';
+import { scoreBoard } from '../src/kimon/scoreEngine.js';
+import { PALACE_DIRECTIONS, TIME_SLOTS } from '../src/reverseDirection/reverseDirection.js';
 
 describe('special kakkyoku lookup search', () => {
   it('reads both kakkyoku and jukkan_kokuou palace columns', () => {
@@ -74,4 +80,31 @@ describe('special kakkyoku lookup search', () => {
     expect(implicit.rows.map((r) => `${r.date}-${r.hour}-${r.palace}`)).toEqual(explicit.rows.map((r) => `${r.date}-${r.hour}-${r.palace}`));
     expect(implicit.rows.every((row) => row.boardType === '時')).toBe(true);
   });
+  it('名前は完全一致で拾う: 「人遁」を探して、別物の十干剋応「人遁吉格」を拾わない', () => {
+    const row = { kakkyoku_da: '◯丁奇昇殿;◯玉女守門', jukkan_kokuou_da: '〇人遁吉格', kakkyoku_kan: '◯人遁', jukkan_kokuou_kan: '×白虎猖狂' };
+    expect(findSpecialKakkyokuMatches(row, 'da', ['人遁', '玉女守門'])).toEqual(['玉女守門']);
+    expect(findSpecialKakkyokuMatches(row, 'kan', ['人遁'])).toEqual(['人遁']);
+    expect(parseLookupNames('◯丁奇昇殿;×白虎猖狂; △時格 ;')).toEqual(['丁奇昇殿', '白虎猖狂', '時格']);
+  });
+
+  it('検索で出た格局は、盤の側でも必ず検出されている（時盤60日・日盤1年）', () => {
+    const missing = [];
+    const check = (board, label) => {
+      const score = scoreBoard(board);
+      const row = lookupChito(`${board.meta.kyokusu}${board.meta.eto}`);
+      for (const dir of PALACE_DIRECTIONS) {
+        const ps = score.palaces[dir.palace];
+        const detected = [...(ps.detected_kakkyoku || []), ...(ps.detected_jukkan || [])].map((x) => x.name);
+        for (const name of findSpecialKakkyokuMatches(row, dir.palace, SPECIAL_KAKKYOKU_NAMES)) {
+          if (!detected.includes(name)) missing.push(`${label} ${dir.palace} ${name}`);
+        }
+      }
+    };
+    for (let i = 0; i < 365; i += 1) {
+      const date = new Date(Date.UTC(2026, 9, 4 + i)).toISOString().slice(0, 10);
+      check(buildBoard({ date, boardType: '日' }), `日盤 ${date}`);
+      if (i < 60) for (const slot of TIME_SLOTS) check(buildBoard({ date, hour: slot.hour, boardType: '時' }), `時盤 ${date} ${slot.hour}`);
+    }
+    expect(missing).toEqual([]);
+  }, 60000);
 });
