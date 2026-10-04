@@ -42,7 +42,7 @@ import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
 export const MODE_TITLES = {
   time: { title: '今から吉方位へ', lead: '今いる場所から、今の時間の吉方位へ。散歩・カフェ・買い物など、日常の小さな移動に。', tech: '時盤を使用' },
   day: { title: '次の休み、どこへ行く？', lead: '日付を選ぶと、その日の8方位を比較。一番良い方位から旅先を探せます。', tech: '日盤を使用' },
-  ranking: { title: 'この方位なら、いつ行く？', lead: '行きたい方位と期間を選ぶと、条件の良い日が順に並びます。', tech: '日盤ランキング' },
+  ranking: { title: '吉日・吉方位を探す', lead: 'いつ、どの方位へ行くのがいい？', tech: '日盤ランキング｜遠出 50km〜' },
   timeRanking: { title: '今日の時間帯から探す', lead: '今日のどの時間帯に、どの方位が良いかを一覧で見られます。', tech: '時盤ランキング' },
   kakkyoku: { title: 'この条件が出るのはいつ？', lead: '特定の格局が成立する日時を検索します。', tech: '格局検索' },
   range: { title: '吉を3回つなぐ', lead: '同じ日に、吉方位が3回続くルートを探します。', tech: '奇門三盤ルート' },
@@ -219,6 +219,10 @@ export default function ReverseDirectionView({
   onBackToSearch,     // 探すタブで「探す」の入口へ戻る
   onOpenTimeRanking,  // 地図タブの時盤から、今日の時間帯別ランキング（探すタブ）へ
   onOpenMapTime,      // 探すタブの時間帯一覧から、選んだ時間・方位のまま地図タブ（時盤）へ
+  onOpenMapDay,       // 探すタブの吉日検索から、選んだ日・方位のまま地図タブ（日盤）へ
+  longRangeLocked = false, // 吉日検索の3ヶ月以上が年額プラン限定か（lib/accessPolicy.js）
+  annualMark = false,      // 鍵をかけていなくても「年額」の印を出すか
+  onUpgrade,
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
   const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
@@ -318,7 +322,10 @@ export default function ReverseDirectionView({
   }, [dayDate]);
   const dayReverse = dayReverseState.result;
   const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
-  const dayBest = dayVisibleRankings[0] || null;
+  // 吉日検索で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
+  const [dayPickedPalace, setDayPickedPalace] = useState(null);
+  const dayPickedItem = dayPickedPalace ? (dayReverse?.rankings || []).find((item) => item.palace === dayPickedPalace) : null;
+  const dayBest = dayPickedItem || dayVisibleRankings[0] || null;
   const dayFavoriteChips = useMemo(() => (
     dayReverse
       ? decoratePlaces(favorites, [location.latitude, location.longitude], dayReverse.rankings)
@@ -1085,6 +1092,12 @@ export default function ReverseDirectionView({
 
       {mode === 'day' && (
         <>
+          {dayPickedItem && (
+            <div className="reverse-picked-note">
+              <span>選んだ方位（{dayPickedItem.label}）を表示しています。</span>
+              <button type="button" onClick={() => setDayPickedPalace(null)}>この日の最良方位に戻す</button>
+            </div>
+          )}
           <div className="reverse-card reverse-day-card">
             <div className="reverse-card-title">
               <div>
@@ -1098,7 +1111,7 @@ export default function ReverseDirectionView({
               <input
                 type="date"
                 value={dayDate}
-                onChange={(e) => setDayDate(e.target.value)}
+                onChange={(e) => { setDayDate(e.target.value); setDayPickedPalace(null); }}
               />
             </label>
           </div>
@@ -1203,11 +1216,20 @@ export default function ReverseDirectionView({
 
       {mode === 'ranking' && (
         <SaikyoRankingView
-          location={location}
           startDate={today}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
           onOpenBoard={onOpenBoard}
+          longRangeLocked={longRangeLocked}
+          annualMark={annualMark}
+          onUpgrade={onUpgrade}
+          onGoMap={({ date: pickedDate, palace }) => {
+            setDayDate(pickedDate);
+            setDayPickedPalace(palace);
+            setMode('day');
+            onOpenMapDay?.();
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }}
         />
       )}
 

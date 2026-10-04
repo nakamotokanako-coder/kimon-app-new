@@ -12,6 +12,7 @@ import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
+import { isLongRangeLocked, LONG_RANGE_SHOW_ANNUAL_MARK } from '../lib/accessPolicy.js';
 import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
 import HomeView from './components/HomeView.jsx';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
@@ -145,6 +146,12 @@ export default function App() {
   });
   const [theme, setTheme] = useState(INITIAL_THEME);
   const [direction, setDirection] = useState('north_bottom');
+  // 吉日検索の3ヶ月以上を年額プラン限定にするか（lib/accessPolicy.js。年額プランを売り始めるまでは全員使える）。
+  // アドレスに ?annual=preview を付けて開くと、鍵つきの見え方を確かめられる（動作確認用）。
+  const [annualPreview] = useState(() => (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('annual') === 'preview'
+  ));
+  const longRangeLocked = isLongRangeLocked(auth) || annualPreview;
   // 画面: home（ホーム）/ board（盤）/ map（地図: 時盤・日盤）/ search（探す）/ settings（その他）/ notifications
   const [activeTab, setActiveTab] = useState('home');
   const [previousTab, setPreviousTab] = useState('home');
@@ -683,6 +690,10 @@ export default function App() {
             onModeChange={(next) => (activeTab === 'search' ? setSearchMode(next) : setMapMode(next))}
             onBackToSearch={() => setSearchMode(null)}
             onOpenMapTime={() => goMap('time')}
+            onOpenMapDay={() => goMap('day')}
+            longRangeLocked={longRangeLocked}
+            annualMark={LONG_RANGE_SHOW_ANNUAL_MARK && auth.plan !== 'annual'}
+            onUpgrade={openAccountSettings}
             onOpenTimeRanking={() => { goSearch('timeRanking'); window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }}
             onOpenBoard={openFullBoard}
             showBad={showBadDirections}

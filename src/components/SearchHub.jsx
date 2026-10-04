@@ -20,9 +20,9 @@ export const SEARCH_ENTRIES = [
     key: 'ranking',
     target: 'search',
     icon: 'compass',
-    title: '方位から探す',
-    question: 'この方位なら、いつ行く？',
-    desc: '行きたい方位と期間を指定して、条件の良い日を探します。',
+    title: '吉日・吉方位を探す',
+    question: 'いつ、どの方位へ行くのがいい？',
+    desc: '期間と方位を選んで、条件の良い日を探します。方位を決めていなくても使えます。',
     tech: '日盤ランキング',
   },
   {
