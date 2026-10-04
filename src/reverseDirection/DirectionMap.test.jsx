@@ -470,3 +470,32 @@ describe('DirectionMap 方位設定・距離の切り替え', () => {
     expect(names()).toEqual(['50km', '100km', '200km']);
   });
 });
+
+describe('DirectionMap 種類の検索（カフェなど）が混んでいて失敗したとき', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('もう一つの検索で同じ範囲を探して、結果を出す', async () => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      calls.push(String(url));
+      if (String(url).startsWith('/api/overpass')) return { ok: false, status: 502 };
+      return {
+        ok: true,
+        json: async () => [{ lat: '35.69', lon: '139.767', name: 'カフェ パウリスタ', osm_type: 'node', osm_id: 1 }],
+      };
+    }));
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    fireEvent.click(within(document.querySelector('.direction-map-chips')).getByRole('button', { name: 'カフェ' }));
+    expect(await screen.findByText('カフェ パウリスタ')).toBeTruthy();
+    expect(calls[0]).toBe('/api/overpass');
+    expect(decodeURIComponent(calls[1])).toContain('/api/nominatim?q=カフェ');
+    expect(document.querySelector('.direction-map-error')).toBe(null);
+  });
+
+  it('両方だめなら、混み合っていることを伝える', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 502 })));
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    fireEvent.click(within(document.querySelector('.direction-map-chips')).getByRole('button', { name: 'カフェ' }));
+    expect((await screen.findByRole('alert')).textContent).toContain('場所の検索が混み合っていて');
+  });
+});

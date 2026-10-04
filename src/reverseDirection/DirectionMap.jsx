@@ -472,10 +472,17 @@ export default function DirectionMap({
     lastAreaSearchRef.current = { type: 'preset', word: text, preset };
     setNeedsAreaSearch(false);
     setMapStatus(`${preset.label}を表示中の地図範囲で検索しています。`);
-    const query = buildOverpassQuery(preset.selectors, map.getBounds());
-    const data = await overpassFetch(query);
+    const bounds = map.getBounds();
+    let places;
+    try {
+      const data = await overpassFetch(buildOverpassQuery(preset.selectors, bounds));
+      places = normalizeOverpassElements(data.elements).slice(0, 60);
+    } catch (error) {
+      // 種類の検索のサーバーは混むと失敗する。もう一つの検索で、同じ範囲を同じ言葉で探す。
+      places = (await nominatimSearch(preset.label, bounds)).slice(0, 40);
+    }
     const decorated = decoratePlaces(
-      normalizeOverpassElements(data.elements).slice(0, 60),
+      places,
       center,
       rankings,
       bearingOptions,
@@ -541,8 +548,8 @@ export default function DirectionMap({
   };
 
   const buildSearchError = (error) => ({
-    main: '検索範囲が広すぎる可能性があります。',
-    hint: `地図右上の ${ic('🔍')} ボタンで検索可能な範囲に合わせられます。（時間をおいて再試行も有効）`,
+    main: '場所の検索が混み合っていて、結果を取れませんでした。',
+    hint: `少し待ってから、もう一度お試しください。地図を拡大して範囲をせまくすると、通りやすくなります（地図左上の ${ic('🔍')} ボタン）。`,
     detail: error?.message || '',
   });
 

@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'kimon-app/1.0 (https://kimon-app-new.vercel.app/)',
+        'User-Agent': 'kimon-app/1.0 (https://kimon-tonko.vercel.app/)',
       },
       signal: controller.signal,
     });
