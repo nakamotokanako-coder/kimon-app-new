@@ -9511,3 +9511,61 @@ html[data-text-size='large'] {
   color: var(--text-secondary);
   font-size: 1rem;
 }
+
+/* 地図（時盤）の時間帯を選ぶ帯。横に送って選ぶ */
+.reverse-slot-picker {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  margin: 0 -2px;
+  padding: 2px 2px 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reverse-slot-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.reverse-slot-chip {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 1px;
+  min-width: 74px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.reverse-slot-chip span {
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reverse-slot-chip small {
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+.reverse-slot-chip.is-now {
+  border-color: var(--border-main);
+}
+
+.reverse-slot-chip.is-active {
+  border-color: var(--accent-edge);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.reverse-slot-chip.is-active small {
+  color: var(--accent-ink);
+  opacity: 0.85;
+}
