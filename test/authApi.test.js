@@ -10,6 +10,9 @@ import { SESSION_MAX_AGE_SEC } from '../lib/session.js';
 import { setKvClient } from '../lib/kv.js';
 import {
   setEmailSender,
+  setGmailTransportFactory,
+  sendMagicLink,
+  mailProvider,
   resolveMagicFrom,
   magicFromSource,
   DEFAULT_MAGIC_LINK_FROM,
@@ -131,13 +134,58 @@ describe('POST /api/auth/request', () => {
     expect(magicFromSource({ MAGIC_LINK_FROM: '' })).toBe('fallback');
   });
 
-  it('keeps 200 (existence concealment) even when sending fails', async () => {
-    // 送信失敗（lib が throw する状況を sender 差し替えで再現）でも 200 を返す。
-    setEmailSender(() => { throw new Error('resend_error:invalid_from_address'); });
+  it('送れなかったときは 502 を返し、すぐやり直せるように待ち時間・コードを片づける', async () => {
+    setEmailSender(() => { throw new Error('resend_error:validation_error'); });
     const res = createRes();
     await requestHandler({ method: 'POST', body: { email: 'fail@example.com' }, headers: {} }, res);
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ ok: true });
+    expect(res.statusCode).toBe(502);
+    expect(res.body).toEqual({ error: 'send_failed' });
+    expect(kvFake.store.has('cooldown:fail@example.com')).toBe(false);
+    expect(kvFake.store.has('otp:fail@example.com')).toBe(false);
+    expect([...kvFake.store.keys()].some((key) => key.startsWith('magic:'))).toBe(false);
+
+    // 直ったら、待たずにもう一度送れる
+    setEmailSender((email, url, code) => { sent.push({ email, url, code }); });
+    const retry = createRes();
+    await requestHandler({ method: 'POST', body: { email: 'fail@example.com' }, headers: {} }, retry);
+    expect(retry.statusCode).toBe(200);
+  });
+});
+
+describe('メールの送り方（Gmail / Resend）', () => {
+  afterEach(() => setGmailTransportFactory(null));
+
+  it('GMAIL_USER と GMAIL_APP_PASSWORD がそろっているときだけ Gmail で送る', () => {
+    expect(mailProvider({ GMAIL_USER: 'app@gmail.com', GMAIL_APP_PASSWORD: 'abcd efgh ijkl mnop' })).toBe('gmail');
+    expect(mailProvider({ GMAIL_USER: 'app@gmail.com' })).toBe('resend');
+    expect(mailProvider({})).toBe('resend');
+  });
+
+  it('Gmail で、誰のアドレスにもログインコードを送る（差出人は送信用の Gmail）', async () => {
+    const calls = [];
+    setGmailTransportFactory((options) => ({
+      sendMail: async (mail) => { calls.push({ options, mail }); return { messageId: 'm1' }; },
+    }));
+    setEmailSender(null);
+    const env = { GMAIL_USER: 'app@gmail.com', GMAIL_APP_PASSWORD: 'abcd efgh ijkl mnop' };
+    await sendMagicLink('friend@example.com', 'https://test.example/api/auth/verify?token=t', '123456', env);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].options).toMatchObject({ host: 'smtp.gmail.com', port: 465, secure: true });
+    // アプリ パスワードは空白で区切って表示されるので、空白を取り除いて使う
+    expect(calls[0].options.auth).toEqual({ user: 'app@gmail.com', pass: 'abcdefghijklmnop' });
+    expect(calls[0].mail.to).toBe('friend@example.com');
+    expect(calls[0].mail.from).toBe('奇門遁甲Z <app@gmail.com>');
+    expect(calls[0].mail.subject).toBe('ログインコード 123456（奇門遁甲Z）');
+    expect(calls[0].mail.text).toContain('123456');
+  });
+
+  it('Gmail で送れなかったら throw する（理由だけ。パスワードや本文は出さない）', async () => {
+    setGmailTransportFactory(() => ({
+      sendMail: async () => { const err = new Error('Invalid login: secret'); err.code = 'EAUTH'; throw err; },
+    }));
+    setEmailSender(null);
+    const env = { GMAIL_USER: 'app@gmail.com', GMAIL_APP_PASSWORD: 'x' };
+    await expect(sendMagicLink('friend@example.com', 'https://test.example/x', '123456', env)).rejects.toThrow('gmail_error:EAUTH');
   });
 });
 

@@ -8,7 +8,7 @@
 //   - 存在秘匿のため成功は常に同形（登録済みか否かを返さない）
 import { randomBytes } from 'node:crypto';
 import { kv } from '../../lib/kv.js';
-import { sendMagicLink, magicFromSource } from '../../lib/email.js';
+import { sendMagicLink, magicFromSource, mailProvider } from '../../lib/email.js';
 import { buildOrigin } from '../../lib/session.js';
 import { clientIp, generateLoginCode, hashLoginCode } from '../../lib/auth.js';
 import { loadInvites, mayLogin } from '../../lib/invite.js';
@@ -76,16 +76,24 @@ export default async function handler(req, res) {
   const url = `${origin}/api/auth/verify?token=${token}`;
   // env が効いているかを常に可視化（'env' なら MAGIC_LINK_FROM 適用、'fallback' なら未適用）。
   // アドレス自体は出さず env|fallback の区別だけ。
-  console.log('[auth] from source:', magicFromSource());
+  console.log('[auth] mail provider:', mailProvider(), '/ from source:', magicFromSource());
   try {
     await sendMagicLink(email, url, code);
   } catch (err) {
-    // 存在秘匿のため送信成否に関わらず 200 を維持。失敗はログにのみ残す。
-    // err.message は 'resend_error:<name>' 形式（詳細な error は lib 側で記録済み）。
+    // err.message は 'resend_error:<name>' / 'gmail_error:<code>' 形式（詳細は lib 側で記録済み）。
     // メール本文・マジックリンクURL・トークンはログに出さない。
     console.error('[auth] magic link send failed', err?.message || String(err));
+    // 送れなかったのに「送りました」と見せない（届かないメールを待たせてしまう）。
+    // 登録の有無は返していない（誰のアドレスでも同じ結果になる）ので、存在秘匿は崩れない。
+    // すぐやり直せるように、待ち時間・コード・リンクも片づける。
+    await Promise.all([
+      kv().del(`cooldown:${email}`),
+      kv().del(`otp:${email}`),
+      kv().del(`magic:${token}`),
+    ]);
+    return res.status(502).json({ error: 'send_failed' });
   }
 
-  // 存在秘匿: 常に同じ成功レスポンス。
+  // 存在秘匿: 送れたときは常に同じ成功レスポンス。
   return res.status(200).json({ ok: true });
 }
