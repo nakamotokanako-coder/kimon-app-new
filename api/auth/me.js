@@ -33,6 +33,8 @@ export default async function handler(req, res) {
     paidUntil: active.paidUntil,
     // 有料会員のプラン（'monthly' | 'annual'）。有料でなければ null。
     plan: active.status === 'paid' ? (active.user.plan || 'monthly') : null,
+    // 今の契約期間の終わり（年額プランの吉日検索は、契約日から1年先＝この日まで）
+    periodEnd: active.status === 'paid' ? (active.user.periodEnd || null) : null,
     full: active.full,
     // 招待した人（課金を始めたあともずっと全機能を使える）。運営者は招待の一覧を管理できる。
     invited: Boolean(active.invited),
