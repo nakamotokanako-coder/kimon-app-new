@@ -284,6 +284,19 @@ export function describeCenterOffset(base, target, rankings, bearingOptions = {}
   return { distanceM, isNearBase, direction };
 }
 
+// 2つの検索の結果を1つにまとめる（同じ場所は1つに。先に渡したほうを優先する）。
+export function mergePlaces(primary, secondary) {
+  const seen = new Set();
+  const merged = [];
+  for (const place of [...(primary || []), ...(secondary || [])]) {
+    const key = favoriteKey(place);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(place);
+  }
+  return merged;
+}
+
 export function filterKichiPlaces(places, enabled) {
   const list = places || [];
   if (!enabled) return list;

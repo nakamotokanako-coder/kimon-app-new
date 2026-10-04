@@ -78,3 +78,14 @@ describe('describeCenterOffset（地図中心インジケータ用の純関数�
     expect(dayResult.direction.tone).toBe('bad-strong');
   });
 });
+
+describe('mergePlaces（2つの検索の結果をまとめる）', () => {
+  it('同じ場所は1つにし、先に渡したほうを優先する', async () => {
+    const { mergePlaces } = await import('./mapSearch.js');
+    const full = [{ name: 'A（くわしい）', latitude: 35.69, longitude: 139.767 }, { name: 'B', latitude: 35.7, longitude: 139.77 }];
+    const quick = [{ name: 'A（速い）', latitude: 35.690001, longitude: 139.767001 }, { name: 'C', latitude: 35.71, longitude: 139.78 }];
+    expect(mergePlaces(full, quick).map((p) => p.name)).toEqual(['A（くわしい）', 'B', 'C']);
+    expect(mergePlaces(null, quick)).toHaveLength(2);
+    expect(mergePlaces([], [])).toEqual([]);
+  });
+});
