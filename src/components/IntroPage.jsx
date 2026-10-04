@@ -144,7 +144,7 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
           <span className="brand-mark intro-mark" aria-hidden="true">遁</span>
           <p className="intro-kicker lat">KIMON TONKO Z</p>
           <p className="intro-name">奇門遁甲Z</p>
-          <h2 className="intro-title">吉方位を、<wbr />日常の行き先へ。</h2>
+          <h2 className="intro-title">吉方位を、<wbr />日常の行き先へ</h2>
           <div className="intro-hero-body">
             <p><Ja>{HERO_BODY[0]}</Ja></p>
             <p className="intro-hero-three">
@@ -184,8 +184,8 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
         <section className="intro-section" aria-label="2つの使い方">
           <h3 className="intro-heading">2つの使い方</h3>
           <p className="intro-statement">
-            <span>今日の小さな移動にも。</span>
-            <span>次の旅にも。</span>
+            <span>今日の小さな移動にも</span>
+            <span>次の旅にも</span>
           </p>
           <div className="intro-usages">
             {USAGES.map((u) => (
@@ -202,7 +202,7 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
         <section className="intro-section" aria-label="盤は簡略化しない">
           <p className="intro-statement">
             <span>便利にしても、</span>
-            <span>盤は簡略化しない。</span>
+            <span>盤は簡略化しない</span>
           </p>
           <div className="intro-prose">
             <Paragraphs items={PRO_BODY} />

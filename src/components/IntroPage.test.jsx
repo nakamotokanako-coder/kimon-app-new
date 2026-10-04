@@ -33,7 +33,7 @@ describe('紹介ページ', () => {
     const order = [...container.querySelectorAll('.intro-inner > header, .intro-inner > section')]
       .map((el) => el.getAttribute('aria-label') || 'hero');
     expect(order).toEqual(['hero', 'できること', '2つの使い方', '盤は簡略化しない', 'ログインについて', '料金', 'まとめ']);
-    expect(container.querySelector('.intro-title').textContent).toBe('吉方位を、日常の行き先へ。');
+    expect(container.querySelector('.intro-title').textContent).toBe('吉方位を、日常の行き先へ');
     expect([...container.querySelectorAll('.intro-question h4')].map((h) => h.textContent)).toEqual([
       '今日、どっちへ行く？',
       'なぜ、この方位が吉なの？',
