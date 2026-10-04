@@ -9055,14 +9055,13 @@ html[data-text-size='large'] {
 /* お守りの画像（あるものだけ出る） */
 .charm-image {
   display: block;
-  width: min(180px, 52%);
+  width: min(190px, 56%);
   height: auto;
   aspect-ratio: 1;
-  margin: 12px auto 4px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #f3e9d4;
-  box-shadow: 0 0 0 1px rgba(201, 164, 92, 0.6), 0 12px 26px -18px rgba(79, 20, 29, 0.6);
+  margin: 12px auto 6px;
+  object-fit: contain;
+  /* 背景が透明の切り抜き画像。紙の上に置いたように、下にやわらかい影を落とす */
+  filter: drop-shadow(0 10px 12px rgba(79, 20, 29, 0.18));
 }
 
 .charm-image.is-small {
