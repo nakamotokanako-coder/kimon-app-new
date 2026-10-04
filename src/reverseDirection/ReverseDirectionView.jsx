@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Ja from '../utils/Ja.jsx';
 import { ic } from '../utils/icons.js';
 import CompassWheel from './CompassWheel.jsx';
@@ -278,6 +278,14 @@ export default function ReverseDirectionView({
     setPickedHour(null);
     setPickedPalace(null);
   };
+  // 時間帯を選ぶ帯: 選ばれている時間帯が見える位置まで横に送る（縦のスクロールは動かさない）。
+  const slotPickerRef = useRef(null);
+  useEffect(() => {
+    const box = slotPickerRef.current;
+    const active = box?.querySelector('[data-active="true"]');
+    if (!box || !active) return;
+    box.scrollLeft = Math.max(0, active.offsetLeft - (box.clientWidth - active.offsetWidth) / 2);
+  }, [slotHour, mode, isActive]);
   const date = today;
   const currentTimeWindow = useMemo(
     () => getCurrentTimeWindow(now, correction),
@@ -946,6 +954,33 @@ export default function ReverseDirectionView({
             <div className="reverse-zone-title">
               <span className="reverse-section-kicker lat">{isPickedTime ? 'selected' : 'now'}</span>
               <h3 className="maru">{isPickedTime ? `${getTimeSlotLabel(slotHour)} の吉方位` : '今の吉方位'}</h3>
+            </div>
+
+            {/* 時間帯を選ぶ（今日の12の時辰）。今の時間帯を押すと「今」に戻る */}
+            <div className="reverse-slot-picker" role="group" aria-label="時間帯を選ぶ" ref={slotPickerRef}>
+              {timeline.map((slot) => {
+                const isActive = slot.hour === slotHour;
+                const top = slot.rawBest;
+                return (
+                  <button
+                    key={slot.hour}
+                    type="button"
+                    className={`reverse-slot-chip${isActive ? ' is-active' : ''}${slot.hour === liveSlotHour ? ' is-now' : ''}`}
+                    aria-pressed={isActive}
+                    data-active={isActive ? 'true' : undefined}
+                    onClick={() => {
+                      setPickedHour(slot.hour === liveSlotHour ? null : slot.hour);
+                      setPickedPalace(null);
+                    }}
+                  >
+                    <span className="lat">{slot.label}</span>
+                    <small>
+                      {slot.hour === liveSlotHour ? 'いま・' : ''}
+                      {top ? `${top.label} ${top.score > 0 ? '+' : ''}${top.score}` : '—'}
+                    </small>
+                  </button>
+                );
+              })}
             </div>
 
             {(isPickedTime || pickedPalace) && (
