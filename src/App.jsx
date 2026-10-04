@@ -681,6 +681,7 @@ export default function App() {
             mode={activeTab === 'search' ? (searchMode || 'ranking') : mapMode}
             onModeChange={(next) => (activeTab === 'search' ? setSearchMode(next) : setMapMode(next))}
             onBackToSearch={() => setSearchMode(null)}
+            onOpenTimeRanking={() => { goSearch('timeRanking'); window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }}
             onOpenBoard={openFullBoard}
             showBad={showBadDirections}
             onShowBadChange={updateSetting('show-bad-directions', setShowBadDirections)}
