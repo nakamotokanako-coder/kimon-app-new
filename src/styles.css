@@ -2489,21 +2489,19 @@ body {
   padding: 16px 0 0;
 }
 
-.settings-card,
 .reverse-card {
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   background: var(--bg-cell);
 }
 
-.settings-card {
+.settings-view {
   display: grid;
-  gap: 18px;
-  padding: 18px;
+  gap: 14px;
 }
 
-.settings-card h2,
-.settings-card h3,
+.settings-view h2,
+.settings-view h3,
 .reverse-header h2,
 .reverse-card-title h3,
 .reverse-timeline h3,
@@ -2511,9 +2509,82 @@ body {
   margin: 0;
 }
 
-.settings-card p {
-  margin: -8px 0 0;
+/* 設定画面: 静かで、迷わず、すぐ変更できる。アクセント色は「いま選んでいるもの」だけに使う。 */
+.settings-page-head {
+  display: grid;
+  gap: 4px;
+  padding: 2px 4px 0;
+}
+
+.settings-page-head h2 {
+  font-size: 1.5rem;
+}
+
+.settings-page-head p {
+  margin: 0;
   color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.settings-group {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 78%, transparent);
+  border-radius: 16px;
+  background: var(--bg-cell);
+}
+
+.settings-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 13px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 56%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 38%, transparent);
+}
+
+.settings-group-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: var(--accent);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.settings-group-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.settings-group-head h3 {
+  color: var(--text-primary);
+  font-size: 1.08rem;
+}
+
+.settings-group-head p {
+  flex: 1 1 12em;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+.settings-group-body {
+  padding: 2px 16px;
+}
+
+.settings-group-body.is-plain {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.settings-group-body > .settings-row:first-child,
+.settings-group-body > .settings-info-row:first-child {
+  border-top: 0;
 }
 
 .settings-section {
@@ -2521,38 +2592,7 @@ body {
   gap: 10px;
 }
 
-.settings-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 2px;
-  color: var(--accent);
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.settings-divider::before,
-.settings-divider::after {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 48%, transparent));
-  content: "";
-}
-
-.settings-divider::after {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 48%, transparent), transparent);
-}
-
-.settings-panel-section {
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 82%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--bg-elevated) 62%, transparent);
-}
-
+/* アカウントの中の小見出し（招待の管理など） */
 .settings-section-head {
   display: flex;
   align-items: baseline;
@@ -2562,13 +2602,12 @@ body {
 
 .settings-section-head h3 {
   color: var(--text-primary);
+  font-size: 0.96rem;
 }
 
 .settings-section-head span {
-  color: var(--accent);
-  font-size: 0.66rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
 }
 
 .settings-row,
@@ -2577,89 +2616,194 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  min-height: 44px;
-  padding: 9px 0;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 64%, transparent);
+  gap: 10px 14px;
+  min-height: 48px;
+  padding: 13px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 52%, transparent);
 }
 
-.settings-row > div {
+/* 左に設定名と説明、右に操作。幅が足りなければ、操作が下の行に回る（文字を小さくして押し込まない）。 */
+.settings-row {
+  flex-wrap: wrap;
+}
+
+.settings-row > div:first-child {
   display: grid;
-  gap: 2px;
+  flex: 1 1 11em;
+  gap: 3px;
   min-width: 0;
 }
 
 .settings-row strong,
+.settings-theme strong,
 .settings-info-row strong,
 .settings-link-row span {
   color: var(--text-primary);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 800;
 }
 
 .settings-row small,
 .settings-info-row span {
   color: var(--text-secondary);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
 }
 
+/* ON/OFF はスイッチ。ON＝アクセント色の地に白いつまみ、OFF＝淡い地にグレーのつまみ。 */
 .settings-switch {
   position: relative;
   flex: 0 0 auto;
-  width: 48px;
-  height: 28px;
-  border: 1px solid var(--border-subtle);
+  width: 50px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 90%, transparent);
   border-radius: 999px;
   padding: 3px;
-  background: color-mix(in srgb, var(--bg-main) 72%, var(--bg-elevated));
+  background: color-mix(in srgb, var(--text-secondary) 14%, var(--bg-cell));
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease;
 }
 
 .settings-switch span {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--text-secondary);
-  transition: transform 180ms var(--bounce), background 160ms ease;
+  background: color-mix(in srgb, var(--text-secondary) 62%, var(--bg-cell));
+  transition: transform 180ms ease, background 160ms ease;
 }
 
 .settings-switch.is-on {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 28%, var(--bg-elevated));
+  background: var(--accent);
 }
 
 .settings-switch.is-on span {
-  background: var(--accent);
+  background: #fff;
   transform: translateX(20px);
 }
 
+.settings-switch:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* 複数から選ぶものは、横並びの切り替え。選んでいるものだけアクセント色。 */
 .settings-segment {
-  display: inline-flex;
+  display: inline-grid;
   flex: 0 0 auto;
-  gap: 4px;
-  padding: 3px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-main) 68%, var(--bg-elevated));
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 90%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-main) 55%, var(--bg-cell));
 }
 
 .settings-segment button {
-  min-height: 28px;
+  min-width: 52px;
+  min-height: 38px;
   border: 0;
-  border-radius: 999px;
-  padding: 5px 10px;
+  border-left: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+  padding: 6px 14px;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.72rem;
+  font-family: inherit;
+  font-size: 0.8rem;
   font-weight: 800;
+  white-space: nowrap;
+}
+
+.settings-segment button:first-child {
+  border-left: 0;
 }
 
 .settings-segment button.is-active {
   background: var(--accent);
+  color: var(--bg-main); /* 明るいテーマでは白、暗いテーマでは濃い色になる */
+}
+
+/* テーマ: 同じ大きさの4枚のカード。選んでいる1枚だけ、枠・名前・チェックがアクセント色。 */
+.settings-theme {
+  display: grid;
+  gap: 10px;
+  padding: 14px 0 16px;
+}
+
+.theme-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.theme-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 4px 11px;
+  border: 1.5px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-main) 40%, var(--bg-cell));
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.theme-card-preview {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.theme-card-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.theme-card.is-active {
+  border-color: var(--accent);
+}
+
+.theme-card.is-active .theme-card-label {
+  color: var(--accent);
+}
+
+.theme-card-check {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
   color: var(--bg-main);
+}
+
+.theme-card-check svg {
+  width: 12px;
+  height: 12px;
+}
+
+@media (max-width: 360px) {
+  .theme-cards {
+    gap: 6px;
+  }
+
+  .theme-card-preview {
+    width: 34px;
+    height: 34px;
+  }
+
+  .theme-card-label {
+    font-size: 0.72rem;
+  }
 }
 
 .settings-link-row {
@@ -5197,50 +5341,6 @@ body {
   opacity: 0;
 }
 
-/* ── テーマチップ（設定画面の4テーマ切替） ── */
-/* テーマ選択チップ（設定画面のテーマ選択UI。色ドット＋名称＋選択中発光枠） */
-.theme-chips {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-  max-width: 480px;
-}
-
-.theme-chip {
-  flex: 1;
-  min-width: 0;
-  height: 34px;
-  border-radius: 11px;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--dim);
-  background: var(--chip-bg);
-  transition: transform .3s var(--bounce), border-color .25s, color .25s;
-}
-
-.theme-chip:active {
-  transform: scale(.92);
-}
-
-.theme-chip .theme-chip-dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  flex: none;
-}
-
-.theme-chip.is-active {
-  border-color: var(--accent);
-  color: var(--accent-soft);
-}
-
 /* 誌面フォント適用。盤セル系は対象外にして、逆引き・ランキングUIへ限定する。 */
 .ctrl input[type="date"],
 .reverse-time-chip,
@@ -5268,8 +5368,8 @@ body {
 }
 
 .app-header h1,
-.settings-card h2,
-.settings-card h3,
+.settings-view h2,
+.settings-view h3,
 .reverse-header h2,
 .reverse-card-title h3,
 .reverse-timeline h3,
