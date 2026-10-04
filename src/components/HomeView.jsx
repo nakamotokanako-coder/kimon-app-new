@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import Ja from '../utils/Ja.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import { getBoardDate } from '../utils/boardDate.js';
+import CharmCard from './CharmCard.jsx';
+import { getCharm } from '../kimon/charm.js';
 import {
   applyNaturalTime,
+  buildDayReverseBoard,
   buildReverseBoard,
   getLongitudeCorrectionMinutes,
   getMiniBoardToneClass,
@@ -116,6 +120,15 @@ export default function HomeView({
   const base = useMemo(() => readBaseLocation(), [now]);
   const { slotHour, best } = useMemo(() => computeNowBest(now, base.longitude), [now, base.longitude]);
   const good = best && best.score > 0;
+  // 今日のお守り: 今日の日盤から決める（1日の中で変わらない）。
+  const today = getBoardDate();
+  const dayCharm = useMemo(() => {
+    try {
+      return getCharm({ rankings: buildDayReverseBoard({ date: today }).rankings, sourceType: 'day' });
+    } catch {
+      return null;
+    }
+  }, [today]);
   const badge = best ? BADGE_LABEL[getMiniBoardToneClass(best.score, best.palaceScore)] : '';
   const vetoes = best?.vetoes || [];
   const dateText = `${now.getMonth() + 1}月${now.getDate()}日（${WEEKDAYS[now.getDay()]}） ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -154,16 +167,16 @@ export default function HomeView({
                 <span className="home-today-score lat">{scoreText(best.score)}<small>点</small></span>
               </p>
               <p className="home-today-sub">
-                {getTimeSlotLabel(slotHour)} の時盤。{best.palaceData?.hachimon ? `${best.palaceData.hachimon}が入っています。` : ''}
+                <Ja>{`${getTimeSlotLabel(slotHour)} の時盤。${best.palaceData?.hachimon ? `${best.palaceData.hachimon}が入っています。` : ''}`}</Ja>
               </p>
               {vetoes.length > 0 && (
-                <p className="home-today-warn">注意条件あり（{vetoes.join('・')}）。点数だけで決めず、盤で確かめてください。</p>
+                <p className="home-today-warn"><Ja>{`注意条件あり（${vetoes.join('・')}）。点数だけで決めず、盤で確かめてください。`}</Ja></p>
               )}
             </>
           ) : (
             <>
               <p className="home-today-main"><strong>なし</strong></p>
-              <p className="home-today-sub">{getTimeSlotLabel(slotHour)} の時盤には、吉の方位がありません。次の時間帯か、日盤で探せます。</p>
+              <p className="home-today-sub"><Ja>{`${getTimeSlotLabel(slotHour)} の時盤には、吉の方位がありません。次の時間帯か、日盤で探せます。`}</Ja></p>
             </>
           )}
           <div className="home-today-actions">
@@ -177,6 +190,14 @@ export default function HomeView({
           </div>
         </section>
       </header>
+
+      <div className="home-charm">
+        <CharmCard
+          charm={dayCharm}
+          sourceType="day"
+          onSeeDirection={() => (limited ? onOpenBoard({ date: today, boardType: '日' }) : onGoMap('day'))}
+        />
+      </div>
 
       <section className="home-section" aria-label="今日、どう使う？">
         <div className="home-section-head">
@@ -193,8 +214,8 @@ export default function HomeView({
             >
               <span className="home-entry-icon"><HomeIcon name={entry.icon} /></span>
               <span className="home-entry-body">
-                <strong>{entry.title}</strong>
-                <span>{entry.desc}</span>
+                <strong><Ja tail={4}>{entry.title}</Ja></strong>
+                <span><Ja>{entry.desc}</Ja></span>
                 <small>{entry.tech}</small>
               </span>
               <b aria-hidden="true">›</b>
@@ -203,7 +224,7 @@ export default function HomeView({
         </div>
         {limited && (
           <p className="home-locked-note">
-            地図と検索はログインすると使えます。{lockedMessage()}
+            <Ja>{`地図と検索はログインすると使えます。${lockedMessage()}`}</Ja>
           </p>
         )}
       </section>
@@ -212,7 +233,7 @@ export default function HomeView({
         <button type="button" className="home-row" onClick={() => onOpenBoard(null)}>
           <span>
             <strong>盤を指定して見る</strong>
-            <small>{limited ? '今日の時盤・日盤を表示（日付の指定はログイン後）' : '日付と時刻を選んで、時盤・日盤を表示'}</small>
+            <small><Ja>{limited ? '今日の時盤・日盤を表示（日付の指定はログイン後）' : '日付と時刻を選んで、時盤・日盤を表示'}</Ja></small>
           </span>
           <b aria-hidden="true">›</b>
         </button>

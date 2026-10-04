@@ -1,4 +1,5 @@
 import React from 'react';
+import Ja from '../utils/Ja.jsx';
 
 // 解説文（src/kaisetsu/composeProse.js が作る文章）の表示。
 // 段落は空行（\n\n）区切り、太字は **…**。それ以外の記法は使わない。
@@ -21,8 +22,8 @@ export function splitProse(text) {
 
 function inline(paragraph) {
   return paragraph.split(/\*\*(.+?)\*\*/gu).map((part, i) => (
-    // split の奇数番目が ** で囲まれていた部分
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+    // split の奇数番目が ** で囲まれていた部分。文節の切れ目でだけ折り返す（src/utils/Ja.jsx）。
+    i % 2 === 1 ? <strong key={i}><Ja>{part}</Ja></strong> : <Ja key={i}>{part}</Ja>
   ));
 }
 

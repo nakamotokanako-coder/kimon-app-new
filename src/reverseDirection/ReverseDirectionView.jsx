@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Ja from '../utils/Ja.jsx';
 import { ic } from '../utils/icons.js';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import FavoritesStrip from './FavoritesStrip.jsx';
 import FusionCard from './FusionCard.jsx';
 import KakkyokuSearchView from './KakkyokuSearchView.jsx';
-import LuckyOmamoriBar from './LuckyOmamoriBar.jsx';
+import CharmCard from '../components/CharmCard.jsx';
+import { getCharm } from '../kimon/charm.js';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
@@ -21,8 +23,7 @@ import {
   filterGoodRankings,
   getLongitudeCorrectionMinutes,
   applyNaturalTime,
-  getTimeSlotHour,
-  getTimeSlotIndex,
+  getTimeSlotHour,
   getTimeSlotLabel,
 } from './reverseDirection.js';
 import {
@@ -280,7 +281,8 @@ export default function ReverseDirectionView({
   const reverse = useMemo(() => (
     buildReverseBoard({ date, hour: slotHour })
   ), [date, slotHour]);
-  const timeOmamoriSeed = `${date}#${getTimeSlotIndex(slotHour)}`;
+  // お守り: その盤の吉方位の象意を、物・色・行動に置き換えた提案（src/kimon/charm.js）。
+  const timeCharm = useMemo(() => getCharm({ rankings: reverse.rankings, sourceType: 'hour' }), [reverse.rankings]);
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   const best = visibleRankings[0] || null;
@@ -858,8 +860,8 @@ export default function ReverseDirectionView({
           )}
           {modeTitle ? (
             <>
-              <h2 className="maru">{modeTitle.title}</h2>
-              <p className="reverse-lead">{modeTitle.lead}</p>
+              <h2 className="maru"><Ja>{modeTitle.title}</Ja></h2>
+              <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>
             </>
           ) : (
             <>
@@ -1032,10 +1034,11 @@ export default function ReverseDirectionView({
             )}
           </div>
 
-          <LuckyOmamoriBar
-            isActive={isActive}
-            bestPalace={reverse.board.score.best_overall}
-            seed={timeOmamoriSeed}
+          <CharmCard
+            charm={timeCharm}
+            sourceType="hour"
+            validTime={getTimeSlotLabel(slotHour)}
+            onSeeDirection={() => onOpenBoard({ date, hour: slotHour, boardType: '時' })}
           />
         </div>
       )}
@@ -1108,10 +1111,11 @@ export default function ReverseDirectionView({
                   </div>
                 )}
               </div>
-              <LuckyOmamoriBar
-                isActive={isActive}
-                bestPalace={dayReverse.board.score.best_overall}
-                seed={dayDate}
+              <CharmCard
+                charm={getCharm({ rankings: dayReverse.rankings, sourceType: 'day' })}
+                sourceType="day"
+                validTime={formatDisplayDate(dayDate)}
+                onSeeDirection={() => onOpenBoard({ date: dayDate, boardType: '日' })}
               />
 
               <div className="reverse-card reverse-best-card">

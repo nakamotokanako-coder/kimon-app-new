@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import Ja from '../utils/Ja.jsx';
 import { ACCESS_MODE, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
 
 // アプリの紹介ページ。「何ができて、ログインすると何が増えて、いくらか」を1枚で伝える。
@@ -75,7 +76,7 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
             奇門遁甲の盤を引いて、読んで、<br />
             吉方位を地図で確かめるためのアプリです。
           </p>
-          <p className="intro-sub">奇門遁甲を学んでいる方、鑑定に使う方に向けて作っています。</p>
+          <p className="intro-sub"><Ja>奇門遁甲を学んでいる方、鑑定に使う方に向けて作っています。</Ja></p>
         </header>
 
         <section className="intro-section" aria-label="できること">
@@ -85,8 +86,8 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
               <li key={f.title} className="intro-feature">
                 <span className="intro-feature-no lat" aria-hidden="true">{i + 1}</span>
                 <div>
-                  <strong>{f.title}</strong>
-                  <p>{f.body}</p>
+                  <strong><Ja>{f.title}</Ja></strong>
+                  <p><Ja>{f.body}</Ja></p>
                 </div>
               </li>
             ))}
@@ -98,19 +99,19 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
           <div className="intro-compare">
             <div>
               <span className="intro-compare-label">ログインなし</span>
-              <p>今日の盤と、方位ごとの短い解説を見られます。</p>
+              <p><Ja>今日の盤と、方位ごとの短い解説を見られます。</Ja></p>
             </div>
             <div className="is-full">
               <span className="intro-compare-label">ログインあり</span>
-              <p>日付を自由に選べます。詳しい解説、吉方位の地図、日取りの検索まで、すべての機能を使えます。</p>
+              <p><Ja>日付を自由に選べます。詳しい解説、吉方位の地図、日取りの検索まで、すべての機能を使えます。</Ja></p>
             </div>
           </div>
-          <p className="intro-note">ログインはメールアドレスだけ。パスワードは要りません。</p>
+          <p className="intro-note"><Ja>ログインはメールアドレスだけ。パスワードは要りません。</Ja></p>
         </section>
 
         <section className="intro-section" aria-label="料金">
           <h3 className="intro-heading">料金</h3>
-          {priceLines().map((line) => <p key={line} className="intro-price">{line}</p>)}
+          {priceLines().map((line) => <p key={line} className="intro-price"><Ja>{line}</Ja></p>)}
         </section>
 
         <div className="intro-actions">

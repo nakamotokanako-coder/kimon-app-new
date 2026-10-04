@@ -533,7 +533,7 @@ export default function App() {
           <div className="settings-row">
             <div>
               <strong>お守りリマインド</strong>
-              <small>今日のお守りを引いていないとき、アプリを開くとお知らせします</small>
+              <small>今日のお守りを見ていないとき、アプリを開くとお知らせします</small>
             </div>
             <button
               type="button"

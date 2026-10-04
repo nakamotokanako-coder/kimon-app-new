@@ -4609,424 +4609,6 @@ body {
   gap: 5px;
 }
 
-.omamori-wrap {
-  font-family: 'Zen Maru Gothic', sans-serif;
-}
-
-.omamori-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  overflow: hidden;
-  border: 1.5px solid #d6ad4b;
-  border-radius: 16px;
-  padding: 13px 16px;
-  background:
-    linear-gradient(135deg, rgba(255, 241, 184, 0.08), transparent 42%),
-    linear-gradient(145deg, #7c2e2f 0%, #641f22 45%, #4d191b 100%);
-  box-shadow:
-    0 16px 34px -26px rgba(77, 25, 27, 0.88),
-    0 0 22px -12px rgba(214, 173, 75, 0.78),
-    inset 0 0 0 1px rgba(255, 241, 184, 0.18);
-  color: #fff8dc;
-  cursor: pointer;
-  font-family: 'Zen Maru Gothic', sans-serif;
-  text-align: left;
-  transition: 180ms;
-}
-
-.omamori-bar::after {
-  position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(255, 235, 164, 0.52);
-  border-radius: 12px;
-  content: "";
-  pointer-events: none;
-}
-
-.omamori-bar-sweep {
-  position: absolute;
-  inset: -40% auto -40% -35%;
-  width: 34%;
-  background: linear-gradient(90deg, transparent, rgba(255, 246, 205, 0.4), transparent);
-  opacity: 0;
-  pointer-events: none;
-  transform: skewX(-18deg);
-}
-
-.omamori-bar.is-open .omamori-bar-sweep {
-  animation: omamori-sweep 900ms ease-out;
-}
-
-.omamori-bar:hover,
-.omamori-bar:focus-visible {
-  border-color: #f0d27b;
-  box-shadow:
-    0 18px 36px -26px rgba(77, 25, 27, 0.94),
-    0 0 28px -10px rgba(214, 173, 75, 0.82),
-    inset 0 0 0 1px rgba(255, 241, 184, 0.24);
-  outline: none;
-}
-
-.omamori-bar-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 34px;
-  height: 34px;
-  border: 1px solid #e7c76d;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 244, 190, 0.3), transparent 34%),
-    #5b1c1e;
-  box-shadow: inset 0 0 0 2px rgba(124, 46, 47, 0.72), 0 0 14px -7px #f5df9d;
-  color: #f3d982;
-  font-size: 17px;
-  font-weight: 900;
-  filter: drop-shadow(0 0 6px rgba(214, 173, 75, 0.34));
-  animation: omamori-seal-pulse 2.8s ease-in-out infinite;
-}
-
-.omamori-bar-text {
-  flex: 1;
-}
-
-.omamori-bar-text strong,
-.omamori-bar-text small {
-  display: block;
-}
-
-.omamori-bar-text strong {
-  color: #fff8dc;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.omamori-bar-text small {
-  color: #e7c76d;
-  font-size: 11px;
-}
-
-.omamori-bar-plus {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1.5px solid #e7c76d;
-  border-radius: 50%;
-  color: #f3d982;
-  font-size: 16px;
-  font-weight: 900;
-  transition: 200ms;
-}
-
-.omamori-bar.is-open .omamori-bar-plus {
-  transform: rotate(45deg);
-}
-
-.omamori-sheet {
-  max-height: 0;
-  overflow: hidden;
-  margin-top: 0;
-  transition: max-height 520ms ease, margin-top 360ms ease;
-}
-
-.omamori-sheet.is-open {
-  max-height: 620px;
-  margin-top: 12px;
-}
-
-.omamori-pouch {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #d6ad4b;
-  border-radius: 18px;
-  padding: 14px;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 230, 146, 0.18), transparent 28%),
-    linear-gradient(160deg, #7c2e2f 0%, #642224 44%, #4d191b 100%);
-  box-shadow:
-    0 18px 46px -30px rgba(77, 25, 27, 0.96),
-    0 0 28px -15px rgba(214, 173, 75, 0.78),
-    inset 0 0 0 1px rgba(255, 241, 184, 0.16);
-  color: #fff8dc;
-  font-family: 'Zen Maru Gothic', sans-serif;
-}
-
-.omamori-pouch::before {
-  position: absolute;
-  content: "";
-  inset: 0;
-  background:
-    radial-gradient(circle at 18% 26%, rgba(255, 235, 164, 0.16) 0 1px, transparent 2px),
-    radial-gradient(circle at 78% 62%, rgba(255, 235, 164, 0.13) 0 1px, transparent 2px);
-  background-size: 42px 42px, 54px 54px;
-  pointer-events: none;
-}
-
-.omamori-pouch::after {
-  position: absolute;
-  inset: -40% auto -40% -36%;
-  width: 30%;
-  background: linear-gradient(90deg, transparent, rgba(255, 246, 205, 0.28), transparent);
-  content: "";
-  opacity: 0;
-  pointer-events: none;
-  transform: skewX(-18deg);
-}
-
-.omamori-sheet.is-open .omamori-pouch::after {
-  animation: omamori-sweep 1050ms 80ms ease-out;
-}
-
-.omamori-sparkles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.omamori-sparkles::before,
-.omamori-sparkles::after {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: #f4dd94;
-  box-shadow:
-    46px 18px 0 rgba(244, 221, 148, 0.78),
-    188px 34px 0 rgba(244, 221, 148, 0.58),
-    82px 128px 0 rgba(244, 221, 148, 0.42),
-    238px 116px 0 rgba(244, 221, 148, 0.48);
-  content: "";
-  opacity: 0;
-}
-
-.omamori-sparkles::before {
-  top: 18px;
-  left: 22px;
-}
-
-.omamori-sparkles::after {
-  right: 34px;
-  bottom: 30px;
-  transform: scale(0.8);
-}
-
-.omamori-sheet.is-open .omamori-sparkles::before,
-.omamori-sheet.is-open .omamori-sparkles::after {
-  animation: omamori-sparkle 1200ms ease-out;
-}
-
-.omamori-frame {
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  border: 1.5px solid #e7c76d;
-  border-radius: 12px;
-  padding: 17px 17px 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 248, 220, 0.08), transparent 45%),
-    rgba(77, 25, 27, 0.2);
-  box-shadow: inset 0 0 0 3px rgba(77, 25, 27, 0.78), inset 0 0 0 4px rgba(255, 235, 164, 0.42);
-  transform: translateY(8px);
-  opacity: 0;
-  transition: transform 420ms 90ms ease, opacity 420ms 90ms ease;
-}
-
-.omamori-sheet.is-open .omamori-frame {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.omamori-watermark {
-  position: absolute;
-  inset: auto 0 22px;
-  color: rgba(255, 235, 164, 0.08);
-  font-size: 108px;
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-  pointer-events: none;
-}
-
-.omamori-corner {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: #f1d77e;
-  pointer-events: none;
-}
-
-.omamori-corner-tl {
-  top: 9px;
-  left: 9px;
-  border-top: 2px solid;
-  border-left: 2px solid;
-}
-
-.omamori-corner-tr {
-  top: 9px;
-  right: 9px;
-  border-top: 2px solid;
-  border-right: 2px solid;
-}
-
-.omamori-corner-bl {
-  bottom: 9px;
-  left: 9px;
-  border-bottom: 2px solid;
-  border-left: 2px solid;
-}
-
-.omamori-corner-br {
-  right: 9px;
-  bottom: 9px;
-  border-right: 2px solid;
-  border-bottom: 2px solid;
-}
-
-.omamori-crest {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 7px;
-  border: 1.5px solid #e7c76d;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 244, 190, 0.28), transparent 35%),
-    #5b1c1e;
-  box-shadow: inset 0 0 0 2px rgba(124, 46, 47, 0.72), 0 0 16px -8px #f5df9d;
-  color: #f3d982;
-  font-size: 18px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.omamori-title {
-  margin-bottom: 12px;
-  color: #fff8dc;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  opacity: 0.9;
-  text-align: center;
-}
-
-.omamori-category {
-  width: fit-content;
-  margin: 0 auto 11px;
-  border: 1px solid rgba(231, 199, 109, 0.6);
-  border-radius: 14px;
-  padding: 3px 13px;
-  background: rgba(77, 25, 27, 0.42);
-  color: #fff8dc;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.omamori-category span {
-  margin-right: 3px;
-  font-size: 15px;
-}
-
-.omamori-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-height: 2.2em;
-  padding: 0 2px;
-  color: #fff8dc;
-  font-size: 18px;
-  font-weight: 900;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.omamori-body,
-.omamori-line,
-.omamori-closing {
-  overflow-wrap: anywhere;
-  word-break: keep-all;
-  line-break: strict;
-}
-
-.omamori-line {
-  display: block;
-}
-
-.omamori-separator {
-  width: 38px;
-  height: 1px;
-  margin: 13px auto 0;
-  background: rgba(255, 235, 164, 0.58);
-}
-
-.omamori-closing {
-  margin: 11px 0 0;
-  color: rgba(255, 248, 220, 0.86);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-}
-
-@keyframes omamori-seal-pulse {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-1px);
-  }
-}
-
-@keyframes omamori-sweep {
-  0% {
-    opacity: 0;
-    transform: translateX(0) skewX(-18deg);
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(480%) skewX(-18deg);
-  }
-}
-
-@keyframes omamori-sparkle {
-  0% {
-    opacity: 0;
-    transform: translateY(7px) scale(0.72);
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-10px) scale(1);
-  }
-}
-
-@media (max-width: 480px) {
-  .omamori-body {
-    font-size: 16px;
-    line-height: 1.55;
-  }
-}
-
-@media (max-width: 360px) {
-  .omamori-body {
-    font-size: 15px;
-    line-height: 1.5;
-  }
-}
-
 .legend-swatch {
   width: 11px;
   height: 11px;
@@ -9140,4 +8722,386 @@ html[data-text-size='large'] {
 
 .reading .date-bound-prose strong {
   color: #fff;
+}
+
+/* === お守り（src/components/CharmCard.jsx）===
+   「現代のお守り」。生成り・深い臙脂・落ち着いた金。テーマに関係なく同じ色で出す。 */
+.charm {
+  --charm-crimson: #6d1f2b;
+  --charm-crimson-deep: #4f141d;
+  --charm-gold: #c9a45c;
+  --charm-gold-soft: #e6cf9a;
+  --charm-paper: #fbf5e8;
+  --charm-ink: #3a2b22;
+  --charm-ink-soft: #7a6a5c;
+  margin: 14px 0 0;
+  font-family: var(--font-body);
+}
+
+.home-charm .charm {
+  margin-top: 16px;
+}
+
+.charm-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--charm-gold);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--charm-crimson), var(--charm-crimson-deep));
+  box-shadow: inset 0 0 0 3px var(--charm-crimson-deep), inset 0 0 0 4px rgba(201, 164, 92, 0.45);
+  color: #fdf6e6;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.charm.is-open .charm-bar {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.charm-seal {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  aspect-ratio: 1;
+  border: 1px solid var(--charm-gold);
+  border-radius: 50%;
+  color: var(--charm-gold-soft);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.charm-bar-text {
+  display: grid;
+  gap: 1px;
+}
+
+.charm-bar-text strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+}
+
+.charm-bar-text small {
+  color: var(--charm-gold-soft);
+  font-size: 0.74rem;
+}
+
+.charm-bar-chevron {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(201, 164, 92, 0.6);
+  border-radius: 50%;
+  color: var(--charm-gold-soft);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.charm-sheet {
+  padding: 18px 12px 12px;
+  border: 1px solid var(--charm-gold);
+  border-top: 0;
+  border-radius: 0 0 16px 16px;
+  background: linear-gradient(180deg, var(--charm-crimson-deep), var(--charm-crimson));
+  color: #fdf6e6;
+}
+
+.charm-head {
+  padding: 0 6px 16px;
+  text-align: center;
+}
+
+.charm-lead {
+  margin: 0;
+  color: var(--charm-gold-soft);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  letter-spacing: 0.06em;
+}
+
+.charm-valid {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.charm-intro {
+  margin: 10px 0 0;
+  color: rgba(253, 246, 230, 0.86);
+  font-size: 0.78rem;
+  line-height: 1.85;
+}
+
+.charm-paper {
+  padding: 20px 16px 16px;
+  border: 1px solid var(--charm-gold);
+  border-radius: 10px;
+  background: var(--charm-paper);
+  box-shadow: inset 0 0 0 4px var(--charm-paper), inset 0 0 0 5px rgba(201, 164, 92, 0.4);
+  color: var(--charm-ink);
+}
+
+.charm-take-label {
+  margin: 0;
+  color: var(--charm-crimson);
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-align: center;
+}
+
+.charm-name {
+  margin: 8px 0 0;
+  color: var(--charm-crimson-deep);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.charm-category {
+  margin: 4px 0 12px;
+  color: var(--charm-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.charm-how {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+
+.charm-why-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px 14px;
+  border: 1px solid var(--charm-gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--charm-crimson-deep);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.charm-why {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(201, 164, 92, 0.6);
+}
+
+.charm-why-title,
+.charm-section-title {
+  margin: 0 0 8px;
+  color: var(--charm-crimson);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  letter-spacing: 0.1em;
+}
+
+.charm-source {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(201, 164, 92, 0.7);
+  border-radius: 8px;
+  background: #fffdf7;
+}
+
+.charm-source-dir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.charm-source-dir strong {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.charm-source-tag {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--charm-crimson);
+  color: #fdf6e6;
+  font-size: 0.7rem;
+}
+
+.charm-source-score {
+  color: var(--charm-ink-soft);
+  font-size: 0.86rem;
+}
+
+.charm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.charm-chips span {
+  padding: 3px 12px;
+  border: 1px solid rgba(109, 31, 43, 0.5);
+  border-radius: 999px;
+  color: var(--charm-crimson-deep);
+  font-size: 0.78rem;
+}
+
+.charm-why-text {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.9;
+}
+
+.charm-alt,
+.charm-scenes {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(201, 164, 92, 0.6);
+}
+
+.charm-alt ul,
+.charm-scenes ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.charm-alt li {
+  display: grid;
+  gap: 1px;
+}
+
+.charm-alt strong {
+  font-size: 0.92rem;
+}
+
+.charm-alt span,
+.charm-scenes li {
+  color: var(--charm-ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.charm-scenes li::before {
+  content: "・";
+}
+
+.charm-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  border: 1px solid var(--charm-gold);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--charm-crimson), var(--charm-crimson-deep));
+  color: #fdf6e6;
+  font-family: var(--font-display);
+  font-size: 0.94rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.charm-closing {
+  margin: 16px 0 0;
+  color: var(--charm-ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+/* === 日本語の折り返し（src/utils/Ja.jsx）===
+   文節の切れ目（<wbr>）でだけ折り返す。1文節が幅より長いときだけ、途中で折る。 */
+.ja {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-break: strict;
+}
+
+/* 見出しは、行の長さをそろえる（最後の行に1〜2文字だけ残るのを防ぐ） */
+.charm-lead,
+.charm-name,
+.home-section-head h2,
+.home-today-main,
+.hub-body strong,
+.intro-title,
+.intro-lead,
+.reverse-header h2 {
+  text-wrap: balance;
+}
+
+/* お守りの画像（あるものだけ出る） */
+.charm-image {
+  display: block;
+  width: min(180px, 52%);
+  height: auto;
+  aspect-ratio: 1;
+  margin: 12px auto 4px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f3e9d4;
+  box-shadow: 0 0 0 1px rgba(201, 164, 92, 0.6), 0 12px 26px -18px rgba(79, 20, 29, 0.6);
+}
+
+.charm-image.is-small {
+  width: 56px;
+  margin: 0;
+  grid-row: 1 / span 2;
+}
+
+.charm-alt li.has-image {
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+}
+
+/* 本文は、最後の行に数文字だけ残らないように整える（対応している端末だけ。
+   対応していない端末でも、src/utils/Ja.jsx が最後の行に7文字以上を残す）。 */
+.charm p,
+.charm li,
+.home-view p,
+.home-entry-body span,
+.hub-body span,
+.hub-body em,
+.intro-page p,
+.prose-text p,
+.reverse-header .reverse-lead {
+  text-wrap: pretty;
+}
+
+/* ボタンの文字は途中で折らない（幅が足りないときは文字を少し小さくする） */
+.home-cta span,
+.home-sub-cta,
+.charm-cta,
+.charm-why-toggle {
+  white-space: nowrap;
+}
+
+@media (max-width: 359px) {
+  .home-cta,
+  .charm-cta {
+    font-size: 0.86rem;
+  }
 }
