@@ -10722,3 +10722,54 @@ p.saikyo-annual-note.is-open {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* 時盤の日付を選ぶ（今日・明日・好きな日） */
+.reverse-time-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.reverse-time-date > button {
+  min-height: 38px;
+  padding: 6px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reverse-time-date > button.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg-main);
+}
+
+.reverse-time-date label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.reverse-time-date input {
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-cell);
+  color: var(--text-primary);
+  font: 700 0.84rem var(--font-body);
+}
+
+.direction-poi-pin.is-numbered span {
+  font-size: 10px;
+}

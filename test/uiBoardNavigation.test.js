@@ -96,7 +96,7 @@ describe('地図（時盤）の時間帯を選ぶ帯', () => {
   it('今日の12の時間帯を選べ、今の時間帯を押すと「今」に戻る（選んだ方位も解除）', () => {
     expect(reverseSrc).toContain('aria-label="時間帯を選ぶ"');
     expect(reverseSrc).toContain('timeline.map((slot) => {');
-    expect(reverseSrc).toContain('setPickedHour(slot.hour === liveSlotHour ? null : slot.hour);');
+    expect(reverseSrc).toContain('setPickedHour(isTimeToday && slot.hour === liveSlotHour ? null : slot.hour);');
     expect(reverseSrc).toContain('setPickedPalace(null);');
   });
 });

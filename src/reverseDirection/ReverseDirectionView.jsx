@@ -24,7 +24,7 @@ import {
   filterGoodRankings,
   getLongitudeCorrectionMinutes,
   applyNaturalTime,
-  getTimeSlotHour,
+  getTimeSlotHour,
   getTimeSlotLabel,
 } from './reverseDirection.js';
 import {
@@ -106,6 +106,11 @@ function writeStoredBasePoint(next) {
 function formatCorrection(minutes) {
   if (minutes === 0) return '±0分';
   return `${minutes > 0 ? '+' : ''}${minutes}分`;
+}
+
+export function shiftDate(date, days) {
+  const [year, month, day] = String(date).split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
 function formatDisplayDate(date) {
@@ -277,10 +282,21 @@ export default function ReverseDirectionView({
   // 時間帯の一覧で選んだ時間・方位を、地図（時盤）に引き継ぐ。null は「今の時間・一番良い方位」。
   const [pickedHour, setPickedHour] = useState(null);
   const [pickedPalace, setPickedPalace] = useState(null);
+  // 時盤の日付。null は今日。明日以降の「何時にどの方位か」も見られるようにする。
+  const [timeDate, setTimeDate] = useState(null);
+  const date = timeDate && timeDate !== today ? timeDate : today;
+  const isTimeToday = date === today;
   const slotHour = pickedHour ?? liveSlotHour;
-  const isPickedTime = pickedHour !== null && pickedHour !== liveSlotHour;
+  // 「今」ではない日時を見ているか（別の日、または今日の別の時間帯）
+  const isPickedTime = !isTimeToday || (pickedHour !== null && pickedHour !== liveSlotHour);
+  const timeDateLabel = isTimeToday ? '' : `${formatDisplayDate(date)} `;
   const clearPicked = () => {
+    setTimeDate(null);
     setPickedHour(null);
+    setPickedPalace(null);
+  };
+  const changeTimeDate = (next) => {
+    setTimeDate(next && next !== today ? next : null);
     setPickedPalace(null);
   };
   // 時間帯を選ぶ帯: 選ばれている時間帯が見える位置まで横に送る（縦のスクロールは動かさない）。
@@ -291,7 +307,6 @@ export default function ReverseDirectionView({
     if (!box || !active) return;
     box.scrollLeft = Math.max(0, active.offsetLeft - (box.clientWidth - active.offsetWidth) / 2);
   }, [slotHour, mode, isActive]);
-  const date = today;
   const currentTimeWindow = useMemo(
     () => getCurrentTimeWindow(now, correction),
     [now, correction],
@@ -838,7 +853,7 @@ export default function ReverseDirectionView({
           showFavoritesSection={showFavoritesList}
           selectedPalace={pickedPalace}
           onSelectPalace={setPickedPalace}
-          conditionLabel={`${getTimeSlotLabel(slotHour)} の時盤`}
+          conditionLabel={`${timeDateLabel}${getTimeSlotLabel(slotHour)} の時盤`}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
           onOpenDetail={scrollToDirectionDetail}
@@ -861,12 +876,12 @@ export default function ReverseDirectionView({
       <div className="reverse-timeline">
         <div className="reverse-section-title">
           <span className="reverse-section-kicker lat">today's best</span>
-          <h3 className="maru">本日の時間帯別ベスト</h3>
+          <h3 className="maru">{isTimeToday ? '本日の時間帯別ベスト' : `${formatDisplayDate(date)} の時間帯別ベスト`}</h3>
         </div>
         <p className="tsl-lead"><Ja>時間帯を押すと、その時間の8方位を比べて、地図で行き先を探せます。</Ja></p>
         <TimeSlotList
           timeline={displayedTimeline}
-          nowHour={liveSlotHour}
+          nowHour={isTimeToday ? liveSlotHour : null}
           onOpenBoard={(hour) => onOpenBoard({ date, hour, boardType: '時' })}
           onGoMap={({ hour, palace }) => {
             setPickedHour(hour);
@@ -889,7 +904,7 @@ export default function ReverseDirectionView({
           )}
           {modeTitle ? (
             <>
-              <h2 className="maru"><Ja>{mode === 'time' && isPickedTime ? `${getTimeSlotLabel(slotHour)}に吉方位へ` : modeTitle.title}</Ja></h2>
+              <h2 className="maru"><Ja>{mode === 'time' && isPickedTime ? `${timeDateLabel}${getTimeSlotLabel(slotHour)}に吉方位へ` : modeTitle.title}</Ja></h2>
               {variant !== 'map' && <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>}
             </>
           ) : (
@@ -943,7 +958,7 @@ export default function ReverseDirectionView({
       {variant === 'map' && (
         <div className="reverse-mode-tabs reverse-mode-tabs--two" aria-label="時盤と日盤の切り替え">
           <button className={mode === 'time' ? 'is-active' : ''} type="button" onClick={() => setMode('time')}>
-            時盤（近場・今日）
+            時盤（近場）
           </button>
           <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
             日盤（遠出・旅行）
@@ -982,7 +997,36 @@ export default function ReverseDirectionView({
       {mode === 'time' && (
         <div className="reverse-walk-body">
           <div className="reverse-zone">
-            {/* 時間帯を選ぶ（今日の12の時辰）。今の時間帯を押すと「今」に戻る */}
+            {/* 日付を選ぶ（今日・明日・好きな日）。その下で時間帯を選ぶ */}
+            <div className="reverse-time-date" role="group" aria-label="日付を選ぶ">
+              <button
+                type="button"
+                className={isTimeToday ? 'is-active' : ''}
+                aria-pressed={isTimeToday}
+                onClick={() => changeTimeDate(today)}
+              >
+                今日
+              </button>
+              <button
+                type="button"
+                className={date === shiftDate(today, 1) ? 'is-active' : ''}
+                aria-pressed={date === shiftDate(today, 1)}
+                onClick={() => changeTimeDate(shiftDate(today, 1))}
+              >
+                明日
+              </button>
+              <label>
+                <span>日付</span>
+                <input
+                  type="date"
+                  value={date}
+                  aria-label="時盤の日付"
+                  onChange={(event) => changeTimeDate(event.target.value)}
+                />
+              </label>
+            </div>
+
+            {/* 時間帯を選ぶ（その日の12の時辰）。今日の今の時間帯を押すと「今」に戻る */}
             <div className="reverse-slot-picker" role="group" aria-label="時間帯を選ぶ" ref={slotPickerRef}>
               {timeline.map((slot) => {
                 const isActive = slot.hour === slotHour;
@@ -991,17 +1035,17 @@ export default function ReverseDirectionView({
                   <button
                     key={slot.hour}
                     type="button"
-                    className={`reverse-slot-chip${isActive ? ' is-active' : ''}${slot.hour === liveSlotHour ? ' is-now' : ''}`}
+                    className={`reverse-slot-chip${isActive ? ' is-active' : ''}${isTimeToday && slot.hour === liveSlotHour ? ' is-now' : ''}`}
                     aria-pressed={isActive}
                     data-active={isActive ? 'true' : undefined}
                     onClick={() => {
-                      setPickedHour(slot.hour === liveSlotHour ? null : slot.hour);
+                      setPickedHour(isTimeToday && slot.hour === liveSlotHour ? null : slot.hour);
                       setPickedPalace(null);
                     }}
                   >
                     <span className="lat">{slot.label}</span>
                     <small>
-                      {slot.hour === liveSlotHour ? 'いま・' : ''}
+                      {isTimeToday && slot.hour === liveSlotHour ? 'いま・' : ''}
                       {top ? `${top.label} ${top.score > 0 ? '+' : ''}${top.score}` : '—'}
                     </small>
                   </button>
@@ -1012,7 +1056,9 @@ export default function ReverseDirectionView({
             {isPickedTime && (
               <div className="reverse-picked-note">
                 <span>
-                  {`選んだ時間帯（${getTimeSlotLabel(slotHour)}）の盤を表示しています。今は ${getTimeSlotLabel(liveSlotHour)} です。`}
+                  {isTimeToday
+                    ? `選んだ時間帯（${getTimeSlotLabel(slotHour)}）の盤を表示しています。今は ${getTimeSlotLabel(liveSlotHour)} です。`
+                    : `${formatDisplayDate(date)} ${getTimeSlotLabel(slotHour)} の盤を表示しています。`}
                 </span>
                 <button type="button" onClick={clearPicked}>今の時間に戻す</button>
               </div>

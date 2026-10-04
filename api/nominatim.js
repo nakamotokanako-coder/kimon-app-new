@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const url = new URL('https://nominatim.openstreetmap.org/search');
   url.searchParams.set('q', q);
   url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('limit', '30');
+  url.searchParams.set('limit', '40'); // Nominatim の上限
   url.searchParams.set('accept-language', 'ja');
   url.searchParams.set('addressdetails', '0');
   if (viewbox) {

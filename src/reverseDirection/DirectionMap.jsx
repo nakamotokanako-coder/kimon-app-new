@@ -188,6 +188,9 @@ function placeSubLabel(place) {
   return String(place?.subLabel || place?.branch || place?.addressLine || '').trim();
 }
 
+// 検索結果の一覧に出す件数（地図のピンは全部出す。番号はこの件数まで）
+const LIST_MAX = 20;
+
 function placeNumberLabel(number) {
   return ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'][number] || String(number);
 }
@@ -360,7 +363,7 @@ export default function DirectionMap({
   );
   const distanceChoices = DISTANCE_CHOICES[profileKey] || DISTANCE_CHOICES.jiban;
   const numberedSearchResults = useMemo(
-    () => visibleSearchResults.slice(0, 8).map((item, index) => ({
+    () => visibleSearchResults.slice(0, LIST_MAX).map((item, index) => ({
       item,
       markerNo: index + 1,
     })),
@@ -1055,7 +1058,7 @@ export default function DirectionMap({
       ...visibleSearchResults.map((item, index) => ({
         item,
         favorite: false,
-        markerNo: index < 8 ? index + 1 : null,
+        markerNo: index < LIST_MAX ? index + 1 : null,
       })),
       ...(selectedPlace ? [{ item: selectedPlace, favorite: false }] : []),
       ...decoratedFavorites.map((item) => ({ item, favorite: true })),
@@ -1254,6 +1257,11 @@ export default function DirectionMap({
               </p>
             )}
             {mapStatus && (selectedItem ? searchResults.length === 0 : (!kichiOnly || searchResults.length === 0)) && <p className="direction-map-status">{mapStatus}</p>}
+            {!selectedItem && kichiOnly && searchResults.length > 0 && (
+              <p className="direction-map-status">
+                {`見つかった${searchResults.length}件のうち、吉方位にある${visibleSearchResults.length}件を表示しています。「吉方位のみ表示」をオフにすると、全部出ます。`}
+              </p>
+            )}
             {moreSearching && <p className="direction-map-status is-more">ほかにもないか、さらに探しています…</p>}
             {outsideUrl && (
               <a className="direction-map-outside" href={outsideUrl} target="_blank" rel="noopener noreferrer">
