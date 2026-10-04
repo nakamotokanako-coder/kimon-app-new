@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import Ja from '../utils/Ja.jsx';
 import { markOmamoriOpened } from '../notifications/dynamicNotices.js';
+import { CHARM_IMAGE_IDS } from '../kimon/charmImages.js';
 
 // 「今日のお守り」（日盤）／「この時間のお守り」（時盤）の表示。
 // 中身は src/kimon/charm.js の getCharm が盤から決める（ランダムではない）。
@@ -30,6 +32,22 @@ const COPY = {
     none: 'この時間の時盤には、吉の方位がありません。次の時間帯のお守りを確かめてください。',
   },
 };
+
+/** お守りの画像（あるものだけ。public/charms/<ID>.webp。scripts/build_charm_images.py が用意する） */
+function CharmImage({ id, name, small = false }) {
+  if (!id || !CHARM_IMAGE_IDS.has(id)) return null;
+  return (
+    <img
+      className={`charm-image${small ? ' is-small' : ''}`}
+      src={`/charms/${id}.webp`}
+      alt={name}
+      width={small ? 56 : 180}
+      height={small ? 56 : 180}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
 
 const SCENES = [
   '仕事や通勤で、行く方向が決まっている日',
@@ -68,21 +86,21 @@ export default function CharmCard({ charm, sourceType = 'day', validTime = '', o
       {isOpen && (
         <div className="charm-sheet">
           <div className="charm-head">
-            <p className="charm-lead">{copy.lead}</p>
+            <p className="charm-lead"><Ja>{copy.lead}</Ja></p>
             {validTime && <p className="charm-valid">{validTime}</p>}
             <p className="charm-intro">
-              毎日、好きな方位へ動けるとは限りません。そんなときは、吉方位が持つ「象意」を、
-              身につけるものや行動として日常に取り入れる、という考え方があります。
+              <Ja>毎日、好きな方位へ動けるとは限りません。そんなときは、吉方位が持つ「象意」を、身につけるものや行動として日常に取り入れる、という考え方があります。</Ja>
             </p>
           </div>
 
           {charm ? (
             <div className="charm-paper">
               <p className="charm-take-label">{copy.takeLabel}</p>
-              <h3 className="charm-name">{charm.charm.name}</h3>
+              <CharmImage id={charm.charm.id} name={charm.charm.name} />
+              <h3 className="charm-name"><Ja>{charm.charm.name}</Ja></h3>
               <p className="charm-category">{charm.charm.category}</p>
-              <p className="charm-how">{charm.charm.how}</p>
-              <p className="charm-how">{copy.tail}</p>
+              <p className="charm-how"><Ja>{charm.charm.how}</Ja></p>
+              <p className="charm-how"><Ja>{copy.tail}</Ja></p>
 
               <button
                 type="button"
@@ -109,13 +127,11 @@ export default function CharmCard({ charm, sourceType = 'day', validTime = '', o
                     )}
                   </div>
                   <p className="charm-why-text">
-                    {charm.sourceDirection}は「{charm.symbols.join('・')}」を表す方位です。
-                    その象意を日常で取り入れやすい形に置き換えて、「{charm.charm.name}」（{charm.charm.link}）を提案しています。
+                    <Ja>{`${charm.sourceDirection}は「${charm.symbols.join('・')}」を表す方位です。その象意を日常で取り入れやすい形に置き換えて、「${charm.charm.name}」（${charm.charm.link}）を提案しています。`}</Ja>
                   </p>
-                  <p className="charm-why-text">{charm.reason}</p>
+                  <p className="charm-why-text"><Ja>{charm.reason}</Ja></p>
                   <p className="charm-why-text">
-                    吉方位へ実際に行けないときにも、その吉のエッセンスを日常へ取り入れる、という考え方です。
-                    吉方位へ動くことの代わりになるものではなく、補助的な取り入れ方です。
+                    <Ja>吉方位へ実際に行けないときにも、その吉のエッセンスを日常へ取り入れる、という考え方です。吉方位へ動くことの代わりになるものではなく、補助的な取り入れ方です。</Ja>
                   </p>
                 </div>
               )}
@@ -125,9 +141,10 @@ export default function CharmCard({ charm, sourceType = 'day', validTime = '', o
                   <p className="charm-section-title">ほかの取り入れ方</p>
                   <ul>
                     {charm.alternatives.map((alt) => (
-                      <li key={alt.name}>
-                        <strong>{alt.name}</strong>
-                        <span>{alt.how}</span>
+                      <li key={alt.name} className={CHARM_IMAGE_IDS.has(alt.id) ? 'has-image' : undefined}>
+                        <CharmImage id={alt.id} name={alt.name} small />
+                        <strong><Ja>{alt.name}</Ja></strong>
+                        <span><Ja>{alt.how}</Ja></span>
                       </li>
                     ))}
                   </ul>
@@ -137,7 +154,7 @@ export default function CharmCard({ charm, sourceType = 'day', validTime = '', o
               <div className="charm-scenes">
                 <p className="charm-section-title">こんな日に</p>
                 <ul>
-                  {SCENES.map((scene) => <li key={scene}>{scene}</li>)}
+                  {SCENES.map((scene) => <li key={scene}><Ja>{scene}</Ja></li>)}
                 </ul>
               </div>
 
@@ -150,7 +167,7 @@ export default function CharmCard({ charm, sourceType = 'day', validTime = '', o
             </div>
           ) : (
             <div className="charm-paper">
-              <p className="charm-how">{copy.none}</p>
+              <p className="charm-how"><Ja>{copy.none}</Ja></p>
             </div>
           )}
         </div>

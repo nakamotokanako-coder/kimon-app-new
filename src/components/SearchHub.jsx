@@ -1,4 +1,5 @@
 import React from 'react';
+import Ja from '../utils/Ja.jsx';
 import NotificationBell from './NotificationBell.jsx';
 
 // 「探す」の入口。機能の名前（日盤ランキング・格局検索・三盤ルート）ではなく、
@@ -77,8 +78,8 @@ export default function SearchHub({ unreadNotificationCount = 0, onOpenNotificat
               <span className="hub-icon"><HubIcon name={entry.icon} /></span>
               <span className="hub-body">
                 <strong>{entry.title}</strong>
-                <em>{entry.question}</em>
-                <span>{entry.desc}</span>
+                <em><Ja>{entry.question}</Ja></em>
+                <span><Ja>{entry.desc}</Ja></span>
                 <small>{entry.tech}</small>
               </span>
               <b aria-hidden="true">›</b>
@@ -90,7 +91,7 @@ export default function SearchHub({ unreadNotificationCount = 0, onOpenNotificat
       <button type="button" className="home-row hub-row" onClick={() => onSelect({ key: 'timeRanking', target: 'search' })}>
         <span>
           <strong>今日の時間帯から探す</strong>
-          <small>今日のどの時間帯が良いかを一覧で見る（時盤ランキング）</small>
+          <small><Ja>今日のどの時間帯が良いかを一覧で見る（時盤ランキング）</Ja></small>
         </span>
         <b aria-hidden="true">›</b>
       </button>

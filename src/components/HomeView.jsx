@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import Ja from '../utils/Ja.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import { getBoardDate } from '../utils/boardDate.js';
 import CharmCard from './CharmCard.jsx';
@@ -166,16 +167,16 @@ export default function HomeView({
                 <span className="home-today-score lat">{scoreText(best.score)}<small>点</small></span>
               </p>
               <p className="home-today-sub">
-                {getTimeSlotLabel(slotHour)} の時盤。{best.palaceData?.hachimon ? `${best.palaceData.hachimon}が入っています。` : ''}
+                <Ja>{`${getTimeSlotLabel(slotHour)} の時盤。${best.palaceData?.hachimon ? `${best.palaceData.hachimon}が入っています。` : ''}`}</Ja>
               </p>
               {vetoes.length > 0 && (
-                <p className="home-today-warn">注意条件あり（{vetoes.join('・')}）。点数だけで決めず、盤で確かめてください。</p>
+                <p className="home-today-warn"><Ja>{`注意条件あり（${vetoes.join('・')}）。点数だけで決めず、盤で確かめてください。`}</Ja></p>
               )}
             </>
           ) : (
             <>
               <p className="home-today-main"><strong>なし</strong></p>
-              <p className="home-today-sub">{getTimeSlotLabel(slotHour)} の時盤には、吉の方位がありません。次の時間帯か、日盤で探せます。</p>
+              <p className="home-today-sub"><Ja>{`${getTimeSlotLabel(slotHour)} の時盤には、吉の方位がありません。次の時間帯か、日盤で探せます。`}</Ja></p>
             </>
           )}
           <div className="home-today-actions">
@@ -213,8 +214,8 @@ export default function HomeView({
             >
               <span className="home-entry-icon"><HomeIcon name={entry.icon} /></span>
               <span className="home-entry-body">
-                <strong>{entry.title}</strong>
-                <span>{entry.desc}</span>
+                <strong><Ja>{entry.title}</Ja></strong>
+                <span><Ja>{entry.desc}</Ja></span>
                 <small>{entry.tech}</small>
               </span>
               <b aria-hidden="true">›</b>
@@ -223,7 +224,7 @@ export default function HomeView({
         </div>
         {limited && (
           <p className="home-locked-note">
-            地図と検索はログインすると使えます。{lockedMessage()}
+            <Ja>{`地図と検索はログインすると使えます。${lockedMessage()}`}</Ja>
           </p>
         )}
       </section>
@@ -232,7 +233,7 @@ export default function HomeView({
         <button type="button" className="home-row" onClick={() => onOpenBoard(null)}>
           <span>
             <strong>盤を指定して見る</strong>
-            <small>{limited ? '今日の時盤・日盤を表示（日付の指定はログイン後）' : '日付と時刻を選んで、時盤・日盤を表示'}</small>
+            <small><Ja>{limited ? '今日の時盤・日盤を表示（日付の指定はログイン後）' : '日付と時刻を選んで、時盤・日盤を表示'}</Ja></small>
           </span>
           <b aria-hidden="true">›</b>
         </button>

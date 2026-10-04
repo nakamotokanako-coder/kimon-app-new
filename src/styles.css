@@ -9031,3 +9031,48 @@ html[data-text-size='large'] {
   letter-spacing: 0.1em;
   text-align: center;
 }
+
+/* === 日本語の折り返し（src/utils/Ja.jsx）===
+   文節の切れ目（<wbr>）でだけ折り返す。1文節が幅より長いときだけ、途中で折る。 */
+.ja {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-break: strict;
+}
+
+/* 見出しは、行の長さをそろえる（最後の行に1〜2文字だけ残るのを防ぐ） */
+.charm-lead,
+.charm-name,
+.home-section-head h2,
+.home-today-main,
+.hub-body strong,
+.intro-title,
+.intro-lead,
+.reverse-header h2 {
+  text-wrap: balance;
+}
+
+/* お守りの画像（あるものだけ出る） */
+.charm-image {
+  display: block;
+  width: min(180px, 52%);
+  height: auto;
+  aspect-ratio: 1;
+  margin: 12px auto 4px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f3e9d4;
+  box-shadow: 0 0 0 1px rgba(201, 164, 92, 0.6), 0 12px 26px -18px rgba(79, 20, 29, 0.6);
+}
+
+.charm-image.is-small {
+  width: 56px;
+  margin: 0;
+  grid-row: 1 / span 2;
+}
+
+.charm-alt li.has-image {
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+}

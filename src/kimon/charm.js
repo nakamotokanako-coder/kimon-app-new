@@ -120,6 +120,11 @@ export const GATE_PREFERENCE = {
 };
 const DEFAULT_PREFERENCE = { order: ['身につけるもの', '色', '持ち物'], reason: '身につけて一緒に動けるものから選んでいます。' };
 
+/** お守りの ID（方位-番号。番号は CHARM_LIBRARY に書いてある順の1〜6）。画像のファイル名にも使う */
+export function charmId(palace, index) {
+  return `${palace}-${index + 1}`;
+}
+
 /** 候補を、門の優先順（同じ種類の中では書いてある順）に並べる */
 export function orderCharms(palace, gate) {
   const entry = CHARM_LIBRARY[palace];
@@ -130,7 +135,7 @@ export function orderCharms(palace, gate) {
     return i === -1 ? order.length : i;
   };
   return entry.charms
-    .map((charm, index) => ({ charm, index }))
+    .map((charm, index) => ({ charm: { ...charm, id: charmId(palace, index) }, index }))
     .sort((a, b) => rank(a.charm.category) - rank(b.charm.category) || a.index - b.index)
     .map((item) => item.charm);
 }

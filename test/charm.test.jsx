@@ -7,6 +7,9 @@ import CharmCard from '../src/components/CharmCard.jsx';
 import { OMAMORI_OPENED_KEY } from '../src/notifications/dynamicNotices.js';
 import { buildDayReverseBoard, buildReverseBoard, PALACE_DIRECTIONS } from '../src/reverseDirection/reverseDirection.js';
 import { FORBIDDEN_EXPRESSIONS } from '../src/kaisetsu/composeProse.js';
+import { CHARM_IMAGE_IDS } from '../src/kimon/charmImages.js';
+import Ja, { jaPhrases } from '../src/utils/Ja.jsx';
+import { existsSync } from 'node:fs';
 
 beforeEach(() => window.localStorage.clear());
 afterEach(cleanup);
@@ -98,6 +101,32 @@ describe('お守りの決め方（盤 → 吉方位 → 象意と門 → 取り�
       const { rankings } = buildReverseBoard({ date: '2026-10-04', hour });
       expect(Boolean(getCharm({ rankings, sourceType: 'hour' }))).toBe(rankings[0].score > 0);
     }
+  });
+});
+
+describe('お守りの画像と改行', () => {
+  it('48個すべてに重複しない ID が付く（方位-番号。画像のファイル名になる）', () => {
+    const ids = Object.keys(CHARM_LIBRARY).flatMap((palace) => orderCharms(palace, '生門').map((c) => c.id));
+    expect(ids).toHaveLength(48);
+    expect(new Set(ids).size).toBe(48);
+    expect(ids.every((id) => /^(kan|gon|shin|son|ri|kun|da|ken)-[1-6]$/.test(id))).toBe(true);
+    expect(orderCharms('son', '杜門')[0]).toMatchObject({ id: 'son-1', name: 'ストール・スカーフ' });
+  });
+
+  it('画像は、用意されたお守りにだけ出る（無いものは文字だけで、壊れた画像を出さない）', () => {
+    const charm = getCharm({ rankings: [ranking('son', 60, '生門')], sourceType: 'day' });
+    const { container } = render(<CharmCard charm={charm} sourceType="day" defaultOpen />);
+    const expected = [charm.charm, ...charm.alternatives].filter((c) => CHARM_IMAGE_IDS.has(c.id)).length;
+    expect(container.querySelectorAll('img.charm-image')).toHaveLength(expected);
+    for (const id of CHARM_IMAGE_IDS) expect(existsSync(`public/charms/${id}.webp`), id).toBe(true);
+  });
+
+  it('文は文節の切れ目でだけ折り返す（言葉の途中で改行しない）', () => {
+    expect(jaPhrases('吉方位へ行けない日の、小さな開運法。')).toEqual(['吉方位へ', '行けない', '日の、', '小さな', '開運法。']);
+    const { container } = render(<p><Ja>長いもの（麺類）を、食事に選んでください。</Ja></p>);
+    expect(container.textContent).toBe('長いもの（麺類）を、食事に選んでください。');
+    expect(container.querySelectorAll('wbr').length).toBeGreaterThan(1);
+    expect(container.querySelector('.ja')).toBeTruthy();
   });
 });
 

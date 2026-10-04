@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Ja from '../utils/Ja.jsx';
 import { ic } from '../utils/icons.js';
 import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
@@ -859,8 +860,8 @@ export default function ReverseDirectionView({
           )}
           {modeTitle ? (
             <>
-              <h2 className="maru">{modeTitle.title}</h2>
-              <p className="reverse-lead">{modeTitle.lead}</p>
+              <h2 className="maru"><Ja>{modeTitle.title}</Ja></h2>
+              <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>
             </>
           ) : (
             <>
