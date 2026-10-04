@@ -9569,3 +9569,405 @@ html[data-text-size='large'] {
   color: var(--accent-ink);
   opacity: 0.85;
 }
+
+/* === 吉日・吉方位を探す（src/reverseDirection/SaikyoRankingView.jsx）===
+   金は「選択中・ベスト・主のボタン・上位」にだけ使う。 */
+.saikyo-view {
+  --sk-gold: #b88a36;
+  --sk-line: #e6ded0;
+}
+
+.saikyo-field {
+  display: grid;
+  gap: 8px;
+}
+
+.saikyo-field-label {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.saikyo-dir-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 300px);
+}
+
+.saikyo-dir-grid button,
+.saikyo-segment button {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.saikyo-dir-grid button {
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+}
+
+.saikyo-dir-grid button.is-active,
+.saikyo-segment button.is-active {
+  border-color: var(--accent-edge);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.saikyo-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.65;
+}
+
+.saikyo-segment {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.saikyo-segment button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1px;
+  min-height: 48px;
+  padding: 4px 2px;
+  border-width: 0 0 0 1px;
+  border-radius: 0;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.saikyo-segment button:first-child {
+  border-left: 0;
+}
+
+.saikyo-segment button.is-locked {
+  color: var(--text-secondary);
+}
+
+.saikyo-segment button i {
+  margin-right: 2px;
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.saikyo-segment button small {
+  font-size: 0.6rem;
+  font-weight: 500;
+}
+
+.saikyo-annual-note {
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.74rem;
+  line-height: 1.6;
+  text-align: left;
+  cursor: pointer;
+}
+
+.saikyo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.saikyo-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+
+.saikyo-summary p {
+  margin: 0;
+}
+
+.saikyo-summary-label {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.saikyo-summary-main {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.saikyo-summary-sub {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.saikyo-summary-count {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
+.saikyo-summary-count b {
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.saikyo-summary-count span,
+.saikyo-summary-count small {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+.saikyo-section h3 small {
+  display: block;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.saikyo-date {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
+/* 1位: 期間のベスト */
+.saikyo-best {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding: 26px 14px 14px;
+  border: 1.5px solid var(--sk-gold);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text-accent) 6%, var(--bg-card));
+  box-shadow: 0 16px 34px -26px color-mix(in srgb, var(--text-accent) 85%, transparent);
+}
+
+.saikyo-best-label {
+  position: absolute;
+  top: -1px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 3px 12px;
+  border-radius: 0 0 10px 10px;
+  background: var(--sk-gold);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.saikyo-best-label svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.saikyo-best-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.saikyo-rank.is-first strong {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font-size: 1.3rem;
+}
+
+.saikyo-best-main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.saikyo-best-dir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.saikyo-best-dir strong {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.saikyo-best-score {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.saikyo-best-score b {
+  color: var(--text-success);
+  font-size: 1.9rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.saikyo-best-score b.is-bad {
+  color: var(--text-danger);
+}
+
+.saikyo-best-score b small {
+  margin-left: 2px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.saikyo-tone {
+  padding: 2px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text-success) 15%, transparent);
+  color: var(--text-success);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.saikyo-tone.is-kyo {
+  background: color-mix(in srgb, var(--text-danger) 14%, transparent);
+  color: var(--text-danger);
+}
+
+.saikyo-tone.is-churitsu {
+  background: color-mix(in srgb, var(--text-secondary) 14%, transparent);
+  color: var(--text-secondary);
+}
+
+.saikyo-best-text p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.saikyo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.saikyo-tags span {
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  font-size: 0.76rem;
+}
+
+.saikyo-warn {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--text-danger) 45%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-danger) 8%, transparent);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.saikyo-best-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.saikyo-cta,
+.saikyo-sub-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.saikyo-cta {
+  border: 1px solid var(--accent-edge);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font-size: 0.94rem;
+}
+
+.saikyo-cta svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.saikyo-sub-cta {
+  border: 1px solid var(--sk-gold);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.86rem;
+}
+
+.reverse-list-panel .saikyo-cta {
+  margin-top: 10px;
+}
+
+/* 年額プランの案内（下から出るシート） */
+.saikyo-upgrade .l3-content {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.saikyo-upgrade h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.saikyo-upgrade p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+@media (max-width: 359px) {
+  .saikyo-cta {
+    font-size: 0.84rem;
+  }
+
+  .saikyo-best-dir strong {
+    font-size: 1.3rem;
+  }
+}

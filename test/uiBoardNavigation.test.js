@@ -22,7 +22,7 @@ describe('吉方位 UI 整理', () => {
 
   it('日盤ランキングへ改名されている', () => {
     expect(reverseSrc).toContain('日盤ランキング');
-    expect(rankingSrc).toContain('<h3>日盤ランキング</h3>');
+    expect(reverseSrc).toContain("tech: '日盤ランキング｜遠出 50km〜'");
   });
 
   it('時盤ランキングタブに時間帯別ベストを移設している', () => {
