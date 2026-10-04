@@ -116,6 +116,15 @@ const DIRECTION_TONE_TEXT = {
   kyo: 'できれば避けたい方位です。',
 };
 
+// 結果を取れなかったときの逃げ道: Googleマップで同じ言葉を、その場所を中心に探すリンク（開くだけ。APIは使わない）。
+export function googleMapsSearchUrl(word, latlng, zoom = 15) {
+  const lat = Number(latlng?.[0]);
+  const lng = Number(latlng?.[1]);
+  if (!word || !Number.isFinite(lat) || !Number.isFinite(lng)) return '';
+  const z = Math.min(18, Math.max(8, Math.round(zoom)));
+  return `https://www.google.com/maps/search/${encodeURIComponent(word)}/@${lat.toFixed(5)},${lng.toFixed(5)},${z}z`;
+}
+
 export function describeDirection(item) {
   if (!item) return '';
   const tone = getMiniBoardToneClass(item.score, item.palaceScore);
@@ -469,7 +478,7 @@ export default function DirectionMap({
     const map = mapRef.current;
     if (!map) return;
     const text = sanitizeQuery(word);
-    lastAreaSearchRef.current = { type: 'preset', word: text, preset };
+    lastAreaSearchRef.current = { type: 'preset', word: preset.label, preset };
     setNeedsAreaSearch(false);
     setMapStatus(`${preset.label}を表示中の地図範囲で検索しています。`);
     const bounds = map.getBounds();
@@ -1184,6 +1193,22 @@ export default function DirectionMap({
             <button type="submit" disabled={mapSearching}>検索</button>
           </form>
         );
+        // 探した言葉で結果を出せなかったとき（混雑で失敗・0件）は、Googleマップで探すリンクを出す。
+        const lastWord = lastAreaSearchRef.current?.word || '';
+        const showOutsideLink = !mapSearching && lastWord
+          && (mapError || (visibleSearchResults.length === 0 && !selectedPlace));
+        const outsideCenter = (() => {
+          if (!showOutsideLink) return null;
+          if (selectedItem) {
+            const km = distanceKm || DEFAULT_DIRECTION_SEARCH_KM[profileKey] || DEFAULT_DIRECTION_SEARCH_KM.jiban;
+            return destPoint(center, bearingFor(directionIndexFor(selectedItem), bearingOptions), km * 600);
+          }
+          const c = mapRef.current?.getCenter();
+          return c ? [c.lat, c.lng] : center;
+        })();
+        const outsideUrl = showOutsideLink
+          ? googleMapsSearchUrl(lastWord, outsideCenter, mapRef.current?.getZoom() ?? profile.initialZoom)
+          : '';
         const searchStatusBlock = (
           <>
             {mapError && (
@@ -1201,6 +1226,11 @@ export default function DirectionMap({
               </p>
             )}
             {mapStatus && (selectedItem ? searchResults.length === 0 : (!kichiOnly || searchResults.length === 0)) && <p className="direction-map-status">{mapStatus}</p>}
+            {outsideUrl && (
+              <a className="direction-map-outside" href={outsideUrl} target="_blank" rel="noopener noreferrer">
+                Googleマップで{selectedItem ? `${selectedItem.label}の` : 'この辺りの'}{lastWord}を探す ↗
+              </a>
+            )}
             {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
           </>
         );

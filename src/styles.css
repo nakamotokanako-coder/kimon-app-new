@@ -10653,3 +10653,16 @@ p.saikyo-annual-note.is-open {
   background: transparent;
   box-shadow: none;
 }
+
+/* 結果を取れなかったときの逃げ道（Googleマップで探す） */
+.direction-map-outside {
+  display: block;
+  padding: 11px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  color: var(--accent);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}

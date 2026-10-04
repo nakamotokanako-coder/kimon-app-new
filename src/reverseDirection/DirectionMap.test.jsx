@@ -2,7 +2,7 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import DirectionMap, { describeDirection } from './DirectionMap.jsx';
+import DirectionMap, { describeDirection, googleMapsSearchUrl } from './DirectionMap.jsx';
 import { getFanColor } from './mapFan.js';
 
 const LOCATION = { name: '東京駅', latitude: 35.681, longitude: 139.767 };
@@ -497,5 +497,30 @@ describe('DirectionMap 種類の検索（カフェなど）が混んでいて失
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
     fireEvent.click(within(document.querySelector('.direction-map-chips')).getByRole('button', { name: 'カフェ' }));
     expect((await screen.findByRole('alert')).textContent).toContain('場所の検索が混み合っていて');
+    // 何も出せないままにしない: Googleマップで同じ言葉を探すリンクを出す
+    const link = screen.getByRole('link', { name: /Googleマップでこの辺りのカフェを探す/ });
+    expect(decodeURIComponent(link.getAttribute('href'))).toMatch(/^https:\/\/www\.google\.com\/maps\/search\/カフェ\/@35\.\d+,139\.\d+,\d+z$/);
+    expect(link.getAttribute('target')).toBe('_blank');
+  });
+
+  it('方位を選んでいるときは、その方位の先を中心にしたリンクになる', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 502 })));
+    render(
+      <DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" selectedPalace="gon" onSelectPalace={() => {}} profileKey="jiban" />,
+    );
+    fireEvent.click(within(document.querySelector('.direction-map-chips')).getByRole('button', { name: 'カフェ' }));
+    const link = await screen.findByRole('link', { name: /Googleマップで北東のカフェを探す/ });
+    const [, lat, lng] = decodeURIComponent(link.getAttribute('href')).match(/@([\d.]+),([\d.]+),/);
+    // 北東 = 基準点より北で、東
+    expect(Number(lat)).toBeGreaterThan(LOCATION.latitude);
+    expect(Number(lng)).toBeGreaterThan(LOCATION.longitude);
+  });
+
+  it('結果が出ているときはリンクを出さない。リンクは場所と言葉だけで作る', async () => {
+    expect(googleMapsSearchUrl('カフェ', [35.681, 139.767], 13.4)).toBe(`https://www.google.com/maps/search/${encodeURIComponent('カフェ')}/@35.68100,139.76700,13z`);
+    expect(googleMapsSearchUrl('', [35.681, 139.767])).toBe('');
+    expect(googleMapsSearchUrl('カフェ', null)).toBe('');
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    expect(screen.queryByRole('link', { name: /Googleマップ/ })).toBe(null);
   });
 });
