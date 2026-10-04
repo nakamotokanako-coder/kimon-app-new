@@ -1,3 +1,4 @@
+import { openLegal } from '../legal/documents.js';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { ANNUAL_PRICE_LABEL, isBillingUiVisible, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
@@ -518,6 +519,12 @@ export default function AccountSettings() {
       <button type="button" className="account-btn" onClick={sendLink} disabled={busy}>
         ログインリンクを送る
       </button>
+      <p className="account-note account-note-small account-legal">
+        ログインすると、
+        <button type="button" onClick={() => openLegal('terms')}>利用規約</button>と
+        <button type="button" onClick={() => openLegal('privacy')}>プライバシーポリシー</button>
+        に同意したことになります。
+      </p>
     </div>
   );
 }

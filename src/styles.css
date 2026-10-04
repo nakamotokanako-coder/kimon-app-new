@@ -10666,3 +10666,59 @@ p.saikyo-annual-note.is-open {
   text-align: center;
   text-decoration: none;
 }
+
+/* 利用規約・プライバシーポリシー（src/components/LegalPage.jsx） */
+.legal-head {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+
+.legal-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+
+.legal-page p,
+.legal-page li {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.9;
+}
+
+.legal-section {
+  display: grid;
+  gap: 8px;
+  padding: 18px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+}
+
+.legal-section h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.legal-section ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.legal-updated {
+  padding: 16px 0 4px;
+  font-size: 0.78rem !important;
+  text-align: right;
+}
+
+.account-legal button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

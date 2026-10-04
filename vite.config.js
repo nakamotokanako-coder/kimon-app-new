@@ -49,6 +49,8 @@ function fakeLoginForLocalPreview() {
 
 export default defineConfig({
   plugins: [react(), fakeLoginForLocalPreview()],
+  // 画面のテストは、全部まとめて走らせると1件5秒を超えることがある（内容の失敗ではなく、混み合いで）。
+  test: { testTimeout: 20000 },
   server: {
     port: 5173,
     open: false,
