@@ -221,6 +221,7 @@ export default function ReverseDirectionView({
   onOpenMapTime,      // 探すタブの時間帯一覧から、選んだ時間・方位のまま地図タブ（時盤）へ
   onOpenMapDay,       // 探すタブの吉日検索から、選んだ日・方位のまま地図タブ（日盤）へ
   longRangeLocked = false, // 吉日検索の3ヶ月以上が年額プラン限定か（lib/accessPolicy.js）
+  annualMark = false,      // 鍵をかけていなくても「年額」の印を出すか
   onUpgrade,
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
@@ -1220,6 +1221,7 @@ export default function ReverseDirectionView({
           onGoodOnlyChange={setGoodOnly}
           onOpenBoard={onOpenBoard}
           longRangeLocked={longRangeLocked}
+          annualMark={annualMark}
           onUpgrade={onUpgrade}
           onGoMap={({ date: pickedDate, palace }) => {
             setDayDate(pickedDate);

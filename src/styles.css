@@ -9971,3 +9971,17 @@ html[data-text-size='large'] {
     font-size: 1.3rem;
   }
 }
+
+/* 年額の印だけ出して、開けてある状態（ベータ期間） */
+.saikyo-segment button.is-annual-open small {
+  color: var(--sk-gold);
+}
+
+.saikyo-segment button.is-active.is-annual-open small {
+  color: var(--accent-ink);
+}
+
+p.saikyo-annual-note.is-open {
+  margin: 0;
+  cursor: default;
+}

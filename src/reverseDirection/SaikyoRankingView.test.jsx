@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import SaikyoRankingView, { PERIODS } from './SaikyoRankingView.jsx';
 import { scanStrongestRanking } from './strongestRanking.js';
-import { isLongRangeLocked, LONG_RANGE_REQUIRES_ANNUAL } from '../../lib/accessPolicy.js';
+import { isLongRangeLocked, LONG_RANGE_REQUIRES_ANNUAL, LONG_RANGE_SHOW_ANNUAL_MARK } from '../../lib/accessPolicy.js';
 
 afterEach(cleanup);
 
@@ -71,6 +71,35 @@ describe('吉日・吉方位を探す（並び・点数は今までのまま）'
     expect(container.querySelector('.saikyo-best .mini-board-grid')).toBeTruthy();
     fireEvent.click(within(container.querySelector('.saikyo-best')).getByRole('button', { name: 'フル盤を見る' }));
     expect(onOpenBoard).toHaveBeenCalledWith({ date: top.date, boardType: '日' });
+  });
+});
+
+describe('年額の印は出すが、開けておく（知り合いに見せるベータ期間）', () => {
+  it('方針: 印は出す・鍵はかけない', () => {
+    expect(LONG_RANGE_SHOW_ANNUAL_MARK).toBe(true);
+    expect(LONG_RANGE_REQUIRES_ANNUAL).toBe(false);
+  });
+
+  it('3ヶ月以上に「年額」の印と開いた鍵が付くが、押せばそのまま検索できる（案内は出ない）', () => {
+    const { container } = setup({ annualMark: true });
+    const segment = within(screen.getByRole('group', { name: '期間を選ぶ' }));
+    expect(container.querySelectorAll('.saikyo-segment .is-annual-open')).toHaveLength(3);
+    expect(container.querySelectorAll('.saikyo-segment .is-locked')).toHaveLength(0);
+    expect(segment.getByRole('button', { name: /3ヶ月/ }).textContent).toContain('年額');
+    expect(segment.getByRole('button', { name: /3ヶ月/ }).textContent).toContain('🔓');
+    expect(segment.getByRole('button', { name: '1ヶ月' }).textContent).not.toContain('年額');
+
+    fireEvent.click(segment.getByRole('button', { name: /1年/ }));
+    expect(container.querySelector('.saikyo-summary').textContent).toContain('全方位 × 1年');
+    expect(screen.queryByRole('dialog', { name: '年額プランの案内' })).toBe(null);
+    expect(container.textContent).toContain('いまはベータ期間のため、どなたでもお試しいただけます');
+  });
+
+  it('鍵をかけたときは、開いた鍵ではなく閉じた鍵になる', () => {
+    const { container } = setup({ annualMark: true, longRangeLocked: true });
+    expect(container.querySelectorAll('.saikyo-segment .is-locked')).toHaveLength(3);
+    expect(container.querySelectorAll('.saikyo-segment .is-annual-open')).toHaveLength(0);
+    expect(container.querySelector('.saikyo-segment .is-locked').textContent).toContain('🔒');
   });
 });
 

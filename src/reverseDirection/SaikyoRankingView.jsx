@@ -201,7 +201,8 @@ export default function SaikyoRankingView({
   onGoodOnlyChange,
   onOpenBoard,
   onGoMap,                 // { date, palace } → その日・その方位のまま地図（日盤）へ
-  longRangeLocked = false, // true: 3ヶ月以上は年額プラン限定（鍵つきで見せ、押すと案内を出す）
+  longRangeLocked = false, // true: 3ヶ月以上は年額プラン限定（閉じた鍵で見せ、押すと案内を出す）
+  annualMark = false,      // true: 鍵をかけていなくても「年額」の印（開いた鍵）を出す。押せば普通に使える
   onUpgrade,
 }) {
   const [periodKey, setPeriodKey] = useState('month');
@@ -265,16 +266,17 @@ export default function SaikyoRankingView({
         <div className="saikyo-segment" role="group" aria-label="期間を選ぶ">
           {PERIODS.map((item) => {
             const locked = item.long && longRangeLocked;
+            const marked = item.long && (locked || annualMark);
             return (
               <button
                 key={item.key}
                 type="button"
-                className={`${periodKey === item.key ? 'is-active' : ''}${locked ? ' is-locked' : ''}`}
+                className={`${periodKey === item.key ? 'is-active' : ''}${locked ? ' is-locked' : ''}${marked && !locked ? ' is-annual-open' : ''}`}
                 aria-pressed={periodKey === item.key}
                 onClick={() => handlePeriodChange(item)}
               >
-                <span>{locked && <i aria-hidden="true">🔒</i>}{item.label}</span>
-                {locked && <small>年額</small>}
+                <span>{marked && <i aria-hidden="true">{locked ? '🔒' : '🔓'}</i>}{item.label}</span>
+                {marked && <small>年額</small>}
               </button>
             );
           })}
@@ -283,6 +285,11 @@ export default function SaikyoRankingView({
           <button type="button" className="saikyo-annual-note" onClick={() => setUpgradeOpen(true)}>
             年額プランなら、最大1年先まで吉日・吉方位を検索できます。 <span aria-hidden="true">›</span>
           </button>
+        )}
+        {!longRangeLocked && annualMark && (
+          <p className="saikyo-annual-note is-open">
+            <Ja>3ヶ月以上の検索は、年額プランの機能です。いまはベータ期間のため、どなたでもお試しいただけます。</Ja>
+          </p>
         )}
       </div>
 

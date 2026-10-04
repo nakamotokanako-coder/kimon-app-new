@@ -12,7 +12,7 @@ import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
-import { isLongRangeLocked } from '../lib/accessPolicy.js';
+import { isLongRangeLocked, LONG_RANGE_SHOW_ANNUAL_MARK } from '../lib/accessPolicy.js';
 import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
 import HomeView from './components/HomeView.jsx';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
@@ -692,6 +692,7 @@ export default function App() {
             onOpenMapTime={() => goMap('time')}
             onOpenMapDay={() => goMap('day')}
             longRangeLocked={longRangeLocked}
+            annualMark={LONG_RANGE_SHOW_ANNUAL_MARK && auth.plan !== 'annual'}
             onUpgrade={openAccountSettings}
             onOpenTimeRanking={() => { goSearch('timeRanking'); window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }}
             onOpenBoard={openFullBoard}
