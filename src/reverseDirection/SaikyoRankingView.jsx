@@ -14,6 +14,17 @@ import { directionSummary } from './TimeSlotList.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import Ja from '../utils/Ja.jsx';
 
+/**
+ * 実際に調べる日数。年額の期間（3ヶ月以上）は、契約期間の終わり（limitDate）までに切る。
+ * 1週間・1ヶ月は誰でも使える範囲なので切らない。3ヶ月以上も、1ヶ月（31日）より短くはしない。
+ */
+export function limitPeriodDays(period, startDate, limitDate) {
+  if (!period.long || !limitDate) return period.days;
+  const untilLimit = Math.round((Date.parse(`${limitDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) / 86400000) + 1;
+  if (!Number.isFinite(untilLimit)) return period.days;
+  return Math.min(period.days, Math.max(untilLimit, SHORT_MAX_DAYS));
+}
+
 // 「吉日・吉方位を探す」（内部の機能名は日盤ランキング）。
 //   期間を決める → 方位を決める → 候補を比べる → 一番良い日・方位を選ぶ → その日のその方位を地図で探す
 // 日盤・点数・並び順・凶要素の判定は strongestRanking.js のまま。ここは見せ方と操作だけ。
@@ -25,6 +36,7 @@ export const PERIODS = [
   { key: 'half', label: '半年', days: 183, long: true },
   { key: 'year', label: '1年', days: 365, long: true },
 ];
+const SHORT_MAX_DAYS = 31; // 誰でも使える一番長い期間（1ヶ月）
 
 // 方位の選び方。盤と同じ並び（北を上・中央は全方位）。
 const DIRECTION_GRID = [
@@ -203,6 +215,7 @@ export default function SaikyoRankingView({
   onGoMap,                 // { date, palace } → その日・その方位のまま地図（日盤）へ
   longRangeLocked = false, // true: 3ヶ月以上は年額プラン限定（閉じた鍵で見せ、押すと案内を出す）
   annualMark = false,      // true: 鍵をかけていなくても「年額」の印（開いた鍵）を出す。押せば普通に使える
+  longRangeLimit = null,   // 年額プランの人が探せる最後の日（契約日から1年先＝契約期間の終わり。'YYYY-MM-DD'）
   onUpgrade,
 }) {
   const [periodKey, setPeriodKey] = useState('month');
@@ -214,9 +227,12 @@ export default function SaikyoRankingView({
   const direction = palace ? DIRECTION_BY_PALACE[palace] : null;
   const directionLabel = direction ? direction.label : '全方位';
 
+  const days = limitPeriodDays(period, startDate, longRangeLimit);
+  const limited = days < period.days;
+
   const result = useMemo(() => (
-    scanStrongestRanking({ startDate, days: period.days, goodOnly, directionPalace: palace })
-  ), [palace, goodOnly, period.days, startDate]);
+    scanStrongestRanking({ startDate, days, goodOnly, directionPalace: palace })
+  ), [palace, goodOnly, days, startDate]);
 
   const visibleRows = result.rows.slice(0, visibleCount);
   const monthly = useMemo(() => buildMonthlyBest(result.rows), [result.rows]);
@@ -286,6 +302,11 @@ export default function SaikyoRankingView({
             年額プランなら、最大1年先まで吉日・吉方位を検索できます。 <span aria-hidden="true">›</span>
           </button>
         )}
+        {longRangeLimit && (
+          <p className="saikyo-annual-note is-open">
+            <Ja>{`年額プランで探せるのは、ご契約の期間（${slash(longRangeLimit)}まで）です。更新されると、次の1年が探せるようになります。`}</Ja>
+          </p>
+        )}
         {!longRangeLocked && annualMark && (
           <p className="saikyo-annual-note is-open">
             <Ja>3ヶ月以上の検索は、年額プランの機能です。いまはベータ期間のため、どなたでもお試しいただけます。</Ja>
@@ -305,7 +326,7 @@ export default function SaikyoRankingView({
       <div className="saikyo-summary" aria-label="検索条件">
         <div>
           <p className="saikyo-summary-label">検索条件</p>
-          <p className="saikyo-summary-main">{directionLabel} × {period.label}</p>
+          <p className="saikyo-summary-main">{directionLabel} × {period.label}{limited ? '（ご契約の期間まで）' : ''}</p>
           <p className="saikyo-summary-sub lat">{slash(result.range.startDate)} 〜 {slash(result.range.endDate)}（{result.range.days}日間）</p>
         </div>
         <div className="saikyo-summary-count">

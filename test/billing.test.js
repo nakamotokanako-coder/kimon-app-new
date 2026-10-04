@@ -300,6 +300,10 @@ describe('年額プラン（年額10,000円）', () => {
     await syncSubscription(yearly());
     expect(await me()).toMatchObject({ status: 'paid', plan: 'annual' });
     expect(isLongRangeLocked(await me(), true)).toBe(false);
+    // 「1年」は契約日から: 契約期間の終わり（猶予なし）を返す。有料の期限（猶予つき）より前。
+    const annual = await me();
+    expect(Date.parse(annual.periodEnd)).toBeLessThan(Date.parse(annual.paidUntil));
+    expect(Date.parse(annual.paidUntil) - Date.parse(annual.periodEnd)).toBe(24 * 60 * 60 * 1000);
 
     await syncSubscription(subscription());
     expect(await me()).toMatchObject({ status: 'paid', plan: 'monthly' });

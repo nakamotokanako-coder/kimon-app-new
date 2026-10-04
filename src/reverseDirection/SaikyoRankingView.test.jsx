@@ -2,9 +2,9 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import SaikyoRankingView, { PERIODS } from './SaikyoRankingView.jsx';
+import SaikyoRankingView, { PERIODS, limitPeriodDays } from './SaikyoRankingView.jsx';
 import { scanStrongestRanking } from './strongestRanking.js';
-import { isLongRangeLocked, LONG_RANGE_REQUIRES_ANNUAL, LONG_RANGE_SHOW_ANNUAL_MARK } from '../../lib/accessPolicy.js';
+import { isLongRangeLocked, longRangeLimitDate, LONG_RANGE_REQUIRES_ANNUAL, LONG_RANGE_SHOW_ANNUAL_MARK } from '../../lib/accessPolicy.js';
 
 afterEach(cleanup);
 
@@ -140,5 +140,36 @@ describe('期間と年額プラン', () => {
     // 鍵のない期間は今までどおり切り替わる
     fireEvent.click(segment.getByRole('button', { name: '1週間' }));
     expect(container.querySelector('.saikyo-summary').textContent).toContain('全方位 × 1週間');
+  });
+});
+
+describe('年額プランの「1年」は契約日から（契約期間の終わりまでを探せる）', () => {
+  const period = (key) => PERIODS.find((p) => p.key === key);
+
+  it('探せる最後の日は、年額プランの契約期間の終わり（日本時間の日付）。それ以外の人には制限なし', () => {
+    expect(longRangeLimitDate({ plan: 'annual', periodEnd: '2027-03-09T16:00:00.000Z' })).toBe('2027-03-10');
+    expect(longRangeLimitDate({ plan: 'annual', periodEnd: null })).toBe(null);
+    expect(longRangeLimitDate({ plan: 'monthly', periodEnd: '2026-11-01T00:00:00.000Z' })).toBe(null);
+    expect(longRangeLimitDate({ plan: 'annual', periodEnd: '2027-03-09T16:00:00.000Z', invited: true })).toBe(null);
+    expect(longRangeLimitDate({})).toBe(null);
+  });
+
+  it('3ヶ月以上は契約期間の終わりで切る。1週間・1ヶ月は切らず、1ヶ月より短くもしない', () => {
+    expect(limitPeriodDays(period('year'), START, '2027-01-31')).toBe(120);  // 10/4〜1/31
+    expect(limitPeriodDays(period('q'), START, '2027-01-31')).toBe(92);      // 範囲内はそのまま
+    expect(limitPeriodDays(period('year'), START, '2027-10-03')).toBe(365);  // 契約した日なら丸1年
+    expect(limitPeriodDays(period('year'), START, '2026-10-10')).toBe(31);   // 残りわずかでも1ヶ月は探せる
+    expect(limitPeriodDays(period('month'), START, '2026-10-10')).toBe(31);
+    expect(limitPeriodDays(period('week'), START, '2026-10-05')).toBe(7);
+    expect(limitPeriodDays(period('year'), START, null)).toBe(365);
+  });
+
+  it('画面: 1年を選ぶと契約期間の終わりまでを調べ、その旨を出す', () => {
+    const { container } = setup({ longRangeLimit: '2027-01-31' });
+    expect(container.textContent).toContain('ご契約の期間（2027/01/31まで）');
+    fireEvent.click(within(screen.getByRole('group', { name: '期間を選ぶ' })).getByRole('button', { name: '1年' }));
+    const summary = container.querySelector('.saikyo-summary').textContent;
+    expect(summary).toContain('全方位 × 1年（ご契約の期間まで）');
+    expect(summary).toContain('2026/10/04 〜 2027/01/31（120日間）');
   });
 });

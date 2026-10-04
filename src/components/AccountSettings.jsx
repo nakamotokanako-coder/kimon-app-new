@@ -161,6 +161,106 @@ function SyncSetting({ email }) {
   );
 }
 
+// 招待の管理（運営者だけに出る）。招待した人だけが使えるようにする・招待する人を足す／外す。
+function InviteAdmin() {
+  const [state, setState] = useState({ phase: 'loading', restricted: false, emails: [] });
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const call = async (body) => {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/me?invites=1', {
+        method: body ? 'PUT' : 'GET',
+        credentials: 'same-origin',
+        ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setState({ phase: 'ready', restricted: Boolean(data.restricted), emails: data.emails || [] });
+        setBusy(false);
+        return true;
+      }
+      setError(data.error === 'invalid_email' ? 'メールアドレスの形式をご確認ください。' : '保存できませんでした。時間をおいてお試しください。');
+    } catch {
+      setError('保存できませんでした。時間をおいてお試しください。');
+    }
+    setBusy(false);
+    return false;
+  };
+
+  useEffect(() => { call(null); }, []);
+
+  const add = async () => {
+    const email = input.trim().toLowerCase();
+    if (!email) return;
+    if (await call({ add: email })) setInput('');
+  };
+
+  if (state.phase === 'loading') return <p className="account-note">招待の一覧を読み込み中…</p>;
+
+  return (
+    <div className="invite-admin">
+      <div className="settings-section-head">
+        <h3 className="maru">招待の管理</h3>
+        <span className="lat">Owner only</span>
+      </div>
+      <div className="settings-row">
+        <div>
+          <strong>招待した人だけが使える</strong>
+          <small>
+            オンにすると、下の一覧の人（とあなた）だけがログインできます。ほかの人にはログインのメールを送りません。
+            すでにログインしている人も、一覧にいなければ使えなくなります。
+          </small>
+        </div>
+        <button
+          type="button"
+          className={`settings-switch${state.restricted ? ' is-on' : ''}`}
+          aria-pressed={state.restricted}
+          aria-label="招待した人だけが使える"
+          onClick={() => call({ restricted: !state.restricted })}
+          disabled={busy}
+        >
+          <span />
+        </button>
+      </div>
+      <p className="account-note account-note-small">
+        一覧の人は、課金を始めたあとも、ずっと全機能（年額プランの機能を含む）を使えます。
+      </p>
+      <label className="account-label" htmlFor="invite-email-input">招待する人のメールアドレス</label>
+      <div className="invite-add">
+        <input
+          id="invite-email-input"
+          className="account-input"
+          type="email"
+          inputMode="email"
+          autoComplete="off"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') add(); }}
+          disabled={busy}
+        />
+        <button type="button" className="account-btn" onClick={add} disabled={busy || !input.trim()}>追加</button>
+      </div>
+      {error && <p className="account-error">{error}</p>}
+      {state.emails.length === 0 ? (
+        <p className="account-note account-note-small">まだ誰も招待していません。</p>
+      ) : (
+        <ul className="invite-list">
+          {state.emails.map((email) => (
+            <li key={email}>
+              <span>{email}</span>
+              <button type="button" onClick={() => call({ remove: email })} disabled={busy} aria-label={`${email} を外す`}>外す</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // プロ版の申し込み・解約（Stripe のページへ移動する）。
 function BillingSection({ auth }) {
   const [busy, setBusy] = useState(false);
@@ -232,6 +332,7 @@ function planLabel(auth) {
     const d = new Date(t);
     return `有料会員（${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} まで）`;
   }
+  if (auth.invited) return '招待（全機能を利用できます）';
   if (auth.accessMode === 'beta' && auth.full) return 'ベータ版（全機能を無料で利用中）';
   return '無料';
 }
@@ -262,6 +363,8 @@ export default function AccountSettings() {
       });
       if (res.status === 429) {
         setError('短時間に複数回送信されています。少し時間をおいてお試しください。');
+      } else if (res.status === 403) {
+        setError('このアプリは現在、招待された方だけがご利用いただけます。');
       } else if (!res.ok) {
         setError('送信に失敗しました。時間をおいてお試しください。');
       } else {
@@ -341,6 +444,7 @@ export default function AccountSettings() {
         <DeviceList email={auth.email} />
         <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
         {auth.full && <SyncSetting email={auth.email} />}
+        {auth.owner && <InviteAdmin />}
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>
           ログアウト
         </button>

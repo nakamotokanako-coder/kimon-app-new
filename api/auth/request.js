@@ -11,6 +11,7 @@ import { kv } from '../../lib/kv.js';
 import { sendMagicLink, magicFromSource } from '../../lib/email.js';
 import { buildOrigin } from '../../lib/session.js';
 import { clientIp, generateLoginCode, hashLoginCode } from '../../lib/auth.js';
+import { loadInvites, mayLogin } from '../../lib/invite.js';
 
 const MAGIC_TTL_SEC = 15 * 60;
 const COOLDOWN_TTL_SEC = 60;
@@ -41,6 +42,11 @@ export default async function handler(req, res) {
 
   const origin = buildOrigin(req);
   if (!origin) return res.status(500).json({ error: 'origin_unavailable' });
+
+  // 招待制（lib/invite.js）: 招待した人だけにログインのメールを送る。
+  if (!mayLogin(email, await loadInvites({ fresh: true }))) {
+    return res.status(403).json({ error: 'invite_only' });
+  }
 
   // IP単位の上限（厳密な原子性は不要。概算で十分）。
   const ipKey = `ratelimit:ip:${clientIp(req)}`;
