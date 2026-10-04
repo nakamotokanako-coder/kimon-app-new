@@ -33,6 +33,15 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [best, onClose]);
 
+  // 開いている間は後ろのページを止める（指の動きが後ろのページや地図に取られて、シートが動かなくなるのを防ぐ）。
+  const isOpen = Boolean(best);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const root = document.documentElement;
+    root.classList.add('sheet-scroll-lock');
+    return () => root.classList.remove('sheet-scroll-lock');
+  }, [isOpen]);
+
   const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace), [boardKey, palace]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
   const breakdown = useMemo(
@@ -86,7 +95,12 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
         aria-modal="true"
         aria-label={`${best.label}の詳細`}
       >
-        <button type="button" className="l3-handle" aria-label="閉じる" onClick={onClose} />
+        <div className="l3-top">
+          <div className="l3-handle" aria-hidden="true" onClick={onClose} />
+          <button type="button" className="l3-close" aria-label="閉じる" onClick={onClose}>
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
 
         <div className="l3-content">
           <div className="l3-header">
