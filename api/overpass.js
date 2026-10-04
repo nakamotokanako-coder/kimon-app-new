@@ -1,6 +1,9 @@
-const UPSTREAMS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
+// 無料の検索サーバー（Overpass）は、混んでいると 504 を返したり、10秒以上かかったりする。
+// 1回目は長めに待ち、だめなら同じサーバーにもう一度、最後に予備のサーバーに頼む。
+const ATTEMPTS = [
+  { url: 'https://overpass-api.de/api/interpreter', timeoutMs: 15000 },
+  { url: 'https://overpass-api.de/api/interpreter', timeoutMs: 12000 },
+  { url: 'https://overpass.kumi.systems/api/interpreter', timeoutMs: 8000 },
 ];
 
 async function readBody(req) {
@@ -22,15 +25,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'empty overpass query' });
   }
 
-  for (const url of UPSTREAMS) {
+  for (const { url, timeoutMs } of ATTEMPTS) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain; charset=UTF-8',
-          'User-Agent': 'kimon-app/1.0 (kimon-app-new.vercel.app)',
+          'User-Agent': 'kimon-app/1.0 (https://kimon-tonko.vercel.app/)',
         },
         body: query,
         signal: controller.signal,

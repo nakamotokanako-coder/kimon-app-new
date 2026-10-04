@@ -116,6 +116,15 @@ const DIRECTION_TONE_TEXT = {
   kyo: 'できれば避けたい方位です。',
 };
 
+// 結果を取れなかったときの逃げ道: Googleマップで同じ言葉を、その場所を中心に探すリンク（開くだけ。APIは使わない）。
+export function googleMapsSearchUrl(word, latlng, zoom = 15) {
+  const lat = Number(latlng?.[0]);
+  const lng = Number(latlng?.[1]);
+  if (!word || !Number.isFinite(lat) || !Number.isFinite(lng)) return '';
+  const z = Math.min(18, Math.max(8, Math.round(zoom)));
+  return `https://www.google.com/maps/search/${encodeURIComponent(word)}/@${lat.toFixed(5)},${lng.toFixed(5)},${z}z`;
+}
+
 export function describeDirection(item) {
   if (!item) return '';
   const tone = getMiniBoardToneClass(item.score, item.palaceScore);
@@ -469,13 +478,20 @@ export default function DirectionMap({
     const map = mapRef.current;
     if (!map) return;
     const text = sanitizeQuery(word);
-    lastAreaSearchRef.current = { type: 'preset', word: text, preset };
+    lastAreaSearchRef.current = { type: 'preset', word: preset.label, preset };
     setNeedsAreaSearch(false);
     setMapStatus(`${preset.label}を表示中の地図範囲で検索しています。`);
-    const query = buildOverpassQuery(preset.selectors, map.getBounds());
-    const data = await overpassFetch(query);
+    const bounds = map.getBounds();
+    let places;
+    try {
+      const data = await overpassFetch(buildOverpassQuery(preset.selectors, bounds));
+      places = normalizeOverpassElements(data.elements).slice(0, 60);
+    } catch (error) {
+      // 種類の検索のサーバーは混むと失敗する。もう一つの検索で、同じ範囲を同じ言葉で探す。
+      places = (await nominatimSearch(preset.label, bounds)).slice(0, 40);
+    }
     const decorated = decoratePlaces(
-      normalizeOverpassElements(data.elements).slice(0, 60),
+      places,
       center,
       rankings,
       bearingOptions,
@@ -541,8 +557,8 @@ export default function DirectionMap({
   };
 
   const buildSearchError = (error) => ({
-    main: '検索範囲が広すぎる可能性があります。',
-    hint: `地図右上の ${ic('🔍')} ボタンで検索可能な範囲に合わせられます。（時間をおいて再試行も有効）`,
+    main: '場所の検索が混み合っていて、結果を取れませんでした。',
+    hint: `少し待ってから、もう一度お試しください。地図を拡大して範囲をせまくすると、通りやすくなります（地図左上の ${ic('🔍')} ボタン）。`,
     detail: error?.message || '',
   });
 
@@ -1177,6 +1193,22 @@ export default function DirectionMap({
             <button type="submit" disabled={mapSearching}>検索</button>
           </form>
         );
+        // 探した言葉で結果を出せなかったとき（混雑で失敗・0件）は、Googleマップで探すリンクを出す。
+        const lastWord = lastAreaSearchRef.current?.word || '';
+        const showOutsideLink = !mapSearching && lastWord
+          && (mapError || (visibleSearchResults.length === 0 && !selectedPlace));
+        const outsideCenter = (() => {
+          if (!showOutsideLink) return null;
+          if (selectedItem) {
+            const km = distanceKm || DEFAULT_DIRECTION_SEARCH_KM[profileKey] || DEFAULT_DIRECTION_SEARCH_KM.jiban;
+            return destPoint(center, bearingFor(directionIndexFor(selectedItem), bearingOptions), km * 600);
+          }
+          const c = mapRef.current?.getCenter();
+          return c ? [c.lat, c.lng] : center;
+        })();
+        const outsideUrl = showOutsideLink
+          ? googleMapsSearchUrl(lastWord, outsideCenter, mapRef.current?.getZoom() ?? profile.initialZoom)
+          : '';
         const searchStatusBlock = (
           <>
             {mapError && (
@@ -1194,6 +1226,11 @@ export default function DirectionMap({
               </p>
             )}
             {mapStatus && (selectedItem ? searchResults.length === 0 : (!kichiOnly || searchResults.length === 0)) && <p className="direction-map-status">{mapStatus}</p>}
+            {outsideUrl && (
+              <a className="direction-map-outside" href={outsideUrl} target="_blank" rel="noopener noreferrer">
+                Googleマップで{selectedItem ? `${selectedItem.label}の` : 'この辺りの'}{lastWord}を探す ↗
+              </a>
+            )}
             {liveStatus && <p className="direction-map-status is-live">{liveStatus}</p>}
           </>
         );

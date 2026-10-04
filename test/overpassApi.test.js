@@ -70,3 +70,25 @@ describe('overpass API proxy', () => {
     });
   });
 });
+
+describe('overpass API proxy: 混んでいるとき', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('1回目がだめなら、同じサーバーにもう一度頼み、最後に予備へ', async () => {
+    const urls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      urls.push(url);
+      return { ok: false, status: 504 };
+    }));
+    const res = createRes();
+    await handler({ method: 'POST', body: '[out:json];node(1);out;' }, res);
+    expect(res.statusCode).toBe(502);
+    expect(urls).toEqual([
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
+    ]);
+  });
+});
