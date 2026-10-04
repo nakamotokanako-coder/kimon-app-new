@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 import React from 'react';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import DirectionMap, { describeDirection, googleMapsSearchUrl } from './DirectionMap.jsx';
 import { getFanColor } from './mapFan.js';
@@ -490,6 +490,40 @@ describe('DirectionMap 種類の検索（カフェなど）が混んでいて失
     expect(calls[0]).toBe('/api/overpass');
     expect(decodeURIComponent(calls[1])).toContain('/api/nominatim?q=カフェ');
     expect(document.querySelector('.direction-map-error')).toBe(null);
+  });
+
+  it('速い検索の結果を先に出し、くわしい検索が届いたら足す（待たせない）', async () => {
+    let releaseDetailed;
+    vi.stubGlobal('fetch', vi.fn((url) => {
+      if (String(url).startsWith('/api/overpass')) {
+        return new Promise((resolve) => {
+          releaseDetailed = () => resolve({
+            ok: true,
+            json: async () => ({ elements: [
+              { type: 'node', id: 1, lat: 35.69, lon: 139.767, tags: { name: 'カフェ パウリスタ' } },
+              { type: 'node', id: 2, lat: 35.695, lon: 139.77, tags: { name: '喫茶 さくら' } },
+            ] }),
+          });
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => [{ lat: '35.69', lon: '139.767', name: 'カフェ パウリスタ', osm_type: 'node', osm_id: 1 }],
+      });
+    }));
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    fireEvent.click(within(document.querySelector('.direction-map-chips')).getByRole('button', { name: 'カフェ' }));
+
+    // くわしい検索がまだ返っていなくても、速い検索の結果が出る
+    expect(await screen.findByText('カフェ パウリスタ')).toBeTruthy();
+    expect(screen.queryByText('喫茶 さくら')).toBe(null);
+    expect(screen.getByText('ほかにもないか、さらに探しています…')).toBeTruthy();
+
+    // くわしい検索が届いたら足される（同じ場所は重ねない）
+    releaseDetailed();
+    expect(await screen.findByText('喫茶 さくら')).toBeTruthy();
+    expect(screen.getAllByText('カフェ パウリスタ')).toHaveLength(1);
+    await waitFor(() => expect(screen.queryByText('ほかにもないか、さらに探しています…')).toBe(null));
   });
 
   it('両方だめなら、混み合っていることを伝える', async () => {

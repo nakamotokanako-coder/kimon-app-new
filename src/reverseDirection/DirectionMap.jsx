@@ -38,6 +38,7 @@ import {
   favoriteKind,
   filterKichiPlaces,
   findFacilityPreset,
+  mergePlaces,
   nominatimSearch,
   normalizeOverpassElements,
   overpassFetch,
@@ -262,6 +263,9 @@ export default function DirectionMap({
   const [mapError, setMapError] = useState(null);
   const [mapSearching, setMapSearching] = useState(false);
   const [needsAreaSearch, setNeedsAreaSearch] = useState(false);
+  // 種類の検索: 速い検索の結果を先に出し、くわしい検索の結果があとから足される。その「あとから」を待っている間 true。
+  const [moreSearching, setMoreSearching] = useState(false);
+  const searchSeqRef = useRef(0);
   const [searchResults, setSearchResults] = useState([]);
   const [kichiOnlyPlaces, setKichiOnlyPlaces] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -482,25 +486,45 @@ export default function DirectionMap({
     setNeedsAreaSearch(false);
     setMapStatus(`${preset.label}を表示中の地図範囲で検索しています。`);
     const bounds = map.getBounds();
-    let places;
+    const seq = searchSeqRef.current;
+    const show = (places) => {
+      const decorated = decoratePlaces(places, center, rankings, bearingOptions);
+      setSelectedPlace(null);
+      setSearchResults(decorated);
+      setMapStatus(decorated.length
+        ? `${text}を${decorated.length}件表示しました。ピンの色はその場所の方位評価です。`
+        : `${text}はこの地図範囲では見つかりませんでした。地図を動かして再検索してください。`);
+    };
+    // 検索は2つを同時に頼む。
+    //   速い検索（Nominatim）: 1秒ほどで返る。件数は少なめ
+    //   くわしい検索（Overpass）: 件数は多いが、混むと10〜30秒かかったり失敗したりする
+    // 速いほうの結果を先に出して、くわしいほうが届いたら足す。待たせない。
+    const detailed = overpassFetch(buildOverpassQuery(preset.selectors, bounds))
+      .then((data) => normalizeOverpassElements(data.elements).slice(0, 60));
+    let quick = null;
     try {
-      const data = await overpassFetch(buildOverpassQuery(preset.selectors, bounds));
-      places = normalizeOverpassElements(data.elements).slice(0, 60);
-    } catch (error) {
-      // 種類の検索のサーバーは混むと失敗する。もう一つの検索で、同じ範囲を同じ言葉で探す。
-      places = (await nominatimSearch(preset.label, bounds)).slice(0, 40);
+      quick = (await nominatimSearch(preset.label, bounds)).slice(0, 40);
+    } catch {
+      quick = null;
     }
-    const decorated = decoratePlaces(
-      places,
-      center,
-      rankings,
-      bearingOptions,
-    );
-    setSelectedPlace(null);
-    setSearchResults(decorated);
-    setMapStatus(decorated.length
-      ? `${text}を${decorated.length}件表示しました。ピンの色はその場所の方位評価です。`
-      : `${text}はこの地図範囲では見つかりませんでした。地図を動かして再検索してください。`);
+    if (quick && quick.length > 0) {
+      show(quick);
+      setMoreSearching(true);
+      detailed
+        .then((full) => {
+          if (seq !== searchSeqRef.current) return; // 別の検索を始めていたら、古い結果は足さない
+          show(mergePlaces(full, quick));
+        })
+        .catch(() => {
+          // くわしい検索が失敗しても、速い検索の結果はそのまま使える
+        })
+        .finally(() => {
+          if (seq === searchSeqRef.current) setMoreSearching(false);
+        });
+      return;
+    }
+    // 速い検索で出なかったときは、くわしい検索を待つ（失敗したら、呼び出し元が案内を出す）。
+    show(await detailed);
   };
 
   const runPoiSearch = async (word) => {
@@ -569,6 +593,8 @@ export default function DirectionMap({
     clearPlaceMarkers();
     setMapError(null);
     setMapSearching(true);
+    searchSeqRef.current += 1;
+    setMoreSearching(false);
     try {
       const preset = findFacilityPreset(text);
       if (preset) {
@@ -623,6 +649,8 @@ export default function DirectionMap({
     if (!last || mapSearching) return;
     setMapError(null);
     setMapSearching(true);
+    searchSeqRef.current += 1;
+    setMoreSearching(false);
     try {
       clearPlaceMarkers();
       if (last.type === 'preset') await runFacilitySearch(last.word, last.preset);
@@ -1226,6 +1254,7 @@ export default function DirectionMap({
               </p>
             )}
             {mapStatus && (selectedItem ? searchResults.length === 0 : (!kichiOnly || searchResults.length === 0)) && <p className="direction-map-status">{mapStatus}</p>}
+            {moreSearching && <p className="direction-map-status is-more">ほかにもないか、さらに探しています…</p>}
             {outsideUrl && (
               <a className="direction-map-outside" href={outsideUrl} target="_blank" rel="noopener noreferrer">
                 Googleマップで{selectedItem ? `${selectedItem.label}の` : 'この辺りの'}{lastWord}を探す ↗
