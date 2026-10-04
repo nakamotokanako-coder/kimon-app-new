@@ -48,4 +48,4 @@
 - 解説の鍵は `src/kaisetsu/boardKey.js`。日盤のときだけ「陰1局丁卯@日」のように印を付ける。画面も API もこの鍵で引く。
 - 生成物は、日盤で内容が変わる宮だけを `__day` に持つ（全43,200件中、日盤用は2,515件）。配信時に時盤の内容へ上書きする（`lib/kaisetsuData.js` の `getBoard`）。
 - **歳格・月格・日格・伏干・雲干**は年・月・日の干で決まるため、前もって作る解説文には入れられない。
-  点数と格局の一覧には入っているので、文章の下に「この日時は◯◯が重なっています」と注記する（`src/kimon/palaceExplain.js` の `dateBoundNote`）。
+  点数と格局の一覧には入っているので、解説の最後に「この日時だけの注意」という段落を画面側で足す（`src/kimon/palaceExplain.js` の `dateBoundParagraph`。説明文は同ファイルの `DATE_BOUND_TEXTS`、意味は `data/shoui_dict.json` に沿う）。

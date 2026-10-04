@@ -91,11 +91,26 @@ export function listDateBoundKakkyoku(palaceScore) {
   return DATE_BOUND_KAKKYOKU.filter((name) => names.includes(name));
 }
 
-/** 文章の下に添える一文。該当なしは '' */
-export function dateBoundNote(palaceScore) {
+/**
+ * その日時だけに付く凶格の説明（です・ます調）。意味は data/shoui_dict.json の同名の項目に沿う。
+ * 解説の文章と同じ書き方（「{名前}により、…」）で、解説の最後の段落として続けて読めるようにする。
+ */
+export const DATE_BOUND_TEXTS = {
+  '歳格': '歳格（庚が年の干に乗る凶格）により、親や目上の人に関わる心配ごとが出やすいので、実家や親世代の様子を気にかけ、連絡を絶やさないようにしたいところです。',
+  '月格': '月格（庚が月の干に乗る凶格）により、兄弟姉妹や同僚との間に行き違いが出やすいので、相手の様子を気にかけておきたいところです。',
+  '日格': '日格（庚が日の干に乗る凶格）により、自分自身の体調・安全・判断の誤りに注意が要るので、無理を重ねないようにしたいところです。',
+  '伏干': '伏干により、争うと互いに傷つきやすいので、対立は勝ち負けを決めず、引き分けに収めたいところです。',
+  '雲干': '雲干（日の干が庚に乗る凶格）により、争うと互いに傷つきやすいので、第三者を入れて場を収めたいところです。',
+};
+
+/**
+ * 解説の文章に続ける段落（太字は **…**。src/kaisetsu/renderProse.jsx で描く）。該当なしは ''。
+ * 例: 「**この日時だけの注意**　日格（…）により、…。伏干により、…。」
+ */
+export function dateBoundParagraph(palaceScore) {
   const names = listDateBoundKakkyoku(palaceScore);
   if (names.length === 0) return '';
-  return `この日時は、${names.join('・')}が重なっています（年・月・日の干で決まる凶格）。上の文章には入っていないので、「評価の解説」の点数も確かめてください。`;
+  return `**この日時だけの注意：${names.join('・')}**\n\n${names.map((name) => DATE_BOUND_TEXTS[name]).join('')}`;
 }
 
 export function listKakkyoku(palaceScore) {

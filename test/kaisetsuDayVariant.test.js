@@ -9,7 +9,8 @@ import { computeAxisRanks } from '../src/reverseDirection/FusionCard.jsx';
 import { buildBoard } from '../src/kimon/buildBoard.js';
 import { lookupChito } from '../src/kimon/loadChito.js';
 import { scoreBoard } from '../src/kimon/scoreEngine.js';
-import { DATE_BOUND_KAKKYOKU, dateBoundNote, listDateBoundKakkyoku } from '../src/kimon/palaceExplain.js';
+import { DATE_BOUND_KAKKYOKU, DATE_BOUND_TEXTS, dateBoundParagraph, listDateBoundKakkyoku } from '../src/kimon/palaceExplain.js';
+import { FORBIDDEN_EXPRESSIONS } from '../src/kaisetsu/composeProse.js';
 import { loadRows } from '../scripts/build_kaisetsu_text.mjs';
 
 const DATA_PATH = 'data/kaisetsu/generated/kaisetsu_text_v2.json';
@@ -140,10 +141,37 @@ describe('その日時だけに付く凶格の注記', () => {
   it('歳格・月格・日格・伏干・雲干だけを拾い、無ければ何も出さない', () => {
     const score = { detected_kakkyoku: [{ name: '日格' }, { name: '伏干' }, { name: '時格' }, { name: '天遁' }] };
     expect(listDateBoundKakkyoku(score)).toEqual(['日格', '伏干']);
-    expect(dateBoundNote(score)).toContain('日格・伏干が重なっています');
-    expect(dateBoundNote({ detected_kakkyoku: [{ name: '時格' }] })).toBe('');
-    expect(dateBoundNote(null)).toBe('');
+    const text = dateBoundParagraph(score);
+    expect(text.startsWith('**この日時だけの注意：日格・伏干**\n\n')).toBe(true);
+    expect(text).toContain(DATE_BOUND_TEXTS['日格']);
+    expect(text).toContain(DATE_BOUND_TEXTS['伏干']);
+    expect(text).not.toContain('歳格');
+    expect(dateBoundParagraph({ detected_kakkyoku: [{ name: '時格' }] })).toBe('');
+    expect(dateBoundParagraph(null)).toBe('');
   });
+
+  it('5つとも説明があり、解説文と同じ書き方（です・ます調・名前で始まる・使わない言い回しなし）', () => {
+    expect(Object.keys(DATE_BOUND_TEXTS)).toEqual(DATE_BOUND_KAKKYOKU);
+    for (const [name, text] of Object.entries(DATE_BOUND_TEXTS)) {
+      expect(text.startsWith(name)).toBe(true);
+      expect(text).toMatch(/により、.+(です|ます)。$/u);
+      expect([...FORBIDDEN_EXPRESSIONS, '必ず', '絶対'].some((w) => text.includes(w))).toBe(false);
+    }
+  });
+
+  it('実際の盤で検出されたときに段落が出る（庚が日の干に乗る日時を1年分から探す）', () => {
+    let found = null;
+    for (let i = 0; i < 365 && !found; i += 1) {
+      const date = new Date(Date.UTC(2026, 9, 4 + i)).toISOString().slice(0, 10);
+      const board = buildBoard({ date, boardType: '日' });
+      const score = scoreBoard(board);
+      for (const palace of PALACES) {
+        if (listDateBoundKakkyoku(score.palaces[palace]).includes('日格')) { found = score.palaces[palace]; break; }
+      }
+    }
+    expect(found).not.toBe(null);
+    expect(dateBoundParagraph(found)).toContain('日格（庚が日の干に乗る凶格）により');
+  }, 30000);
 
   it('解説の文章（前もって作ったもの）には、この5つは出てこない。だから注記で補う', () => {
     for (const key of ['陰1局丁卯', '陰1局甲子', '陽1局庚辰']) {
