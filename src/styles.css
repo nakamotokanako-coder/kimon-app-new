@@ -9115,20 +9115,29 @@ html[data-text-size='large'] {
   font-size: 0.7rem;
 }
 
-/* その日時だけに付く凶格の注記（解説の文章の下。src/kimon/palaceExplain.js dateBoundNote） */
-.date-bound-note {
-  margin: 10px 0 0;
-  padding: 9px 12px;
-  border: 1px solid color-mix(in srgb, var(--text-danger) 45%, transparent);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--text-danger) 9%, transparent);
-  color: var(--text-primary);
-  font-size: 0.78rem;
-  line-height: 1.65;
+/* その日時だけに付く凶格の段落（解説の文章の最後に続ける。src/kimon/palaceExplain.js dateBoundParagraph） */
+.date-bound-prose {
+  margin-top: 0.95em;
+  padding-top: 0.85em;
+  border-top: 1px dashed color-mix(in srgb, var(--text-danger) 55%, transparent);
 }
 
-.sheet .date-bound-note {
+.date-bound-prose p {
+  margin: 0;
+}
+
+.date-bound-prose p + p {
+  margin-top: 0.4em;
+}
+
+.date-bound-prose strong {
+  color: var(--text-danger);
+}
+
+.reading .date-bound-prose {
+  border-top-color: rgba(255, 255, 255, 0.45);
+}
+
+.reading .date-bound-prose strong {
   color: #fff;
-  border-color: rgba(255, 150, 160, 0.6);
-  background: rgba(255, 120, 140, 0.14);
 }
