@@ -18,6 +18,8 @@ export function normalizeMe(data) {
     status,
     paidUntil: data.paidUntil || null,
     plan: data.plan || null,
+    invited: Boolean(data.invited),
+    owner: Boolean(data.owner),
     billing: data.billing || { available: false, subscribed: false, cancelAtPeriodEnd: false },
     full: typeof data.full === 'boolean'
       ? data.full

@@ -10,8 +10,23 @@ function fakeLoginForLocalPreview() {
     name: 'kimon-fake-login',
     apply: (config, env) => env.command === 'serve' && env.mode === 'fakelogin',
     configureServer(server) {
+      // 招待の管理（運営者の画面）を手元で確かめるための、仮の一覧
+      const invites = { restricted: false, emails: ['friend@example.com'] };
       server.middlewares.use('/api/auth/me', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
+        if (req.url.includes('invites=1')) {
+          if (req.method !== 'PUT') { res.end(JSON.stringify(invites)); return; }
+          let raw = '';
+          req.on('data', (chunk) => { raw += chunk; });
+          req.on('end', () => {
+            const body = JSON.parse(raw || '{}');
+            if (typeof body.restricted === 'boolean') invites.restricted = body.restricted;
+            if (body.add && !invites.emails.includes(body.add)) invites.emails.push(body.add);
+            if (body.remove) invites.emails = invites.emails.filter((e) => e !== body.remove);
+            res.end(JSON.stringify(invites));
+          });
+          return;
+        }
         if (req.url.includes('data=1')) {
           res.end(JSON.stringify({ enabled: false, favorites: [], favoritesAt: null, basePoint: null, basePointAt: null }));
           return;
@@ -23,6 +38,8 @@ function fakeLoginForLocalPreview() {
           paidUntil: null,
           full: true,
           accessMode: 'beta',
+          invited: true,
+          owner: true,
           billing: { available: false, subscribed: false, cancelAtPeriodEnd: false },
         }));
       });

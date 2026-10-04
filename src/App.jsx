@@ -692,7 +692,7 @@ export default function App() {
             onOpenMapTime={() => goMap('time')}
             onOpenMapDay={() => goMap('day')}
             longRangeLocked={longRangeLocked}
-            annualMark={LONG_RANGE_SHOW_ANNUAL_MARK && auth.plan !== 'annual'}
+            annualMark={LONG_RANGE_SHOW_ANNUAL_MARK && auth.plan !== 'annual' && !auth.invited}
             onUpgrade={openAccountSettings}
             onOpenTimeRanking={() => { goSearch('timeRanking'); window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }}
             onOpenBoard={openFullBoard}
