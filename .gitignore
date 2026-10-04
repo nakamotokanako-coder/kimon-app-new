@@ -57,3 +57,6 @@ data/kaisetsu/generated/
 # Stripe 連携の CLI が入れたエージェント用ファイル（リポジトリには含めない）
 .agents/
 skills-lock.json
+
+# 見た目の参考資料（運営者が置いた絵・HTML。アプリには含めない）
+image/

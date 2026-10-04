@@ -32,14 +32,18 @@ import {
   favoriteKey,
   favoriteKind,
 } from './mapSearch.js';
+import { DEFAULT_LOCATIONS } from './locations.js';
 
-const DEFAULT_LOCATIONS = [
-  { name: '東京', latitude: 35.6812, longitude: 139.7671 },
-  { name: '大阪', latitude: 34.6937, longitude: 135.5023 },
-  { name: '名古屋', latitude: 35.1709, longitude: 136.8815 },
-  { name: '福岡', latitude: 33.5902, longitude: 130.4017 },
-  { name: '札幌', latitude: 43.0618, longitude: 141.3545 },
-];
+// 画面の見出し。機能の名前ではなく使い方で呼び、専門の名前（tech）は小さく添える。
+// variant（'map' = 地図タブ / 'search' = 探すタブ）が渡されたときに使う。
+export const MODE_TITLES = {
+  time: { title: '今から吉方位へ', lead: '今いる場所から、今の時間の吉方位へ。散歩・カフェ・買い物など、日常の小さな移動に。', tech: '時盤を使用' },
+  day: { title: '次の休み、どこへ行く？', lead: '日付を選ぶと、その日の8方位を比較。一番良い方位から旅先を探せます。', tech: '日盤を使用' },
+  ranking: { title: 'この方位なら、いつ行く？', lead: '行きたい方位と期間を選ぶと、条件の良い日が順に並びます。', tech: '日盤ランキング' },
+  timeRanking: { title: '今日の時間帯から探す', lead: '今日のどの時間帯に、どの方位が良いかを一覧で見られます。', tech: '時盤ランキング' },
+  kakkyoku: { title: 'この条件が出るのはいつ？', lead: '特定の格局が成立する日時を検索します。', tech: '格局検索' },
+  range: { title: '吉を3回つなぐ', lead: '同じ日に、吉方位が3回続くルートを探します。', tech: '奇門三盤ルート' },
+};
 
 const MAP_SEARCH_CHANGED_EVENT = 'kimon-map-favorites-changed';
 const GO_BASE_POINT_STORAGE_KEY = 'kimon_go_base_point_v1';
@@ -210,6 +214,10 @@ export default function ReverseDirectionView({
   onOpenNotifications,
   showBad,            // 設定「凶も見る」（App が保存）。渡されたときは「吉のみ表示」と連動する
   onShowBadChange,
+  variant,            // 'map'（地図タブ: 時盤・日盤の2つ）/ 'search'（探すタブ: 選んだ検索だけ）。無指定は6つのタブ
+  mode: modeProp,     // 表示する画面を外（App）から指定する
+  onModeChange,
+  onBackToSearch,     // 探すタブで「探す」の入口へ戻る
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
   const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
@@ -226,7 +234,13 @@ export default function ReverseDirectionView({
     if (typeof showBad === 'boolean' && onShowBadChange) onShowBadChange(!value);
     else setLocalGoodOnly(value);
   };
-  const [mode, setMode] = useState('time');
+  const [innerMode, setInnerMode] = useState('time');
+  const mode = modeProp || innerMode;
+  const setMode = (next) => {
+    setInnerMode(next);
+    onModeChange?.(next);
+  };
+  const modeTitle = variant ? MODE_TITLES[mode] : null;
   const [dayDate, setDayDate] = useState(getBoardDate());
   const [status, setStatus] = useState('');
   const [openTimelineHour, setOpenTimelineHour] = useState(null);
@@ -837,8 +851,27 @@ export default function ReverseDirectionView({
     <section className={`reverse-view${mode === 'time' ? ' reverse-view--walk' : ''}`} aria-label="逆引き方位検索">
       <div className="reverse-header">
         <div>
-          <span className="reverse-kicker lat">lucky direction</span>
-          <h2 className="maru">吉方位</h2>
+          {variant === 'search' && onBackToSearch && (
+            <button type="button" className="reverse-back" onClick={onBackToSearch}>‹ 探す</button>
+          )}
+          {modeTitle ? (
+            <>
+              <h2 className="maru">{modeTitle.title}</h2>
+              <p className="reverse-lead">{modeTitle.lead}</p>
+            </>
+          ) : (
+            <>
+              <span className="reverse-kicker lat">lucky direction</span>
+              <h2 className="maru">吉方位</h2>
+            </>
+          )}
+          {modeTitle && (
+            <p className="reverse-tech">
+              {modeTitle.tech} / {location.name}
+              {mode === 'time' ? ` / 自然時補正 ${formatCorrection(correction)}` : ''}
+            </p>
+          )}
+          {!modeTitle && (
           <p>
             {mode === 'kakkyoku'
               ? `時盤・格局検索 / ${location.name}`
@@ -852,6 +885,7 @@ export default function ReverseDirectionView({
               ? `時盤・奇門三盤ルート / ${location.name}`
               : `時盤・自然時補正 ${formatCorrection(correction)} / ${location.name}`}
           </p>
+          )}
         </div>
 <div className="reverse-header-actions">
           {mode !== 'range' && (
@@ -873,6 +907,17 @@ export default function ReverseDirectionView({
         onCenterChange={handleGlobalBasePointChange}
       />
 
+      {variant === 'map' && (
+        <div className="reverse-mode-tabs reverse-mode-tabs--two" aria-label="時盤と日盤の切り替え">
+          <button className={mode === 'time' ? 'is-active' : ''} type="button" onClick={() => setMode('time')}>
+            時盤（近場・今日）
+          </button>
+          <button className={mode === 'day' ? 'is-active' : ''} type="button" onClick={() => setMode('day')}>
+            日盤（遠出・旅行）
+          </button>
+        </div>
+      )}
+      {!variant && (
       <div className="reverse-mode-tabs" aria-label="吉方位内タブ">
         <button
           className={mode === 'time' ? 'is-active' : ''}
@@ -899,6 +944,7 @@ export default function ReverseDirectionView({
           奇門三盤ルート
         </button>
       </div>
+      )}
 
       {mode === 'time' && (
         <div className="reverse-walk-body">

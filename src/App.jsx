@@ -12,12 +12,16 @@ import NotificationsView from './components/NotificationsView.jsx';
 import ReverseDirectionView from './reverseDirection/ReverseDirectionView.jsx';
 import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
+import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
+import HomeView from './components/HomeView.jsx';
+import SearchHub from './components/SearchHub.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
 import packageJson from '../package.json';
 
-const DEFAULT_THEME = 'void';
+// 標準は白地に金（パール）。前から使っている人が選んだテーマは localStorage に残っているのでそのまま。
+const DEFAULT_THEME = 'pearl';
 const THEMES = [
   { name: 'void', label: '漆黒', dot: '#ffd368' },
   { name: 'blue', label: '深海', dot: '#3fc4d8' },
@@ -140,8 +144,11 @@ export default function App() {
   });
   const [theme, setTheme] = useState(INITIAL_THEME);
   const [direction, setDirection] = useState('north_bottom');
-  const [activeTab, setActiveTab] = useState('board');
-  const [previousTab, setPreviousTab] = useState('board');
+  // 画面: home（ホーム）/ board（盤）/ map（地図: 時盤・日盤）/ search（探す）/ settings（その他）/ notifications
+  const [activeTab, setActiveTab] = useState('home');
+  const [previousTab, setPreviousTab] = useState('home');
+  const [mapMode, setMapMode] = useState('time');     // 地図タブ: 'time'（時盤・近場）| 'day'（日盤・遠出）
+  const [searchMode, setSearchMode] = useState(null); // 探すタブ: null（入口）| 'ranking' | 'kakkyoku' | 'range' | 'timeRanking'
   const [hasVisitedDirection, setHasVisitedDirection] = useState(false);
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
@@ -155,6 +162,18 @@ export default function App() {
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackState, setFeedbackState] = useState('idle'); // idle | sending | sent | error | limited
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  // 紹介ページ: 初めて来た未ログインの人に1回だけ出す。アドレスに ?about を付けても開ける。
+  const [introOpen, setIntroOpen] = useState(() => (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('about')
+  ));
+  useEffect(() => {
+    if (auth.phase === 'ready' && !auth.loggedIn && !hasSeenIntro()) setIntroOpen(true);
+  }, [auth.phase, auth.loggedIn]);
+  const closeIntro = () => {
+    markIntroSeen();
+    setIntroOpen(false);
+  };
 
   // Stripe のページから戻ったとき（?billing=success など）: 結果を知らせ、会員状態を取り直す。
   // 有料への切り替えは Stripe からの通知（Webhook）で行われるため、数秒遅れることがある。
@@ -246,6 +265,18 @@ export default function App() {
     setActiveTab('board');
     setBoardScrollRequest((current) => current + 1);
   };
+  // 地図タブ・探すタブへ移る（同じ画面部品 ReverseDirectionView を、表示する内容を指定して使う）。
+  const goMap = (nextMode = mapMode) => {
+    setHasVisitedDirection(true);
+    setMapMode(nextMode === 'day' ? 'day' : 'time');
+    setActiveTab('map');
+  };
+  const goSearch = (nextMode = null) => {
+    if (nextMode) setHasVisitedDirection(true);
+    setSearchMode(nextMode);
+    setActiveTab('search');
+  };
+  const directionVisible = activeTab === 'map' || (activeTab === 'search' && searchMode !== null);
   const returnFromFullBoard = () => {
     if (!boardReturnTab) return;
     setActiveTab(boardReturnTab);
@@ -546,6 +577,10 @@ export default function App() {
             <span>バージョン</span>
             <strong className="lat">{APP_VERSION}</strong>
           </div>
+          <button type="button" className="settings-link-row" onClick={() => setIntroOpen(true)}>
+            <span>このアプリの紹介</span>
+            <b aria-hidden="true">›</b>
+          </button>
           {['利用規約', 'プライバシーポリシー'].map((label) => (
             <div key={label} className="settings-link-row is-disabled" aria-disabled="true">
               <span>{label}</span>
@@ -594,8 +629,36 @@ export default function App() {
   return (
     <div className="app app-with-tabs">
       <div className="vig" aria-hidden="true" />
+      {introOpen && (
+        <IntroPage
+          loggedIn={auth.loggedIn}
+          onClose={closeIntro}
+          onLogin={() => { closeIntro(); openAccountSettings(); }}
+        />
+      )}
+      {activeTab === 'home' && (
+        <HomeView
+          isActive={activeTab === 'home'}
+          limited={limited}
+          unreadNotificationCount={unreadNotificationCount}
+          onOpenNotifications={openNotifications}
+          onGoMap={goMap}
+          onGoSearch={goSearch}
+          onOpenBoard={(target) => (target ? openFullBoard(target) : setActiveTab('board'))}
+          onOpenGuide={() => setIntroOpen(true)}
+          onLogin={openAccountSettings}
+        />
+      )}
       {activeTab === 'board' && boardView}
-      {activeTab === 'direction' && limited && (
+      {activeTab === 'search' && searchMode === null && !limited && (
+        <SearchHub
+          unreadNotificationCount={unreadNotificationCount}
+          onOpenNotifications={openNotifications}
+          onSelect={(entry) => (entry.target === 'map' ? goMap(entry.key) : goSearch(entry.key))}
+          onOpenGuide={() => setIntroOpen(true)}
+        />
+      )}
+      {(activeTab === 'map' || activeTab === 'search') && limited && (
         <main className="locked-view">
           <section className="locked-card">
             <span className="board-kicker lat">LUCKY DIRECTION</span>
@@ -611,9 +674,13 @@ export default function App() {
         </main>
       )}
       {hasVisitedDirection && !limited && (
-        <div hidden={activeTab !== 'direction'}>
+        <div hidden={!directionVisible}>
           <ReverseDirectionView
-            isActive={activeTab === 'direction'}
+            isActive={directionVisible}
+            variant={activeTab === 'search' ? 'search' : 'map'}
+            mode={activeTab === 'search' ? (searchMode || 'ranking') : mapMode}
+            onModeChange={(next) => (activeTab === 'search' ? setSearchMode(next) : setMapMode(next))}
+            onBackToSearch={() => setSearchMode(null)}
             onOpenBoard={openFullBoard}
             showBad={showBadDirections}
             onShowBadChange={updateSetting('show-bad-directions', setShowBadDirections)}
@@ -633,24 +700,44 @@ export default function App() {
       )}
 
       <nav className="bottom-tabbar" aria-label="アプリメニュー">
+        <button type="button" className={activeTab === 'home' ? 'is-active' : ''} onClick={() => setActiveTab('home')}>
+          <span className="bottom-tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 11l8-7 8 7v8.5a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19.5z" />
+            </svg>
+          </span>
+          <span>ホーム</span>
+        </button>
         <button
           type="button"
           className={activeTab === 'board' ? 'is-active' : ''}
           onClick={() => setActiveTab('board')}
         >
-          <span className="bottom-tab-icon">▦</span>
+          <span className="bottom-tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2" />
+              <path d="M4 9.33h16M4 14.67h16M9.33 4v16M14.67 4v16" />
+            </svg>
+          </span>
           <span>盤</span>
         </button>
-        <button
-          type="button"
-          className={activeTab === 'direction' ? 'is-active' : ''}
-          onClick={() => {
-            setHasVisitedDirection(true);
-            setActiveTab('direction');
-          }}
-        >
-          <span className="bottom-tab-icon">✦</span>
-          <span>吉方位</span>
+        <button type="button" className={activeTab === 'map' ? 'is-active' : ''} onClick={() => goMap()}>
+          <span className="bottom-tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 21s-6.5-6.2-6.5-11A6.5 6.5 0 0 1 12 3.5 6.5 6.5 0 0 1 18.5 10c0 4.8-6.5 11-6.5 11z" />
+              <circle cx="12" cy="10" r="2.3" />
+            </svg>
+          </span>
+          <span>地図</span>
+        </button>
+        <button type="button" className={activeTab === 'search' ? 'is-active' : ''} onClick={() => goSearch(null)}>
+          <span className="bottom-tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="M16 16l4.5 4.5" />
+            </svg>
+          </span>
+          <span>探す</span>
         </button>
         <button
           type="button"
@@ -663,7 +750,7 @@ export default function App() {
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
           </span>
-          <span>設定</span>
+          <span>その他</span>
         </button>
       </nav>
     </div>
