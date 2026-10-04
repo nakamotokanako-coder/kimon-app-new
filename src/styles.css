@@ -9076,3 +9076,32 @@ html[data-text-size='large'] {
   column-gap: 12px;
   align-items: center;
 }
+
+/* 本文は、最後の行に数文字だけ残らないように整える（対応している端末だけ。
+   対応していない端末でも、src/utils/Ja.jsx が最後の行に7文字以上を残す）。 */
+.charm p,
+.charm li,
+.home-view p,
+.home-entry-body span,
+.hub-body span,
+.hub-body em,
+.intro-page p,
+.prose-text p,
+.reverse-header .reverse-lead {
+  text-wrap: pretty;
+}
+
+/* ボタンの文字は途中で折らない（幅が足りないときは文字を少し小さくする） */
+.home-cta span,
+.home-sub-cta,
+.charm-cta,
+.charm-why-toggle {
+  white-space: nowrap;
+}
+
+@media (max-width: 359px) {
+  .home-cta,
+  .charm-cta {
+    font-size: 0.86rem;
+  }
+}

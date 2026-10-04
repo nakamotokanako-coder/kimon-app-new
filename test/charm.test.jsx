@@ -8,7 +8,7 @@ import { OMAMORI_OPENED_KEY } from '../src/notifications/dynamicNotices.js';
 import { buildDayReverseBoard, buildReverseBoard, PALACE_DIRECTIONS } from '../src/reverseDirection/reverseDirection.js';
 import { FORBIDDEN_EXPRESSIONS } from '../src/kaisetsu/composeProse.js';
 import { CHARM_IMAGE_IDS } from '../src/kimon/charmImages.js';
-import Ja, { jaPhrases } from '../src/utils/Ja.jsx';
+import Ja, { MIN_TAIL, jaPhrases, keepTail } from '../src/utils/Ja.jsx';
 import { existsSync } from 'node:fs';
 
 beforeEach(() => window.localStorage.clear());
@@ -122,11 +122,36 @@ describe('お守りの画像と改行', () => {
   });
 
   it('文は文節の切れ目でだけ折り返す（言葉の途中で改行しない）', () => {
-    expect(jaPhrases('吉方位へ行けない日の、小さな開運法。')).toEqual(['吉方位へ', '行けない', '日の、', '小さな', '開運法。']);
+    expect(jaPhrases('吉方位へ行けない日の、小さな開運法。')).toEqual(['吉方位へ', '行けない', '日の、', '小さな開運法。']);
     const { container } = render(<p><Ja>長いもの（麺類）を、食事に選んでください。</Ja></p>);
     expect(container.textContent).toBe('長いもの（麺類）を、食事に選んでください。');
     expect(container.querySelectorAll('wbr').length).toBeGreaterThan(1);
     expect(container.querySelector('.ja')).toBeTruthy();
+  });
+});
+
+describe('最後の行に数文字だけ残さない', () => {
+  it('終わりの文節は、7文字以上になるまでつなげて、そこでは折り返さない', () => {
+    expect(keepTail(['金運は、', '一気に', '稼ぐより', '育てる', '方位です。'])).toEqual(['金運は、', '一気に', '稼ぐより', '育てる方位です。']);
+    expect(keepTail(['行きたい', '方位の', 'ベストな', '日'])).toEqual(['行きたい', '方位のベストな日']);
+    expect(keepTail(['短い', '文'])).toEqual(['短い文']);
+    expect(keepTail(['これで十分な長さです。'])).toEqual(['これで十分な長さです。']);
+  });
+
+  it('アプリの文（お守り48個の説明・見出し）は、どれも最後のまとまりが7文字以上', () => {
+    const texts = [
+      ...Object.values(CHARM_LIBRARY).flatMap((e) => e.charms.map((c) => c.how)),
+      ...Object.values(GATE_PREFERENCE).map((p) => p.reason),
+      '吉方位へ行けない日の、小さな開運法。',
+      '今日一日、吉のエッセンスとして取り入れてみてください。',
+      '次の休み、どこへ行く？',
+      '行きたい方位のベストな日',
+    ];
+    for (const text of texts) {
+      const phrases = jaPhrases(text);
+      const tail = [...phrases[phrases.length - 1]].length;
+      expect(tail >= Math.min(MIN_TAIL, [...text].length), text).toBe(true);
+    }
   });
 });
 

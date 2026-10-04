@@ -214,7 +214,7 @@ export default function HomeView({
             >
               <span className="home-entry-icon"><HomeIcon name={entry.icon} /></span>
               <span className="home-entry-body">
-                <strong><Ja>{entry.title}</Ja></strong>
+                <strong><Ja tail={4}>{entry.title}</Ja></strong>
                 <span><Ja>{entry.desc}</Ja></span>
                 <small>{entry.tech}</small>
               </span>
