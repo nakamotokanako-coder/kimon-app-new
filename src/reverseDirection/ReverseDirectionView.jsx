@@ -218,6 +218,7 @@ export default function ReverseDirectionView({
   mode: modeProp,     // 表示する画面を外（App）から指定する
   onModeChange,
   onBackToSearch,     // 探すタブで「探す」の入口へ戻る
+  onOpenTimeRanking,  // 地図タブの時盤から、今日の時間帯別ランキング（探すタブ）へ
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
   const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
@@ -1001,6 +1002,34 @@ export default function ReverseDirectionView({
             rankings: reverse.rankings,
             bestPalace: best?.palace,
           })}
+
+          {/* 日盤の「この日の方位ランキング」と同じ一覧を、時盤にも出す（今の時間帯の8方位） */}
+          <div className="reverse-timeline">
+            <div className="reverse-section-title">
+              <span className="reverse-section-kicker lat">time ranking</span>
+              <h3 className="maru">この時間の方位ランキング</h3>
+            </div>
+            {visibleRankings.length === 0 && (
+              <p className="reverse-status">この時間帯には、吉の方位がありません。</p>
+            )}
+            {visibleRankings.map((item, index) => (
+              <div key={item.palace} className="reverse-tl-item">
+                <span className="reverse-tl-time lat">{index + 1}</span>
+                <div className="reverse-tl-main">
+                  <strong>{item.label}</strong>
+                  <span>{item.reasons.slice(0, 2).join('・') || '吉凶判定'}</span>
+                </div>
+                <span className={`reverse-tl-score ${item.score < 0 ? 'is-bad' : ''}`}>
+                  {item.score > 0 ? '+' : ''}{item.score}
+                </span>
+              </div>
+            ))}
+            {variant === 'map' && onOpenTimeRanking && (
+              <button type="button" className="reverse-full-board-button" onClick={onOpenTimeRanking}>
+                今日の時間帯別ランキングを見る ›
+              </button>
+            )}
+          </div>
 
           <LuckyOmamoriBar
             isActive={isActive}
