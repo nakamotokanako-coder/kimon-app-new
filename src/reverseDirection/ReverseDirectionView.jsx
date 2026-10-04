@@ -10,6 +10,7 @@ import CharmCard from '../components/CharmCard.jsx';
 import { getCharm } from '../kimon/charm.js';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
+import TimeSlotList from './TimeSlotList.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import BasePointBar from '../components/yoho/BasePointBar.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
@@ -150,10 +151,6 @@ function getCurrentTimeWindow(now, correctionMinutes) {
   };
 }
 
-function scoreText(score) {
-  return `${score > 0 ? '+' : ''}${score}`;
-}
-
 function normalizeFavoriteBasePoint(favorite) {
   const latitude = Number(favorite?.latitude ?? favorite?.lat);
   const longitude = Number(favorite?.longitude ?? favorite?.lon);
@@ -221,6 +218,7 @@ export default function ReverseDirectionView({
   onModeChange,
   onBackToSearch,     // 探すタブで「探す」の入口へ戻る
   onOpenTimeRanking,  // 地図タブの時盤から、今日の時間帯別ランキング（探すタブ）へ
+  onOpenMapTime,      // 探すタブの時間帯一覧から、選んだ時間・方位のまま地図タブ（時盤）へ
 }) {
   const initialBasePoint = useMemo(() => readStoredBasePoint(), []);
   const [location, setLocation] = useState(initialBasePoint?.location || DEFAULT_LOCATIONS[0]);
@@ -246,7 +244,6 @@ export default function ReverseDirectionView({
   const modeTitle = variant ? MODE_TITLES[mode] : null;
   const [dayDate, setDayDate] = useState(getBoardDate());
   const [status, setStatus] = useState('');
-  const [openTimelineHour, setOpenTimelineHour] = useState(null);
   const [timelineSortMode, setTimelineSortMode] = useState('time');
   const [basePointOpen, setBasePointOpen] = useState(false);
   const [dayBasePointOpen, setDayBasePointOpen] = useState(false);
@@ -271,7 +268,16 @@ export default function ReverseDirectionView({
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
   const today = getBoardDate();
-  const slotHour = getTimeSlotHour(naturalNow);
+  const liveSlotHour = getTimeSlotHour(naturalNow);
+  // 時間帯の一覧で選んだ時間・方位を、地図（時盤）に引き継ぐ。null は「今の時間・一番良い方位」。
+  const [pickedHour, setPickedHour] = useState(null);
+  const [pickedPalace, setPickedPalace] = useState(null);
+  const slotHour = pickedHour ?? liveSlotHour;
+  const isPickedTime = pickedHour !== null && pickedHour !== liveSlotHour;
+  const clearPicked = () => {
+    setPickedHour(null);
+    setPickedPalace(null);
+  };
   const date = today;
   const currentTimeWindow = useMemo(
     () => getCurrentTimeWindow(now, correction),
@@ -285,7 +291,9 @@ export default function ReverseDirectionView({
   const timeCharm = useMemo(() => getCharm({ rankings: reverse.rankings, sourceType: 'hour' }), [reverse.rankings]);
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
-  const best = visibleRankings[0] || null;
+  // 一覧で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
+  const pickedItem = pickedPalace ? reverse.rankings.find((item) => item.palace === pickedPalace) : null;
+  const best = pickedItem || visibleRankings[0] || null;
   const favoriteChips = useMemo(() => (
     decoratePlaces(favorites, [location.latitude, location.longitude], reverse.rankings)
   ), [favorites, location.latitude, location.longitude, reverse.rankings]);
@@ -816,37 +824,19 @@ export default function ReverseDirectionView({
           <span className="reverse-section-kicker lat">today's best</span>
           <h3 className="maru">本日の時間帯別ベスト</h3>
         </div>
-        {displayedTimeline.map((slot) => (
-          <div key={slot.hour} className="reverse-tl-block">
-            <button
-              type="button"
-              className={`reverse-tl-item ${slot.hour === slotHour ? 'is-now' : ''} ${openTimelineHour === slot.hour ? 'is-expanded' : ''}`}
-              onClick={() => setOpenTimelineHour((current) => (current === slot.hour ? null : slot.hour))}
-              aria-expanded={openTimelineHour === slot.hour}
-            >
-              <span className="reverse-tl-time lat">{slot.label}</span>
-              <span className="reverse-tl-main">
-                <strong>{slot.best?.label || '該当なし'}</strong>
-                <span>{slot.best?.reasons.slice(0, 2).join('・') || '凶を除外中'}</span>
-              </span>
-              <span className={`reverse-tl-score ${(slot.best?.score || 0) < 0 ? 'is-bad' : ''}`}>
-                {slot.best ? scoreText(slot.best.score) : '-'}
-              </span>
-            </button>
-            {openTimelineHour === slot.hour && (
-              <div className="reverse-tl-panel">
-                <MiniBoardGrid rankings={slot.rankings} />
-                <button
-                  type="button"
-                  className="reverse-full-board-button"
-                  onClick={() => onOpenBoard({ date, hour: slot.hour, boardType: '時' })}
-                >
-                  フル盤を見る
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
+        <p className="tsl-lead"><Ja>時間帯を押すと、その時間の8方位を比べて、地図で行き先を探せます。</Ja></p>
+        <TimeSlotList
+          timeline={displayedTimeline}
+          nowHour={liveSlotHour}
+          onOpenBoard={(hour) => onOpenBoard({ date, hour, boardType: '時' })}
+          onGoMap={({ hour, palace }) => {
+            setPickedHour(hour);
+            setPickedPalace(palace);
+            setMode('time');
+            onOpenMapTime?.();
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }}
+        />
       </div>
     </>
   );
@@ -860,7 +850,7 @@ export default function ReverseDirectionView({
           )}
           {modeTitle ? (
             <>
-              <h2 className="maru"><Ja>{modeTitle.title}</Ja></h2>
+              <h2 className="maru"><Ja>{mode === 'time' && isPickedTime ? `${getTimeSlotLabel(slotHour)}に吉方位へ` : modeTitle.title}</Ja></h2>
               <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>
             </>
           ) : (
@@ -954,10 +944,22 @@ export default function ReverseDirectionView({
         <div className="reverse-walk-body">
           <div className="reverse-zone">
             <div className="reverse-zone-title">
-              <span className="reverse-section-kicker lat">now</span>
-              <h3 className="maru">今の吉方位</h3>
+              <span className="reverse-section-kicker lat">{isPickedTime ? 'selected' : 'now'}</span>
+              <h3 className="maru">{isPickedTime ? `${getTimeSlotLabel(slotHour)} の吉方位` : '今の吉方位'}</h3>
             </div>
 
+            {(isPickedTime || pickedPalace) && (
+              <div className="reverse-picked-note">
+                <span>
+                  {isPickedTime
+                    ? `選んだ時間帯（${getTimeSlotLabel(slotHour)}）の盤を表示しています。今は ${getTimeSlotLabel(liveSlotHour)} です。`
+                    : '選んだ方位を表示しています。'}
+                </span>
+                <button type="button" onClick={clearPicked}>今の時間・最良方位に戻す</button>
+              </div>
+            )}
+
+            {!isPickedTime && (
             <div className="reverse-current-window">
               <span>現在の時間帯</span>
               <b className="lat">{currentTimeWindow.clockRange}</b>
@@ -966,6 +968,7 @@ export default function ReverseDirectionView({
                 <b className="lat">{currentTimeWindow.remainingMinutes}</b>分
               </small>
             </div>
+            )}
 
             <FusionCard
               best={best}
