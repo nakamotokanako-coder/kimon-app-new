@@ -240,9 +240,9 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
 
         <section className="intro-final" aria-label="まとめ">
           <p className="intro-final-copy">
-            <span>探す。</span>
-            <span>選ぶ。</span>
-            <span>そして、実際に動く。</span>
+            <span>探す</span>
+            <span>選ぶ</span>
+            <span>そして実際に動く</span>
           </p>
           <p><Ja>盤の中だけで終わっていた吉方位を、日常の予定と実際の場所へ。</Ja></p>
           <p className="intro-final-three">
