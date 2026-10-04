@@ -73,7 +73,7 @@ describe('共通フル盤導線', () => {
   it('折りたたみミニ盤と時間帯別ベストから時盤を開ける', () => {
     expect(reverseSrc).toContain('今の時盤を盤で見る');
     expect(reverseSrc).toContain("onOpenBoard({ date, hour: slotHour, boardType: '時' })");
-    expect(reverseSrc).toContain("onOpenBoard({ date, hour: slot.hour, boardType: '時' })");
+    expect(reverseSrc).toContain("onOpenBoard={(hour) => onOpenBoard({ date, hour, boardType: '時' })}");
   });
 
   it('日盤ランキングの展開内から日盤を開ける', () => {
