@@ -14,6 +14,8 @@ import { getBoardDate } from './utils/boardDate.js';
 import { useAuth } from './auth/AuthContext.jsx';
 import { isLongRangeLocked, longRangeLimitDate, LONG_RANGE_SHOW_ANNUAL_MARK } from '../lib/accessPolicy.js';
 import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
+import LegalPage from './components/LegalPage.jsx';
+import { LEGAL_DOCS, OPEN_LEGAL_EVENT } from './legal/documents.js';
 import HomeView from './components/HomeView.jsx';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
 import SearchHub from './components/SearchHub.jsx';
@@ -180,6 +182,17 @@ export default function App() {
   useEffect(() => {
     if (auth.phase === 'ready' && !auth.loggedIn && !hasSeenIntro()) setIntroOpen(true);
   }, [auth.phase, auth.loggedIn]);
+  // 利用規約・プライバシーポリシー: 設定・ログイン画面から開く。アドレスに ?terms / ?privacy を付けても開ける。
+  const [legalDoc, setLegalDoc] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return Object.keys(LEGAL_DOCS).find((key) => params.has(key)) || null;
+  });
+  useEffect(() => {
+    const handleOpen = (event) => { if (LEGAL_DOCS[event.detail]) setLegalDoc(event.detail); };
+    window.addEventListener(OPEN_LEGAL_EVENT, handleOpen);
+    return () => window.removeEventListener(OPEN_LEGAL_EVENT, handleOpen);
+  }, []);
   const closeIntro = () => {
     markIntroSeen();
     setIntroOpen(false);
@@ -632,11 +645,11 @@ export default function App() {
             <span>このアプリの紹介</span>
             <b aria-hidden="true">›</b>
           </button>
-          {['利用規約', 'プライバシーポリシー'].map((label) => (
-            <div key={label} className="settings-link-row is-disabled" aria-disabled="true">
-              <span>{label}</span>
-              <small>準備中</small>
-            </div>
+          {[LEGAL_DOCS.terms, LEGAL_DOCS.privacy].map((doc) => (
+            <button key={doc.key} type="button" className="settings-link-row" onClick={() => setLegalDoc(doc.key)}>
+              <span>{doc.title}</span>
+              <b aria-hidden="true">›</b>
+            </button>
           ))}
           <button
             type="button"
@@ -680,7 +693,8 @@ export default function App() {
   return (
     <div className="app app-with-tabs">
       <div className="vig" aria-hidden="true" />
-      {introOpen && (
+      {legalDoc && <LegalPage docKey={legalDoc} onClose={() => setLegalDoc(null)} />}
+      {introOpen && !legalDoc && (
         <IntroPage
           loggedIn={auth.loggedIn}
           onClose={closeIntro}
