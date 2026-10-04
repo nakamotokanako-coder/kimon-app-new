@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import NotificationBell from './NotificationBell.jsx';
 import { getBoardDate } from '../utils/boardDate.js';
+import CharmCard from './CharmCard.jsx';
+import { getCharm } from '../kimon/charm.js';
 import {
   applyNaturalTime,
+  buildDayReverseBoard,
   buildReverseBoard,
   getLongitudeCorrectionMinutes,
   getMiniBoardToneClass,
@@ -116,6 +119,15 @@ export default function HomeView({
   const base = useMemo(() => readBaseLocation(), [now]);
   const { slotHour, best } = useMemo(() => computeNowBest(now, base.longitude), [now, base.longitude]);
   const good = best && best.score > 0;
+  // 今日のお守り: 今日の日盤から決める（1日の中で変わらない）。
+  const today = getBoardDate();
+  const dayCharm = useMemo(() => {
+    try {
+      return getCharm({ rankings: buildDayReverseBoard({ date: today }).rankings, sourceType: 'day' });
+    } catch {
+      return null;
+    }
+  }, [today]);
   const badge = best ? BADGE_LABEL[getMiniBoardToneClass(best.score, best.palaceScore)] : '';
   const vetoes = best?.vetoes || [];
   const dateText = `${now.getMonth() + 1}月${now.getDate()}日（${WEEKDAYS[now.getDay()]}） ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -177,6 +189,14 @@ export default function HomeView({
           </div>
         </section>
       </header>
+
+      <div className="home-charm">
+        <CharmCard
+          charm={dayCharm}
+          sourceType="day"
+          onSeeDirection={() => (limited ? onOpenBoard({ date: today, boardType: '日' }) : onGoMap('day'))}
+        />
+      </div>
 
       <section className="home-section" aria-label="今日、どう使う？">
         <div className="home-section-head">

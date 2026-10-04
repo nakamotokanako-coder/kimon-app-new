@@ -1,5 +1,5 @@
 // 設定「通知」の2項目を、アプリを開いたときのお知らせ（ベルのマーク）として動かす。
-//   - お守りリマインド: 今日まだ「開運のお守り」を引いていなければ知らせる
+//   - お守りリマインド: 今日まだ「今日のお守り」を見ていなければ知らせる
 //   - お気に入りが最高方位になったら通知: 今の時間帯の最高方位に、お気に入りの場所があれば知らせる
 // 端末に届くプッシュ通知ではなく、アプリを開いたときに計算して表示する（サーバーは使わない）。
 import {
@@ -24,7 +24,7 @@ function readJson(key) {
   }
 }
 
-/** 「開運のお守り」を開いた日を記録する（LuckyOmamoriBar から呼ぶ） */
+/** 「今日のお守り」を開いた日を記録する（CharmCard から呼ぶ） */
 export function markOmamoriOpened(date = getBoardDate()) {
   try {
     window.localStorage.setItem(OMAMORI_OPENED_KEY, date);
@@ -43,8 +43,8 @@ export function buildOmamoriNotice({ today, openedDate }) {
     id: `omamori-${today}`,
     type: 'history',
     sender: 'リマインド',
-    title: '今日のお守りをまだ引いていません',
-    body: '吉方位タブの「開運のお守り」をタップすると、今日のお告げを引けます。',
+    title: '今日のお守りをまだ見ていません',
+    body: 'ホームの「今日のお守り」で、今日の吉方位の象意を日常に取り入れるヒントを見られます。',
     date: slashDate(today),
   };
 }
