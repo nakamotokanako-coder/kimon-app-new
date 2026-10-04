@@ -25,10 +25,10 @@ import packageJson from '../package.json';
 // 標準は白地に金（パール）。前から使っている人が選んだテーマは localStorage に残っているのでそのまま。
 const DEFAULT_THEME = 'pearl';
 const THEMES = [
-  { name: 'void', label: '漆黒', dot: '#ffd368' },
-  { name: 'blue', label: '深海', dot: '#3fc4d8' },
-  { name: 'pearl', label: 'パール', dot: 'linear-gradient(135deg,#fff,#f0e6ee 55%,#e6eef7)' },
-  { name: 'pink', label: 'ピンク', dot: '#c0897e' },
+  { name: 'void', label: '漆黒', preview: 'radial-gradient(circle at 32% 28%, #5a5650, #1d1b19 62%, #0b0a09)' },
+  { name: 'blue', label: '深海', preview: 'radial-gradient(circle at 32% 28%, #4f93b8, #17456b 58%, #0c2440)' },
+  { name: 'pearl', label: 'パール', preview: 'radial-gradient(circle at 32% 28%, #ffffff, #f3efe8 58%, #e3ddd2)' },
+  { name: 'pink', label: 'ピンク', preview: 'radial-gradient(circle at 32% 28%, #fbe6e6, #efc3c6 58%, #dfa5ab)' },
 ];
 const THEME_NAMES = new Set(THEMES.map((theme) => theme.name));
 /** 旧テーマ名 → 宇宙テーマ名（既存ユーザーの localStorage 互換） */
@@ -431,54 +431,80 @@ export default function App() {
     </>
   );
 
+  // 設定画面のセクション見出しの記号（「アイコン」の設定に合わせて、絵文字か線の記号を出す）
+  const settingsIcon = (emoji, paths) => (
+    <span className="settings-group-icon" aria-hidden="true">
+      {iconStyle === 'line' ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          {paths}
+        </svg>
+      ) : emoji}
+    </span>
+  );
+  const settingsGroupHead = (title, lead, icon) => (
+    <div className="settings-group-head">
+      {icon}
+      <h3 className="maru">{title}</h3>
+      {lead && <p>{lead}</p>}
+    </div>
+  );
+
   const settingsView = (
     <main className="settings-view">
-      <section className="settings-card">
+      <header className="settings-page-head">
         <h2 className="maru">設定</h2>
         <p>テーマと表示まわりを切り替えます。</p>
+      </header>
 
-        <div className="settings-section">
-          <h3 className="maru">テーマ</h3>
-          <div className="theme-chips" role="group" aria-label="テーマ切替">
-            {THEMES.map((item) => (
-              <button
-                key={item.name}
-                type="button"
-                className={`theme-chip${theme === item.name ? ' is-active' : ''}`}
-                aria-pressed={theme === item.name}
-                onClick={() => handleThemeChange(item.name)}
-              >
-                <span
-                  className="theme-chip-dot"
-                  style={{
-                    background: item.dot,
-                    boxShadow: item.dot.startsWith('linear')
-                      ? '0 0 0 1px rgba(0,0,0,.12)'
-                      : `0 0 7px ${item.dot}`,
-                  }}
-                  aria-hidden="true"
-                />
-                {item.label}
-              </button>
-            ))}
+      <section className="settings-group">
+        {settingsGroupHead('見た目', 'アプリのテーマカラーを変更します。', settingsIcon('🎨', (
+          <>
+            <path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 1.9-.8 1.9-1.8 0-.5-.2-.9-.5-1.3-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8h2.1a3.7 3.7 0 0 0 3.7-3.7c0-4-3.8-7.2-8.5-7.2z" />
+            <circle cx="7.8" cy="11.5" r="1" />
+            <circle cx="10.5" cy="7.8" r="1" />
+            <circle cx="15" cy="7.8" r="1" />
+          </>
+        )))}
+        <div className="settings-group-body">
+          <div className="settings-theme">
+            <strong>テーマ</strong>
+            <div className="theme-cards" role="group" aria-label="テーマ切替">
+              {THEMES.map((item) => (
+                <button
+                  key={item.name}
+                  type="button"
+                  className={`theme-card${theme === item.name ? ' is-active' : ''}`}
+                  aria-pressed={theme === item.name}
+                  onClick={() => handleThemeChange(item.name)}
+                >
+                  {theme === item.name && (
+                    <span className="theme-card-check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 12.5l4 4 8-9" /></svg>
+                    </span>
+                  )}
+                  <span className="theme-card-preview" style={{ background: item.preview }} aria-hidden="true" />
+                  <span className="theme-card-label">{item.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="settings-divider">
-          <span className="lat">DISPLAY</span>
-        </div>
-
-        <div className="settings-section settings-panel-section">
-          <div className="settings-section-head">
-            <h3 className="maru">表示</h3>
-            <span className="lat">Display</span>
-          </div>
+      <section className="settings-group">
+        {settingsGroupHead('表示', '文字やアイコンなどの表示を設定します。', settingsIcon('🖥️', (
+          <>
+            <rect x="3.5" y="4.5" width="17" height="11.5" rx="1.8" />
+            <path d="M9 20h6M12 16v4" />
+          </>
+        )))}
+        <div className="settings-group-body">
           <div className="settings-row">
             <div>
-              <strong>アイコン切替</strong>
-              <small>絵文字 / 色のつかない線の記号</small>
+              <strong>アイコン</strong>
+              <small>盤やメニューで使用するアイコンを切り替えます。</small>
             </div>
-            <div className="settings-segment" role="group" aria-label="アイコン切替">
+            <div className="settings-segment" role="group" aria-label="アイコン">
               {[
                 ['emoji', '絵文字'],
                 ['line', '線アイコン'],
@@ -498,7 +524,7 @@ export default function App() {
           <div className="settings-row">
             <div>
               <strong>文字サイズ</strong>
-              <small>小 / 中 / 大</small>
+              <small>画面全体の文字サイズを変更します。</small>
             </div>
             <div className="settings-segment" role="group" aria-label="文字サイズ">
               {[
@@ -520,34 +546,40 @@ export default function App() {
           </div>
           <div className="settings-row">
             <div>
-              <strong>凶も見る</strong>
-              <small>吉方位タブで、凶の方位・時間帯も表示します（「吉のみ表示」と連動）</small>
+              <strong>凶方位の表示</strong>
+              <small>検索結果に凶方位・時間帯も表示します。</small>
             </div>
             <button
               type="button"
               className={`settings-switch${showBadDirections ? ' is-on' : ''}`}
               aria-pressed={showBadDirections}
+              aria-label="凶方位の表示"
               onClick={() => toggleSetting('show-bad-directions', setShowBadDirections)(showBadDirections)}
             >
               <span />
             </button>
           </div>
         </div>
+      </section>
 
-        <div className="settings-section settings-panel-section">
-          <div className="settings-section-head">
-            <h3 className="maru">通知</h3>
-            <span className="lat">Notice</span>
-          </div>
+      <section className="settings-group">
+        {settingsGroupHead('通知', 'アプリを開いたときのお知らせを設定します。', settingsIcon('🔔', (
+          <>
+            <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" />
+            <path d="M10 20.5a2.2 2.2 0 0 0 4 0" />
+          </>
+        )))}
+        <div className="settings-group-body">
           <div className="settings-row">
             <div>
               <strong>お守りリマインド</strong>
-              <small>今日のお守りを見ていないとき、アプリを開くとお知らせします</small>
+              <small>今日のお守りを見ていないとき、アプリを開くとお知らせします。</small>
             </div>
             <button
               type="button"
               className={`settings-switch${omamoriReminder ? ' is-on' : ''}`}
               aria-pressed={omamoriReminder}
+              aria-label="お守りリマインド"
               onClick={() => toggleSetting('omamori-reminder', setOmamoriReminder)(omamoriReminder)}
             >
               <span />
@@ -555,34 +587,43 @@ export default function App() {
           </div>
           <div className="settings-row">
             <div>
-              <strong>お気に入りが最高方位になったら通知</strong>
-              <small>今の時間帯の最高方位にお気に入りがあるとき、アプリを開くとお知らせします</small>
+              <strong>お気に入り場所の通知</strong>
+              <small>今の時間帯の最高方位にお気に入りがあるとき、アプリを開くとお知らせします。</small>
             </div>
             <button
               type="button"
               className={`settings-switch${favoriteBestNotify ? ' is-on' : ''}`}
               aria-pressed={favoriteBestNotify}
+              aria-label="お気に入り場所の通知"
               onClick={() => toggleSetting('favorite-best-notify', setFavoriteBestNotify)(favoriteBestNotify)}
             >
               <span />
             </button>
           </div>
         </div>
+      </section>
 
-        <div className="settings-section settings-panel-section">
-          <div className="settings-section-head">
-            <h3 className="maru">アカウント</h3>
-            <span className="lat">Account</span>
-          </div>
+      <section className="settings-group">
+        {settingsGroupHead('アカウント', null, settingsIcon('👤', (
+          <>
+            <circle cx="12" cy="8.5" r="3.6" />
+            <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+          </>
+        )))}
+        <div className="settings-group-body is-plain">
           {billingNotice && <p className="account-note">{billingNotice}</p>}
           <AccountSettings />
         </div>
+      </section>
 
-        <div className="settings-section settings-panel-section">
-          <div className="settings-section-head">
-            <h3 className="maru">このアプリについて</h3>
-            <span className="lat">About</span>
-          </div>
+      <section className="settings-group">
+        {settingsGroupHead('このアプリについて', null, settingsIcon('📖', (
+          <>
+            <circle cx="12" cy="12" r="8.5" />
+            <path d="M12 11v5.5M12 7.8v.2" />
+          </>
+        )))}
+        <div className="settings-group-body">
           <div className="settings-info-row">
             <span>バージョン</span>
             <strong className="lat">{APP_VERSION}</strong>

@@ -205,7 +205,7 @@ function InviteAdmin() {
     <div className="invite-admin">
       <div className="settings-section-head">
         <h3 className="maru">招待の管理</h3>
-        <span className="lat">Owner only</span>
+        <span>運営者だけに表示</span>
       </div>
       <div className="settings-row">
         <div>
