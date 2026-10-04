@@ -23,6 +23,8 @@ import { dirname, join } from 'node:path';
 import { classifyPalace } from '../src/kaisetsu/classifyPalace.js';
 import { composeProse, AXES, AXIS_LABELS, FORBIDDEN_EXPRESSIONS, MID_MAX, FULL_MAX } from '../src/kaisetsu/composeProse.js';
 import { buildShouiV3 } from './build_shoui_v3.mjs';
+import { TIME_ONLY_SHOUI } from '../src/kaisetsu/boardKey.js';
+import { parseShoui } from '../src/kaisetsu/classifyPalace.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CSV_PATH = join(ROOT, 'data', 'chito_v2_with_kakkyoku.csv');
@@ -88,6 +90,9 @@ function main() {
   }, null, 2)}\n`);
 
   const generated = {};
+  // 日盤用の解説。時格・天羅・地網（時の干で決まる格局）が入っている宮だけ、それを外して作り直す。
+  const dayOverrides = {};
+  let dayCells = 0;
   const lengths = { short: [], mid: [], full: [] };
   const count = { tone: {}, veto: {}, shoui: {}, guard: {}, shouiLed: 0 };
   const problems = {};
@@ -118,6 +123,19 @@ function main() {
         for (const p of formatProblems(d)) bump(problems, p);
       }
       byPalace[palace] = { axisRanks: judgment.axisRanks, ...axisTexts };
+
+      if (parseShoui(row, palace).some((item) => TIME_ONLY_SHOUI.includes(item.name))) {
+        const dayJudgment = classifyPalace(row, palace, { boardType: '日' });
+        const dayTexts = {};
+        for (const axis of AXES) {
+          const d = composeProse(dayJudgment, axis, bank);
+          dayTexts[axis] = { short: d.short, mid: d.mid, full: d.full };
+          dayCells += 1;
+          for (const p of formatProblems(d)) bump(problems, `day_${p}`);
+          if (/(^|[^一-鿿])(時格|天羅|地網)により/u.test(d.full)) bump(problems, 'day_time_only_shoui');
+        }
+        (dayOverrides[row.key] ||= {})[palace] = { axisRanks: dayJudgment.axisRanks, ...dayTexts };
+      }
     }
     generated[row.key] = byPalace;
 
@@ -137,11 +155,13 @@ function main() {
     patterns: 'short(見出し) / mid(見出し＋主な理由) / full(4段落)',
     length: { short: dist(lengths.short), mid: dist(lengths.mid), full: dist(lengths.full) },
     parts: count,
+    day_variant: { cells: dayCells, note: '日盤用の解説（時格・天羅・地網を外したもの）。時盤と違う宮だけ作る' },
     checks: { problems, limits: { mid: MID_MAX, full: FULL_MAX } },
     ok: problemCount === 0,
   };
 
   mkdirSync(GEN_DIR, { recursive: true });
+  generated.__day = dayOverrides; // lib/kaisetsuData.js の DAY_OVERRIDES_KEY
   writeFileSync(join(GEN_DIR, 'kaisetsu_text_v2.json'), `${JSON.stringify(generated)}\n`);
   writeFileSync(join(OUT_DIR, 'build_stats_v3.json'), `${JSON.stringify(stats, null, 2)}\n`);
   writeFileSync(join(OUT_DIR, 'sample_review_v3.md'), buildSampleReview(samples, generated));
@@ -152,6 +172,7 @@ function main() {
   console.log(`吉凶の内訳 : ${JSON.stringify(count.tone)}  / 象意主役 ${count.shouiLed}`);
   console.log(`拒否権     : ${JSON.stringify(count.veto)}`);
   console.log(`象意       : ${JSON.stringify(count.shoui)}  / 字数ガード ${JSON.stringify(count.guard)}`);
+  console.log(`日盤用     : ${dayCells}件（時格・天羅・地網が入る宮だけ作り直し）`);
   console.log(`検査       : ${JSON.stringify(problems)}  → ${stats.ok ? 'OK' : 'NG'}`);
   console.log(`代表5局    : ${JSON.stringify(samples)}`);
   if (!stats.ok) process.exitCode = 1;

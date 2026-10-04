@@ -13,6 +13,7 @@
 //   jukkan_kokuou_<p> / kakkyoku_<p>（〇◯×△ 接頭辞つき・';' 区切り）
 //   board レベル: ban_level / kuubou / junshu / chokufu / chokushi
 
+import { TIME_ONLY_SHOUI } from './boardKey.js';
 import { isKuubouCell, isMonpakuCell, PALACE_NAMES } from '../kimon/banLevel.js';
 import { SANDAI_KYOKAKU } from './kyoVeto.js';
 
@@ -325,7 +326,7 @@ function addAxes(target, delta) {
  * @param {string} palace - 'kan'|'gon'|'shin'|'son'|'ri'|'kun'|'da'|'ken'
  * @returns {object} judgment
  */
-export function classifyPalace(row, palace) {
+export function classifyPalace(row, palace, { boardType = '時' } = {}) {
   if (!row) throw new Error('classifyPalace: row is required');
   if (!PALACE_NAMES.includes(palace)) {
     throw new Error(`classifyPalace: invalid palace: ${palace}`);
@@ -338,7 +339,9 @@ export function classifyPalace(row, palace) {
   const banLevel = row.ban_level || '';
   const kuubouStr = row.kuubou || '';
 
-  const shouiItems = orderShoui(parseShoui(row, palace));
+  // 日盤には時の干が無いので、時格・天羅・地網は成立しない（点数の計算 src/kimon/kakkyoku.js と揃える）。
+  const shouiItems = orderShoui(parseShoui(row, palace)
+    .filter((item) => !(boardType === '日' && TIME_ONLY_SHOUI.includes(item.name))));
   const shouiNames = shouiItems.map((s) => s.name);
 
   // 三奇＋三吉門 同居（反吟緩和・凶神無効化の条件）

@@ -49,6 +49,10 @@
     },
     "shouiLed": 1031
   },
+  "day_variant": {
+    "cells": 2515,
+    "note": "日盤用の解説（時格・天羅・地網を外したもの）。時盤と違う宮だけ作る"
+  },
   "checks": {
     "problems": {},
     "limits": {

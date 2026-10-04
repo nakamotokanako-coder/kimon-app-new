@@ -4,6 +4,7 @@ import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { ProseText } from '../kaisetsu/renderProse.jsx';
+import { makeKaisetsuKey, parseKaisetsuKey } from '../kaisetsu/boardKey.js';
 import { lockedMessage } from '../../lib/accessPolicy.js';
 
 // 表示順は ShouiPanel と同一の8宮並び（盤の論理順とは独立）。
@@ -48,7 +49,7 @@ export const RANK_LABEL = {
 
 // 局key（lookupChito / API のキー、再計算トリガ）。
 export function boardKey(board) {
-  return (board?.meta?.kyokusu || '') + (board?.meta?.eto || '');
+  return makeKaisetsuKey(board?.meta);
 }
 
 // 8宮ぶんのランク記号を classifyPalace で算出する。チップの記号も結論短文も
@@ -57,14 +58,14 @@ export function computeRanks(key) {
   if (!key) return {};
   let row;
   try {
-    row = lookupChito(key);
+    row = lookupChito(parseKaisetsuKey(key).key);
   } catch {
     return {};
   }
   const out = {};
   for (const p of PALACE_ORDER) {
     try {
-      out[p] = classifyPalace(row, p).rank;
+      out[p] = classifyPalace(row, p, { boardType: parseKaisetsuKey(key).boardType }).rank;
     } catch {
       out[p] = null;
     }

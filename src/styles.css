@@ -9114,3 +9114,21 @@ html[data-text-size='large'] {
   color: var(--text-secondary);
   font-size: 0.7rem;
 }
+
+/* その日時だけに付く凶格の注記（解説の文章の下。src/kimon/palaceExplain.js dateBoundNote） */
+.date-bound-note {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--text-danger) 45%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-danger) 9%, transparent);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.sheet .date-bound-note {
+  color: #fff;
+  border-color: rgba(255, 150, 160, 0.6);
+  background: rgba(255, 120, 140, 0.14);
+}

@@ -3,6 +3,7 @@ import { lookupChito } from '../kimon/loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { splitProse, stripBold } from '../kaisetsu/renderProse.jsx';
+import { parseKaisetsuKey } from '../kaisetsu/boardKey.js';
 import { getMiniBoardToneClass } from './reverseDirection.js';
 import L3Sheet from '../components/yoho/L3Sheet.jsx';
 import { lockedMessage } from '../../lib/accessPolicy.js';
@@ -31,8 +32,9 @@ export function scoreText(score) {
 export function computeAxisRanks(key, palace) {
   if (!key || !palace) return null;
   try {
-    const row = lookupChito(key);
-    return classifyPalace(row, palace).axisRanks || null;
+    const parsed = parseKaisetsuKey(key);
+    const row = lookupChito(parsed.key);
+    return classifyPalace(row, palace, { boardType: parsed.boardType }).axisRanks || null;
   } catch {
     return null;
   }
