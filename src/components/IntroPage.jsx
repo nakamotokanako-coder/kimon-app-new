@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 import Ja from '../utils/Ja.jsx';
 import { ACCESS_MODE, ANNUAL_PRICE_LABEL, PRO_PRICE_LABEL } from '../../lib/accessPolicy.js';
 
-// アプリの紹介ページ。「何ができて、ログインすると何が増えて、いくらか」を1枚で伝える。
+// アプリの紹介ページ。「奇門遁甲を、実際の予定と場所につなげる道具」であることを伝える。
+//   前半: 使うと何ができるようになるか（4つの問い → 2つの使い方 → 盤は簡略化しない）
+//   後半: ログイン・料金などのサービス情報 → 最後の案内
 //   - 初めて来た未ログインの人に1回だけ自動で出す（INTRO_SEEN_KEY）
 //   - 設定 →「このアプリについて」→「このアプリの紹介」、またはアドレスに ?about を付けても開ける
 // 書いてある機能は実際にあるものだけ。効果をうたう表現（運が上がる 等）は書かない。
@@ -25,30 +27,98 @@ export function markIntroSeen() {
   }
 }
 
-const FEATURES = [
+const HERO_BODY = [
+  '奇門遁甲Zは、盤を出すだけのアプリではありません。',
+  ['いつ行くか。', 'どちらへ行くか。', 'その方位に何があるか。'],
+  '盤を読み、条件に合う日時を探し、地図から実際の行き先まで見つけられます。',
+];
+
+// できること: 使う人の「問い」から始める。専門語は、何ができるかを言ったあとに出す。
+const QUESTIONS = [
   {
-    title: '時盤・日盤をすぐに引ける',
-    body: '日付と時刻を選ぶだけで盤が出ます。8方位それぞれの点数と吉凶が、ひと目で分かります。',
+    question: '今日、どっちへ行く？',
+    body: [
+      '日付と時刻を選ぶだけで、8方位を比較。',
+      '点数と吉凶から、その時間に使いやすい方位をすぐ確認できます。',
+    ],
+    note: '時盤・日盤のどちらも引けます',
   },
   {
-    title: '「なぜその評価か」まで読める',
-    body: '八門・九星・八神・十干剋応・格局の内訳を、点数つきで確認できます。ご縁・仕事・金運・健康・勉強の5テーマごとに、方位の使い方を文章で解説します。',
+    question: 'なぜ、この方位が吉なの？',
+    body: [
+      '点数だけでは終わりません。',
+      '八門・九星・八神・十干剋応・格局など、その評価になった理由まで確認できます。',
+      'ご縁・仕事・金運・健康・勉強の5テーマごとに、方位の使い方も読めます。',
+    ],
   },
   {
-    title: '吉方位を地図で確かめられる',
-    body: '基準点から見た8方位を地図に重ねて、行きたい場所がどの方位に入るかを確かめられます。よく行く場所はお気に入りに登録できます。',
+    question: 'その方位には、何がある？',
+    featured: true,
+    body: [
+      '吉方位が分かっても、「で、どこへ行けばいい？」で止まらない。',
+      '基準点から見た8方位を地図に重ね、吉方位の中にある場所を探せます。',
+      'カフェ、神社、公園、駅など、実際に行ける場所までつなげられます。',
+    ],
+    emphasis: ['目的地から方位を見るだけでなく、', '方位から目的地を探せます。'],
   },
   {
-    title: '日取りを探せる',
-    body: '日盤ランキング、格局からの日時検索、吉を3つつないで巡る奇門三盤ルートで、条件に合う日と方位を探せます。',
+    question: '次の休み、いつ・どっちへ行く？',
+    body: ['行き先が決まっていなくても大丈夫。'],
+    list: ['日付から、吉方位を探す。', '行きたい方位から、良い日を探す。', '格局などの条件から、日を探す。'],
+    after: ['さらに、吉方位を3回つなぐ「奇門三盤ルート」も検索できます。'],
+    closing: '予定から吉を探すことも、吉から予定をつくることもできます。',
   },
 ];
 
-export function priceLines(mode = ACCESS_MODE) {
+const USAGES = [
+  {
+    board: '時盤',
+    title: '今から吉方位へ',
+    body: [
+      '散歩、買い物、カフェ、仕事など、日常の移動から吉方位を探します。',
+      '「今からなら、どちらへ行く？」を地図ですぐ確認できます。',
+    ],
+    tag: '時盤 × 近場',
+  },
+  {
+    board: '日盤',
+    title: '休みの日から旅先を探す',
+    body: [
+      '休日や旅行の日を選び、その日の吉方位から行き先を探します。',
+      '行きたい場所を先に決めなくても、「この日なら、どっちへ行こう？」から旅を決められます。',
+    ],
+    tag: '日盤 × 遠出',
+  },
+];
+
+const PRO_BODY = [
+  '奇門遁甲Zは、判断をアプリに任せるためのものではありません。',
+  '八門・九星・八神・天盤干・地盤干・十干剋応・格局など、判断の根拠を確認できるようにしています。',
+  '点数だけを見て終わるのではなく、「なぜこの評価なのか」を読み手自身が確認できる。学習にも、実際の鑑定にも使えることを大切にしています。',
+];
+const PRO_NOTE = '初心者向けに盤を簡略化するのではなく、専門情報を残したまま、「探す」「比較する」「地図で確認する」部分を便利にしています。';
+
+/** 料金の表示内容（実際の設定どおり。lib/accessPolicy.js） */
+export function priceInfo(mode = ACCESS_MODE) {
+  const plans = [PRO_PRICE_LABEL, ANNUAL_PRICE_LABEL];
   return mode === 'beta'
-    ? ['いまはベータ期間です。ログインすると、全機能を無料で使えます。', `正式版は${PRO_PRICE_LABEL}、または${ANNUAL_PRICE_LABEL}の予定です。`]
-    : [`プロ版は${PRO_PRICE_LABEL}。1か月ごとの自動更新で、いつでも解約できます。`, `年額プランは${ANNUAL_PRICE_LABEL}。最大1年先まで吉日・吉方位を検索できます。`];
+    ? {
+      status: '現在、ベータ期間中',
+      lead: 'ログインすると、すべての機能を無料でお使いいただけます。',
+      plansLabel: '正式版（予定）',
+      plans,
+      note: '正式版は、いつでも解約できます。',
+    }
+    : {
+      status: 'プロ版',
+      lead: 'すべての機能をお使いいただけます。',
+      plansLabel: 'プラン',
+      plans,
+      note: '自動更新です。いつでも解約できます。',
+    };
 }
+
+const Paragraphs = ({ items }) => items.map((text) => <p key={text}><Ja>{text}</Ja></p>);
 
 export default function IntroPage({ loggedIn, onClose, onLogin }) {
   useEffect(() => {
@@ -62,6 +132,8 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
     };
   }, [onClose]);
 
+  const price = priceInfo();
+
   return (
     <div className="intro-page" role="dialog" aria-modal="true" aria-label="このアプリの紹介">
       <button type="button" className="intro-close" aria-label="閉じる" onClick={onClose}>
@@ -70,60 +142,130 @@ export default function IntroPage({ loggedIn, onClose, onLogin }) {
       <div className="intro-inner">
         <header className="intro-hero">
           <span className="brand-mark intro-mark" aria-hidden="true">遁</span>
-          <p className="intro-kicker lat">KIMON TONKO</p>
-          <h2 className="intro-title">奇門遁甲Z</h2>
-          <p className="intro-lead">
-            奇門遁甲の盤を引いて、読んで、<br />
-            吉方位を地図で確かめるためのアプリです。
-          </p>
-          <p className="intro-sub"><Ja>奇門遁甲を学んでいる方、鑑定に使う方に向けて作っています。</Ja></p>
+          <p className="intro-kicker lat">KIMON TONKO Z</p>
+          <p className="intro-name">奇門遁甲Z</p>
+          <h2 className="intro-title">吉方位を、<wbr />日常の行き先へ。</h2>
+          <div className="intro-hero-body">
+            <p><Ja>{HERO_BODY[0]}</Ja></p>
+            <p className="intro-hero-three">
+              {HERO_BODY[1].map((line) => <span key={line}>{line}</span>)}
+            </p>
+            <p><Ja>{HERO_BODY[2]}</Ja></p>
+          </div>
+          <p className="intro-sub"><Ja>奇門遁甲を学んでいる方、鑑定に使う方のためにつくった実用ツールです。</Ja></p>
         </header>
 
         <section className="intro-section" aria-label="できること">
           <h3 className="intro-heading">できること</h3>
-          <ol className="intro-features">
-            {FEATURES.map((f, i) => (
-              <li key={f.title} className="intro-feature">
-                <span className="intro-feature-no lat" aria-hidden="true">{i + 1}</span>
-                <div>
-                  <strong><Ja>{f.title}</Ja></strong>
-                  <p><Ja>{f.body}</Ja></p>
-                </div>
+          <ol className="intro-questions">
+            {QUESTIONS.map((q, i) => (
+              <li key={q.question} className={`intro-question${q.featured ? ' is-featured' : ''}`}>
+                <span className="intro-question-no lat" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <h4><Ja tail={4}>{q.question}</Ja></h4>
+                <Paragraphs items={q.body} />
+                {q.list && (
+                  <ul className="intro-question-list">
+                    {q.list.map((line) => <li key={line}>{line}</li>)}
+                  </ul>
+                )}
+                {q.after && <Paragraphs items={q.after} />}
+                {q.emphasis && (
+                  <p className="intro-emphasis">
+                    {q.emphasis.map((line) => <span key={line}>{line}</span>)}
+                  </p>
+                )}
+                {q.closing && <p className="intro-closing"><Ja>{q.closing}</Ja></p>}
+                {q.note && <p className="intro-tag">{q.note}</p>}
               </li>
             ))}
           </ol>
         </section>
 
-        <section className="intro-section" aria-label="ログインについて">
-          <h3 className="intro-heading">ログインすると</h3>
+        <section className="intro-section" aria-label="2つの使い方">
+          <h3 className="intro-heading">2つの使い方</h3>
+          <p className="intro-statement">
+            <span>今日の小さな移動にも。</span>
+            <span>次の旅にも。</span>
+          </p>
+          <div className="intro-usages">
+            {USAGES.map((u) => (
+              <article key={u.board} className="intro-usage">
+                <span className="intro-usage-board">{u.board}</span>
+                <h4>{u.title}</h4>
+                <Paragraphs items={u.body} />
+                <p className="intro-tag">{u.tag}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="intro-section" aria-label="盤は簡略化しない">
+          <p className="intro-statement">
+            <span>便利にしても、</span>
+            <span>盤は簡略化しない。</span>
+          </p>
+          <div className="intro-prose">
+            <Paragraphs items={PRO_BODY} />
+          </div>
+          <p className="intro-aside"><Ja>{PRO_NOTE}</Ja></p>
+        </section>
+
+        <section className="intro-section is-service" aria-label="ログインについて">
+          <h3 className="intro-heading">ログインについて</h3>
           <div className="intro-compare">
             <div>
-              <span className="intro-compare-label">ログインなし</span>
-              <p><Ja>今日の盤と、方位ごとの短い解説を見られます。</Ja></p>
+              <strong>ログインなしでも試せます</strong>
+              <p><Ja>今日の盤と、方位ごとの短い解説は、そのままご覧いただけます。</Ja></p>
             </div>
-            <div className="is-full">
-              <span className="intro-compare-label">ログインあり</span>
-              <p><Ja>日付を自由に選べます。詳しい解説、吉方位の地図、日取りの検索まで、すべての機能を使えます。</Ja></p>
+            <div>
+              <strong>ログインすると、すべての機能が使えます</strong>
+              <p><Ja>日時の変更、詳しい解説、吉方位の地図、日取り検索などが利用できます。</Ja></p>
+              <p><Ja>ログインはメールアドレスだけ。パスワードは必要ありません。</Ja></p>
             </div>
           </div>
-          <p className="intro-note"><Ja>ログインはメールアドレスだけ。パスワードは要りません。</Ja></p>
         </section>
 
-        <section className="intro-section" aria-label="料金">
+        <section className="intro-section is-service" aria-label="料金">
           <h3 className="intro-heading">料金</h3>
-          {priceLines().map((line) => <p key={line} className="intro-price"><Ja>{line}</Ja></p>)}
+          <div className="intro-price">
+            <strong className="intro-price-status">{price.status}</strong>
+            <p><Ja>{price.lead}</Ja></p>
+            <dl className="intro-price-plans">
+              <dt>{price.plansLabel}</dt>
+              {price.plans.map((plan) => <dd key={plan}>{plan}</dd>)}
+            </dl>
+            <p className="intro-price-note">{price.note}</p>
+          </div>
         </section>
 
-        <div className="intro-actions">
-          {!loggedIn && (
-            <button type="button" className="account-btn intro-cta" onClick={onLogin}>
-              ログインして使う
-            </button>
-          )}
-          <button type="button" className={`account-btn ${loggedIn ? 'intro-cta' : 'account-btn-ghost'}`} onClick={onClose}>
-            {loggedIn ? '閉じる' : 'まず今日の盤を見る'}
-          </button>
-        </div>
+        <section className="intro-final" aria-label="まとめ">
+          <p className="intro-final-copy">
+            <span>探す。</span>
+            <span>選ぶ。</span>
+            <span>そして、実際に動く。</span>
+          </p>
+          <p><Ja>盤の中だけで終わっていた吉方位を、日常の予定と実際の場所へ。</Ja></p>
+          <p className="intro-final-three">
+            <span>奇門遁甲Zは、</span>
+            <span><b>「いつ」</b><b>「どっち」</b><b>「どこへ」</b>をつなぎます。</span>
+          </p>
+          <div className="intro-actions">
+            {loggedIn ? (
+              <button type="button" className="account-btn intro-cta" onClick={onClose}>
+                今日の吉方位を見る
+              </button>
+            ) : (
+              <>
+                <button type="button" className="account-btn intro-cta" onClick={onLogin}>
+                  ログインしてすべての機能を使う
+                </button>
+                <button type="button" className="account-btn account-btn-ghost" onClick={onClose}>
+                  まず今日の盤を見る
+                </button>
+              </>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
