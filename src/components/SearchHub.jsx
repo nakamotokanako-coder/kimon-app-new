@@ -5,7 +5,7 @@ import { DIRECTION_ICONS } from '../reverseDirection/directionIcons.generated.js
 
 // 「探す」の入口。4つの検索を同じ強さで並べず、優先順位で分ける。
 //   NOW      今から吉方位へ（いちばんよく使う。上に大きく）
-//   PLAN     予定から探す（日付から／吉日・吉方位）
+//   PLAN     予定から探す（行く日が決まっている／行く方位が決まっている）。2枚は対になる言い方にする
 //   こだわって探す（条件から／吉を3回つなぐ）
 // 番号は付けない（1→2→3→4 と進む手順ではなく、探し方を選ぶ画面のため）。
 // 専門の名前は小さく添える。行き先は今ある画面（ReverseDirectionView の各モード）。
@@ -25,9 +25,9 @@ export const SEARCH_ENTRIES = [
     target: 'map',
     group: 'plan',
     icon: 'calendar',
-    title: '日付から探す',
-    question: 'この日、どちらへ行く？',
-    desc: '選んだ日の8方位を比べます',
+    title: '行く日が決まっている',
+    question: 'この日、どっちへ行く？',
+    desc: '日を選ぶと、良い方位がわかります',
     tech: '日盤・遠出',
   },
   {
@@ -35,9 +35,9 @@ export const SEARCH_ENTRIES = [
     target: 'search',
     group: 'plan',
     icon: 'compass',
-    title: '吉日・吉方位を探す',
-    question: 'いつ、どの方位へ行く？',
-    desc: '期間と方位から、良い日を探します',
+    title: '行く方位が決まっている',
+    question: 'この方位、いつ行く？',
+    desc: '方位を選ぶと、良い日がわかります',
     tech: '日盤ランキング',
   },
   {

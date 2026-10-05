@@ -104,8 +104,8 @@ describe('ホーム画面', () => {
 describe('探すの入口', () => {
   it('4つの検索を、優先順位で分ける（予定から探す／こだわって探す）。番号は付けない', () => {
     expect(SEARCH_ENTRIES.map((e) => [e.group, e.title, e.question, e.tech])).toEqual([
-      ['plan', '日付から探す', 'この日、どちらへ行く？', '日盤・遠出'],
-      ['plan', '吉日・吉方位を探す', 'いつ、どの方位へ行く？', '日盤ランキング'],
+      ['plan', '行く日が決まっている', 'この日、どっちへ行く？', '日盤・遠出'],
+      ['plan', '行く方位が決まっている', 'この方位、いつ行く？', '日盤ランキング'],
       ['detail', '条件から探す', 'この条件が出るのはいつ？', '格局検索'],
       ['detail', '吉を3回つなぐ', '1日で、吉方位を3回', '奇門三盤ルート'],
     ]);
@@ -130,8 +130,8 @@ describe('探すの入口', () => {
     const onOpenGuide = vi.fn();
     render(<SearchHub onSelect={onSelect} onOpenGuide={onOpenGuide} onOpenNotifications={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: /今から探す/ }));
-    fireEvent.click(screen.getByRole('button', { name: /日付から探す/ }));
-    fireEvent.click(screen.getByRole('button', { name: /吉日・吉方位を探す/ }));
+    fireEvent.click(screen.getByRole('button', { name: /行く日が決まっている/ }));
+    fireEvent.click(screen.getByRole('button', { name: /行く方位が決まっている/ }));
     fireEvent.click(screen.getByRole('button', { name: /条件から探す/ }));
     fireEvent.click(screen.getByRole('button', { name: /吉を3回つなぐ/ }));
     fireEvent.click(screen.getByRole('button', { name: /今日の時間帯を一覧で見る/ }));
