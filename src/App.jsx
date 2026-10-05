@@ -703,6 +703,9 @@ export default function App() {
           loggedIn={auth.loggedIn}
           onClose={closeIntro}
           onLogin={() => { closeIntro(); openAccountSettings(); }}
+          onOpenToday={() => { closeIntro(); setActiveTab('home'); window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }}
+          onOpenNow={() => { closeIntro(); goMap('time'); }}
+          onOpenPlan={() => { closeIntro(); goMap('day'); }}
         />
       )}
       {activeTab === 'home' && (

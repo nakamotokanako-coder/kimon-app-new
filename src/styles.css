@@ -8120,320 +8120,8 @@ html[data-text-size='large'] {
   cursor: pointer;
 }
 
-.intro-hero {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  padding-bottom: 34px;
-  text-align: center;
-}
-
-.intro-mark {
-  width: 64px;
-  margin-bottom: 10px;
-  font-size: 1.6rem;
-}
-
-.intro-kicker {
-  margin: 0;
-  color: var(--text-accent);
-  font-size: 0.7rem;
-  letter-spacing: 0.28em;
-}
-
-.intro-name {
-  margin: 0;
-  color: var(--text-secondary);
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  letter-spacing: 0.14em;
-}
-
-.intro-title {
-  margin: 14px 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.7rem, 7.6vw, 2.2rem);
-  font-weight: 700;
-  line-height: 1.45;
-  letter-spacing: 0.04em;
-  word-break: keep-all;
-}
-
-.intro-hero-body {
-  display: grid;
-  gap: 14px;
-  margin-top: 18px;
-}
-
 .intro-page p {
   margin: 0;
-}
-
-.intro-hero-body p,
-.intro-question p,
-.intro-usage p,
-.intro-prose p,
-.intro-compare p,
-.intro-price p,
-.intro-final p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.9;
-}
-
-.intro-hero-three {
-  display: grid;
-  gap: 2px;
-  color: var(--text-primary) !important;
-  font-family: var(--font-display);
-  font-size: 1.02rem !important;
-  font-weight: 700;
-}
-
-.intro-sub {
-  margin-top: 16px !important;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  line-height: 1.8;
-}
-
-.intro-section {
-  padding: 34px 0;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
-}
-
-.intro-heading {
-  margin: 0 0 18px;
-  color: var(--text-accent);
-  font-family: var(--font-display);
-  font-size: 0.86rem;
-  letter-spacing: 0.2em;
-}
-
-/* 大きな一言（2つの使い方・盤は簡略化しない） */
-.intro-statement {
-  display: grid;
-  gap: 2px;
-  margin: 0 0 18px !important;
-  font-family: var(--font-display);
-  font-size: clamp(1.3rem, 5.8vw, 1.6rem);
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-/* できること: 番号 → 大きな問い → 短い説明 */
-.intro-questions {
-  display: grid;
-  gap: 30px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.intro-question {
-  display: grid;
-  gap: 8px;
-}
-
-.intro-question-no {
-  color: var(--text-accent);
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-}
-
-.intro-question h4,
-.intro-usage h4 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.22rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-/* 03「その方位には、何がある？」は、このアプリの一番の違い。少し大きく、薄いカードに載せる。 */
-.intro-question.is-featured {
-  padding: 20px 18px;
-  border: 1px solid var(--accent-edge);
-  border-radius: 16px;
-  background: var(--bg-cell);
-}
-
-.intro-question.is-featured h4 {
-  font-size: 1.42rem;
-}
-
-.intro-emphasis {
-  display: grid;
-  margin-top: 6px !important;
-  padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--accent-edge) 70%, transparent);
-  color: var(--text-primary) !important;
-  font-family: var(--font-display);
-  font-size: 1.02rem !important;
-  font-weight: 700;
-  line-height: 1.7 !important;
-}
-
-.intro-question-list {
-  display: grid;
-  gap: 6px;
-  margin: 2px 0;
-  padding: 0;
-  list-style: none;
-}
-
-.intro-question-list li {
-  padding-left: 12px;
-  border-left: 2px solid var(--accent-edge);
-  color: var(--text-primary);
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.7;
-}
-
-.intro-closing {
-  color: var(--text-primary) !important;
-  font-weight: 700;
-}
-
-.intro-tag {
-  justify-self: start;
-  margin-top: 4px !important;
-  padding: 2px 10px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 90%, transparent);
-  border-radius: 999px;
-  color: var(--text-secondary) !important;
-  font-size: 0.72rem !important;
-  line-height: 1.7 !important;
-}
-
-/* 2つの使い方（時盤・日盤） */
-.intro-usages {
-  display: grid;
-  gap: 12px;
-}
-
-.intro-usage {
-  display: grid;
-  gap: 8px;
-  align-content: start;
-  padding: 18px;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
-  border-radius: 16px;
-  background: var(--bg-cell);
-}
-
-.intro-usage-board {
-  color: var(--text-accent);
-  font-family: var(--font-display);
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-}
-
-.intro-prose {
-  display: grid;
-  gap: 14px;
-}
-
-.intro-aside {
-  margin-top: 18px !important;
-  padding: 14px 16px;
-  border-left: 2px solid var(--accent-edge);
-  background: color-mix(in srgb, var(--bg-elevated) 40%, transparent);
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  line-height: 1.9;
-}
-
-/* ここから下はサービスの情報（ログイン・料金）。見た目を一段おとなしくする。 */
-.intro-section.is-service {
-  padding: 26px 0;
-}
-
-.intro-section.is-service .intro-heading {
-  margin-bottom: 12px;
-  color: var(--text-secondary);
-}
-
-.intro-compare {
-  display: grid;
-  gap: 16px;
-}
-
-.intro-compare > div {
-  display: grid;
-  gap: 4px;
-}
-
-.intro-compare strong {
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
-.intro-compare p,
-.intro-price p {
-  font-size: 0.84rem;
-}
-
-.intro-price {
-  display: grid;
-  gap: 6px;
-}
-
-.intro-price-status {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-}
-
-.intro-price-plans {
-  display: grid;
-  gap: 2px;
-  margin: 8px 0 0;
-}
-
-.intro-price-plans dt {
-  color: var(--text-secondary);
-  font-size: 0.74rem;
-}
-
-.intro-price-plans dd {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.intro-price-note {
-  font-size: 0.76rem !important;
-}
-
-/* 最後の案内 */
-.intro-final {
-  display: grid;
-  gap: 14px;
-  padding: 40px 0 8px;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
-  text-align: center;
-}
-
-.intro-final-copy {
-  display: grid;
-  gap: 2px;
-  color: var(--text-primary) !important;
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 6.4vw, 1.8rem) !important;
-  font-weight: 700;
-  line-height: 1.5 !important;
-}
-
-.intro-final-three span {
-  display: block;
-}
-
-.intro-final-three b {
-  color: var(--text-primary);
-  white-space: nowrap;
 }
 
 .intro-actions {
@@ -8445,12 +8133,6 @@ html[data-text-size='large'] {
 .intro-actions .account-btn {
   width: 100%;
   min-height: 50px;
-}
-
-@media (min-width: 600px) {
-  .intro-usages {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 /* === 下のメニューのアイコン（5つ） === */
@@ -9255,8 +8937,6 @@ html[data-text-size='large'] {
 .home-section-head h2,
 .home-today-main,
 .hub-body strong,
-.intro-title,
-.intro-statement,
 .reverse-header h2 {
   text-wrap: balance;
 }
@@ -10983,4 +10663,763 @@ p.saikyo-annual-note.is-open {
   display: block;
   width: min(100%, 360px);
   height: auto;
+}
+
+/* === 紹介ページ（LP）: 静かな和のラグジュアリー × アプリの画面（src/components/IntroPage.jsx） ===
+   このページだけ、テーマに関係なく、生成り・墨・落ち着いた金の配色にする（写真と墨絵が明るい地を前提にしているため）。 */
+.lp {
+  --lp-bg: #f8f4ea;
+  --lp-paper: #fffdf8;
+  --lp-ink: #2a2622;
+  --lp-text: #57504a;
+  --lp-soft: #7d766c;
+  --lp-gold: #b08a3c;
+  --lp-gold-deep: #96712b;
+  --lp-line: #e6dcc7;
+  background: var(--lp-bg);
+  color: var(--lp-ink);
+}
+
+.lp p {
+  margin: 0;
+}
+
+.lp .intro-close {
+  border-color: var(--lp-line);
+  background: rgba(255, 253, 248, 0.9);
+  color: var(--lp-ink);
+}
+
+.lp-wrap {
+  width: min(100%, 1080px);
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+.lp-arrow {
+  display: inline-block;
+  margin-left: 0.3em;
+  transition: transform 0.2s ease;
+}
+
+/* ボタン: 落ち着いた金。押したあと何が起きるかが分かる文言だけを載せる */
+.lp-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 12px 30px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #c9a557, var(--lp-gold));
+  box-shadow: 0 10px 24px -14px rgba(120, 88, 24, 0.7);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lp-cta.is-small {
+  min-height: 46px;
+  padding: 8px 22px;
+  font-size: 0.92rem;
+}
+
+.lp-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px -14px rgba(120, 88, 24, 0.8);
+}
+
+.lp-cta:hover .lp-arrow {
+  transform: translateX(3px);
+}
+
+/* 見出しの強さ: H1 → H2 → 短い一言 → 本文 → 補足 */
+.lp-h1 {
+  display: grid;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 11vw, 4rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+}
+
+.lp-h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 6.4vw, 2rem);
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+/* 見出しは、意味の切れ目でだけ折り返す */
+.lp-h2 > span {
+  display: inline-block;
+}
+
+.lp-h2 b {
+  margin: 0 0.12em;
+  color: var(--lp-gold);
+  font-family: var(--font-latin, var(--font-display));
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+.lp-h2.is-left {
+  text-align: left;
+}
+
+.lp-h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.lp-sub {
+  color: var(--lp-soft);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.lp-lead {
+  color: var(--lp-ink);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.lp-text {
+  color: var(--lp-text);
+  font-size: 0.92rem;
+  line-height: 1.95;
+}
+
+.lp-section {
+  position: relative;
+  padding: 64px 0;
+}
+
+.lp-deco {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- 1. HERO ---- */
+.lp-hero {
+  position: relative;
+  padding: 64px 0 40px;
+  background-position: center bottom;
+  background-size: cover;
+}
+
+.lp-hero::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(248, 244, 234, 0.72), rgba(248, 244, 234, 0.9) 55%, var(--lp-bg));
+  content: "";
+}
+
+.lp-hero-grid {
+  position: relative;
+  display: grid;
+  gap: 36px;
+}
+
+.lp-hero-copy {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.lp-hero-copy > * {
+  max-width: 100%;
+}
+
+.lp-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--lp-text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+}
+
+.lp-brand .brand-mark {
+  width: 36px;
+  font-size: 0.95rem;
+}
+
+.lp-tagline {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 5vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.lp-hero-text {
+  width: min(100%, 24em);
+  color: var(--lp-text);
+  font-size: 0.95rem;
+  line-height: 1.95;
+}
+
+.lp-hero .lp-cta {
+  margin-top: 8px;
+}
+
+.lp-cta-note {
+  color: var(--lp-soft);
+  font-size: 0.8rem;
+}
+
+.lp-hero-visual {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.lp-phone {
+  position: relative;
+  width: min(72%, 280px);
+  padding: 8px;
+  border-radius: 34px;
+  background: #1c1a18;
+  box-shadow: 0 30px 50px -28px rgba(40, 30, 10, 0.55);
+}
+
+.lp-phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 27px;
+}
+
+.lp-deco-compass {
+  top: -6%;
+  right: -4%;
+  width: 46%;
+  opacity: 0.5;
+}
+
+.lp-deco-crane {
+  top: 4%;
+  left: -2%;
+  width: 34%;
+  opacity: 0.9;
+}
+
+/* ---- 2. 4ステップ ---- */
+.lp-steps {
+  display: grid;
+  gap: 16px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 18px;
+  border: 1px solid var(--lp-line);
+  border-radius: 18px;
+  background: var(--lp-paper);
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lp-step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -24px rgba(60, 45, 15, 0.5);
+}
+
+.lp-step-no {
+  color: var(--lp-gold);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.lp-step h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+}
+
+.lp-step-image {
+  display: grid;
+  width: 100%;
+  height: 132px;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid var(--lp-line);
+  border-radius: 12px;
+  background: #fdfcf9;
+}
+
+.lp-step-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.lp-step-image.is-photo img,
+.lp-step:nth-child(3) .lp-step-image img {
+  object-fit: cover;
+}
+
+.lp-step p {
+  color: var(--lp-text);
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+/* 流れの矢印（スマホは下向き、広い画面は右向き） */
+.lp-step:not(:last-child)::after {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  z-index: 1;
+  color: var(--lp-gold);
+  font-size: 1rem;
+  line-height: 1;
+  transform: translateX(-50%) rotate(90deg);
+  content: "›";
+}
+
+/* ---- 3. 2つの使い方 ---- */
+.lp-usages {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.lp-usage {
+  position: relative;
+  display: grid;
+  min-height: 230px;
+  overflow: hidden;
+  align-items: end;
+  border-radius: 20px;
+  background-position: center;
+  background-size: cover;
+  color: #fff;
+}
+
+.lp-usage::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.lp-usage.is-now::before {
+  background: linear-gradient(90deg, rgba(40, 24, 10, 0.82), rgba(40, 24, 10, 0.35) 70%, rgba(40, 24, 10, 0.15));
+}
+
+.lp-usage.is-plan::before {
+  background: linear-gradient(90deg, rgba(10, 36, 66, 0.82), rgba(10, 36, 66, 0.35) 70%, rgba(10, 36, 66, 0.12));
+}
+
+.lp-usage-body {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 22px;
+}
+
+.lp-usage-label {
+  padding: 2px 14px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.lp-usage.is-now .lp-usage-label {
+  background: var(--lp-gold);
+}
+
+.lp-usage.is-plan .lp-usage-label {
+  background: #8f7fd0;
+}
+
+.lp-usage h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.05em;
+}
+
+.lp-usage p {
+  display: grid;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.lp-usage .lp-cta {
+  margin-top: 6px;
+}
+
+/* ---- 4. その方位には、何がある？ ---- */
+.lp-map {
+  background: linear-gradient(180deg, var(--lp-bg), #f3ecdc 50%, var(--lp-bg));
+}
+
+.lp-map-grid {
+  display: grid;
+  gap: 30px;
+}
+
+.lp-map-copy {
+  display: grid;
+  gap: 10px;
+  order: -1;
+}
+
+.lp-map-visual {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+/* 地図の画面と、方位を選んだあとの画面を、2台並べて見せる */
+.lp-phones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  width: min(100%, 440px);
+}
+
+.lp-phones .lp-phone {
+  width: 100%;
+  padding: 6px;
+  border-radius: 26px;
+}
+
+.lp-phones .lp-phone img {
+  border-radius: 21px;
+}
+
+.lp-phones .lp-phone.is-second {
+  margin-top: 36px;
+}
+
+.lp-deco-lotus {
+  bottom: -4%;
+  left: 2%;
+  z-index: 1;
+  width: 34%;
+}
+
+.lp-spots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-spot {
+  display: grid;
+  gap: 2px;
+  overflow: hidden;
+  padding-bottom: 12px;
+  border: 1px solid var(--lp-line);
+  border-radius: 14px;
+  background: var(--lp-paper);
+  text-align: center;
+}
+
+.lp-spot img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 8px;
+  object-fit: cover;
+}
+
+.lp-spot strong {
+  padding: 0 8px;
+  font-size: 0.88rem;
+}
+
+.lp-spot small {
+  color: var(--lp-soft);
+  font-size: 0.74rem;
+}
+
+/* ---- 5. 盤は簡略化しない ---- */
+.lp-pro {
+  overflow: hidden;
+}
+
+.lp-pro-body {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
+  text-align: center;
+}
+
+.lp-deco-mountain {
+  bottom: 0;
+  left: -8%;
+  width: 62%;
+  max-width: 520px;
+  opacity: 0.28;
+}
+
+.lp-deco-compass-soft {
+  top: 50%;
+  right: -12%;
+  width: 46%;
+  max-width: 320px;
+  opacity: 0.22;
+  transform: translateY(-50%);
+}
+
+/* ---- 6. 無料・料金 ---- */
+.lp-price {
+  display: grid;
+  gap: 18px;
+  align-items: center;
+  justify-items: center;
+}
+
+.lp-price-badge {
+  display: grid;
+  width: 104px;
+  aspect-ratio: 1;
+  place-content: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #c9a557, var(--lp-gold-deep));
+  color: #fff;
+  text-align: center;
+}
+
+.lp-price-badge small {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+}
+
+.lp-price-badge strong {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.lp-price-free {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.lp-price-free ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-price-free li {
+  color: var(--lp-text);
+  font-size: 0.95rem;
+}
+
+.lp-price-free li b {
+  display: inline-block;
+  min-width: 6.5em;
+  margin-right: 10px;
+  color: var(--lp-ink);
+}
+
+.lp-price-free li::before {
+  margin-right: 8px;
+  color: var(--lp-gold);
+  content: "✓";
+}
+
+.lp-price-note {
+  color: var(--lp-soft);
+  font-size: 0.8rem;
+}
+
+.lp-link {
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid var(--lp-gold);
+  background: transparent;
+  color: var(--lp-gold-deep);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lp-price-card {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 340px);
+  padding: 18px 22px;
+  border: 1px solid var(--lp-line);
+  border-radius: 16px;
+  background: var(--lp-paper);
+}
+
+.lp-price-card span {
+  color: var(--lp-soft);
+  font-size: 0.78rem;
+}
+
+.lp-price-card strong {
+  font-size: 1.1rem;
+}
+
+.lp-price-card small {
+  margin-top: 4px;
+  color: var(--lp-soft);
+  font-size: 0.76rem;
+}
+
+/* ---- 7. 最後の案内 ---- */
+.lp-final {
+  position: relative;
+  padding: 84px 0 calc(84px + env(safe-area-inset-bottom, 0px));
+  background-position: center;
+  background-size: cover;
+  color: #fff;
+  text-align: center;
+}
+
+.lp-final::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 14, 8, 0.5), rgba(20, 14, 8, 0.62));
+  content: "";
+}
+
+.lp-final-body {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+}
+
+.lp-final-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 6vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.lp-final-copy .lp-arrow {
+  margin: 0;
+  color: #e9cf8e;
+  font-size: 0.8em;
+}
+
+.lp-final-note {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+}
+
+/* ---- 広い画面（タブレット・PC） ---- */
+@media (min-width: 760px) {
+  .lp-wrap {
+    padding: 0 32px;
+  }
+
+  .lp-section {
+    padding: 96px 0;
+  }
+
+  .lp-hero {
+    padding: 96px 0 72px;
+  }
+
+  .lp-hero::before {
+    background: linear-gradient(90deg, rgba(248, 244, 234, 0.94), rgba(248, 244, 234, 0.72) 55%, rgba(248, 244, 234, 0.35)), linear-gradient(180deg, transparent 70%, var(--lp-bg));
+  }
+
+  .lp-hero-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: center;
+  }
+
+  .lp-phone {
+    width: min(78%, 300px);
+  }
+
+  .lp-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 26px;
+  }
+
+  .lp-step:not(:last-child)::after {
+    top: 50%;
+    right: -19px;
+    bottom: auto;
+    left: auto;
+    font-size: 1.3rem;
+    transform: translateY(-50%);
+  }
+
+  .lp-usages {
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+
+  .lp-usage {
+    min-height: 280px;
+  }
+
+  .lp-map-grid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: 48px;
+  }
+
+  .lp-map-copy {
+    order: 0;
+  }
+
+  .lp-spots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .lp-price {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 32px;
+    justify-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-cta,
+  .lp-step,
+  .lp-arrow {
+    transition: none;
+  }
 }
