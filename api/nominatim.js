@@ -23,16 +23,31 @@ async function resolveMapLink(link, res) {
   const direct = parseMapLink(link);
   if (direct && 'latitude' in direct) return res.status(200).json(direct);
   if (!isShortMapLink(link)) return res.status(200).json(direct || { error: 'no_location' });
+  // 短いリンクは「行き先のリンク」を返すだけなので、その行き先の文字を読む。
+  // 行き先のページそのもの（google.com）は開かない。開くと、サーバーからのアクセスだと
+  // 確認ページなどに回されることがあり、場所を読めたり読めなかったりした。
   try {
-    const response = await fetchWithTimeout(link, { redirect: 'follow', headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'ja' } });
-    const finalUrl = response.url || '';
-    if (!isMapLink(finalUrl)) return res.status(200).json({ error: 'no_location' });
-    const parsed = parseMapLink(finalUrl);
-    // 座標が入っていないリンク（スマホの共有リンクに多い）は、中の「住所＋名前」の文字を返す。
-    // 画面の側が、その住所で場所を探す。ページの中身からは座標を拾わない
-    // （ページに書かれている地図の中心は、その場所ではなくサーバーのいる場所のことがあり、海外にピンが立った）。
-    return res.status(200).json(parsed || { error: 'no_location' });
+    let current = link;
+    for (let hop = 0; hop < 4; hop += 1) {
+      const response = await fetchWithTimeout(current, {
+        redirect: 'manual',
+        headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'ja' },
+      });
+      const location = response.headers?.get?.('location') || '';
+      if (!location) break;
+      const next = new URL(location, current).toString();
+      if (!isMapLink(next)) break;
+      const parsed = parseMapLink(next);
+      // 座標が入っていればそれを、入っていなければ中の「住所＋名前」の文字を返す（画面の側が、その住所で探す）
+      if (parsed) return res.status(200).json(parsed);
+      if (!isShortMapLink(next)) break;
+      current = next;
+    }
+    console.warn('[nominatim] map link had no readable location');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({ error: 'no_location' });
   } catch {
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(502).json({ error: 'resolve_failed' });
   }
 }
