@@ -576,10 +576,10 @@ describe('DirectionMap 種類の検索（カフェなど）が混んでいて失
 describe('DirectionMap 初めての人向けの案内（使い方・☆でお気に入り）', () => {
   afterEach(() => { vi.unstubAllGlobals(); window.localStorage.clear(); });
 
-  it('検索の欄のすぐ下の「？ 説明書を見る」で、色とピンの意味・お気に入りの登録のしかたを開ける', () => {
+  it('検索の欄のすぐ下の「？ 使い方ガイド」で、色とピンの意味・お気に入りの登録のしかたを開ける', () => {
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
     expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
-    const link = screen.getByRole('button', { name: '？ 説明書を見る' });
+    const link = screen.getByRole('button', { name: '？ 使い方ガイド' });
     // 検索の欄 → 説明書・吉方位のみ表示 → 場所の種類、の順
     const order = [...document.querySelector('.direction-map-search').children].map((el) => el.className.split(' ')[0]);
     expect(order.slice(0, 3)).toEqual(['direction-map-search-row', 'direction-map-filter', 'direction-map-chips']);
@@ -618,7 +618,7 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
   it('初めて地図を開いたときだけ、説明書が自動で出る。閉じたら、次からは出ない', () => {
     const first = render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" autoGuide />);
     const guide = screen.getByRole('dialog', { name: '使い方ガイド' });
-    expect(guide.textContent).toContain('「説明書を見る」から、いつでも開けます');
+    expect(guide.textContent).toContain('「使い方ガイド」から、いつでも開けます');
     fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
     expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
     expect(window.localStorage.getItem(MAP_GUIDE_SEEN_KEY)).toBe('1');
@@ -627,7 +627,7 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
     // 2回目からは自動では出ない（自分で開くことはできる）
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" autoGuide />);
     expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
-    fireEvent.click(screen.getByRole('button', { name: '？ 説明書を見る' }));
+    fireEvent.click(screen.getByRole('button', { name: '？ 使い方ガイド' }));
     expect(screen.getByRole('dialog', { name: '使い方ガイド' })).toBeTruthy();
   });
 

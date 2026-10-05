@@ -20,6 +20,7 @@ import { LEGAL_DOCS, OPEN_LEGAL_EVENT } from './legal/documents.js';
 import HomeView from './components/HomeView.jsx';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
 import SearchHub from './components/SearchHub.jsx';
+import { getJishinSlotHour } from './utils/jishinLabels';
 import PlaceSettings from './components/PlaceSettings.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
@@ -166,8 +167,9 @@ export default function App() {
   const limited = auth.phase === 'ready' && !auth.full;
   const [state, setState] = useState({
     date: getBoardDate(),
-    hour: 0,
-    boardType: '\u65e5',
+    // \u76e4\u30bf\u30d6\u306f\u3001\u4eca\u306e\u6642\u76e4\u304b\u3089\u59cb\u3081\u308b\uff08\u30db\u30fc\u30e0\u306e\u300c\u4eca\u304b\u3089\u4f7f\u3048\u308b\u5409\u65b9\u4f4d\u300d\u3068\u540c\u3058\u76e4\uff09
+    hour: getJishinSlotHour(new Date()),
+    boardType: '\u6642',
   });
   const [theme, setTheme] = useState(INITIAL_THEME);
   const [direction, setDirection] = useState('north_bottom');

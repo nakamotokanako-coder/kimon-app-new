@@ -23,7 +23,7 @@ describe('ReverseDirectionView 日盤遠出（PR-D1: 骨格掃除）', () => {
 
     expect(screen.queryByText(/はじめての方へ/)).toBe(null);
     expect(screen.queryByText('② 行き先を探す')).toBe(null);
-    expect(screen.queryByText('まず①で出発点を決めてください')).toBe(null);
+    expect(screen.queryByText('まず①で基準点を決めてください')).toBe(null);
     expect(document.querySelector('.reverse-go-guide')).toBe(null);
     expect(document.querySelector('.reverse-step-title')).toBe(null);
   });
