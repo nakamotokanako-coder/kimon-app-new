@@ -10964,3 +10964,23 @@ p.saikyo-annual-note.is-open {
   font-weight: 800;
   cursor: pointer;
 }
+
+/* 使い方ガイド: 図つきの手順（Googleマップのリンクを貼る） */
+.map-guide-figures {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-guide-figures li {
+  display: grid;
+  gap: 8px;
+}
+
+.map-guide-figures svg {
+  display: block;
+  width: min(100%, 360px);
+  height: auto;
+}
