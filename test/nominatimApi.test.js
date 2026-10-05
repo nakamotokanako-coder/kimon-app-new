@@ -69,27 +69,35 @@ describe('nominatim の入口: 地図のリンクをたどる（resolve）', () 
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('短いリンクをたどって、行き先のリンクから場所を読む', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      url: 'https://www.google.com/maps/place/%E3%82%AB%E3%83%8A/@35.70,139.70,17z/data=!3d35.7512!4d139.7098',
-      text: async () => '',
-    })));
+  const hop = (location) => ({ status: 302, headers: { get: (name) => (name.toLowerCase() === 'location' ? location : null) } });
+
+  it('短いリンクの「行き先」の文字から場所を読む（行き先のページは開かない）', async () => {
+    const fetchMock = vi.fn(async () => hop('https://www.google.com/maps/place/%E3%82%AB%E3%83%8A/@35.70,139.70,17z/data=!3d35.7512!4d139.7098'));
+    vi.stubGlobal('fetch', fetchMock);
     const res = await call({ resolve: 'https://maps.app.goo.gl/AbCdEf123' });
     expect(res.body).toEqual({ latitude: 35.7512, longitude: 139.7098, name: 'カナ' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][1].redirect).toBe('manual');
   });
 
-  it('行き先のリンクに座標がなければ、中の文字だけを返す（ページの中身からは座標を拾わない）', async () => {
-    // ページの中の center= は、その場所ではなくサーバーのいる場所のことがある（実際に1万km先にピンが立った）
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      url: 'https://www.google.com/maps?q=%E3%82%AB%E3%83%8A%E3%82%AC%E3%83%BC%E3%83%87%E3%83%B3&ftid=0x1:0x2',
-      text: async () => '<meta content="https://maps.google.com/maps/api/staticmap?center=38.9072%2C-77.0369&zoom=16">',
-    })));
+  it('行き先に座標がなければ、中の「住所＋名前」の文字を返す（スマホの共有リンク）', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => hop('https://www.google.com/maps?q=%E3%80%92259-1215+%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E5%B9%B3%E5%A1%9A%E5%B8%82%E5%AF%BA%E7%94%B0%E7%B8%84%EF%BC%94%EF%BC%99%EF%BC%96%E2%88%92%EF%BC%91&ftid=0x1:0x2')));
     const res = await call({ resolve: 'https://maps.app.goo.gl/AbCdEf123' });
-    expect(res.body).toEqual({ query: 'カナガーデン' });
+    expect(res.body).toEqual({ query: '〒259-1215 神奈川県平塚市寺田縄４９６−１' });
   });
 
-  it('行き先が Googleマップでなければ、場所なしとして返す', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ url: 'https://consent.example.com/', text: async () => '' })));
-    expect((await call({ resolve: 'https://maps.app.goo.gl/AbCdEf123' })).body).toEqual({ error: 'no_location' });
+  it('短いリンクが2段になっていても、たどる', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(hop('https://goo.gl/maps/XyZ'))
+      .mockResolvedValueOnce(hop('https://www.google.com/maps/@35.6812,139.7671,15z'));
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await call({ resolve: 'https://maps.app.goo.gl/AbCdEf123' })).body).toMatchObject({ latitude: 35.6812, longitude: 139.7671 });
+  });
+
+  it('行き先が Googleマップでなければ、場所なしとして返す（その結果は覚えておかない）', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => hop('https://consent.example.com/')));
+    const res = await call({ resolve: 'https://maps.app.goo.gl/AbCdEf123' });
+    expect(res.body).toEqual({ error: 'no_location' });
+    expect(res.headers['Cache-Control']).toBe('no-store');
   });
 });
