@@ -743,6 +743,7 @@ export default function App() {
           <ReverseDirectionView
             isActive={directionVisible}
             variant={activeTab === 'search' ? 'search' : 'map'}
+            autoMapGuide={activeTab === 'map' && !introOpen && !legalDoc}
             mode={activeTab === 'search' ? (searchMode || 'ranking') : mapMode}
             onModeChange={(next) => (activeTab === 'search' ? setSearchMode(next) : setMapMode(next))}
             onBackToSearch={() => setSearchMode(null)}

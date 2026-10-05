@@ -10836,3 +10836,27 @@ p.saikyo-annual-note.is-open {
 .direction-place-row.is-editable:has(.direction-place-star) {
   grid-template-columns: minmax(0, 1fr) 44px;
 }
+
+/* 検索の欄の下: 「説明書を見る」（左）と「吉方位のみ表示」（右） */
+.direction-map-guide-link {
+  margin-right: auto;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.direction-fullscreen-button {
+  justify-self: start;
+}
+
+.map-guide-again {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-elevated) 50%, transparent);
+  font-size: 0.8rem !important;
+}

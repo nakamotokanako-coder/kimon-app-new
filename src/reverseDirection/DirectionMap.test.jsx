@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import DirectionMap, { describeDirection, googleMapsSearchUrl } from './DirectionMap.jsx';
 import { getFanColor } from './mapFan.js';
+import { MAP_GUIDE_SEEN_KEY } from './MapGuide.jsx';
 
 const LOCATION = { name: '東京駅', latitude: 35.681, longitude: 139.767 };
 const RANKINGS = [
@@ -13,6 +14,14 @@ const RANKINGS = [
 afterEach(() => {
   cleanup();
 });
+
+// 全画面は「地図の設定」の中にある（開いていなければ開いてから押す）
+function openFullscreen() {
+  if (!screen.queryByRole('button', { name: '⛶ 全画面' })) {
+    fireEvent.click(screen.getByRole('button', { name: /地図の設定/ }));
+  }
+  fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
+}
 
 describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5 jiban → PR-D2 nichiban展開）', () => {
   it('通常表示（非フルスクリーン）ではトグルボタンを出さず、検索カードをそのまま表示する', () => {
@@ -38,7 +47,7 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5 jib
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
+    openFullscreen();
 
     // 既定：畳まれている（検索フォームは描画されない・トグルボタンだけ）。
     expect(screen.getByRole('button', { name: '🔍 検索' })).toBeTruthy();
@@ -63,7 +72,7 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5 jib
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
+    openFullscreen();
 
     // 既定：畳まれている（検索フォームは描画されない・トグルボタンだけ）。
     expect(screen.getByRole('button', { name: '🔍 検索' })).toBeTruthy();
@@ -88,12 +97,12 @@ describe('DirectionMap フルスクリーン検索UI折りたたみ（PR-2.5 jib
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
+    openFullscreen();
     fireEvent.click(screen.getByRole('button', { name: '🔍 検索' }));
     expect(document.querySelector('.direction-map-search-row')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: '閉じる' }));
-    fireEvent.click(screen.getByRole('button', { name: '⛶ 全画面' }));
+    openFullscreen();
 
     expect(document.querySelector('.direction-map-search-row')).toBe(null);
     expect(screen.getByRole('button', { name: '🔍 検索' })).toBeTruthy();
@@ -453,10 +462,14 @@ describe('DirectionMap 選んだ方位のパネル（次に何をするかを主
 });
 
 describe('DirectionMap 方位設定・距離の切り替え', () => {
-  it('方位の引き方は常設せず、「方位設定」を押したときだけ開く', () => {
+  it('上の行は「現在地」と「地図の設定」だけ。方位の引き方と全画面は「地図の設定」の中', () => {
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
     expect(document.querySelector('.direction-map-controls')).toBe(null);
-    fireEvent.click(screen.getByRole('button', { name: /方位設定/ }));
+    const header = document.querySelector('.direction-map-header');
+    expect([...header.querySelectorAll('button')].map((b) => b.textContent.replace(/[›▾]/, '').trim())).toEqual(['現在地', '地図の設定']);
+    expect(screen.queryByRole('button', { name: '⛶ 全画面' })).toBe(null);
+    fireEvent.click(screen.getByRole('button', { name: /地図の設定/ }));
+    expect(screen.getByRole('button', { name: '⛶ 全画面' })).toBeTruthy();
     expect(document.querySelector('.direction-map-controls.is-compact')).toBeTruthy();
     expect(document.querySelector('.direction-bearing-now').textContent).toBe('方位の引き方：平面・補正なし');
   });
@@ -562,10 +575,14 @@ describe('DirectionMap 種類の検索（カフェなど）が混んでいて失
 describe('DirectionMap 初めての人向けの案内（使い方・☆でお気に入り）', () => {
   afterEach(() => { vi.unstubAllGlobals(); window.localStorage.clear(); });
 
-  it('「？ 使い方」で、色とピンの意味・お気に入りの登録のしかたを開ける', () => {
+  it('検索の欄のすぐ下の「？ 説明書を見る」で、色とピンの意味・お気に入りの登録のしかたを開ける', () => {
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
     expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
-    fireEvent.click(screen.getByRole('button', { name: '？ 使い方' }));
+    const link = screen.getByRole('button', { name: '？ 説明書を見る' });
+    // 検索の欄 → 説明書・吉方位のみ表示 → 場所の種類、の順
+    const order = [...document.querySelector('.direction-map-search').children].map((el) => el.className.split(' ')[0]);
+    expect(order.slice(0, 3)).toEqual(['direction-map-search-row', 'direction-map-filter', 'direction-map-chips']);
+    fireEvent.click(link);
     const guide = screen.getByRole('dialog', { name: '地図の使い方' });
     expect(within(guide).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
       '方位の色', 'ピンの色と数字', 'お気に入りに登録する', '拠点にする', 'そのほかのボタン',
@@ -575,6 +592,27 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
     // 見本のピンは、実際の地図と同じ見た目
     expect(guide.querySelectorAll('.direction-poi-pin')).toHaveLength(4);
     fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
+    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+  });
+
+  it('初めて地図を開いたときだけ、説明書が自動で出る。閉じたら、次からは出ない', () => {
+    const first = render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" autoGuide />);
+    const guide = screen.getByRole('dialog', { name: '地図の使い方' });
+    expect(guide.textContent).toContain('「？ 説明書を見る」から、いつでも開けます');
+    fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
+    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    expect(window.localStorage.getItem(MAP_GUIDE_SEEN_KEY)).toBe('1');
+    first.unmount();
+
+    // 2回目からは自動では出ない（自分で開くことはできる）
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" autoGuide />);
+    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    fireEvent.click(screen.getByRole('button', { name: '？ 説明書を見る' }));
+    expect(screen.getByRole('dialog', { name: '地図の使い方' })).toBeTruthy();
+  });
+
+  it('自動で出すのは、指定されたとき（地図タブを開いているとき）だけ', () => {
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
     expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
   });
 

@@ -216,6 +216,7 @@ export default function ReverseDirectionView({
   onOpenBoard,
   unreadNotificationCount = 0,
   onOpenNotifications,
+  autoMapGuide = false, // 初めて地図を開いたときに、説明書を1回だけ自動で出す（App が地図タブのときだけ true にする）
   showBad,            // 設定「凶も見る」（App が保存）。渡されたときは「吉のみ表示」と連動する
   onShowBadChange,
   variant,            // 'map'（地図タブ: 時盤・日盤の2つ）/ 'search'（探すタブ: 選んだ検索だけ）。無指定は6つのタブ
@@ -823,6 +824,7 @@ export default function ReverseDirectionView({
           conditionLabel={conditionLabel}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
+          autoGuide={autoMapGuide}
         />
       </div>
 
@@ -856,6 +858,7 @@ export default function ReverseDirectionView({
           conditionLabel={`${timeDateLabel}${getTimeSlotLabel(slotHour)} の時盤`}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
+          autoGuide={autoMapGuide}
           onOpenDetail={scrollToDirectionDetail}
         />
       </div>

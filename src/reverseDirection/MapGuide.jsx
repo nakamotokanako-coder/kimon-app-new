@@ -2,7 +2,26 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 // 地図の見方・使い方（色とピンの意味、お気に入りの登録のしかた）。
-// 地図の上の「？ 使い方」から開く。見本のピンは、実際の地図と同じ見た目（同じ CSS）で描く。
+// 検索の欄の下の「？ 説明書を見る」から開く。初めて地図を開いたときは、1回だけ自動で出る。
+// 見本のピンは、実際の地図と同じ見た目（同じ CSS）で描く。
+
+export const MAP_GUIDE_SEEN_KEY = 'kimon-map-guide-seen';
+
+export function hasSeenMapGuide() {
+  try {
+    return window.localStorage.getItem(MAP_GUIDE_SEEN_KEY) === '1';
+  } catch {
+    return true; // 保存できない環境で毎回出し続けない
+  }
+}
+
+export function markMapGuideSeen() {
+  try {
+    window.localStorage.setItem(MAP_GUIDE_SEEN_KEY, '1');
+  } catch {
+    // 保存できなくても閉じることはできる
+  }
+}
 
 const Pin = ({ tone, label, favorite = false }) => (
   <span className="map-guide-pin" aria-hidden="true">
@@ -33,6 +52,7 @@ export default function MapGuide({ onClose }) {
         <header className="legal-head">
           <h2>地図の使い方</h2>
           <p>色とピンの意味、お気に入りの登録のしかたをまとめました。</p>
+          <p className="map-guide-again">この説明は、検索の欄の下の「？ 説明書を見る」から、いつでも開けます。</p>
         </header>
 
         <section className="legal-section">
@@ -79,8 +99,7 @@ export default function MapGuide({ onClose }) {
           <ul>
             <li><b>現在地</b>：いまいる場所を地図に出します。基準点から見て、どの方位にいるかが分かります。</li>
             <li><b>距離（500m・2km など）</b>：基準点からその距離までが入るように、地図の大きさを合わせます。</li>
-            <li><b>方位設定</b>：方位の線の引き方（平面・球面、偏角の補正）を変えます。ふだんはそのままで大丈夫です。</li>
-            <li><b>全画面</b>：地図を画面いっぱいに広げます。</li>
+            <li><b>地図の設定</b>：方位の線の引き方（平面・球面、偏角の補正）を変えられます。ふだんはそのままで大丈夫です。地図を画面いっぱいに広げる「全画面」もここにあります。</li>
           </ul>
         </section>
 

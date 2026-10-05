@@ -24,7 +24,7 @@ import {
 } from './mapFan.js';
 import { isOverseas } from './geoRegion.js';
 import BearingControls from './BearingControls.jsx';
-import MapGuide from './MapGuide.jsx';
+import MapGuide, { hasSeenMapGuide, markMapGuideSeen } from './MapGuide.jsx';
 import {
   FACILITY_PRESETS,
   MAP_SEARCH_STORAGE_KEY,
@@ -251,6 +251,7 @@ export default function DirectionMap({
   goodOnly,              // 設定「凶方位の表示」の逆（渡されたときは「吉方位のみ表示」と連動する）
   onGoodOnlyChange,
   onOpenDetail,          // 選んだ方位の詳しい内容（方位詳細）へ
+  autoGuide = false,     // true: 初めて地図を開いたときに、説明書を1回だけ自動で出す
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jiban・日盤遠出=nichiban共通）。
@@ -263,6 +264,14 @@ export default function DirectionMap({
   const [centerOffset, setCenterOffset] = useState(null);
   const [bearingPanelOpen, setBearingPanelOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  // 説明書: 初めて地図を開いたときに1回だけ自動で出す。閉じたら、次からは自動では出さない。
+  useEffect(() => {
+    if (autoGuide && !hasSeenMapGuide()) setGuideOpen(true);
+  }, [autoGuide]);
+  const closeGuide = () => {
+    markMapGuideSeen();
+    setGuideOpen(false);
+  };
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
   const [mapError, setMapError] = useState(null);
@@ -1161,11 +1170,6 @@ export default function DirectionMap({
             <span>{profile.note[1]}</span>
           </div>
         )}
-        {!isFullscreen && (
-          <button type="button" className="direction-map-action direction-map-guide-button" onClick={() => setGuideOpen(true)}>
-            ？ 使い方
-          </button>
-        )}
         <button
           type="button"
           className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
@@ -1174,23 +1178,20 @@ export default function DirectionMap({
         >
           {liveOn ? '現在地ON' : '現在地'}
         </button>
-        {!isFullscreen && (
+        {isFullscreen ? (
+          <button type="button" className="direction-map-action" onClick={() => setIsFullscreen(false)}>
+            閉じる
+          </button>
+        ) : (
           <button
             type="button"
             className={`direction-map-action direction-bearing-button ${bearingPanelOpen ? 'is-open' : ''}`}
             aria-expanded={bearingPanelOpen}
             onClick={() => setBearingPanelOpen((value) => !value)}
           >
-            方位設定 <span aria-hidden="true">{bearingPanelOpen ? '▾' : '›'}</span>
+            地図の設定 <span aria-hidden="true">{bearingPanelOpen ? '▾' : '›'}</span>
           </button>
         )}
-        <button
-          type="button"
-          className="direction-map-action"
-          onClick={() => setIsFullscreen((value) => !value)}
-        >
-          {isFullscreen ? '閉じる' : '⛶ 全画面'}
-        </button>
       </div>
 
       {!isFullscreen && bearingPanelOpen && (
@@ -1201,6 +1202,9 @@ export default function DirectionMap({
             value={{ mode: bearingMode, declination: useDeclination }}
             onChange={handleBearingChange}
           />
+          <button type="button" className="direction-map-action direction-fullscreen-button" onClick={() => setIsFullscreen(true)}>
+            ⛶ 全画面
+          </button>
         </div>
       )}
 
@@ -1282,6 +1286,21 @@ export default function DirectionMap({
         const searchBody = (
           <>
             {searchForm}
+            <div className="direction-map-filter">
+              <button type="button" className="direction-map-guide-link" onClick={() => setGuideOpen(true)}>
+                ？ 説明書を見る
+              </button>
+              <span>吉方位のみ表示</span>
+              <button
+                type="button"
+                className={`settings-switch${kichiOnly ? ' is-on' : ''}`}
+                aria-pressed={kichiOnly}
+                aria-label="吉方位のみ表示"
+                onClick={() => setKichiOnly(!kichiOnly)}
+              >
+                <span />
+              </button>
+            </div>
             <div className="direction-map-chips" role="group" aria-label="場所の種類で探す">
               {FACILITY_PRESETS.slice(0, 6).map((preset) => (
                 <button
@@ -1293,18 +1312,6 @@ export default function DirectionMap({
                   {preset.label}
                 </button>
               ))}
-            </div>
-            <div className="direction-map-filter">
-              <span>吉方位のみ表示</span>
-              <button
-                type="button"
-                className={`settings-switch${kichiOnly ? ' is-on' : ''}`}
-                aria-pressed={kichiOnly}
-                aria-label="吉方位のみ表示"
-                onClick={() => setKichiOnly(!kichiOnly)}
-              >
-                <span />
-              </button>
             </div>
             {searchStatusBlock}
           </>
@@ -1553,7 +1560,7 @@ export default function DirectionMap({
         <span><i className="legend-swatch tone-neutral" />中立</span>
         <span><i className="legend-swatch tone-bad" />凶</span>
       </div>
-      {guideOpen && <MapGuide onClose={() => setGuideOpen(false)} />}
+      {guideOpen && <MapGuide onClose={closeGuide} />}
       {editingFavorite && (
         <div className="direction-favorite-modal" role="dialog" aria-modal="true" aria-label="お気に入りの編集">
           <div className="direction-favorite-sheet">
