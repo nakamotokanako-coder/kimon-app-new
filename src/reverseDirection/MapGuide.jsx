@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { LINK_STEP_FIGURES } from './LinkStepFigures.jsx';
 
 // はじめての人向けの使い方ガイド。
 //   実際に初めて使った人がつまずいた順に並べている:
@@ -92,9 +93,24 @@ export const GUIDE_SECTIONS = [
       '地図の下に「北西 +70」のように、その場所の方位と点数が出ます。',
     ],
     after: [
-      'お店の名前では見つからないことがあります。そのときは住所を入れてください。住所は、Googleマップなどでお店を調べると分かります。',
-      'Googleマップでそのお店を開き、「共有」で出るリンクをコピーして、検索の欄に貼り付ける方法もあります。',
+      'お店の名前では見つからないことがあります。カタカナやひらがなの読みで入れたときも、出ないことがあります。そのときは、下の「名前で見つからないとき」の方法を使ってください。',
       'よく行く場所は、一度探してお気に入りに登録しておくと、次からすぐ見られます。',
+    ],
+  },
+  {
+    key: 'link',
+    heading: '名前で見つからないとき',
+    body: [
+      'Googleマップでその場所を開いて、リンクをコピーして貼り付けると、場所を出せます。',
+    ],
+    figureSteps: [
+      'Googleマップで、行きたい場所を開きます。名前の右にある、四角から上向きの矢印が出たボタンを押します。',
+      '出てきた画面で「コピー」を押します。',
+      '奇門遁甲Zに戻り、地図の検索の欄に貼り付けて「検索」を押します。その場所にピンが立ち、方位と距離が出ます。',
+    ],
+    after: [
+      '見つからなかったときに出る「Googleマップで探す」を押すと、Googleマップがそのまま開きます。',
+      '住所が分かっているときは、住所を入れても探せます。',
     ],
   },
   {
@@ -163,6 +179,7 @@ export function guideText() {
     ...(s.cards || []).flatMap((c) => [c.title, ...c.lines]),
     ...(s.swatches || []).map((x) => `${x[1]}は、${x[2]}`),
     ...(s.steps || []),
+    ...(s.figureSteps || []),
     ...(s.pins || []).map((x) => `${x[3]}は、${x[4]}`),
     ...(s.items || []).map((x) => `${x[0]}は、${x[1]}`),
     ...(s.after || []),
@@ -218,6 +235,19 @@ export default function MapGuide({ onClose }) {
             {section.steps && (
               <ol className="map-guide-steps">
                 {section.steps.map((step) => <li key={step}>{step}</li>)}
+              </ol>
+            )}
+            {section.figureSteps && (
+              <ol className="map-guide-figures">
+                {section.figureSteps.map((step, index) => {
+                  const Figure = LINK_STEP_FIGURES[index];
+                  return (
+                    <li key={step}>
+                      <p><b>{index + 1}.</b> {step}</p>
+                      {Figure && <Figure />}
+                    </li>
+                  );
+                })}
               </ol>
             )}
             {section.pins && (

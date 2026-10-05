@@ -589,6 +589,7 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
       'まず、時盤と日盤のどっちを見る？',
       '今、どっちへ行けばいい？',
       '行きたい場所が吉方位か調べる',
+      '名前で見つからないとき',
       '地図にお店の名前が出ないのはなぜ？',
       '吉方位の中から行き先を探す',
       'ピンの色と数字',
@@ -598,7 +599,15 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
     expect(guide.textContent).toContain('赤いピン　凶方位にある場所');
     expect(guide.textContent).toContain('青いピン　吉方位にある場所');
     expect(guide.textContent).toContain('近所へ出かけるなら、時盤を見てください');
-    expect(guide.textContent).toContain('お店の名前では見つからないことがあります。そのときは住所を入れてください');
+    expect(guide.textContent).toContain('お店の名前では見つからないことがあります');
+    // 名前で見つからないとき: Googleマップのリンクを貼る手順を、図つきで3つ
+    const figures = guide.querySelectorAll('.map-guide-figures li');
+    expect(figures).toHaveLength(3);
+    expect([...guide.querySelectorAll('.map-guide-figures svg')].map((svg) => svg.getAttribute('aria-label'))).toEqual([
+      '場所の名前の右にある、共有のボタンを押す',
+      '共有の画面で、コピーを押す',
+      '奇門遁甲Zの検索の欄に貼り付けて、検索を押す',
+    ]);
     // 見本のピンは、実際の地図と同じ見た目
     expect(guide.querySelectorAll('.direction-poi-pin')).toHaveLength(4);
     fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
