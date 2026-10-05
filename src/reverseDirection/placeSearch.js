@@ -3,7 +3,7 @@
 //   - 住所・地名: 国土地理院の住所検索
 //   - Googleマップのリンクや座標: リンクの文字から場所を読む（無料の検索に載っていないお店のための道）
 // どれも無料。候補は1件に決め打ちせず、並べ替えて最大5件を返す。
-import { isMapLink, isShortMapLink, parseCoordinates, parseMapLink } from '../../lib/mapLink.js';
+import { isMapLink, isShortMapLink, parseCoordinates, parseMapLink, splitLinkQuery } from '../../lib/mapLink.js';
 import { NOMINATIM_PROXY_PATH, classifyQuery, distanceMeters, sanitizeQuery } from './mapSearch.js';
 
 export const MAX_CANDIDATES = 5;
@@ -193,8 +193,29 @@ export async function placeFromLink(text, fetchImpl = fetch) {
       },
     };
   }
-  // リンクに座標がなく、名前や住所だけが入っていた → その文字で探す
-  return { query: parsed?.query || '' };
+  // リンクに座標がなく、「住所＋名前」の文字だけが入っていた（スマホの共有リンクに多い）→ その住所で探す
+  const query = parsed?.query || '';
+  if (!query) return { query: '' };
+  const { search, name } = splitLinkQuery(query);
+  try {
+    const hit = (await gsiAddressSearch(search, fetchImpl))[0];
+    if (hit) {
+      return {
+        place: {
+          id: `link-${hit.latitude},${hit.longitude}`,
+          name: name || hit.name,
+          label: 'Googleマップのリンク',
+          address: hit.name,
+          latitude: hit.latitude,
+          longitude: hit.longitude,
+          source: 'gsi',
+        },
+      };
+    }
+  } catch {
+    // 住所で見つからなければ、下の「名前で探す」に進む
+  }
+  return { query: name || search };
 }
 
 /**

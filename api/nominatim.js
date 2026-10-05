@@ -3,7 +3,7 @@
 //   ?q=...&scope=jp           日本全国を名前で探す（住所の内訳つき・10件）
 //   ?resolve=<地図のリンク>     Googleマップの短いリンクをたどって、場所（緯度・経度）を返す
 // いずれも無料（OpenStreetMap の Nominatim。Google の API は使わない）。
-import { isMapLink, isShortMapLink, parseMapLink, parsePointFromHtml } from '../lib/mapLink.js';
+import { isMapLink, isShortMapLink, parseMapLink } from '../lib/mapLink.js';
 
 const USER_AGENT = 'kimon-app/1.0 (https://kimon-tonko.vercel.app/)';
 
@@ -28,10 +28,9 @@ async function resolveMapLink(link, res) {
     const finalUrl = response.url || '';
     if (!isMapLink(finalUrl)) return res.status(200).json({ error: 'no_location' });
     const parsed = parseMapLink(finalUrl);
-    if (parsed && 'latitude' in parsed) return res.status(200).json(parsed);
-    // リンクの文字に座標がないときは、ページの中身から拾う
-    const point = parsePointFromHtml(await response.text());
-    if (point) return res.status(200).json({ ...point, name: parsed?.query || '' });
+    // 座標が入っていないリンク（スマホの共有リンクに多い）は、中の「住所＋名前」の文字を返す。
+    // 画面の側が、その住所で場所を探す。ページの中身からは座標を拾わない
+    // （ページに書かれている地図の中心は、その場所ではなくサーバーのいる場所のことがあり、海外にピンが立った）。
     return res.status(200).json(parsed || { error: 'no_location' });
   } catch {
     return res.status(502).json({ error: 'resolve_failed' });

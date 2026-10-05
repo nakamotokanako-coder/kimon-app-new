@@ -78,13 +78,14 @@ describe('nominatim の入口: 地図のリンクをたどる（resolve）', () 
     expect(res.body).toEqual({ latitude: 35.7512, longitude: 139.7098, name: 'カナ' });
   });
 
-  it('行き先のリンクに座標がなければ、ページの中身から拾う', async () => {
+  it('行き先のリンクに座標がなければ、中の文字だけを返す（ページの中身からは座標を拾わない）', async () => {
+    // ページの中の center= は、その場所ではなくサーバーのいる場所のことがある（実際に1万km先にピンが立った）
     vi.stubGlobal('fetch', vi.fn(async () => ({
       url: 'https://www.google.com/maps?q=%E3%82%AB%E3%83%8A%E3%82%AC%E3%83%BC%E3%83%87%E3%83%B3&ftid=0x1:0x2',
-      text: async () => '<meta content="https://maps.google.com/maps/api/staticmap?center=35.7512%2C139.7098&zoom=16">',
+      text: async () => '<meta content="https://maps.google.com/maps/api/staticmap?center=38.9072%2C-77.0369&zoom=16">',
     })));
     const res = await call({ resolve: 'https://maps.app.goo.gl/AbCdEf123' });
-    expect(res.body).toEqual({ latitude: 35.7512, longitude: 139.7098, name: 'カナガーデン' });
+    expect(res.body).toEqual({ query: 'カナガーデン' });
   });
 
   it('行き先が Googleマップでなければ、場所なしとして返す', async () => {

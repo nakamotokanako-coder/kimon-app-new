@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { postalCodeOf, sanitizeQuery } from './mapSearch.js';
-import { isMapLink, isShortMapLink, parseCoordinates, parseMapLink, parsePointFromHtml } from '../../lib/mapLink.js';
+import { isMapLink, isShortMapLink, parseCoordinates, parseMapLink, splitLinkQuery } from '../../lib/mapLink.js';
 import {
   findPlaces,
   normalizeNominatimCandidate,
@@ -63,9 +63,12 @@ describe('地図のリンク・座標を読む', () => {
     expect(parseCoordinates('東京駅')).toBe(null);
   });
 
-  it('リンク先のページの中身からも座標を拾える', () => {
-    expect(parsePointFromHtml('...staticmap?center=35.7512%2C139.7098&zoom=...')).toEqual({ latitude: 35.7512, longitude: 139.7098 });
-    expect(parsePointFromHtml('<html>nothing</html>')).toBe(null);
+  it('共有リンクの中の「郵便番号＋住所＋名前」を、探す文字と表示する名前に分ける', () => {
+    const got = splitLinkQuery('〒259-1215 神奈川県平塚市寺田縄４９６−１ 神奈川県立花と緑のふれあいセンター「花菜ガーデン」');
+    expect(got.search).toBe('神奈川県平塚市寺田縄496-1 神奈川県立花と緑のふれあいセンター「花菜ガーデン」');
+    expect(got.name).toBe('花菜ガーデン');
+    expect(splitLinkQuery('東京都板橋区板橋2丁目').name).toBe('東京都板橋区板橋2丁目');
+    expect(splitLinkQuery('東京都千代田区丸の内1-9-1 東京駅')).toEqual({ search: '東京都千代田区丸の内1-9-1 東京駅', name: '東京駅' });
   });
 });
 
@@ -180,9 +183,25 @@ describe('placeFromLink（リンク・座標から場所を出す）', () => {
     expect(await placeFromLink('東京駅')).toBe(null);
   });
 
-  it('座標のないリンクは、中の名前・住所の文字を返す', async () => {
-    const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ query: '東京都板橋区板橋2丁目' }) }));
-    expect(await placeFromLink('https://maps.app.goo.gl/NoCoords', fetchImpl)).toEqual({ query: '東京都板橋区板橋2丁目' });
+  it('スマホの共有リンク（座標がなく「住所＋名前」だけ）は、その住所で場所を出す', async () => {
+    const fetchImpl = vi.fn(async (url) => {
+      const text = String(url);
+      if (text.startsWith('/api/nominatim')) {
+        return { ok: true, json: async () => ({ query: '〒259-1215 神奈川県平塚市寺田縄４９６−１ 神奈川県立花と緑のふれあいセンター「花菜ガーデン」' }) };
+      }
+      return { ok: true, json: async () => [{ geometry: { coordinates: [139.309372, 35.357536] }, properties: { title: '神奈川県平塚市寺田縄４９６番地' } }] };
+    });
+    const got = await placeFromLink('https://maps.app.goo.gl/4MrU4gV7xxxx', fetchImpl);
+    expect(got.place).toMatchObject({ name: '花菜ガーデン', latitude: 35.357536, longitude: 139.309372, address: '神奈川県平塚市寺田縄４９６番地' });
+    // 住所検索には、郵便番号を外して、数字とハイフンを半角にそろえた文字を渡す
+    expect(decodeURIComponent(String(fetchImpl.mock.calls[1][0]))).toContain('q=神奈川県平塚市寺田縄496-1');
+  });
+
+  it('住所でも見つからないリンクは、名前の文字を返す（名前で探し直す）', async () => {
+    const fetchImpl = vi.fn(async (url) => (String(url).startsWith('/api/nominatim')
+      ? { ok: true, json: async () => ({ query: 'どこかの 「なぞの店」' }) }
+      : { ok: true, json: async () => [] }));
+    expect(await placeFromLink('https://maps.app.goo.gl/NoCoords', fetchImpl)).toEqual({ query: 'なぞの店' });
   });
 });
 
