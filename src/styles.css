@@ -10918,3 +10918,49 @@ p.saikyo-annual-note.is-open {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* 名前・住所で探したときの候補（最大5件） */
+.direction-candidates {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.direction-candidates button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 48px;
+  padding: 9px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-cell);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.direction-candidates strong {
+  font-size: 0.9rem;
+}
+
+.direction-candidates small {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.direction-place-base {
+  justify-self: start;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}

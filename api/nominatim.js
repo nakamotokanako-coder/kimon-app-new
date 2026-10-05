@@ -1,42 +1,88 @@
+// GET /api/nominatim
+//   ?q=...&viewbox=...        地図に見えている範囲の中を探す（カフェなどの種類・名前）
+//   ?q=...&scope=jp           日本全国を名前で探す（住所の内訳つき・10件）
+//   ?resolve=<地図のリンク>     Googleマップの短いリンクをたどって、場所（緯度・経度）を返す
+// いずれも無料（OpenStreetMap の Nominatim。Google の API は使わない）。
+import { isMapLink, isShortMapLink, parseMapLink, parsePointFromHtml } from '../lib/mapLink.js';
+
+const USER_AGENT = 'kimon-app/1.0 (https://kimon-tonko.vercel.app/)';
+
+async function fetchWithTimeout(url, options = {}, ms = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// 短いリンクをたどる。たどってよいのは Google マップの短いリンクだけ。行き先も Google マップであることを確かめる。
+async function resolveMapLink(link, res) {
+  if (!isMapLink(link)) return res.status(400).json({ error: 'not_map_link' });
+  const direct = parseMapLink(link);
+  if (direct && 'latitude' in direct) return res.status(200).json(direct);
+  if (!isShortMapLink(link)) return res.status(200).json(direct || { error: 'no_location' });
+  try {
+    const response = await fetchWithTimeout(link, { redirect: 'follow', headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'ja' } });
+    const finalUrl = response.url || '';
+    if (!isMapLink(finalUrl)) return res.status(200).json({ error: 'no_location' });
+    const parsed = parseMapLink(finalUrl);
+    if (parsed && 'latitude' in parsed) return res.status(200).json(parsed);
+    // リンクの文字に座標がないときは、ページの中身から拾う
+    const point = parsePointFromHtml(await response.text());
+    if (point) return res.status(200).json({ ...point, name: parsed?.query || '' });
+    return res.status(200).json(parsed || { error: 'no_location' });
+  } catch {
+    return res.status(502).json({ error: 'resolve_failed' });
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).end();
   }
 
+  const resolve = String(req.query.resolve || '').trim();
+  if (resolve) {
+    res.setHeader('Cache-Control', 's-maxage=86400');
+    return resolveMapLink(resolve, res);
+  }
+
   const q = String(req.query.q || '').trim();
   const viewbox = String(req.query.viewbox || '').trim();
+  const nationwide = req.query.scope === 'jp';
   if (!q) return res.status(400).json({ error: 'missing q' });
 
   const url = new URL('https://nominatim.openstreetmap.org/search');
   url.searchParams.set('q', q);
   url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('limit', '40'); // Nominatim の上限
   url.searchParams.set('accept-language', 'ja');
-  url.searchParams.set('addressdetails', '0');
-  if (viewbox) {
-    url.searchParams.set('viewbox', viewbox);
-    url.searchParams.set('bounded', '1');
+  if (nationwide) {
+    url.searchParams.set('limit', '10');
+    url.searchParams.set('countrycodes', 'jp');
+    url.searchParams.set('addressdetails', '1');
+    if (req.query.layer === 'poi') url.searchParams.set('layer', 'poi');
+  } else {
+    url.searchParams.set('limit', '40'); // Nominatim の上限
+    url.searchParams.set('addressdetails', '0');
+    if (viewbox) {
+      url.searchParams.set('viewbox', viewbox);
+      url.searchParams.set('bounded', '1');
+    }
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'kimon-app/1.0 (https://kimon-tonko.vercel.app/)',
-      },
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
+    const response = await fetchWithTimeout(url, { headers: { 'User-Agent': USER_AGENT } });
     if (!response.ok) {
       return res.status(502).json({ error: 'nominatim upstream', status: response.status });
     }
     const json = await response.json();
-    res.setHeader('Cache-Control', 's-maxage=300');
+    // 同じ言葉の検索は、しばらく同じ答えを返す（無料の検索サーバーに何度も問い合わせない）
+    res.setHeader('Cache-Control', nationwide ? 's-maxage=3600' : 's-maxage=300');
     return res.status(200).json(json);
   } catch {
-    clearTimeout(timer);
     return res.status(502).json({ error: 'nominatim failed' });
   }
 }

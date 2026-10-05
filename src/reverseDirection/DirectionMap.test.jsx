@@ -662,3 +662,65 @@ describe('使い方ガイドの文章', () => {
     expect(text).toContain('50キロ以上はなれた場所へ行き、3時間以上');
   });
 });
+
+describe('DirectionMap 名前・住所・リンクで探す（日本全国）', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const station = { name: '京都', category: 'railway', type: 'station', importance: 0.56, lat: '34.9862', lon: '135.7601', osm_type: 'node', osm_id: 9, address: { state: '京都府', city: '京都市', city_district: '下京区' } };
+  const search = (text) => {
+    fireEvent.change(document.querySelector('.direction-map-search-row input'), { target: { value: text } });
+    fireEvent.submit(document.querySelector('.direction-map-search-row'));
+  };
+  const stubSearch = ({ inView = [], nationwide = [], gsi = [] }) => vi.stubGlobal('fetch', vi.fn(async (url) => {
+    const text = String(url);
+    if (text.startsWith('https://msearch.gsi.go.jp')) return { ok: true, json: async () => gsi };
+    if (text.includes('scope=jp')) return { ok: true, json: async () => nationwide };
+    return { ok: true, json: async () => inView };
+  }));
+
+  it('地図の範囲に無くても全国から探す。候補が1つなら、そのまま地図に出す', async () => {
+    stubSearch({ nationwide: [station] });
+    const onSetBasePoint = vi.fn();
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" onSetBasePoint={onSetBasePoint} />);
+    search('京都駅');
+    expect(await screen.findByText(/京都駅を表示しました/)).toBeTruthy();
+    expect(document.querySelector('.direction-candidates')).toBe(null);
+    // 行き先として出す。基準点にしたいときは、ボタンで切り替える
+    fireEvent.click(screen.getByRole('button', { name: /ここを基準点にする/ }));
+    expect(onSetBasePoint).toHaveBeenCalledWith([135.7601, 34.9862], '京都駅');
+  });
+
+  it('候補が複数あるときは、1つに決め打ちせず、名前と住所を並べて選んでもらう', async () => {
+    stubSearch({
+      nationwide: [
+        { name: '明治神宮', category: 'amenity', type: 'place_of_worship', importance: 0.49, lat: '35.6748', lon: '139.6996', osm_type: 'way', osm_id: 1, address: { state: '東京都', city: '渋谷区', suburb: '代々木神園町' } },
+        { name: '明治神宮', category: 'amenity', type: 'place_of_worship', importance: 0, lat: '35.9525', lon: '139.9922', osm_type: 'node', osm_id: 2, address: { state: '茨城県', city: '守谷市' } },
+      ],
+    });
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    search('明治神宮');
+    const list = await screen.findByRole('list', { name: '検索の候補' });
+    const items = within(list).getAllByRole('button');
+    expect(items.map((b) => b.textContent)).toEqual(['明治神宮神社・寺・東京都渋谷区代々木神園町', '明治神宮神社・寺・茨城県守谷市']);
+    fireEvent.click(items[0]);
+    expect(await screen.findByText(/明治神宮を表示しました/)).toBeTruthy();
+    expect(screen.queryByRole('list', { name: '検索の候補' })).toBe(null);
+  });
+
+  it('どこにも載っていないお店は、見つからないと伝えて、住所かリンクを案内する', async () => {
+    stubSearch({});
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    search('カナガーデン');
+    expect(await screen.findByText('カナガーデンは見つかりませんでした。')).toBeTruthy();
+    expect(screen.getByText(/「共有」のリンクをコピーし、この検索の欄に貼り付けてください/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Googleマップでこの辺りのカナガーデンを探す/ })).toBeTruthy();
+  });
+
+  it('Googleマップのリンクを貼ると、その場所をそのまま出す（外へ探しに行かない）', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    search('https://www.google.com/maps/place/%E3%82%AB%E3%83%8A%E3%82%AC%E3%83%BC%E3%83%87%E3%83%B3/@35.70,139.77,17z/data=!3d35.7012!4d139.7745');
+    expect(await screen.findByText(/カナガーデンを表示しました/)).toBeTruthy();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

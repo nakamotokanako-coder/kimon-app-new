@@ -825,6 +825,7 @@ export default function ReverseDirectionView({
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
           autoGuide={autoMapGuide}
+          onSetBasePoint={handleGlobalBasePointChange}
         />
       </div>
 
@@ -859,6 +860,7 @@ export default function ReverseDirectionView({
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
           autoGuide={autoMapGuide}
+          onSetBasePoint={handleGlobalBasePointChange}
           onOpenDetail={scrollToDirectionDetail}
         />
       </div>

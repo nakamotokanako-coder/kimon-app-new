@@ -23,7 +23,16 @@ const ADDRESS_COMPONENT_RE = /(丁目|番地|[0-9０-９]+番([0-9０-９]+号)?
 const ADDRESS_BLOCK_RE = /[0-9０-９]+[-－ー][0-9０-９]+/;
 const ADDRESS_LIKE_RE = /^[0-9０-９\s 　\-－ー]+$/;
 
+/** 郵便番号だけの入力なら '173-8501' の形にそろえて返す。そうでなければ '' */
+export function postalCodeOf(raw) {
+  const m = String(raw ?? '').replace(/〒/g, '').trim().match(/^(\d{3})[-－ー]?(\d{4})$/);
+  return m ? `${m[1]}-${m[2]}` : '';
+}
+
 export function sanitizeQuery(raw) {
+  // 郵便番号だけのときは、郵便番号で探す（住所の前に付いた郵便番号は、今までどおり取り除く）
+  const postal = postalCodeOf(raw);
+  if (postal) return postal;
   return String(raw ?? '')
     .replace(/〒/g, '')
     .replace(/^\s*\d{3}[-－ー]?\d{4}\s*/, '')
@@ -197,6 +206,8 @@ export function normalizeNominatimResults(results) {
       const longitude = Number(item.lon);
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
       const displayName = item.name || String(item.display_name || '').split(',')[0].trim();
+      // 通路・出入口・バス停・道路は目的地にならないので出さない（「東京駅」で改札外の通路ばかり出るのを防ぐ）
+      if (item.category === 'highway' || item.type === 'subway_entrance') return null;
       return {
         id: `nominatim-${item.osm_type || item.type || 'poi'}-${item.osm_id || `${latitude},${longitude}`}`,
         name: displayName || '名称なし',
