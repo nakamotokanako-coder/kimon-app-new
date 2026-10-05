@@ -156,7 +156,6 @@ export default function KakkyokuSearchView({
     <div className="kakkyoku-search-view">
       <div className="kakkyoku-hero">
         <div>
-          <span className="reverse-section-kicker lat">special pattern</span>
           <p>時盤・日盤</p>
           <h3>特別格局の出現検索</h3>
           <span>狙った大吉格が、いつ・どの方位に出るかを探す</span>
@@ -206,7 +205,6 @@ export default function KakkyokuSearchView({
       <div className="kakkyoku-picker">
         <div className="kakkyoku-picker-head">
           <div>
-            <span className="reverse-section-kicker lat">patterns</span>
             <h3>格局</h3>
             <span>{selectedCount}件選択中</span>
           </div>
@@ -248,7 +246,6 @@ export default function KakkyokuSearchView({
         <>
           <div className="kakkyoku-result-head">
             <div>
-              <span className="reverse-section-kicker lat">results</span>
               <h3>検索結果</h3>
               <span>{result.rows.length}件</span>
             </div>

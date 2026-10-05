@@ -124,7 +124,6 @@ export default function FusionCard({
       <div className="reverse-card fusion" onClick={() => setIsL3Open(true)}>
         <div className="f-top">
           <div className="dir-badge">
-            <span className="en">{best.short}</span>
             <span className="jp">{best.label}</span>
           </div>
           <div className="f-score metal lat">{scoreText(best.score)}</div>

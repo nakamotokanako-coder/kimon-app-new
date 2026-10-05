@@ -23,7 +23,6 @@ export default function FavoritesStrip({ chips, focusedKey, onFocusKey, onShowAl
   return (
     <>
       <div className="fav-head">
-        <span className="fav-head-en lat">Favorites</span>
         <span className="fav-head-cnt">お気に入り（{list.length}）</span>
         <button type="button" className="fav-head-all" onClick={onShowAll}>
           すべて見る ›
