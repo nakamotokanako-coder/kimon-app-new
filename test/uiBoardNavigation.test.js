@@ -47,9 +47,9 @@ describe('吉方位 UI 整理', () => {
       杜門: 'health',
       景門: 'study',
     });
-    expect(compassSrc).toContain('reverse-gate-icon');
-    expect(compassSrc).toContain('viewBox="0 0 24 24"');
-    expect(compassSrc).toContain('--wish-delay');
+    // しるしは public/direction-ui/ の線画を使う（吉の方位にだけ出す）
+    expect(compassSrc).toContain("from './directionIcons.generated.js'");
+    expect(compassSrc).toContain('themeOf(item)');
   });
 });
 

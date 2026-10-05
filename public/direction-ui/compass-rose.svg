@@ -1,0 +1,8 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="3"/>
+    <path d="M32 8v18M32 38v18M8 32h18M38 32h18"/>
+    <path d="M15 15l12 12M37 37l12 12M49 15L37 27M27 37L15 49"/>
+    <path d="M32 11l2.7 17L32 32l-2.7-4zM53 32l-17 2.7L32 32l4-2.7zM32 53l-2.7-17L32 32l2.7 4zM11 32l17-2.7L32 32l-4 2.7z"/>
+  </g>
+</svg>

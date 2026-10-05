@@ -11423,3 +11423,151 @@ p.saikyo-annual-note.is-open {
     transition: none;
   }
 }
+
+/* === 円盤（src/reverseDirection/CompassWheel.jsx）: 色を落ち着かせ、線画のしるしを使う === */
+.reverse-compass-frame .wheel {
+  display: block;
+  overflow: visible;
+}
+
+.wheel-rim {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 45%, transparent);
+  stroke-width: 1;
+}
+
+/* 扇の色は、地図と同じ吉凶の色を少し落ち着かせたもの */
+.wheel-sector .wheel-fill {
+  stroke: var(--bg-cell);
+  stroke-width: 2.5;
+  filter: none;
+  transition: opacity 0.2s ease;
+}
+
+.wheel-sector.tone-great .wheel-fill { fill: #2f6aa5; }
+.wheel-sector.tone-good .wheel-fill { fill: #5b93cb; }
+.wheel-sector.tone-weak .wheel-fill { fill: #a9c8e6; }
+.wheel-sector.tone-neutral .wheel-fill { fill: #c9c4b6; }
+.wheel-sector.tone-bad .wheel-fill { fill: #dba79f; }
+.wheel-sector.tone-bad-strong .wheel-fill { fill: #c07f76; }
+
+.wheel-sector .wheel-score {
+  fill: #fff;
+  font-family: var(--font-latin, inherit);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 明るい色の扇では、文字としるしを墨色にする */
+.wheel-sector.tone-weak .wheel-score,
+.wheel-sector.tone-neutral .wheel-score {
+  fill: #3a352f;
+}
+
+.wheel-theme {
+  color: #fff8e6;
+  pointer-events: none;
+}
+
+.wheel-sector.tone-weak .wheel-theme {
+  color: #3a352f;
+}
+
+.wheel-sector .wheel-label {
+  fill: var(--text-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.wheel-sector[role="button"] {
+  cursor: pointer;
+  outline: none;
+}
+
+.wheel-sector[role="button"]:focus-visible .wheel-fill {
+  stroke: var(--accent);
+}
+
+/* 方位を選んだあとは、ほかの方位を少し薄く（消さない） */
+.wheel-sector.is-dim .wheel-fill {
+  opacity: 0.5;
+}
+
+.wheel-sector.is-selected .wheel-label {
+  fill: var(--accent);
+}
+
+.wheel-selected-outline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* 一番良い方位の印（扇のふちに小さく） */
+.wheel-best circle {
+  fill: var(--bg-cell);
+  stroke: var(--accent);
+  stroke-width: 1;
+}
+
+.wheel-best,
+.wheel-rose,
+.wheel-legend-mark svg {
+  color: var(--accent);
+}
+
+.wheel-best {
+  pointer-events: none;
+}
+
+.wheel-center {
+  fill: var(--bg-cell);
+  stroke: color-mix(in srgb, var(--accent) 60%, transparent);
+  stroke-width: 1;
+}
+
+.wheel-rose {
+  pointer-events: none;
+}
+
+.wheel-legend,
+.wheel-themes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+}
+
+.wheel-themes {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.wheel-themes small {
+  flex-basis: 100%;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.wheel-legend-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wheel-hint {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+/* 凡例の色も、円盤の色に合わせる */
+.wheel-legend .legend-swatch.tone-great { background: #2f6aa5; }
+.wheel-legend .legend-swatch.tone-weak { background: #a9c8e6; }
+.wheel-legend .legend-swatch.tone-neutral { background: #c9c4b6; }
+.wheel-legend .legend-swatch.tone-bad { background: #c07f76; }
