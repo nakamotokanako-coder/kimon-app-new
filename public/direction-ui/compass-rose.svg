@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#C79A38" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(0 32 32)"><path d="M32 7 L33.7 26.6 L32 28.2 L30.3 26.6 Z"/></g><g transform="rotate(90 32 32)"><path d="M32 7 L33.7 26.6 L32 28.2 L30.3 26.6 Z"/></g><g transform="rotate(180 32 32)"><path d="M32 7 L33.7 26.6 L32 28.2 L30.3 26.6 Z"/></g><g transform="rotate(270 32 32)"><path d="M32 7 L33.7 26.6 L32 28.2 L30.3 26.6 Z"/></g><g transform="rotate(45 32 32)"><g transform="rotate(0 32 32)"><path d="M32 18 L33.2 26.8 L32 27.9 L30.8 26.8 Z"/></g><g transform="rotate(90 32 32)"><path d="M32 18 L33.2 26.8 L32 27.9 L30.8 26.8 Z"/></g><g transform="rotate(180 32 32)"><path d="M32 18 L33.2 26.8 L32 27.9 L30.8 26.8 Z"/></g><g transform="rotate(270 32 32)"><path d="M32 18 L33.2 26.8 L32 27.9 L30.8 26.8 Z"/></g></g><circle cx="32" cy="32" r="2"/></svg>
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="3"/>
+    <path d="M32 8v18M32 38v18M8 32h18M38 32h18"/>
+    <path d="M15 15l12 12M37 37l12 12M49 15L37 27M27 37L15 49"/>
+    <path d="M32 11l2.7 17L32 32l-2.7-4zM53 32l-17 2.7L32 32l4-2.7zM32 53l-2.7-17L32 32l2.7 4zM11 32l17-2.7L32 32l-4 2.7z"/>
+  </g>
+</svg>
