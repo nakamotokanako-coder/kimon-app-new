@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Ja from '../utils/Ja.jsx';
 import { ic } from '../utils/icons.js';
-import CompassWheel from './CompassWheel.jsx';
 import DirectionMap from './DirectionMap.jsx';
 import FavoritesStrip from './FavoritesStrip.jsx';
 import FusionCard from './FusionCard.jsx';
@@ -1203,14 +1202,8 @@ export default function ReverseDirectionView({
                 showFavoritesSection: dayShowFavoritesList,
               })}
 
-              <div className="reverse-card reverse-compass-card">
-                <CompassWheel
-                  rankings={dayReverse.rankings}
-                  bestPalace={dayTopItem?.palace}
-                  selectedPalace={dayPickedPalace}
-                  onSelectPalace={setDayPickedPalace}
-                />
-              </div>
+              {/* 円盤（CompassWheel）は、ここには出さない。すぐ上の地図に、同じ8方位の色・点数・選ぶ操作がそろっているため。
+                  部品（CompassWheel.jsx）と線画（public/direction-ui/）は残してある。 */}
 
               <div className="reverse-card reverse-now-board-card">
                 <button

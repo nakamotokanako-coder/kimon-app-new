@@ -126,3 +126,11 @@ describe('時盤の日付を選ぶ（明日の何時はどうか、を見る）'
     expect(shiftDate('2026-03-01', -1)).toBe('2026-02-28');
   });
 });
+
+describe('日盤の画面に、円盤は出さない（地図と役割が重なるため）', () => {
+  it('地図はあり、円盤はない', () => {
+    render(<ReverseDirectionView isActive variant="map" mode="day" onModeChange={() => {}} onOpenBoard={() => {}} />);
+    expect(document.querySelector('.direction-map')).toBeTruthy();
+    expect(document.querySelector('.reverse-compass-frame')).toBe(null);
+  });
+});
