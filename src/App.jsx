@@ -20,6 +20,7 @@ import { LEGAL_DOCS, OPEN_LEGAL_EVENT } from './legal/documents.js';
 import HomeView from './components/HomeView.jsx';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
 import SearchHub from './components/SearchHub.jsx';
+import PlaceSettings from './components/PlaceSettings.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
@@ -71,6 +72,18 @@ const NOTIFICATIONS = [
   },
 ];
 
+export const START_TABS = [
+  ['home', 'ホーム'],
+  ['board', '盤'],
+  ['map', '地図'],
+];
+
+/** 最初に開く画面（設定で選んだもの。知らない値はホーム） */
+export function readStartTab() {
+  const saved = readStoredSetting('start-tab', 'home');
+  return START_TABS.some(([value]) => value === saved) ? saved : 'home';
+}
+
 function readStoredSetting(key, fallback) {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -121,7 +134,7 @@ function applyDisplaySettings({ iconStyle, textSize }) {
 }
 
 applyDisplaySettings({
-  iconStyle: readStoredSetting('icon-style', 'emoji'),
+  iconStyle: 'emoji',
   textSize: readStoredSetting('text-size', 'medium'),
 });
 
@@ -158,15 +171,18 @@ export default function App() {
   // 年額プランの「1年」は契約日から。吉日検索で探せるのは、今の契約期間の終わりまで。
   const longRangeLimit = longRangeLimitDate(auth);
   // 画面: home（ホーム）/ board（盤）/ map（地図: 時盤・日盤）/ search（探す）/ settings（その他）/ notifications
-  const [activeTab, setActiveTab] = useState('home');
+  // 最初に開く画面は、設定で選べる（ホーム／盤／地図）。
+  const [startTab, setStartTab] = useState(() => readStartTab());
+  const [activeTab, setActiveTab] = useState(startTab);
   const [previousTab, setPreviousTab] = useState('home');
   const [mapMode, setMapMode] = useState('time');     // 地図タブ: 'time'（時盤・近場）| 'day'（日盤・遠出）
   const [searchMode, setSearchMode] = useState(null); // 探すタブ: null（入口）| 'ranking' | 'kakkyoku' | 'range' | 'timeRanking'
-  const [hasVisitedDirection, setHasVisitedDirection] = useState(false);
+  const [hasVisitedDirection, setHasVisitedDirection] = useState(startTab === 'map');
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
   const [boardScrollRequest, setBoardScrollRequest] = useState(0);
-  const [iconStyle, setIconStyle] = useState(() => readStoredSetting('icon-style', 'emoji'));
+  // アイコンの切り替えは設定から外した（変わる場所が少なく、分かりにくかったため）。絵文字に固定する。
+  const iconStyle = 'emoji';
   const [textSize, setTextSize] = useState(() => readStoredSetting('text-size', 'medium'));
   const [omamoriReminder, setOmamoriReminder] = useState(() => readStoredBoolSetting('omamori-reminder'));
   const [favoriteBestNotify, setFavoriteBestNotify] = useState(() => readStoredBoolSetting('favorite-best-notify'));
@@ -508,35 +524,13 @@ export default function App() {
       </section>
 
       <section className="settings-group">
-        {settingsGroupHead('表示', '文字やアイコンなどの表示を設定します。', settingsIcon('🖥️', (
+        {settingsGroupHead('表示', '文字の大きさなどの表示を設定します。', settingsIcon('🖥️', (
           <>
             <rect x="3.5" y="4.5" width="17" height="11.5" rx="1.8" />
             <path d="M9 20h6M12 16v4" />
           </>
         )))}
         <div className="settings-group-body">
-          <div className="settings-row">
-            <div>
-              <strong>アイコン</strong>
-              <small>盤やメニューで使用するアイコンを切り替えます。</small>
-            </div>
-            <div className="settings-segment" role="group" aria-label="アイコン">
-              {[
-                ['emoji', '絵文字'],
-                ['line', '線アイコン'],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={iconStyle === value ? 'is-active' : ''}
-                  aria-pressed={iconStyle === value}
-                  onClick={() => updateSetting('icon-style', setIconStyle)(value)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="settings-row">
             <div>
               <strong>文字サイズ</strong>
@@ -562,6 +556,25 @@ export default function App() {
           </div>
           <div className="settings-row">
             <div>
+              <strong>最初に開く画面</strong>
+              <small>アプリを開いたときに、最初に出る画面を選びます。</small>
+            </div>
+            <div className="settings-segment" role="group" aria-label="最初に開く画面">
+              {START_TABS.map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={startTab === value ? 'is-active' : ''}
+                  aria-pressed={startTab === value}
+                  onClick={() => updateSetting('start-tab', setStartTab)(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-row">
+            <div>
               <strong>凶方位の表示</strong>
               <small>検索結果に凶方位・時間帯も表示します。</small>
             </div>
@@ -575,6 +588,18 @@ export default function App() {
               <span />
             </button>
           </div>
+        </div>
+      </section>
+
+      <section className="settings-group">
+        {settingsGroupHead('場所', '基準点とお気に入りの場所を確かめます。', settingsIcon('📍', (
+          <>
+            <path d="M12 21s-6.5-6.2-6.5-11A6.5 6.5 0 0 1 12 3.5 6.5 6.5 0 0 1 18.5 10c0 4.8-6.5 11-6.5 11z" />
+            <circle cx="12" cy="10" r="2.3" />
+          </>
+        )))}
+        <div className="settings-group-body">
+          <PlaceSettings onChangeBasePoint={() => goMap()} />
         </div>
       </section>
 
@@ -644,6 +669,10 @@ export default function App() {
             <span>バージョン</span>
             <strong className="lat">{APP_VERSION}</strong>
           </div>
+          <button type="button" className="settings-link-row" onClick={() => setGuideOpen(true)}>
+            <span>使い方ガイド</span>
+            <b aria-hidden="true">›</b>
+          </button>
           <button type="button" className="settings-link-row" onClick={() => setIntroOpen(true)}>
             <span>このアプリの紹介</span>
             <b aria-hidden="true">›</b>
