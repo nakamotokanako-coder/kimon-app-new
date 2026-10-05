@@ -12,6 +12,8 @@ export default function BasePointBar({
   center,
   baseName = '現在地',
   onCenterChange,
+  // 地図タブ用: 補正の分数と経度は出さない（詳しい人向けの数字。押したときの説明に入れる）
+  compact = false,
 }) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const longitude = Number(center?.[0]);
@@ -27,12 +29,16 @@ export default function BasePointBar({
 
   return (
     <>
-      <div className="base-bar" aria-label="基準点">
+      <div
+        className={`base-bar${compact ? ' is-compact' : ''}`}
+        aria-label="基準点"
+        title={compact ? `自然時補正 ${formatCorrection(correction)}／経度 ${longitudeLabel}` : undefined}
+      >
         <div className="base-meta">
           <span className="base-pin" aria-hidden="true">{ic('📍')}</span>
           <strong>{baseName || '現在地'}</strong>
-          <span className="base-mono">{formatCorrection(correction)}</span>
-          <span className="base-mono">経度{longitudeLabel}</span>
+          {!compact && <span className="base-mono">{formatCorrection(correction)}</span>}
+          {!compact && <span className="base-mono">経度{longitudeLabel}</span>}
         </div>
         <button type="button" className="base-change" onClick={() => setIsSheetOpen(true)}>
           変更▾

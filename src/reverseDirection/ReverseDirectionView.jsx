@@ -928,6 +928,15 @@ export default function ReverseDirectionView({
               <h2 className="maru">吉方位</h2>
             </>
           )}
+          {/* 地図タブ: 題は読み上げ用に残し、見た目は基準点の帯だけにする（地図を上に寄せるため） */}
+          {variant === 'map' && (
+            <BasePointBar
+              compact
+              center={[location.longitude, location.latitude]}
+              baseName={location.name}
+              onCenterChange={handleGlobalBasePointChange}
+            />
+          )}
           {modeTitle && variant !== 'map' && (
             <p className="reverse-tech">
               {modeTitle.tech} / {location.name}
@@ -951,7 +960,7 @@ export default function ReverseDirectionView({
           )}
         </div>
 <div className="reverse-header-actions">
-          {mode !== 'range' && (
+          {mode !== 'range' && variant !== 'map' && (
             <div className="reverse-time-chip lat">
               {mode === 'timeRanking'
                 ? `現在 ${formatCurrentClock(now)}`
@@ -964,11 +973,13 @@ export default function ReverseDirectionView({
         </div>
       </div>
 
-      <BasePointBar
-        center={[location.longitude, location.latitude]}
-        baseName={location.name}
-        onCenterChange={handleGlobalBasePointChange}
-      />
+      {variant !== 'map' && (
+        <BasePointBar
+          center={[location.longitude, location.latitude]}
+          baseName={location.name}
+          onCenterChange={handleGlobalBasePointChange}
+        />
+      )}
 
       {variant === 'map' && (
         <div className="reverse-mode-tabs reverse-mode-tabs--two" aria-label="時盤と日盤の切り替え">
@@ -1080,12 +1091,14 @@ export default function ReverseDirectionView({
             )}
 
             {!isPickedTime && (
-            <div className="reverse-current-window is-compact">
-              <span>現在の時間帯</span>
+            <div
+              className="reverse-current-window is-compact"
+              title={`自然時補正 ${formatCorrection(correction)}（${currentTimeWindow.naturalLabel}）`}
+            >
+              <span>今の時間帯</span>
               <b className="lat">{currentTimeWindow.clockRange}</b>
               <small>
-                （自然時補正 <b className="lat">{currentTimeWindow.naturalLabel}</b>）・あと
-                <b className="lat">{currentTimeWindow.remainingMinutes}</b>分
+                あと<b className="lat">{currentTimeWindow.remainingMinutes}</b>分
               </small>
             </div>
             )}
