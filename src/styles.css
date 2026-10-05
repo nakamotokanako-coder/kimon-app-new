@@ -12215,3 +12215,35 @@ p.saikyo-annual-note.is-open {
   color: var(--text-accent);
   font-weight: 700;
 }
+
+/* 地図タブの上の部分: 題は隠し、基準点の帯とベルを1行に（地図を上に寄せる） */
+.reverse-view .reverse-header.reverse-header--map {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.reverse-header--map > div:first-child {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.reverse-header--map h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.reverse-header--map .base-bar {
+  margin: 0;
+}
+
+.base-bar.is-compact .base-meta strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
