@@ -10773,3 +10773,148 @@ p.saikyo-annual-note.is-open {
 .direction-poi-pin.is-numbered span {
   font-size: 10px;
 }
+
+/* 地図の使い方（src/reverseDirection/MapGuide.jsx）と、検索結果の ☆ */
+.map-guide-list,
+.map-guide-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-guide-steps {
+  padding-left: 1.4em;
+  list-style: decimal;
+}
+
+.map-guide-list li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.map-guide-list .legend-swatch {
+  justify-self: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.map-guide-pin {
+  display: grid;
+  place-items: center;
+  height: 34px;
+}
+
+.map-guide b {
+  color: var(--text-primary);
+}
+
+.direction-place-main.is-numbered {
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+}
+
+.direction-place-star {
+  min-width: 44px;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+}
+
+.direction-place-star.is-on {
+  color: var(--accent);
+}
+
+.direction-place-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.direction-place-row.is-editable:has(.direction-place-star) {
+  grid-template-columns: minmax(0, 1fr) 44px;
+}
+
+/* 検索の欄の下: 「説明書を見る」（左）と「吉方位のみ表示」（右） */
+.direction-map-guide-link {
+  margin-right: auto;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.direction-fullscreen-button {
+  justify-self: start;
+}
+
+.map-guide-again {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-elevated) 50%, transparent);
+  font-size: 0.8rem !important;
+}
+
+/* 使い方ガイド: 時盤・日盤のカードと、ボタンの説明 */
+.map-guide-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.map-guide-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  border-radius: 14px;
+  background: var(--bg-cell);
+}
+
+.map-guide-card > span {
+  color: var(--text-accent);
+  font-family: var(--font-display);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.map-guide-card > strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.map-guide-items {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.map-guide-items dt {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.map-guide-items dd {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+.map-guide .legal-section h3 {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+}
+
+@media (min-width: 600px) {
+  .map-guide-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
