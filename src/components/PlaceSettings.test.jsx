@@ -6,6 +6,7 @@ import PlaceSettings from './PlaceSettings.jsx';
 import { MAP_SEARCH_STORAGE_KEY } from '../reverseDirection/mapSearch.js';
 import { BASE_POINT_STORAGE_KEY, FAVORITES_CHANGED_EVENT } from '../sync/userDataSync.js';
 import { readSavedDistance, DISTANCE_STORAGE_PREFIX } from '../reverseDirection/DirectionMap.jsx';
+import { NOTIFICATIONS } from '../App.jsx';
 
 const FAVORITES = [
   { name: '東京タワー', latitude: 35.6586, longitude: 139.7454, kind: 'spot' },
@@ -68,5 +69,16 @@ describe('地図: 選んだ距離を覚える', () => {
     window.localStorage.setItem(`${DISTANCE_STORAGE_PREFIX}nichiban`, '7');
     expect(readSavedDistance('jiban')).toBe(5);
     expect(readSavedDistance('nichiban')).toBe(null);
+  });
+});
+
+describe('運営からのお知らせ', () => {
+  it('新しい順に並び、番号（id）は重ならない。効果をうたう言葉・固い言葉は使わない', () => {
+    const dates = NOTIFICATIONS.map((n) => n.date);
+    expect([...dates].sort().reverse()).toEqual(dates);
+    expect(new Set(NOTIFICATIONS.map((n) => n.id)).size).toBe(NOTIFICATIONS.length);
+    const text = NOTIFICATIONS.map((n) => n.title + n.body).join('');
+    expect(text).not.toMatch(/準備中|配線|有効化|開運|必ず|効果/u);
+    for (const n of NOTIFICATIONS) expect(n.title.endsWith('。')).toBe(false);
   });
 });

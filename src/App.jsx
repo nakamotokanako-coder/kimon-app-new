@@ -45,30 +45,39 @@ const LEGACY_THEME_MAP = {
 const SETTINGS_STORAGE_PREFIX = 'kimon-setting-';
 const APP_VERSION = `v${packageJson?.version || '0.0.0'}`;
 const NOTIFICATION_READ_KEY = 'kimon-notification-read-ids';
-const NOTIFICATIONS = [
+// 運営からのお知らせ（新しい順）。足すときは、ここに書いて出し直す。
+export const NOTIFICATIONS = [
   {
-    id: 'ops-2026-06-05',
+    id: 'ops-2026-10-05-settings',
     type: 'ops',
     sender: '運営',
-    title: 'テーマ表示を調整しました',
-    body: '各テーマのアクセントカラーと誌面トーンを整えました。表示に気づいた点があればフィードバックから送れます。',
-    date: '2026/06/05',
+    title: '「その他」に「場所」ができました',
+    body: '今の基準点を確かめたり、お気に入りの場所を一覧で見て消したりできます。最初に開く画面も選べるようになりました。',
+    date: '2026/10/05',
   },
   {
-    id: 'teacher-2026-06-04',
+    id: 'ops-2026-10-05-home',
     type: 'ops',
     sender: '運営',
-    title: '吉方位を見るときの目安',
-    body: '短い外出は時盤、遠出や予定づくりは日盤を中心に見ると整理しやすくなります。',
-    date: '2026/06/04',
+    title: 'ホームと「探す」が新しくなりました',
+    body: 'ホームは「今から」「次の休み」「この方位はいつ」の3つから選べます。条件を決めて探すときは「探す」を開いてください。',
+    date: '2026/10/05',
   },
   {
-    id: 'history-2026-06-03',
-    type: 'history',
-    sender: '通知履歴',
-    title: 'お気に入り通知の準備中',
-    body: 'お気に入り地点が最高方位になったときの通知は、今後の配線で有効化します。',
-    date: '2026/06/03',
+    id: 'ops-2026-10-map',
+    type: 'ops',
+    sender: '運営',
+    title: '地図で、場所を探しやすくなりました',
+    body: '名前や住所、郵便番号で全国の場所を探せます。見つからないときは、Googleマップの共有リンクを貼っても探せます。',
+    date: '2026/10/01',
+  },
+  {
+    id: 'tips-jiban-nichiban',
+    type: 'ops',
+    sender: '使い方',
+    title: '近場は時盤、遠出は日盤が目安です',
+    body: '散歩や買い物などの短い外出は時盤、旅行や予定づくりは日盤で見ると選びやすくなります。',
+    date: '2026/10/01',
   },
 ];
 
