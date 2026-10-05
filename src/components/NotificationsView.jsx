@@ -8,7 +8,7 @@ export default function NotificationsView({ items, readIds, onRead, onBack }) {
           <div>
             <span className="notifications-kicker lat">notifications</span>
             <h2 className="maru">お知らせ</h2>
-            <p>運営からの更新、使い方のヒント、通知履歴をまとめます。</p>
+            <p>新しくなったところや、使い方のヒントをお知らせします。</p>
           </div>
           <button type="button" className="notifications-back" onClick={onBack}>
             戻る
