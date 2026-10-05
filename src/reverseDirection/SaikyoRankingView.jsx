@@ -330,7 +330,7 @@ export default function SaikyoRankingView({
           <p className="saikyo-summary-sub lat">{slash(result.range.startDate)} 〜 {slash(result.range.endDate)}（{result.range.days}日間）</p>
         </div>
         <div className="saikyo-summary-count">
-          <b className="lat">{candidateCount}</b><span>件から検索</span>
+          <b className="lat">{candidateCount}</b><span>通りから探します</span>
           <small>（{result.range.days}日 × {palace ? 1 : PALACE_DIRECTIONS.length}方位）</small>
         </div>
       </div>
@@ -410,7 +410,7 @@ export default function SaikyoRankingView({
       )}
 
       <details className="saikyo-rule">
-        <summary>同点ルール <span>⌄</span></summary>
+        <summary>同じ点数のときの並べ方 <span>⌄</span></summary>
         <ol>
           <li><b>合計スコア</b>が高い順</li>
           <li><b>凶要素なし</b>を優先</li>

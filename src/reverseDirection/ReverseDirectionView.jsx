@@ -41,7 +41,7 @@ import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
 export const MODE_TITLES = {
   time: { title: '今から吉方位へ', lead: '今いる場所から、今の時間の吉方位へ。散歩・カフェ・買い物など、日常の小さな移動に。', tech: '時盤を使用' },
   day: { title: '次の休み、どこへ行く？', lead: '日付を選ぶと、その日の8方位を比較。一番良い方位から旅先を探せます。', tech: '日盤を使用' },
-  ranking: { title: '吉日・吉方位を探す', lead: 'いつ、どの方位へ行くのがいい？', tech: '日盤ランキング｜遠出 50km〜' },
+  ranking: { title: 'この方位、いつ行く？', lead: '行きたい方位を選ぶと、良い日がわかります。全方位から探すこともできます。', tech: '日盤ランキング｜遠出 50km〜' },
   timeRanking: { title: '今日の時間帯から探す', lead: '今日のどの時間帯に、どの方位が良いかを一覧で見られます。', tech: '時盤ランキング' },
   kakkyoku: { title: 'この条件が出るのはいつ？', lead: '特定の格局が成立する日時を検索します。', tech: '格局検索' },
   range: { title: '吉を3回つなぐ', lead: '同じ日に、吉方位が3回続くルートを探します。', tech: '奇門三盤ルート' },
@@ -1176,13 +1176,11 @@ export default function ReverseDirectionView({
           <div className="reverse-card reverse-day-card">
             <div className="reverse-card-title">
               <div>
-                <span className="reverse-section-kicker lat">date</span>
                 <h3 className="maru">行く日</h3>
               </div>
-              <span>日盤 遠出</span>
             </div>
             <label className="reverse-date-row">
-              <span>行く日</span>
+              <span>日付</span>
               <input
                 type="date"
                 value={dayDate}
@@ -1284,7 +1282,7 @@ export default function ReverseDirectionView({
               </div>
 
               <div className="reverse-card reverse-aux-card">
-                <p><strong>補助</strong>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。</p>
+                <p><strong>補助</strong>：出発するときは、まず時盤の吉方位へ5〜10分進んでから向かいます。</p>
               </div>
             </>
           )}

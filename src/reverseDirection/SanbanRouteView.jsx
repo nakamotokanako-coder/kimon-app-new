@@ -117,7 +117,7 @@ export default function SanbanRouteView({
       </div>
 
       <label className="sanban-threshold">
-        <span>足切り点数 <strong>現在: {threshold}点</strong></span>
+        <span>何点以上でつなぐか <strong>今は{threshold}点</strong></span>
         <input
           type="range"
           min="60"
@@ -151,7 +151,7 @@ export default function SanbanRouteView({
           ) : (
             <div className="sanban-empty">
               <strong>条件に合う日が見つかりませんでした</strong>
-              <p>・足切り点数を下げてみる<br />・期間を長くしてみる</p>
+              <p>・点数を下げてみる<br />・期間を長くしてみる</p>
               <button type="button" onClick={search}>もう一度検索</button>
             </div>
           )}

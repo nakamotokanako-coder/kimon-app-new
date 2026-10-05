@@ -137,7 +137,7 @@ describe('DirectionMap 検索ヒント文・キャプション（PR-2.5）', () 
     expect(document.body.textContent).not.toContain('外側は10kmまでフェード表示');
   });
 
-  it('nichiban（日盤遠出）ではヘッダー注記・キャプションとも維持する', () => {
+  it('nichiban（日盤遠出）では、キャプションを出す。作る側のメモのような注記は出さない', () => {
     render(
       <DirectionMap
         location={LOCATION}
@@ -146,8 +146,9 @@ describe('DirectionMap 検索ヒント文・キャプション（PR-2.5）', () 
         profileKey="nichiban"
       />,
     );
-    expect(document.querySelector('.direction-map-note')).toBeTruthy();
+    expect(document.querySelector('.direction-map-note')).toBe(null);
     expect(document.querySelector('.direction-map-caption')).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/有効ライン|反転フェード|行軍|確定ライン/u);
   });
 
   it('凡例（大吉/小吉/中立/凶）はjibanでも表示され続ける', () => {

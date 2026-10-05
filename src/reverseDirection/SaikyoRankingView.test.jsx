@@ -38,11 +38,11 @@ describe('吉日・吉方位を探す（並び・点数は今までのまま）'
     const summary = () => container.querySelector('.saikyo-summary').textContent;
     expect(summary()).toContain('全方位 × 1ヶ月');
     expect(summary()).toContain('2026/10/04 〜 2026/11/03（31日間）');
-    expect(summary()).toContain('248件から検索');
+    expect(summary()).toContain('248通りから探します');
 
     fireEvent.click(within(screen.getByRole('group', { name: '方位を選ぶ' })).getByRole('button', { name: '南東' }));
     expect(summary()).toContain('南東 × 1ヶ月');
-    expect(summary()).toContain('31件から検索');
+    expect(summary()).toContain('31通りから探します');
     const expected = scanStrongestRanking({ startDate: START, days: 31, goodOnly: true, directionPalace: 'son' }).rows;
     expect(container.querySelector('.saikyo-best').textContent).toContain(scoreText(expected[0].score));
   });

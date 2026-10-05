@@ -1244,12 +1244,6 @@ export default function DirectionMap({
             )}
           </div>
         )}
-        {profileKey !== 'jiban' && (
-          <div className="direction-map-note">
-            <span>{profile.note[0]}</span>
-            <span>{profile.note[1]}</span>
-          </div>
-        )}
         <button
           type="button"
           className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
