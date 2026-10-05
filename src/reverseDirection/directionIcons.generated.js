@@ -1,0 +1,19 @@
+// scripts/build_direction_ui_assets.py が public/direction-ui/*.svg から作る。手で直さない。
+// 各しるしの SVG の中身（64×64 の枠・線の色は currentColor）。
+export const DIRECTION_ICONS = {
+  "compass-rose": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"3\"/><path d=\"M32 8v18M32 38v18M8 32h18M38 32h18\"/><path d=\"M15 15l12 12M37 37l12 12M49 15L37 27M27 37L15 49\"/><path d=\"M32 11l2.7 17L32 32l-2.7-4zM53 32l-17 2.7L32 32l4-2.7zM32 53l-2.7-17L32 32l2.7 4zM11 32l17-2.7L32 32l-4 2.7z\"/></g>",
+  "best-direction": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M32 11l3.2 17.8L50 32l-14.8 3.2L32 53l-3.2-17.8L14 32l14.8-3.2z\"/><circle cx=\"32\" cy=\"32\" r=\"2.4\"/></g>",
+  "theme-general": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M32 12l3 17 17 3-17 3-3 17-3-17-17-3 17-3z\"/><circle cx=\"32\" cy=\"32\" r=\"2\"/></g>",
+  "theme-love": "<path d=\"M32 50C28 45 16 38 16 27c0-5 3.2-8 7.2-8 4 0 6.8 2.8 8.8 6 2-3.2 4.8-6 8.8-6 4 0 7.2 3 7.2 8 0 11-12 18-16 23z\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+  "theme-work": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"12\" y=\"21\" width=\"40\" height=\"29\" rx=\"3\"/><path d=\"M24 21v-4h16v4M12 31h40M27 31v4h10v-4\"/></g>",
+  "theme-money": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"19\"/><rect x=\"26\" y=\"26\" width=\"12\" height=\"12\" rx=\"1\"/></g>",
+  "theme-health": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M17 45C17 27 29 16 49 15c-1 20-12 32-32 30z\"/><path d=\"M18 45c9-10 18-17 29-25\"/></g>",
+  "theme-study": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M32 20c-6-4-13-4-20-1v28c7-3 14-3 20 1 6-4 13-4 20-1V19c-7-3-14-3-20 1z\"/><path d=\"M32 20v28\"/></g>",
+  "map-direction": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10 17l15-5 14 5 15-5v35l-15 5-14-5-15 5zM25 12v35M39 17v35\"/><path d=\"M46 20l4-8 4 8-4 10zM50 12v-4\"/></g>",
+  "daily-point": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"21\"/><path d=\"M32 16l3 13 13 3-13 3-3 13-3-13-13-3 13-3z\"/><circle cx=\"32\" cy=\"32\" r=\"2\"/></g>",
+  "sun": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"8\"/><path d=\"M32 10v8M32 46v8M10 32h8M46 32h8M16.4 16.4l5.7 5.7M41.9 41.9l5.7 5.7M47.6 16.4l-5.7 5.7M22.1 41.9l-5.7 5.7\"/></g>",
+  "moon": "<path d=\"M43 12c-3 5-4 10-2 16 3 9 12 14 21 12-4 9-13 15-23 15-14 0-25-11-25-25 0-13 10-24 23-25 2 0 4 1 6 2z\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+  "cloud": "<path d=\"M13 43c0-5 4-9 9-9 1-8 7-13 15-13 7 0 13 4 15 11 5 0 9 4 9 9 0 5-4 9-9 9H22c-5 0-9-3-9-7z\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+  "mountain": "<path d=\"M8 49l16-25 8 11 7-15 17 29H8zM24 24l3 5M39 20l3 6\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+  "wave": "<g stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 25c7 0 7 6 14 6s7-6 14-6 7 6 14 6 7-6 14-6\"/><path d=\"M8 37c7 0 7 6 14 6s7-6 14-6 7 6 14 6 7-6 14-6\"/><path d=\"M16 49c5 0 5 4 10 4s5-4 10-4 5 4 10 4 5-4 10-4\"/></g>"
+};

@@ -1,9 +1,20 @@
 import React from 'react';
-import { PALACE_DIRECTIONS } from './reverseDirection.js';
+import { PALACE_DIRECTIONS, getMiniBoardToneClass } from './reverseDirection.js';
+import { DIRECTION_ICONS } from './directionIcons.generated.js';
+
+// 8方位の円盤。扇の色・点数・方位名・選択中の表示は、盤のデータからここで描く。
+// 飾りの線画（中央の方位星・テーマのしるし・一番良い方位の印）は public/direction-ui/ の SVG を使う
+// （中身は directionIcons.generated.js。scripts/build_direction_ui_assets.py が作る）。
+//
+// - 方位を押すと、その方位を選ぶ（地図と同じ「選んでいる方位」。onSelectPalace があるときだけ）
+// - テーマのしるしは、その方位に入っている門を表す。吉の方位にだけ出す
+//   （凶の方位に金運のしるしが付くと、良い方位に見えてしまうため）
+// - 一番良い方位の印（bestPalace）と、選んでいる方位（selectedPalace）は別のもの
 
 const CENTER = 175;
-const RADIUS = 145;
-const WISH_MARKER_SIZE = 26;
+const RADIUS = 138;
+
+// 門 → テーマ（吉門だけ）
 export const GATE_ICONS = {
   '生門': 'money',
   '休門': 'bond',
@@ -12,152 +23,148 @@ export const GATE_ICONS = {
   '景門': 'study',
 };
 
-function WishIcon({ type, x, y, delay }) {
-  const commonProps = {
-    fill: 'none',
-    stroke: 'url(#markerGold)',
-    strokeWidth: '1.7',
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  };
-  const iconX = x - WISH_MARKER_SIZE / 2;
-  const iconY = y - WISH_MARKER_SIZE / 2;
+// テーマ → しるしの名前と、画面に出す言葉
+export const THEME_MARKS = {
+  bond: { icon: 'theme-love', label: 'ご縁' },
+  work: { icon: 'theme-work', label: '仕事' },
+  money: { icon: 'theme-money', label: '金運' },
+  health: { icon: 'theme-health', label: '健康' },
+  study: { icon: 'theme-study', label: '勉強' },
+};
 
+const TONE_LABEL = { daikichi: '大吉', shokichi: '吉', churitsu: '中立', kyo: '凶' };
+
+/** しるしを、SVG の中に描く（色は親の文字色） */
+export function DirectionIcon({ name, x = 0, y = 0, size = 24, className = '' }) {
+  const inner = DIRECTION_ICONS[name];
+  if (!inner) return null;
   return (
     <svg
-      className="reverse-gate-icon"
-      x={iconX}
-      y={iconY}
-      width={WISH_MARKER_SIZE}
-      height={WISH_MARKER_SIZE}
-      viewBox="0 0 24 24"
+      className={`direction-icon ${className}`.trim()}
+      x={x - size / 2}
+      y={y - size / 2}
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      fill="none"
       aria-hidden="true"
-    >
-      <g className="wish-bob" style={{ '--wish-delay': `${delay}s` }}>
-      {type === 'money' && (
-        <g {...commonProps}>
-          <circle cx="12" cy="12" r="8.8" />
-          <rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1" />
-        </g>
-      )}
-      {type === 'bond' && (
-        <g {...commonProps}>
-          <path d="M12 21 C12 21 4 14.5 4 9 C4 6.2 6.2 4 9 4 C10.7 4 12 5 12 6.3 C12 5 13.3 4 15 4 C17.8 4 20 6.2 20 9 C20 14.5 12 21 12 21 Z" />
-        </g>
-      )}
-      {type === 'work' && (
-        <g {...commonProps}>
-          <rect x="3.5" y="8" width="17" height="11" rx="2.2" />
-          <path d="M8.5 8 V6.6 A1.6 1.6 0 0 1 10.1 5 H13.9 A1.6 1.6 0 0 1 15.5 6.6 V8" />
-          <path d="M3.5 12.8 H20.5" />
-        </g>
-      )}
-      {type === 'health' && (
-        <g {...commonProps}>
-          <path d="M5.5 18.5 C5.5 10 11 5 18.5 5 C18.5 12.5 13 18.5 5.5 18.5 Z" />
-          <path d="M8 16 C11 12.5 14 9.5 17 7.5" />
-        </g>
-      )}
-      {type === 'study' && (
-        <g {...commonProps}>
-          <path d="M12 6.2 C10 4.8 6.2 4.8 4 5.8 V18 C6.2 17 10 17 12 18.2 C14 17 17.8 17 20 18 V5.8 C17.8 4.8 14 4.8 12 6.2 Z" />
-          <path d="M12 6.2 V18.2" />
-        </g>
-      )}
-      </g>
-    </svg>
+      dangerouslySetInnerHTML={{ __html: inner }}
+    />
   );
 }
 
-function polarPoint(angleDeg) {
+function point(angleDeg, distance) {
   const rad = (angleDeg - 90) * Math.PI / 180;
-  return {
-    x: CENTER + RADIUS * Math.cos(rad),
-    y: CENTER + RADIUS * Math.sin(rad),
-  };
+  return { x: CENTER + distance * Math.cos(rad), y: CENTER + distance * Math.sin(rad) };
 }
 
-function wedgePath(angle) {
-  const start = angle - 22.5;
-  const end = angle + 22.5;
-  const p1 = polarPoint(start);
-  const p2 = polarPoint(end);
-  return `M ${CENTER} ${CENTER} L ${p1.x.toFixed(1)} ${p1.y.toFixed(1)} A ${RADIUS} ${RADIUS} 0 0 1 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z`;
+function wedgePath(angle, radius = RADIUS) {
+  const p1 = point(angle - 22.5, radius);
+  const p2 = point(angle + 22.5, radius);
+  return `M ${CENTER} ${CENTER} L ${p1.x.toFixed(1)} ${p1.y.toFixed(1)} A ${radius} ${radius} 0 0 1 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z`;
 }
 
-function textPoint(angleDeg, distance) {
-  const rad = (angleDeg - 90) * Math.PI / 180;
-  return {
-    x: CENTER + distance * Math.cos(rad),
-    y: CENTER + distance * Math.sin(rad),
-  };
+const scoreText = (score) => `${score > 0 ? '+' : ''}${score}`;
+
+/** その方位に出すテーマ（吉の方位で、吉門が入っているときだけ） */
+export function themeOf(item) {
+  if (!item || !(item.score > 0)) return null;
+  return GATE_ICONS[item.palaceData?.hachimon] || null;
 }
 
-export default function CompassWheel({ rankings, bestPalace }) {
+export default function CompassWheel({ rankings, bestPalace, selectedPalace = null, onSelectPalace }) {
   const byPalace = Object.fromEntries((rankings || []).map((item) => [item.palace, item]));
+  const canSelect = typeof onSelectPalace === 'function';
+  const hasSelection = Boolean(selectedPalace);
+  const shownThemes = [...new Set(PALACE_DIRECTIONS.map((d) => themeOf(byPalace[d.palace])).filter(Boolean))];
+  const hasBest = Boolean(bestPalace && byPalace[bestPalace]);
 
   return (
     <div className="reverse-compass-frame">
-      <svg width="100%" viewBox="0 0 350 350" role="img" aria-label="45度8区画の方位盤">
-        <defs>
-          <linearGradient id="markerGold" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-            <stop offset="0" stopColor="#9c7322" />
-            <stop offset=".38" stopColor="#d7ab4d" />
-            <stop offset=".5" stopColor="#fcefc4" />
-            <stop offset=".62" stopColor="#ecd083" />
-            <stop offset="1" stopColor="#c59433" />
-            <animateTransform
-              attributeName="gradientTransform"
-              type="translate"
-              from="-0.4 0"
-              to="0.4 0"
-              dur="3.2s"
-              repeatCount="indefinite"
-              additive="sum"
-              keyTimes="0;0.5;1"
-              values="-0.4 0;0.4 0;-0.4 0"
-            />
-          </linearGradient>
-        </defs>
-        {PALACE_DIRECTIONS.map((direction, index) => {
+      <svg className="wheel" width="100%" viewBox="0 0 350 350" role="group" aria-label="8方位の円盤">
+        <circle className="wheel-rim" cx={CENTER} cy={CENTER} r={RADIUS + 5} />
+        {PALACE_DIRECTIONS.map((direction) => {
           const item = byPalace[direction.palace];
-          const scorePoint = textPoint(direction.angle, 82);
-          const iconPoint = textPoint(direction.angle, 126);
-          const labelPoint = textPoint(direction.angle, 162);
+          const tone = item?.tone || 'neutral';
           const isBest = direction.palace === bestPalace;
+          const isSelected = direction.palace === selectedPalace;
+          const theme = themeOf(item);
+          const scorePoint = point(direction.angle, theme ? 70 : 84);
+          const iconPoint = point(direction.angle, 108);
+          const labelPoint = point(direction.angle, 165);
+          const bestPoint = point(direction.angle, RADIUS - 1);
+          const toneLabel = TONE_LABEL[getMiniBoardToneClass(item?.score || 0, item?.palaceScore)] || '';
+          const select = () => onSelectPalace(direction.palace);
           return (
-            <g key={direction.palace}>
-              <path
-                className={`reverse-seg tone-${item?.tone || 'neutral'} ${isBest ? 'is-best' : ''}`}
-                d={wedgePath(direction.angle)}
-              />
-              <text className="reverse-score-text" x={scorePoint.x} y={scorePoint.y}>
-                {item ? `${item.score > 0 ? '+' : ''}${item.score}` : '0'}
+            <g
+              key={direction.palace}
+              className={`wheel-sector tone-${tone}${isSelected ? ' is-selected' : ''}${hasSelection && !isSelected ? ' is-dim' : ''}`}
+              {...(canSelect ? {
+                role: 'button',
+                tabIndex: 0,
+                'aria-pressed': isSelected,
+                'aria-label': `${direction.label} ${item ? scoreText(item.score) : ''} ${toneLabel}${isBest ? '（一番良い方位）' : ''}`.trim(),
+                onClick: select,
+                onKeyDown: (event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    select();
+                  }
+                },
+              } : {})}
+            >
+              <path className="reverse-seg wheel-fill" d={wedgePath(direction.angle)} />
+              <text className="reverse-score-text wheel-score" x={scorePoint.x} y={scorePoint.y}>
+                {item ? scoreText(item.score) : '0'}
               </text>
-              {GATE_ICONS[item?.palaceData?.hachimon] && (
-                <WishIcon
-                  type={GATE_ICONS[item.palaceData.hachimon]}
-                  x={iconPoint.x}
-                  y={iconPoint.y}
-                  delay={(index % 5) * 0.4}
-                />
-              )}
-              <text className="reverse-dir-text" x={labelPoint.x} y={labelPoint.y}>
+              {theme && <DirectionIcon name={THEME_MARKS[theme].icon} x={iconPoint.x} y={iconPoint.y} size={26} className="wheel-theme" />}
+              <text className="reverse-dir-text wheel-label" x={labelPoint.x} y={labelPoint.y}>
                 {direction.label}
               </text>
+              {isBest && (
+                <g className="wheel-best">
+                  <circle cx={bestPoint.x} cy={bestPoint.y} r="11" />
+                  <DirectionIcon name="best-direction" x={bestPoint.x} y={bestPoint.y} size={20} />
+                </g>
+              )}
             </g>
           );
         })}
-        <circle className="reverse-center-circle" cx={CENTER} cy={CENTER} r="28" />
-        <text className="reverse-center-text" x={CENTER} y={CENTER}>基準点</text>
+        {/* 選んでいる方位の金の輪郭は、ほかの扇の上に重ねて描く */}
+        {selectedPalace && byPalace[selectedPalace] && (
+          <path
+            className="wheel-selected-outline"
+            d={wedgePath(PALACE_DIRECTIONS.find((d) => d.palace === selectedPalace).angle)}
+          />
+        )}
+        <circle className="reverse-center-circle wheel-center" cx={CENTER} cy={CENTER} r="30" />
+        <DirectionIcon name="compass-rose" x={CENTER} y={CENTER} size={44} className="wheel-rose" />
       </svg>
-      <div className="reverse-legend">
+
+      <div className="reverse-legend wheel-legend">
         <span><i className="legend-swatch tone-great" />大吉</span>
-        <span><i className="legend-swatch tone-weak" />小吉</span>
+        <span><i className="legend-swatch tone-weak" />吉</span>
         <span><i className="legend-swatch tone-neutral" />中立</span>
         <span><i className="legend-swatch tone-bad" />凶</span>
-        <span><i className="legend-swatch tone-best" />最大吉</span>
+        {hasBest && (
+          <span className="wheel-legend-mark">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><DirectionIcon name="best-direction" x={12} y={12} size={22} /></svg>
+            一番良い方位
+          </span>
+        )}
       </div>
+      {shownThemes.length > 0 && (
+        <div className="wheel-themes" aria-label="しるしの意味">
+          {shownThemes.map((theme) => (
+            <span key={theme} className="wheel-legend-mark">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><DirectionIcon name={THEME_MARKS[theme].icon} x={12} y={12} size={22} /></svg>
+              {THEME_MARKS[theme].label}
+            </span>
+          ))}
+          <small>しるしは、その方位に入っている門のテーマです。</small>
+        </div>
+      )}
+      {canSelect && <p className="wheel-hint">方位を押すと、その方位を選べます。</p>}
     </div>
   );
 }

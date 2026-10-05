@@ -4,6 +4,7 @@
 #   もと: public/direction-ui/<名前>.svg（線の色は currentColor。使う側の文字色で色が決まる）
 #   出力: public/direction-ui/<名前>.png（1024×1024・背景は透明・古金色）
 #         docs/direction_ui_preview.png（16〜64px に縮めた確認用。アプリでは使わない）
+#         src/reverseDirection/directionIcons.generated.js（アプリの中の SVG に直接描くための中身）
 #
 # 8方位の扇・色・点数・方位名・選択中の表示など、データで変わるものはここでは作らない（アプリが描く）。
 # SVG は書き換えない（読むだけ）。SVG を直したら、このスクリプトを動かして PNG と一覧を作り直す。
@@ -18,6 +19,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'public', 'direction-ui')
 PREVIEW = os.path.join(ROOT, 'docs', 'direction_ui_preview.png')
+ICONS_JS = os.path.join(ROOT, 'src', 'reverseDirection', 'directionIcons.generated.js')
 
 GOLD = '#C79A38'   # 落ち着いた古金（PNG にするときの色）
 INK = '#34302B'    # 墨色（確認用）
@@ -107,6 +109,19 @@ def main():
                 sheet.paste(icon, (x0 + (cell_w - size) // 2, y), icon)
                 y += size + 14
     sheet.save(PREVIEW, optimize=True)
+
+    # アプリの中の SVG（円盤など）に直接描けるように、各 SVG の中身を1つのファイルにまとめる
+    import json
+    import re
+    inner = {}
+    for name in names:
+        with open(os.path.join(OUT, f'{name}.svg'), encoding='utf-8') as handle:
+            body = re.search(r'<svg[^>]*>(.*)</svg>', handle.read(), re.S).group(1)
+        inner[name] = re.sub(r'>\s+<', '><', body.strip())
+    with open(ICONS_JS, 'w', encoding='utf-8', newline='\n') as handle:
+        handle.write('// scripts/build_direction_ui_assets.py が public/direction-ui/*.svg から作る。手で直さない。\n')
+        handle.write('// 各しるしの SVG の中身（64×64 の枠・線の色は currentColor）。\n')
+        handle.write('export const DIRECTION_ICONS = ' + json.dumps(inner, ensure_ascii=False, indent=2) + ';\n')
     print(f'\n{len(names)} 個の PNG を {os.path.relpath(OUT, ROOT)} に保存。確認用の一覧: {os.path.relpath(PREVIEW, ROOT)}')
     if warnings:
         print('注意:', '; '.join(f'{name}（{note}）' for name, note in warnings))

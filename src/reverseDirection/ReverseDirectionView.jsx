@@ -1204,7 +1204,12 @@ export default function ReverseDirectionView({
               })}
 
               <div className="reverse-card reverse-compass-card">
-                <CompassWheel rankings={dayReverse.rankings} bestPalace={dayBest?.palace} />
+                <CompassWheel
+                  rankings={dayReverse.rankings}
+                  bestPalace={dayTopItem?.palace}
+                  selectedPalace={dayPickedPalace}
+                  onSelectPalace={setDayPickedPalace}
+                />
               </div>
 
               <div className="reverse-card reverse-now-board-card">
