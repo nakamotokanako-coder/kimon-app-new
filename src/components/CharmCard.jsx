@@ -55,7 +55,7 @@ const SCENES = [
   '病院・面接・商談など、予定が決まっている日',
 ];
 
-export default function CharmCard({ charm, sourceType = 'day', validTime = '', onSeeDirection, defaultOpen = false }) {
+export default function CharmCard({ charm, sourceType = 'day', validTime = '', onSeeDirection, defaultOpen = false, compact = false }) {
   const copy = COPY[sourceType] || COPY.day;
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [whyOpen, setWhyOpen] = useState(false);
@@ -73,14 +73,15 @@ export default function CharmCard({ charm, sourceType = 'day', validTime = '', o
   const elements = charm ? [charm.elements.gate, charm.elements.deity, charm.elements.star].filter(Boolean) : [];
 
   return (
-    <aside className={`charm${isOpen ? ' is-open' : ''}`} aria-label={copy.title}>
+    <aside className={`charm${isOpen ? ' is-open' : ''}${compact ? ' is-compact' : ''}`} aria-label={copy.title}>
       <button type="button" className="charm-bar" aria-expanded={isOpen} onClick={toggle}>
         <span className="charm-seal" aria-hidden="true">福</span>
         <span className="charm-bar-text">
           <strong>{copy.title}</strong>
-          <small>{isOpen ? copy.sub : copy.open}</small>
+          {/* 細い帯（compact）は、閉じているあいだ題だけ（帯そのものが押せるため） */}
+          {(isOpen || !compact) && <small>{isOpen ? copy.sub : copy.open}</small>}
         </span>
-        <span className="charm-bar-chevron" aria-hidden="true">{isOpen ? '⌃' : '⌄'}</span>
+        <span className="charm-bar-chevron" aria-hidden="true">{isOpen ? '⌃' : compact ? '›' : '⌄'}</span>
       </button>
 
       {isOpen && (
