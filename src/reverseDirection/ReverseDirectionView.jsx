@@ -252,6 +252,13 @@ export default function ReverseDirectionView({
     onModeChange?.(next);
   };
   const modeTitle = variant ? MODE_TITLES[mode] : null;
+  // 地図で選んだ場所を、もう一方の盤（時盤⇔日盤）へ持っていく
+  const [carriedPlace, setCarriedPlace] = useState(null);
+  const seeInOtherMode = (place) => {
+    const next = mode === 'day' ? 'time' : 'day';
+    setCarriedPlace({ place, mode: next });
+    setMode(next);
+  };
   const [dayDate, setDayDate] = useState(getBoardDate());
   const [status, setStatus] = useState('');
   const [timelineSortMode, setTimelineSortMode] = useState('time');
@@ -825,6 +832,8 @@ export default function ReverseDirectionView({
           onGoodOnlyChange={setGoodOnly}
           autoGuide={autoMapGuide}
           onSetBasePoint={handleGlobalBasePointChange}
+          onSeeInOtherMode={profileKey === 'nichiban' ? seeInOtherMode : undefined}
+          carryPlace={profileKey === 'nichiban' && carriedPlace?.mode === 'day' ? carriedPlace.place : null}
         />
       </div>
 
@@ -861,6 +870,8 @@ export default function ReverseDirectionView({
           autoGuide={autoMapGuide}
           onSetBasePoint={handleGlobalBasePointChange}
           onOpenDetail={scrollToDirectionDetail}
+          onSeeInOtherMode={seeInOtherMode}
+          carryPlace={carriedPlace?.mode === 'time' ? carriedPlace.place : null}
         />
       </div>
 
