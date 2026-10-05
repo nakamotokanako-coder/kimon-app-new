@@ -134,7 +134,7 @@ function applyDisplaySettings({ iconStyle, textSize }) {
 }
 
 applyDisplaySettings({
-  iconStyle: readStoredSetting('icon-style', 'emoji'),
+  iconStyle: 'emoji',
   textSize: readStoredSetting('text-size', 'medium'),
 });
 
@@ -181,7 +181,8 @@ export default function App() {
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
   const [boardScrollRequest, setBoardScrollRequest] = useState(0);
-  const [iconStyle, setIconStyle] = useState(() => readStoredSetting('icon-style', 'emoji'));
+  // アイコンの切り替えは設定から外した（変わる場所が少なく、分かりにくかったため）。絵文字に固定する。
+  const iconStyle = 'emoji';
   const [textSize, setTextSize] = useState(() => readStoredSetting('text-size', 'medium'));
   const [omamoriReminder, setOmamoriReminder] = useState(() => readStoredBoolSetting('omamori-reminder'));
   const [favoriteBestNotify, setFavoriteBestNotify] = useState(() => readStoredBoolSetting('favorite-best-notify'));
@@ -523,35 +524,13 @@ export default function App() {
       </section>
 
       <section className="settings-group">
-        {settingsGroupHead('表示', '文字やアイコンなどの表示を設定します。', settingsIcon('🖥️', (
+        {settingsGroupHead('表示', '文字の大きさなどの表示を設定します。', settingsIcon('🖥️', (
           <>
             <rect x="3.5" y="4.5" width="17" height="11.5" rx="1.8" />
             <path d="M9 20h6M12 16v4" />
           </>
         )))}
         <div className="settings-group-body">
-          <div className="settings-row">
-            <div>
-              <strong>アイコン</strong>
-              <small>盤やメニューで使用するアイコンを切り替えます。</small>
-            </div>
-            <div className="settings-segment" role="group" aria-label="アイコン">
-              {[
-                ['emoji', '絵文字'],
-                ['line', '線アイコン'],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={iconStyle === value ? 'is-active' : ''}
-                  aria-pressed={iconStyle === value}
-                  onClick={() => updateSetting('icon-style', setIconStyle)(value)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="settings-row">
             <div>
               <strong>文字サイズ</strong>
