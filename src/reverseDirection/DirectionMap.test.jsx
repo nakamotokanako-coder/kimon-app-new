@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import DirectionMap, { describeDirection, googleMapsSearchUrl } from './DirectionMap.jsx';
 import { getFanColor } from './mapFan.js';
-import { MAP_GUIDE_SEEN_KEY } from './MapGuide.jsx';
+import { MAP_GUIDE_SEEN_KEY, guideText } from './MapGuide.jsx';
 
 const LOCATION = { name: '東京駅', latitude: 35.681, longitude: 139.767 };
 const RANKINGS = [
@@ -577,43 +577,53 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
 
   it('検索の欄のすぐ下の「？ 説明書を見る」で、色とピンの意味・お気に入りの登録のしかたを開ける', () => {
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
-    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
     const link = screen.getByRole('button', { name: '？ 説明書を見る' });
     // 検索の欄 → 説明書・吉方位のみ表示 → 場所の種類、の順
     const order = [...document.querySelector('.direction-map-search').children].map((el) => el.className.split(' ')[0]);
     expect(order.slice(0, 3)).toEqual(['direction-map-search-row', 'direction-map-filter', 'direction-map-chips']);
     fireEvent.click(link);
-    const guide = screen.getByRole('dialog', { name: '地図の使い方' });
+    const guide = screen.getByRole('dialog', { name: '使い方ガイド' });
+    // 初めての人がつまずいた順: どっちの盤を見るか → 今どっちへ → 行きたい場所を調べる → …
     expect(within(guide).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
-      '方位の色', 'ピンの色と数字', 'お気に入りに登録する', '拠点にする', 'そのほかのボタン',
+      'まず、時盤と日盤のどっちを見る？',
+      '今、どっちへ行けばいい？',
+      '行きたい場所が吉方位か調べる',
+      '地図にお店の名前が出ないのはなぜ？',
+      '吉方位の中から行き先を探す',
+      'ピンの色と数字',
+      'お気に入りに登録する',
+      'そのほかのボタン',
     ]);
-    expect(guide.textContent).toContain('赤いピン：凶方位にある場所');
-    expect(guide.textContent).toContain('青いピン：吉方位にある場所');
+    expect(guide.textContent).toContain('赤いピン　凶方位にある場所');
+    expect(guide.textContent).toContain('青いピン　吉方位にある場所');
+    expect(guide.textContent).toContain('近所へ出かけるなら、時盤を見てください');
+    expect(guide.textContent).toContain('お店の名前では見つからないことがあります。そのときは住所を入れてください');
     // 見本のピンは、実際の地図と同じ見た目
     expect(guide.querySelectorAll('.direction-poi-pin')).toHaveLength(4);
     fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
-    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
   });
 
   it('初めて地図を開いたときだけ、説明書が自動で出る。閉じたら、次からは出ない', () => {
     const first = render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" autoGuide />);
-    const guide = screen.getByRole('dialog', { name: '地図の使い方' });
-    expect(guide.textContent).toContain('「？ 説明書を見る」から、いつでも開けます');
+    const guide = screen.getByRole('dialog', { name: '使い方ガイド' });
+    expect(guide.textContent).toContain('「説明書を見る」から、いつでも開けます');
     fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
-    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
     expect(window.localStorage.getItem(MAP_GUIDE_SEEN_KEY)).toBe('1');
     first.unmount();
 
     // 2回目からは自動では出ない（自分で開くことはできる）
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" autoGuide />);
-    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
     fireEvent.click(screen.getByRole('button', { name: '？ 説明書を見る' }));
-    expect(screen.getByRole('dialog', { name: '地図の使い方' })).toBeTruthy();
+    expect(screen.getByRole('dialog', { name: '使い方ガイド' })).toBeTruthy();
   });
 
   it('自動で出すのは、指定されたとき（地図タブを開いているとき）だけ', () => {
     render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
-    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    expect(screen.queryByRole('dialog', { name: '使い方ガイド' })).toBe(null);
   });
 
   it('検索結果の一覧の ☆ で、お気に入りに登録・解除できる', async () => {
@@ -635,5 +645,20 @@ describe('DirectionMap 初めての人向けの案内（使い方・☆でお気
 
     fireEvent.click(on);
     expect(JSON.parse(window.localStorage.getItem('kimon_map_favorites_v1'))).toEqual([]);
+  });
+});
+
+describe('使い方ガイドの文章', () => {
+  it('タイトル（見出し）は句点で終わらない。効果を約束する書き方をしない。飾りの記号を使わない', () => {
+    const text = guideText();
+    for (const heading of text.split('\n').slice(0, 1)) expect(heading.endsWith('。')).toBe(false);
+    expect(text).not.toMatch(/運が上が|開運|必ず|効果があ/u);
+    expect(text).not.toMatch(/[★☆✎→]/u);
+  });
+
+  it('距離と時間の目安は、アプリの中の決まりと同じ（時盤 500m・5分／日盤 50km・3時間）', () => {
+    const text = guideText();
+    expect(text).toContain('500メートル以上はなれた場所へ行き、5分以上');
+    expect(text).toContain('50キロ以上はなれた場所へ行き、3時間以上');
   });
 });

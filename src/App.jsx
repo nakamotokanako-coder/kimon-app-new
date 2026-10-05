@@ -15,6 +15,7 @@ import { useAuth } from './auth/AuthContext.jsx';
 import { isLongRangeLocked, longRangeLimitDate, LONG_RANGE_SHOW_ANNUAL_MARK } from '../lib/accessPolicy.js';
 import IntroPage, { hasSeenIntro, markIntroSeen } from './components/IntroPage.jsx';
 import LegalPage from './components/LegalPage.jsx';
+import MapGuide from './reverseDirection/MapGuide.jsx';
 import { LEGAL_DOCS, OPEN_LEGAL_EVENT } from './legal/documents.js';
 import HomeView from './components/HomeView.jsx';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
@@ -193,6 +194,8 @@ export default function App() {
     window.addEventListener(OPEN_LEGAL_EVENT, handleOpen);
     return () => window.removeEventListener(OPEN_LEGAL_EVENT, handleOpen);
   }, []);
+  // 使い方ガイド（ホームの「使い方ガイド」から開く。地図からは地図の中のボタンで開く）
+  const [guideOpen, setGuideOpen] = useState(false);
   const closeIntro = () => {
     markIntroSeen();
     setIntroOpen(false);
@@ -694,6 +697,7 @@ export default function App() {
     <div className="app app-with-tabs">
       <div className="vig" aria-hidden="true" />
       {legalDoc && <LegalPage docKey={legalDoc} onClose={() => setLegalDoc(null)} />}
+      {guideOpen && <MapGuide onClose={() => setGuideOpen(false)} />}
       {introOpen && !legalDoc && (
         <IntroPage
           loggedIn={auth.loggedIn}
@@ -710,7 +714,7 @@ export default function App() {
           onGoMap={goMap}
           onGoSearch={goSearch}
           onOpenBoard={(target) => (target ? openFullBoard(target) : setActiveTab('board'))}
-          onOpenGuide={() => setIntroOpen(true)}
+          onOpenGuide={() => setGuideOpen(true)}
           onLogin={openAccountSettings}
         />
       )}
@@ -720,7 +724,7 @@ export default function App() {
           unreadNotificationCount={unreadNotificationCount}
           onOpenNotifications={openNotifications}
           onSelect={(entry) => (entry.target === 'map' ? goMap(entry.key) : goSearch(entry.key))}
-          onOpenGuide={() => setIntroOpen(true)}
+          onOpenGuide={() => setGuideOpen(true)}
         />
       )}
       {(activeTab === 'map' || activeTab === 'search') && limited && (
