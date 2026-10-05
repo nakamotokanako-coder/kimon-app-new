@@ -11571,3 +11571,526 @@ p.saikyo-annual-note.is-open {
 .wheel-legend .legend-swatch.tone-weak { background: #a9c8e6; }
 .wheel-legend .legend-swatch.tone-neutral { background: #c9c4b6; }
 .wheel-legend .legend-swatch.tone-bad { background: #c07f76; }
+
+/* === 探すの入口（src/components/SearchHub.jsx）: NOW → 予定から探す → こだわって探す === */
+.hub-sub {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+/* NOW: いちばんよく使う「今から」。ここだけ淡い金の地 */
+.hub-now {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 22px 20px 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-subtle));
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
+    color-mix(in srgb, var(--accent) 7%, var(--bg-cell));
+}
+
+.hub-now-art {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 96px;
+  color: color-mix(in srgb, var(--accent) 80%, transparent);
+  pointer-events: none;
+}
+
+.hub-now-art svg,
+.hub-now-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hub-now h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+.hub-now p {
+  display: grid;
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.hub-now-cta {
+  min-height: 46px;
+  padding: 8px 26px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg-main);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.hub-now-link {
+  margin-top: 4px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+/* 見出し: 細い金の線ではさむ */
+.hub-group {
+  margin-top: 26px;
+}
+
+.hub-group-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.hub-group-title::before,
+.hub-group-title::after {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+  content: "";
+}
+
+.hub-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* カード: 絵 → 題 → 問い → 短い説明 → 専門の名前と矢印 */
+.hub-tile {
+  --tile-tint: var(--accent);
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+  padding: 14px 13px 12px;
+  border: 1px solid color-mix(in srgb, var(--tile-tint) 34%, var(--border-subtle));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--tile-tint) 13%, var(--bg-cell));
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hub-tile.is-calendar { --tile-tint: #d98f8a; }
+.hub-tile.is-compass { --tile-tint: #7f9cc0; }
+.hub-tile.is-spark { --tile-tint: #94a877; }
+.hub-tile.is-route { --tile-tint: #a892c4; }
+
+.hub-tile-art {
+  display: grid;
+  width: 100%;
+  height: 76px;
+  margin-bottom: 6px;
+  place-items: center;
+  color: color-mix(in srgb, var(--tile-tint) 70%, var(--text-primary));
+}
+
+.hub-tile-art svg {
+  width: 54px;
+  height: 54px;
+}
+
+.hub-tile-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 予定から探す の2枚は主役なので、絵を大きく */
+.hub-group.is-plan .hub-tile-art {
+  height: 96px;
+}
+
+.hub-group.is-plan .hub-tile-art svg {
+  width: 66px;
+  height: 66px;
+}
+
+.hub-tile strong {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.hub-tile em {
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.hub-tile-desc {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
+.hub-tile-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.hub-tile-foot small {
+  padding: 1px 9px;
+  border: 1px solid color-mix(in srgb, var(--tile-tint) 40%, var(--border-subtle));
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+}
+
+.hub-tile-foot b {
+  display: grid;
+  width: 24px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-main);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.search-hub .hub-row {
+  margin-top: 22px;
+}
+
+/* カードの下の行（専門の名前と矢印）は、2枚で高さをそろえる。題と問いは、数文字だけ次の行に残さない */
+.hub-tile {
+  grid-template-rows: auto auto auto 1fr auto;
+}
+
+.hub-tile-foot {
+  align-self: end;
+}
+
+.hub-tile strong {
+  font-size: 0.98rem;
+  letter-spacing: 0;
+}
+
+
+
+/* 探すの入口: 絵の画像（public/hub/）を使うときの見た目 */
+.hub-now {
+  min-height: 228px;
+  padding-bottom: 14px;
+}
+
+.hub-now-art {
+  top: auto;
+  right: 0;
+  bottom: 0;
+  width: 68%;
+  color: inherit;
+}
+
+.hub-now h3,
+.hub-now p,
+.hub-now-cta,
+.hub-now-link {
+  position: relative;
+}
+
+/* 見出しは、文字の下に飾りの線を置く（左右の線はやめる） */
+.hub-group-title {
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.hub-group-title::before,
+.hub-group-title::after {
+  display: none;
+}
+
+.hub-divider {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  margin: 0 auto 14px;
+}
+
+.hub-tile-art {
+  height: 92px;
+}
+
+.hub-group.is-plan .hub-tile-art {
+  height: 116px;
+}
+
+.hub-guide {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.hub-guide > img {
+  width: 44px;
+  height: auto;
+}
+
+/* いちばん下の飾り（墨絵の山と蓮） */
+.hub-footer {
+  position: relative;
+  margin: 26px -16px 0;
+  pointer-events: none;
+}
+
+.hub-footer-mountains {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.85;
+}
+
+.hub-footer-lotus {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 42%;
+  max-width: 190px;
+  height: auto;
+}
+
+/* === ホーム（src/components/HomeView.jsx）: 結論 → 行動。枠を減らし、色の面と絵で見せる === */
+.home-today {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 18px 18px;
+}
+
+/* 右下に、薄い水墨の山と金の太陽 */
+.home-today-art {
+  position: absolute;
+  top: 8px;
+  right: -4%;
+  width: 66%;
+  height: auto;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.home-today > :not(.home-today-art) {
+  position: relative;
+}
+
+.home-today-main {
+  align-items: center;
+  gap: 12px;
+}
+
+.home-today-main strong {
+  font-size: 2.6rem;
+}
+
+.home-today-until {
+  margin: 8px 0 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.home-today-sub {
+  margin-top: 2px;
+}
+
+.home-today-actions {
+  grid-template-columns: auto auto;
+  justify-content: start;
+  margin-top: 16px;
+}
+
+.home-cta {
+  padding-inline: 24px;
+}
+
+.home-sub-cta {
+  background: var(--bg-cell);
+}
+
+/* 今日のお守り: 細い帯。吉方位より目立たせない（色をくすませる） */
+.home-charm .charm {
+  margin-top: 12px;
+}
+
+.charm.is-compact:not(.is-open) .charm-bar {
+  padding: 7px 14px;
+  border-color: color-mix(in srgb, var(--charm-gold) 55%, transparent);
+  background: linear-gradient(180deg, #6a3038, #5a272f);
+  box-shadow: none;
+}
+
+.charm.is-compact:not(.is-open) .charm-seal {
+  width: 30px;
+  font-size: 0.92rem;
+}
+
+.charm.is-compact:not(.is-open) .charm-bar-text strong {
+  font-size: 0.98rem;
+}
+
+.charm.is-compact:not(.is-open) .charm-bar-chevron {
+  width: auto;
+  border: 0;
+  font-size: 1.2rem;
+}
+
+.home-section-title {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.home-picks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* 入口のカード: 枠線は使わず、薄い色の面と絵で分ける */
+.home-pick {
+  --pick-tint: var(--accent);
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px 14px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pick-tint) 10%, var(--bg-cell)), color-mix(in srgb, var(--pick-tint) 24%, var(--bg-cell)));
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-pick.is-gold { --pick-tint: #cfa24a; }
+.home-pick.is-pink { --pick-tint: #de9a98; }
+.home-pick.is-blue { --pick-tint: #7fa3c4; }
+
+.home-pick-art {
+  display: block;
+  width: 100%;
+  height: 92px;
+  margin-bottom: 4px;
+  object-fit: contain;
+}
+
+.home-pick strong {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  line-height: 1.4;
+}
+
+.home-pick-lines {
+  display: grid;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.home-pick > b {
+  position: absolute;
+  right: 9px;
+  bottom: 11px;
+  display: grid;
+  width: 24px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pick-tint) 78%, #5a4a2a);
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* 横長の1枚（この方位、いつ行く？）: 左に絵、右に言葉 */
+.home-pick.is-wide {
+  grid-column: 1 / -1;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+}
+
+.home-pick.is-wide .home-pick-art {
+  grid-row: 1 / span 2;
+  height: 84px;
+  margin: 0;
+}
+
+.home-pick.is-wide strong {
+  align-self: end;
+}
+
+.home-pick.is-wide .home-pick-lines {
+  align-self: start;
+}
+
+.home-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 10px;
+}
+
+.home-more button {
+  padding: 8px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.home-more button:last-child {
+  color: var(--text-accent);
+  font-weight: 700;
+}
+
+/* 探すのカード: 絵は枠の高さに収める。題は「・」のところで折る */
+.hub-tile-art {
+  grid-template-columns: 100%;
+  grid-template-rows: 100%;
+  overflow: hidden;
+}
+
+.hub-tile strong {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}

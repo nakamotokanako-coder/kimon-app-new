@@ -14,12 +14,15 @@ import {
   getTimeSlotLabel,
 } from '../reverseDirection/reverseDirection.js';
 import { BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
+import { GATE_ICONS, THEME_MARKS } from '../reverseDirection/CompassWheel.jsx';
 import { DEFAULT_LOCATIONS } from '../reverseDirection/locations.js';
 import { lockedMessage } from '../../lib/accessPolicy.js';
 
-// ホーム画面。「盤を出す」ではなく「今日どう使う？」から始める入口。
+// ホーム画面。役割は「今日の私に必要なことを、ひと目で伝える」。
 //   上: 今から使える吉方位（今の時盤の最高方位。基準点の経度で自然時補正）→ 地図へ
-//   中: 使い方から選ぶ4つの入口（専門の名前は小さく添える）
+//   中: 今日のお守り（細い帯）
+//   下: 「今日、どうする？」の3つの入口（今から／次の休み／この方位はいつ）
+// 条件から探す・盤を指定して見る は置かない（「探す」タブと「盤」タブの役割）。
 // 点数・吉凶の判定は吉方位タブと同じ関数（buildReverseBoard / getMiniBoardToneClass）を使う。
 
 const BASE_POINT_KEY = 'kimon_go_base_point_v1';
@@ -49,36 +52,39 @@ export function computeNowBest(now, longitude) {
 
 const scoreText = (score) => `${score > 0 ? '+' : ''}${score}`;
 
-const ENTRIES = [
+// 3つの入口。絵は public/hub/ のもの。
+export const ENTRIES = [
   {
     key: 'time',
-    icon: 'walk',
-    title: '今から吉方位へ',
-    desc: '散歩・カフェ・買い物など、日常の吉を探す',
-    tech: '時盤 × 地図',
+    tone: 'gold',
+    image: '/hub/sun.webp',
+    title: '今から、どこ行く？',
+    lines: ['散歩・カフェ・買い物', '近場の吉を探す'],
   },
   {
     key: 'day',
-    icon: 'trip',
-    title: '次の休み、どこへ行く？',
-    desc: '日付を選んで、遠出の吉方位を探す',
-    tech: '日盤 × 地図',
+    tone: 'pink',
+    image: '/hub/day.webp',
+    title: '次の休み、どこ行く？',
+    lines: ['日付を選んで', '遠出の吉方位を探す'],
   },
   {
     key: 'ranking',
-    icon: 'compass',
-    title: '行きたい方位のベストな日',
-    desc: '方位と期間から、良い日を逆引きする',
-    tech: '方位 → 日時',
-  },
-  {
-    key: 'search',
-    icon: 'spark',
-    title: '条件から探す',
-    desc: '格局が出る日時、吉が3回続くルート',
-    tech: '格局・三盤ルート',
+    tone: 'blue',
+    wide: true,
+    image: '/hub/ranking.webp',
+    title: 'この方位、いつ行く？',
+    lines: ['行きたい方位から', 'ベストな日を探す'],
   },
 ];
+
+/** その方位に入っている門と、そのテーマ（例: 開門｜仕事のテーマ）。効果は書かない */
+export function gateLine(item) {
+  const gate = item?.palaceData?.hachimon;
+  if (!gate) return '';
+  const theme = THEME_MARKS[GATE_ICONS[gate]];
+  return theme ? `${gate}｜${theme.label}のテーマ` : gate;
+}
 
 export function HomeIcon({ name }) {
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
@@ -135,8 +141,7 @@ export default function HomeView({
 
   const handleEntry = (key) => {
     if (key === 'time' || key === 'day') onGoMap(key);
-    else if (key === 'ranking') onGoSearch('ranking');
-    else onGoSearch(null);
+    else onGoSearch(key);
   };
 
   return (
@@ -158,17 +163,17 @@ export default function HomeView({
         </p>
 
         <section className="home-today" aria-label="今から使える吉方位">
+          <img className="home-today-art" src="/hub/now.webp" alt="" aria-hidden="true" decoding="async" />
           <p className="home-today-label">今から使える吉方位</p>
           {good ? (
             <>
               <p className="home-today-main">
                 <strong>{best.label}</strong>
-                {badge && <span className="home-today-badge">{badge}</span>}
                 <span className="home-today-score lat">{scoreText(best.score)}<small>点</small></span>
+                {badge && <span className="home-today-badge">{badge}</span>}
               </p>
-              <p className="home-today-sub">
-                <Ja>{`${getTimeSlotLabel(slotHour)} の時盤。${best.palaceData?.hachimon ? `${best.palaceData.hachimon}が入っています。` : ''}`}</Ja>
-              </p>
+              <p className="home-today-until">{getTimeSlotLabel(slotHour)}まで</p>
+              {gateLine(best) && <p className="home-today-sub">{gateLine(best)}</p>}
               {vetoes.length > 0 && (
                 <p className="home-today-warn"><Ja>{`注意条件あり（${vetoes.join('・')}）。点数だけで決めず、盤で確かめてください。`}</Ja></p>
               )}
@@ -181,11 +186,11 @@ export default function HomeView({
           )}
           <div className="home-today-actions">
             <button type="button" className="home-cta" onClick={() => (limited ? onLogin() : onGoMap('time'))}>
-              <HomeIcon name="pin" />
-              <span>{limited ? 'ログインして地図で探す' : '地図で場所を探す'}</span>
+              <span>{limited ? 'ログインして地図で探す' : good ? 'この方位へ行く' : '地図で探す'}</span>
+              <b aria-hidden="true">→</b>
             </button>
             <button type="button" className="home-sub-cta" onClick={() => onOpenBoard({ date: getBoardDate(), hour: slotHour, boardType: '時' })}>
-              盤で見る
+              盤を見る
             </button>
           </div>
         </section>
@@ -193,50 +198,39 @@ export default function HomeView({
 
       <div className="home-charm">
         <CharmCard
+          compact
           charm={dayCharm}
           sourceType="day"
           onSeeDirection={() => (limited ? onOpenBoard({ date: today, boardType: '日' }) : onGoMap('day'))}
         />
       </div>
 
-      <section className="home-section" aria-label="今日、どう使う？">
-        <div className="home-section-head">
-          <h2>今日、どう使う？</h2>
-          <button type="button" className="home-guide" onClick={onOpenGuide}>使い方ガイド ›</button>
-        </div>
-        <div className="home-entries">
+      <section className="home-section" aria-label="今日、どうする？">
+        <h2 className="home-section-title">今日、どうする？</h2>
+        <div className="home-picks">
           {ENTRIES.map((entry) => (
             <button
               key={entry.key}
               type="button"
-              className={`home-entry is-${entry.icon}`}
+              className={`home-pick is-${entry.tone}${entry.wide ? ' is-wide' : ''}`}
               onClick={() => (limited ? onLogin() : handleEntry(entry.key))}
             >
-              <span className="home-entry-icon"><HomeIcon name={entry.icon} /></span>
-              <span className="home-entry-body">
-                <strong><Ja tail={4}>{entry.title}</Ja></strong>
-                <span><Ja>{entry.desc}</Ja></span>
-                <small>{entry.tech}</small>
-              </span>
-              <b aria-hidden="true">›</b>
+              <img className="home-pick-art" src={entry.image} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+              <strong><Ja tail={3}>{entry.title}</Ja></strong>
+              <span className="home-pick-lines">{entry.lines.map((line) => <span key={line}>{line}</span>)}</span>
+              <b aria-hidden="true">→</b>
             </button>
           ))}
+        </div>
+        <div className="home-more">
+          <button type="button" onClick={onOpenGuide}>使い方ガイド <span aria-hidden="true">›</span></button>
+          <button type="button" onClick={() => (limited ? onLogin() : onGoSearch(null))}>詳しく探す（条件・ルートなど） <span aria-hidden="true">→</span></button>
         </div>
         {limited && (
           <p className="home-locked-note">
             <Ja>{`地図と検索はログインすると使えます。${lockedMessage()}`}</Ja>
           </p>
         )}
-      </section>
-
-      <section className="home-section" aria-label="盤を指定して見る">
-        <button type="button" className="home-row" onClick={() => onOpenBoard(null)}>
-          <span>
-            <strong>盤を指定して見る</strong>
-            <small><Ja>{limited ? '今日の時盤・日盤を表示（日付の指定はログイン後）' : '日付と時刻を選んで、時盤・日盤を表示'}</Ja></small>
-          </span>
-          <b aria-hidden="true">›</b>
-        </button>
       </section>
     </main>
   );
