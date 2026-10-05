@@ -48,7 +48,7 @@ export const STEPS = [
     title: '地図で探す',
     body: '吉方位にあるカフェ・神社・公園などを、地図で探せます。',
     image: 'step-map.webp',
-    alt: '8方位に色が付いた地図の画面',
+    alt: '地図で神社を押すと、方位と点数、お気に入りに追加のボタンが出る画面',
   },
   {
     title: '実際に出かける',
@@ -203,7 +203,7 @@ export default function IntroPage({ loggedIn, onClose, onLogin, onOpenToday, onO
         <div className="lp-wrap lp-map-grid">
           <div className="lp-map-visual">
             <img className="lp-deco lp-deco-lotus" src={`${IMG}/lotus.webp`} alt="" aria-hidden="true" />
-            <Phone src="screen-map.webp" alt="奇門遁甲Zの地図の画面。8つの方位に色が付き、点数が出ている" />
+            <Phone src="screen-map.webp" alt="奇門遁甲Zの地図の画面。駅を探して、吉方位にある駅にピンが並んでいる" />
           </div>
           <div className="lp-map-copy">
             <h3 className="lp-h2 is-left">その方位には、何がある？</h3>
