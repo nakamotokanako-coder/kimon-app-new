@@ -25,6 +25,7 @@ import {
 import { isOverseas } from './geoRegion.js';
 import BearingControls from './BearingControls.jsx';
 import MapGuide, { hasSeenMapGuide, markMapGuideSeen } from './MapGuide.jsx';
+import { findPlaces, placeFromLink } from './placeSearch.js';
 import {
   FACILITY_PRESETS,
   MAP_SEARCH_STORAGE_KEY,
@@ -43,7 +44,6 @@ import {
   nominatimSearch,
   normalizeOverpassElements,
   overpassFetch,
-  pickNearestAddressCandidate,
   renameFavorite,
   sanitizeQuery,
 } from './mapSearch.js';
@@ -252,6 +252,7 @@ export default function DirectionMap({
   onGoodOnlyChange,
   onOpenDetail,          // 選んだ方位の詳しい内容（方位詳細）へ
   autoGuide = false,     // true: 初めて地図を開いたときに、説明書を1回だけ自動で出す
+  onSetBasePoint,        // ([経度, 緯度], 名前) → 探した場所を基準点にする
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   // フルスクリーン時の検索UI折りたたみ（時盤お散歩=jiban・日盤遠出=nichiban共通）。
@@ -279,6 +280,8 @@ export default function DirectionMap({
   const [needsAreaSearch, setNeedsAreaSearch] = useState(false);
   // 種類の検索: 速い検索の結果を先に出し、くわしい検索の結果があとから足される。その「あとから」を待っている間 true。
   const [moreSearching, setMoreSearching] = useState(false);
+  // 名前・住所で探したときの候補（複数あるとき。1つに決め打ちせず、選んでもらう）
+  const [candidates, setCandidates] = useState([]);
   const searchSeqRef = useRef(0);
   const [searchResults, setSearchResults] = useState([]);
   const [kichiOnlyPlaces, setKichiOnlyPlaces] = useState(false);
@@ -452,6 +455,7 @@ export default function DirectionMap({
   const clearPlaceMarkers = () => {
     setSearchResults([]);
     setSelectedPlace(null);
+    setCandidates([]);
   };
 
   const clearLiveLayer = () => {
@@ -563,25 +567,12 @@ export default function DirectionMap({
     return decorated;
   };
 
-  const runAddressSearch = async (word) => {
-    const text = sanitizeQuery(word);
-    setMapStatus(`${text}を住所・地名として検索しています。`);
-    const response = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(text)}`);
-    const data = await response.json();
-    const first = pickNearestAddressCandidate(data, center);
-    const coords = first?.geometry?.coordinates;
-    if (!coords) {
-      return null;
-    }
-    const place = decoratePlaces([{
-      id: `place-${coords[1]}-${coords[0]}`,
-      name: first.properties?.title || text,
-      latitude: Number(coords[1]),
-      longitude: Number(coords[0]),
-    }], center, rankings, bearingOptions)[0];
+  // 候補を1つ選んで、地図に出す（行き先として。基準点は変えない）
+  const choosePlace = (candidate) => {
+    const place = decoratePlaces([candidate], center, rankings, bearingOptions)[0];
     setSearchResults([]);
+    setCandidates([]);
     setSelectedPlace(place);
-    lastAreaSearchRef.current = null;
     setNeedsAreaSearch(false);
     const map = mapRef.current;
     if (map) {
@@ -592,6 +583,44 @@ export default function DirectionMap({
     }
     setMapStatus(`${place.name}を表示しました。出発点から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
     return place;
+  };
+
+  // 名前・住所・地図のリンクで探す（日本全国）。
+  //   1. Googleマップのリンクや座標なら、その場所をそのまま出す
+  //   2. 名前なら、まず今の地図の中を探す（「スターバックス」のように近くに何件もあるもの）
+  //   3. 地図の中に無ければ、日本全国から探して、候補を最大5件出す
+  const runNameSearch = async (text) => {
+    const linked = await placeFromLink(text);
+    if (linked?.place) {
+      lastAreaSearchRef.current = null;
+      choosePlace(linked.place);
+      return;
+    }
+    const word = linked ? sanitizeQuery(linked.query) : text;
+    if (!word) {
+      lastAreaSearchRef.current = null;
+      setMapStatus('このリンクからは、場所を読み取れませんでした。住所を入れて探してください。');
+      return;
+    }
+    if (!linked && classifyQuery(word) === 'poi') {
+      const inView = await runPoiSearch(word).catch(() => []);
+      if (inView.length >= 2) return;
+      setSearchResults([]);
+    }
+    lastAreaSearchRef.current = { type: 'name', word };
+    setNeedsAreaSearch(false);
+    setMapStatus(`${word}を全国から探しています。`);
+    const found = await findPlaces(word, { center });
+    if (found.length === 0) {
+      setMapStatus(`${word}は見つかりませんでした。`);
+      return;
+    }
+    if (found.length === 1) {
+      choosePlace(found[0]);
+      return;
+    }
+    setCandidates(found);
+    setMapStatus('候補が見つかりました。行きたい場所を選んでください。');
   };
 
   const buildSearchError = (error) => ({
@@ -610,21 +639,17 @@ export default function DirectionMap({
     searchSeqRef.current += 1;
     setMoreSearching(false);
     try {
-      const preset = findFacilityPreset(text);
+      // 種類の検索にするのは、「カフェ」「駅」のように種類の言葉そのものを入れたときだけ。
+      // 「京都駅」「東京駅」のような名前は、名前として全国から探す（前は「駅」を含むだけで種類の検索になっていた）。
+      const matched = findFacilityPreset(text);
+      const word = text.toLowerCase();
+      const preset = matched && (matched.label === text || matched.keywords.some((keyword) => keyword.toLowerCase() === word))
+        ? matched
+        : null;
       if (preset) {
         await runFacilitySearch(text, preset);
-      } else if (classifyQuery(text) === 'address') {
-        const place = await runAddressSearch(text);
-        if (!place) {
-          const poiResults = await runPoiSearch(text);
-          if (!poiResults.length) setMapStatus(`${text}は見つかりませんでした。市区町村名や施設名を足して再検索してください。`);
-        }
       } else {
-        const poiResults = await runPoiSearch(text);
-        if (!poiResults.length) {
-          const place = await runAddressSearch(text);
-          if (!place) setMapStatus(`${text}は見つかりませんでした。市区町村名や施設名を足して再検索してください。`);
-        }
+        await runNameSearch(text);
       }
     } catch (error) {
       setMapError(buildSearchError(error));
@@ -804,7 +829,7 @@ export default function DirectionMap({
         suppressAreaPromptRef.current = false;
         return;
       }
-      if (lastAreaSearchRef.current) setNeedsAreaSearch(true);
+      if (lastAreaSearchRef.current && lastAreaSearchRef.current.type !== 'name') setNeedsAreaSearch(true);
     };
     map.on('moveend zoomend', handleMoveEnd);
     return () => {
@@ -1238,7 +1263,9 @@ export default function DirectionMap({
         // 探した言葉で結果を出せなかったとき（混雑で失敗・0件）は、Googleマップで探すリンクを出す。
         const lastWord = lastAreaSearchRef.current?.word || '';
         const showOutsideLink = !mapSearching && lastWord
+          && candidates.length === 0
           && (mapError || (visibleSearchResults.length === 0 && !selectedPlace));
+        const nameNotFound = showOutsideLink && lastAreaSearchRef.current?.type === 'name';
         const outsideCenter = (() => {
           if (!showOutsideLink) return null;
           if (selectedItem) {
@@ -1274,6 +1301,23 @@ export default function DirectionMap({
               </p>
             )}
             {moreSearching && <p className="direction-map-status is-more">ほかにもないか、さらに探しています…</p>}
+            {candidates.length > 0 && (
+              <ul className="direction-candidates" aria-label="検索の候補">
+                {candidates.map((candidate) => (
+                  <li key={candidate.id}>
+                    <button type="button" onClick={() => choosePlace(candidate)}>
+                      <strong>{candidate.name}</strong>
+                      {candidate.label && <small>{candidate.label}</small>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {nameNotFound && (
+              <p className="direction-map-status">
+                お店の名前では出ないことがあります。住所を入れるか、Googleマップでその場所を開いて「共有」のリンクをコピーし、この検索の欄に貼り付けてください。
+              </p>
+            )}
             {outsideUrl && (
               <a className="direction-map-outside" href={outsideUrl} target="_blank" rel="noopener noreferrer">
                 Googleマップで{selectedItem ? `${selectedItem.label}の` : 'この辺りの'}{lastWord}を探す ↗
@@ -1488,6 +1532,15 @@ export default function DirectionMap({
                 <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
               </div>
               <p className="direction-place-hint">☆ を押すと、お気に入りに登録できます。</p>
+              {selectedPlace && onSetBasePoint && (
+                <button
+                  type="button"
+                  className="direction-place-base"
+                  onClick={() => onSetBasePoint([selectedPlace.longitude, selectedPlace.latitude], selectedPlace.name)}
+                >
+                  ここを基準点にする（ここから見た方位に切り替える）
+                </button>
+              )}
               {(selectedPlace ? [{ item: selectedPlace, markerNo: null }] : numberedSearchResults).map(({ item, markerNo }) => {
                 const subLabel = placeSubLabel(item);
                 const isSaved = favorites.some((fav) => favoriteKey(fav) === favoriteKey(item));
