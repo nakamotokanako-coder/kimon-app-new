@@ -58,7 +58,7 @@ describe('奇門三盤ルート 本実装画面', () => {
 
   it('期間・足切り点数・検索ボタンが含まれている', () => {
     expect(sanbanRouteViewSrc).toMatch(/1ヶ月/);
-    expect(sanbanRouteViewSrc).toMatch(/足切り点数/);
+    expect(sanbanRouteViewSrc).toMatch(/何点以上でつなぐか/);
     expect(sanbanRouteViewSrc).toMatch(/検索する/);
   });
 
