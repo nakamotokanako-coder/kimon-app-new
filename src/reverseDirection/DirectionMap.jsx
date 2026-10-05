@@ -196,6 +196,19 @@ function placeNumberLabel(number) {
   return ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'][number] || String(number);
 }
 
+export const DISTANCE_STORAGE_PREFIX = 'kimon-map-distance-';
+
+/** 前に選んだ距離（その盤の選択肢にあるものだけ）。無ければ null */
+export function readSavedDistance(profileKey) {
+  try {
+    const km = Number(window.localStorage.getItem(`${DISTANCE_STORAGE_PREFIX}${profileKey}`));
+    const choices = DISTANCE_CHOICES[profileKey] || DISTANCE_CHOICES.jiban;
+    return choices.includes(km) ? km : null;
+  } catch {
+    return null;
+  }
+}
+
 function favoritePayload(place, kind = favoriteKind(place)) {
   return {
     name: place.name,
@@ -288,7 +301,8 @@ export default function DirectionMap({
   const [selectedPlace, setSelectedPlace] = useState(null);
   // 選んだ方位のパネルで選んでいる場所の種類と、距離の切り替え
   const [panelCategory, setPanelCategory] = useState('カフェ');
-  const [distanceKm, setDistanceKm] = useState(null);
+  // 選んだ距離は覚えておく（時盤と日盤で別々に。次に開いたときも同じ距離で探す）
+  const [distanceKm, setDistanceKm] = useState(() => readSavedDistance(profileKey));
   const onSelectPalaceRef = useRef(onSelectPalace);
   onSelectPalaceRef.current = onSelectPalace;
   const [editingFavoriteKey, setEditingFavoriteKey] = useState(null);
@@ -323,8 +337,16 @@ export default function DirectionMap({
         // 読めないときは今の表示のまま
       }
     };
+    // 設定の画面でお気に入りを消したときも、地図の一覧を合わせる
+    const handleChanged = (event) => {
+      if (Array.isArray(event.detail)) setFavorites(event.detail);
+    };
     window.addEventListener('kimon-userdata-synced', handleSynced);
-    return () => window.removeEventListener('kimon-userdata-synced', handleSynced);
+    window.addEventListener(MAP_SEARCH_CHANGED_EVENT, handleChanged);
+    return () => {
+      window.removeEventListener('kimon-userdata-synced', handleSynced);
+      window.removeEventListener(MAP_SEARCH_CHANGED_EVENT, handleChanged);
+    };
   }, []);
   const mapRef = useRef(null);
   const mapNodeRef = useRef(null);
@@ -662,6 +684,11 @@ export default function DirectionMap({
   // 距離を切り替える: 基準点からその距離までが入るように地図を合わせる。
   const fitDistance = (km) => {
     setDistanceKm(km);
+    try {
+      window.localStorage.setItem(`${DISTANCE_STORAGE_PREFIX}${profileKey}`, String(km));
+    } catch {
+      // 保存できなくても、この画面では切り替わる
+    }
     const map = mapRef.current;
     if (!map) return;
     map.fitBounds(L.latLng(center[0], center[1]).toBounds(km * 2000), { animate: false });
