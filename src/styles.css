@@ -12166,3 +12166,52 @@ p.saikyo-annual-note.is-open {
   color: var(--text-danger);
   font-weight: 600;
 }
+
+/* 地図: 選んだ場所の距離が、今の盤の目安と合わないときの案内 */
+.direction-mode-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.direction-mode-hint button,
+.ctrl-state button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 4px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 盤: 今の盤か、指定した日時の盤か */
+.ctrl-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.ctrl-state:not(.is-now) span {
+  color: var(--text-accent);
+  font-weight: 700;
+}

@@ -196,6 +196,21 @@ function placeNumberLabel(number) {
   return ['', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'][number] || String(number);
 }
 
+/** 近場（時盤）と遠出（日盤）の目安の境目 */
+export const FAR_TRIP_M = 50000;
+
+/** 選んだ場所の距離が、今の盤の目安と合わないときの案内。合っていれば null */
+export function modeHintFor(profileKey, distanceM) {
+  if (!Number.isFinite(distanceM)) return null;
+  if (profileKey === 'jiban' && distanceM >= FAR_TRIP_M) {
+    return { text: '遠出は、日盤で見るのが目安です。', cta: '日盤で見る' };
+  }
+  if (profileKey === 'nichiban' && distanceM < FAR_TRIP_M) {
+    return { text: '近場は、時盤で見るのが目安です。', cta: '時盤で見る' };
+  }
+  return null;
+}
+
 export const DISTANCE_STORAGE_PREFIX = 'kimon-map-distance-';
 
 /** 前に選んだ距離（その盤の選択肢にあるものだけ）。無ければ null */
@@ -260,6 +275,9 @@ export default function DirectionMap({
   // 選んでいる方位（ユーザーが押した方位）。bestPalace（一番評価の高い方位）とは別に持つ。
   selectedPalace = null,
   onSelectPalace,
+  // 選んだ場所を、もう一方の盤（時盤⇔日盤）で見るとき。carryPlace は、そこから引き継いだ場所
+  onSeeInOtherMode,
+  carryPlace = null,
   conditionLabel = '',   // 選んだ方位のパネルに小さく出す条件（例: 17:00-19:00 の時盤）
   goodOnly,              // 設定「凶方位の表示」の逆（渡されたときは「吉方位のみ表示」と連動する）
   onGoodOnlyChange,
@@ -606,6 +624,16 @@ export default function DirectionMap({
     setMapStatus(`${place.name}を表示しました。出発点から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
     return place;
   };
+
+  // もう一方の盤から引き継いだ場所を、この地図でも選んだ状態にする
+  const choosePlaceRef = useRef(choosePlace);
+  choosePlaceRef.current = choosePlace;
+  useEffect(() => {
+    if (!carryPlace) return undefined;
+    const timer = window.setTimeout(() => choosePlaceRef.current(carryPlace), 300);
+    return () => window.clearTimeout(timer);
+  }, [carryPlace]);
+  const otherModeHint = modeHintFor(profileKey, selectedPlace?.distanceM);
 
   // 名前・住所・地図のリンクで探す（日本全国）。
   //   1. Googleマップのリンクや座標なら、その場所をそのまま出す
@@ -1559,6 +1587,12 @@ export default function DirectionMap({
                 <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
               </div>
               <p className="direction-place-hint">☆ を押すと、お気に入りに登録できます。</p>
+              {selectedPlace && otherModeHint && onSeeInOtherMode && (
+                <p className="direction-mode-hint">
+                  <span>ここは出発点から約{formatDistance(selectedPlace.distanceM)}。{otherModeHint.text}</span>
+                  <button type="button" onClick={() => onSeeInOtherMode(selectedPlace)}>{otherModeHint.cta}</button>
+                </p>
+              )}
               {selectedPlace && onSetBasePoint && (
                 <button
                   type="button"

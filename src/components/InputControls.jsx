@@ -16,13 +16,26 @@ export default function InputControls({ date, hour, boardType, direction, onChan
     const slotHour = getJishinSlotHour(now);
     const boardDate = getBoardDate(now);
     const patch = {};
-    if (hour !== slotHour) patch.hour = slotHour;
+    if (boardType === '時' && hour !== slotHour) patch.hour = slotHour;
     if (date !== boardDate) patch.date = boardDate;
     if (Object.keys(patch).length > 0) onChange(patch);
   };
 
+  // 今の盤を見ているのか、日時を指定した盤を見ているのか
+  const nowRef = new Date();
+  const isNow = date === getBoardDate(nowRef) && (boardType !== '時' || hour === getJishinSlotHour(nowRef));
+  const stateText = boardType === '時'
+    ? (isNow ? '今の時盤を見ています' : '指定した日時の時盤を見ています')
+    : (isNow ? '今日の日盤を見ています' : '指定した日の日盤を見ています');
+
   return (
     <div className="input-controls">
+      <p className={`ctrl-state${isNow ? ' is-now' : ''}`} role="status">
+        <span>{stateText}</span>
+        {!isNow && !dateLocked && (
+          <button type="button" onClick={handleNow}>{boardType === '時' ? '今に戻す' : '今日に戻す'}</button>
+        )}
+      </p>
       <label className={`ctrl ctrl-date ${boardType === '日' ? 'is-emphasis' : 'is-muted'}`}>
         <span>日付</span>
         <input
