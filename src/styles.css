@@ -11095,6 +11095,29 @@ p.saikyo-annual-note.is-open {
   justify-items: center;
 }
 
+/* 地図の画面と、方位を選んだあとの画面を、2台並べて見せる */
+.lp-phones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  width: min(100%, 440px);
+}
+
+.lp-phones .lp-phone {
+  width: 100%;
+  padding: 6px;
+  border-radius: 26px;
+}
+
+.lp-phones .lp-phone img {
+  border-radius: 21px;
+}
+
+.lp-phones .lp-phone.is-second {
+  margin-top: 36px;
+}
+
 .lp-deco-lotus {
   bottom: -4%;
   left: 2%;

@@ -97,7 +97,7 @@ describe('紹介ページの中身', () => {
       expect(existsSync(`public${file}`), file).toBe(true);
     }
     // アプリの画面は、実際の画面を撮ったもの（スマホの枠に入れて見せる）
-    expect([...container.querySelectorAll('.lp-phone img')].map((img) => img.getAttribute('src'))).toEqual(['/lp/screen-home.webp', '/lp/screen-map.webp']);
+    expect([...container.querySelectorAll('.lp-phone img')].map((img) => img.getAttribute('src'))).toEqual(['/lp/screen-home.webp', '/lp/screen-map.webp', '/lp/screen-spots.webp']);
     expect(STEPS.map((s) => s.image)).toEqual(['step-date.webp', 'step-reason.webp', 'step-map.webp', 'spot-shrine.webp']);
   });
 

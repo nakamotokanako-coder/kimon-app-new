@@ -42,7 +42,7 @@ export const STEPS = [
     title: '吉の理由がわかる',
     body: 'ご縁・仕事・金運・健康・勉強。目的に合わせて、吉の理由を読めます。',
     image: 'step-reason.webp',
-    alt: '方位の点数と、テーマ別の相性が並ぶ画面',
+    alt: '方位の点数と、ご縁・仕事・金運・健康・勉強の評価、ご縁の読みが出ている画面',
   },
   {
     title: '地図で探す',
@@ -203,7 +203,10 @@ export default function IntroPage({ loggedIn, onClose, onLogin, onOpenToday, onO
         <div className="lp-wrap lp-map-grid">
           <div className="lp-map-visual">
             <img className="lp-deco lp-deco-lotus" src={`${IMG}/lotus.webp`} alt="" aria-hidden="true" />
-            <Phone src="screen-map.webp" alt="奇門遁甲Zの地図の画面。駅を探して、吉方位にある駅にピンが並んでいる" />
+            <div className="lp-phones">
+              <Phone src="screen-map.webp" alt="奇門遁甲Zの地図の画面。駅を探して、吉方位にある駅にピンが並んでいる" />
+              <Phone src="screen-spots.webp" alt="方位を選ぶと出る画面。南東にある場所を、種類を選んで探せる" className="is-second" />
+            </div>
           </div>
           <div className="lp-map-copy">
             <h3 className="lp-h2 is-left">その方位には、何がある？</h3>
