@@ -9,7 +9,7 @@ const read = (file) => fs.readFileSync(path.join(__dirname, '..', 'src', file), 
 const reverseSrc = read('reverseDirection/ReverseDirectionView.jsx');
 const mapSrc = read('reverseDirection/DirectionMap.jsx');
 
-describe('出発点ピッカー（吉方位GO）', () => {
+describe('基準点ピッカー（吉方位GO）', () => {
   it('現在地常時・🏠拠点開・⭐お気に入り閉(内部スクロール)・住所検索 の構成を持つ', () => {
     expect(reverseSrc).toContain('basePointPicker');
     expect(reverseSrc).toContain('kiten-pick-now');
@@ -22,7 +22,7 @@ describe('出発点ピッカー（吉方位GO）', () => {
     expect(reverseSrc).toContain('const [spotGroupOpen, setSpotGroupOpen] = useState(false)');
   });
 
-  it('home/spot で出発点リストを分け、選択は favorite モードで保存経路に乗る', () => {
+  it('home/spot で基準点リストを分け、選択は favorite モードで保存経路に乗る', () => {
     expect(reverseSrc).toContain("favoriteKind(item) === 'home'");
     expect(reverseSrc).toContain("favoriteKind(item) !== 'home'");
     expect(reverseSrc).toContain('selectFavoriteBasePoint');

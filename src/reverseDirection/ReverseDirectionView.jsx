@@ -274,7 +274,7 @@ export default function ReverseDirectionView({
   const [dayShowFavoritesList, setDayShowFavoritesList] = useState(false);
   const [basePointEstablished, setBasePointEstablished] = useState(true);
   const [ctaSearchOpen, setCtaSearchOpen] = useState(false);
-  // 出発点ピッカーのグループ開閉（mock v9: 🏠拠点=開 / ⭐お気に入り=閉 / 住所検索=閉）
+  // 基準点ピッカーのグループ開閉（mock v9: 🏠拠点=開 / ⭐お気に入り=閉 / 住所検索=閉）
   const [homeGroupOpen, setHomeGroupOpen] = useState(true);
   const [spotGroupOpen, setSpotGroupOpen] = useState(false);
   const [addrSearchOpen, setAddrSearchOpen] = useState(false);
@@ -392,10 +392,10 @@ export default function ReverseDirectionView({
           },
           selectedFavoriteId: null,
         });
-        setStatus('現在地を出発点にしました。');
+        setStatus('現在地を基準点にしました。');
       },
       () => {
-        setStatus('現在地を取得できませんでした。前回の出発点を表示したままにしています。');
+        setStatus('現在地を取得できませんでした。前回の基準点を表示したままにしています。');
       },
       { timeout: 8000, enableHighAccuracy: false },
     );
@@ -424,7 +424,7 @@ export default function ReverseDirectionView({
       location: nextLocation,
       selectedFavoriteId: null,
     });
-    setStatus(`${nextLocation.name}を出発点にしました。`);
+    setStatus(`${nextLocation.name}を基準点にしました。`);
   }, []);
 
   useEffect(() => {
@@ -487,7 +487,7 @@ export default function ReverseDirectionView({
       setLocation(DEFAULT_LOCATIONS[0]);
       setCurrentMode('search');
       setSelectedFavoriteId(null);
-      setStatus('保存済みの出発点が見つからないため、東京を表示しています。');
+      setStatus('保存済みの基準点が見つからないため、東京を表示しています。');
       return;
     }
     setBasePointEstablished(true);
@@ -525,7 +525,7 @@ export default function ReverseDirectionView({
       const data = await res.json();
       const candidates = buildBasePointCandidates(data);
       setBasePointCandidates(candidates);
-      setStatus(candidates.length > 0 ? '候補から出発点を選んでください。' : '候補が見つかりませんでした。');
+      setStatus(candidates.length > 0 ? '候補から基準点を選んでください。' : '候補が見つかりませんでした。');
     } catch {
       setStatus('場所検索に失敗しました。時間をおいて再試行してください。');
     } finally {
@@ -551,10 +551,10 @@ export default function ReverseDirectionView({
       location: nextLocation,
       selectedFavoriteId: null,
     });
-    setStatus('選択した場所を出発点にしました。');
+    setStatus('選択した場所を基準点にしました。');
   };
 
-  // お気に入り/拠点を出発点に選ぶ。location と localStorage の反映は currentMode='favorite' の useEffect が行う。
+  // お気に入り/拠点を基準点に選ぶ。location と localStorage の反映は currentMode='favorite' の useEffect が行う。
   const selectFavoriteBasePoint = (favorite) => {
     if (!favorite) return;
     setBasePointCandidates([]);
@@ -564,7 +564,7 @@ export default function ReverseDirectionView({
     setBasePointOpen(false);
     setDayBasePointOpen(false);
     setRankingBasePointOpen(false);
-    setStatus(`${favoriteDisplayName(favorite)}を出発点にしました。`);
+    setStatus(`${favoriteDisplayName(favorite)}を基準点にしました。`);
   };
 
   const filterCard = (
@@ -618,7 +618,7 @@ export default function ReverseDirectionView({
         </button>
       </form>
       {basePointCandidates.length > 0 && (
-        <div className="kiten-candidates" role="listbox" aria-label="出発点候補">
+        <div className="kiten-candidates" role="listbox" aria-label="基準点候補">
           {basePointCandidates.map((candidate) => (
             <button
               key={candidate.id}
@@ -648,7 +648,7 @@ export default function ReverseDirectionView({
     </div>
   );
 
-  // 出発点ピッカー（mock v9）: 現在地常時 / 🏠拠点=開 / ⭐お気に入り=閉(内部スクロール) / 住所検索=閉
+  // 基準点ピッカー（mock v9）: 現在地常時 / 🏠拠点=開 / ⭐お気に入り=閉(内部スクロール) / 住所検索=閉
   const homeFavorites = favorites.filter((item) => favoriteKind(item) === 'home');
   const spotFavorites = favorites.filter((item) => favoriteKind(item) !== 'home');
 

@@ -621,7 +621,7 @@ export default function DirectionMap({
         maxZoom: profile.initialZoom + 2,
       });
     }
-    setMapStatus(`${place.name}を表示しました。出発点から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
+    setMapStatus(`${place.name}を表示しました。基準点から${formatDistance(place.distanceM)}、${place.direction?.label || '該当なし'}です。`);
     return place;
   };
 
@@ -993,7 +993,7 @@ export default function DirectionMap({
     const distanceLabel = formatDistance(distance);
     const directionLabel = livePlace?.direction?.label || '-';
     const score = livePlace?.direction?.score ?? 0;
-    setLiveStatus(`現在地: ${directionLabel} ${scoreText(score)} / 出発点から約${distanceLabel}`);
+    setLiveStatus(`現在地: ${directionLabel} ${scoreText(score)} / 基準点から約${distanceLabel}`);
 
     L.polyline([center, livePos], {
       color: lineColor,
@@ -1008,7 +1008,7 @@ export default function DirectionMap({
       weight: 2,
       fillColor: lineColor,
       fillOpacity: 1,
-    }).bindTooltip(`現在地 / 出発点から約${distanceLabel}`, { permanent: false }).addTo(live);
+    }).bindTooltip(`現在地 / 基準点から約${distanceLabel}`, { permanent: false }).addTo(live);
   }, [bearingOptions, bestPalace, center, liveOn, livePos, rankings]);
 
   useEffect(() => {
@@ -1162,7 +1162,7 @@ export default function DirectionMap({
         `<strong>${escapeHtml(item.name)}</strong>`,
         subLabel ? `<span>${escapeHtml(subLabel)}</span>` : '',
         `${escapeHtml(item.direction?.label || '-')} ${scoreText(item.direction?.score || 0)}`,
-        `出発点から約${formatDistance(item.distanceM)}`,
+        `基準点から約${formatDistance(item.distanceM)}`,
         isSaved
           ? '<button class="direction-popup-button" data-remove-favorite="1">お気に入りから削除</button>'
           : '<button class="direction-popup-button" data-add-favorite="1">お気に入りに追加</button>',
@@ -1381,7 +1381,7 @@ export default function DirectionMap({
             {searchForm}
             <div className="direction-map-filter">
               <button type="button" className="direction-map-guide-link" onClick={() => setGuideOpen(true)}>
-                ？ 説明書を見る
+                ？ 使い方ガイド
               </button>
               <span>吉方位のみ表示</span>
               <button
@@ -1554,7 +1554,7 @@ export default function DirectionMap({
                           {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
                           <small>
                             {subLabel ? '' : `${item.name} ・ `}
-                            出発点から約<span className="lat">{formatDistance(item.distanceM)}</span>
+                            基準点から約<span className="lat">{formatDistance(item.distanceM)}</span>
                           </small>
                         </span>
                         <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
@@ -1583,7 +1583,7 @@ export default function DirectionMap({
               <p className="direction-place-hint">☆ を押すと、お気に入りに登録できます。</p>
               {selectedPlace && otherModeHint && onSeeInOtherMode && (
                 <p className="direction-mode-hint">
-                  <span>ここは出発点から約{formatDistance(selectedPlace.distanceM)}。{otherModeHint.text}</span>
+                  <span>ここは基準点から約{formatDistance(selectedPlace.distanceM)}。{otherModeHint.text}</span>
                   <button type="button" onClick={() => onSeeInOtherMode(selectedPlace)}>{otherModeHint.cta}</button>
                 </p>
               )}
@@ -1610,7 +1610,7 @@ export default function DirectionMap({
                       <span>
                         <strong>{item.name}</strong>
                         {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
-                        <small>出発点から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
+                        <small>基準点から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
                       </span>
                       <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
                     </button>
@@ -1685,7 +1685,7 @@ export default function DirectionMap({
             </label>
             <p>{editingFavorite.name}</p>
             <label className="direction-favorite-home-toggle">
-              <span>{ic('🏠')} 拠点にする<small>出発点リストの上に表示</small></span>
+              <span>{ic('🏠')} 拠点にする<small>基準点リストの上に表示</small></span>
               <input
                 type="checkbox"
                 checked={favoriteKind(editingFavorite) === 'home'}
