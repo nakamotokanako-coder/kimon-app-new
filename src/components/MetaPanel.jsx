@@ -65,7 +65,6 @@ export default function MetaPanel({ meta, banLevel }) {
     <div className="meta-panel">
       <div className="meta-section">
         <div className="meta-section-title">
-          <span className="meta-kicker lat">board info</span>
           <h3 className="maru">盤情報</h3>
         </div>
         <MetaCardGrid rows={infoRows} />
@@ -73,7 +72,6 @@ export default function MetaPanel({ meta, banLevel }) {
 
       <div className="meta-section">
         <div className="meta-section-title">
-          <span className="meta-kicker lat">eto</span>
           <h3 className="maru">干支</h3>
         </div>
         <MetaCardGrid rows={etoRows} />
@@ -85,7 +83,6 @@ export default function MetaPanel({ meta, banLevel }) {
 
       <div className="meta-section">
         <div className="meta-section-title">
-          <span className="meta-kicker lat">board level</span>
           <h3 className="maru">盤レベル判定</h3>
         </div>
         <MetaCardGrid rows={banRows} emptyText="特になし" />

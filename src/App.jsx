@@ -195,7 +195,6 @@ export default function App() {
   // アイコンの切り替えは設定から外した（変わる場所が少なく、分かりにくかったため）。絵文字に固定する。
   const iconStyle = 'emoji';
   const [textSize, setTextSize] = useState(() => readStoredSetting('text-size', 'medium'));
-  const [omamoriReminder, setOmamoriReminder] = useState(() => readStoredBoolSetting('omamori-reminder'));
   const [favoriteBestNotify, setFavoriteBestNotify] = useState(() => readStoredBoolSetting('favorite-best-notify'));
   const [showBadDirections, setShowBadDirections] = useState(() => readStoredBoolSetting('show-bad-directions'));
   const [readNotificationIds, setReadNotificationIds] = useState(() => readStoredJsonArray(NOTIFICATION_READ_KEY));
@@ -260,9 +259,10 @@ export default function App() {
 
   // 通知の設定に応じたお知らせ（今日のお守り・お気に入りが最高方位）。タブを切り替えるたびに計算し直す。
   const dynamicNotices = useMemo(
-    () => computeDynamicNotices({ omamoriReminder, favoriteBestNotify }),
+    // お守りリマインドはやめた（ホームに「今日のお守り」の帯が出ているため）
+    () => computeDynamicNotices({ omamoriReminder: false, favoriteBestNotify }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [omamoriReminder, favoriteBestNotify, activeTab],
+    [favoriteBestNotify, activeTab],
   );
   const notifications = useMemo(() => [...dynamicNotices, ...NOTIFICATIONS], [dynamicNotices]);
 
@@ -624,21 +624,6 @@ export default function App() {
         <div className="settings-group-body">
           <div className="settings-row">
             <div>
-              <strong>お守りリマインド</strong>
-              <small>今日のお守りを見ていないとき、アプリを開くとお知らせします。</small>
-            </div>
-            <button
-              type="button"
-              className={`settings-switch${omamoriReminder ? ' is-on' : ''}`}
-              aria-pressed={omamoriReminder}
-              aria-label="お守りリマインド"
-              onClick={() => toggleSetting('omamori-reminder', setOmamoriReminder)(omamoriReminder)}
-            >
-              <span />
-            </button>
-          </div>
-          <div className="settings-row">
-            <div>
               <strong>お気に入り場所の通知</strong>
               <small>今の時間帯の最高方位にお気に入りがあるとき、アプリを開くとお知らせします。</small>
             </div>
@@ -773,7 +758,6 @@ export default function App() {
       {(activeTab === 'map' || activeTab === 'search') && limited && (
         <main className="locked-view">
           <section className="locked-card">
-            <span className="board-kicker lat">LUCKY DIRECTION</span>
             <h2 className="maru">吉方位</h2>
             <p>
               時盤お散歩・日盤遠出・ランキング・格局検索・地図での行き先探しは、ログインするとご利用いただけます。

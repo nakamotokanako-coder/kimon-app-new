@@ -6,7 +6,6 @@ export default function NotificationsView({ items, readIds, onRead, onBack }) {
       <section className="notifications-card">
         <div className="notifications-head">
           <div>
-            <span className="notifications-kicker lat">notifications</span>
             <h2 className="maru">お知らせ</h2>
             <p>新しくなったところや、使い方のヒントをお知らせします。</p>
           </div>

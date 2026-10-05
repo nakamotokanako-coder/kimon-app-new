@@ -1539,7 +1539,6 @@ export default function DirectionMap({
           {showFavoritesSection && decoratedFavorites.length > 0 && (
             <div className="direction-place-section">
               <div className="reverse-section-title">
-                <span className="reverse-section-kicker lat">favorites</span>
                 <h3 className="maru">お気に入り（<span className="lat">{decoratedFavorites.length}</span>）</h3>
               </div>
               <ScrollWindow className="direction-favorites-window">
@@ -1577,7 +1576,6 @@ export default function DirectionMap({
           {(selectedPlace || numberedSearchResults.length > 0) && (
             <div className="direction-place-section">
               <div className="reverse-section-title">
-                <span className="reverse-section-kicker lat">places</span>
                 <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
               </div>
               <p className="direction-place-hint">☆ を押すと、お気に入りに登録できます。</p>

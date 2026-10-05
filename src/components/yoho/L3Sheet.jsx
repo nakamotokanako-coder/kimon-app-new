@@ -105,7 +105,6 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
         <div className="l3-content">
           <div className="l3-header">
             <div className="dir-badge">
-              <span className="en">{best.short}</span>
               <span className="jp">{best.label}</span>
             </div>
             <div className="f-score metal lat">{scoreText(best.score)}</div>

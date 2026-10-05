@@ -755,7 +755,6 @@ export default function ReverseDirectionView({
     <div className="reverse-card reverse-location-card">
       <div className="reverse-card-title">
         <div>
-          <span className="reverse-section-kicker lat">base point</span>
           <h3 className="maru">基準点</h3>
         </div>
         <span>現在地 / 場所・地名検索</span>
@@ -812,7 +811,6 @@ export default function ReverseDirectionView({
   }) => (
     <div className="reverse-zone reverse-go-zone reverse-go-zone--nichiban">
       <div className="reverse-zone-title">
-        <span className="reverse-section-kicker lat">go</span>
         <h3 className="maru">出かける場所を探す</h3>
       </div>
 
@@ -890,7 +888,6 @@ export default function ReverseDirectionView({
 
       <div className="reverse-timeline">
         <div className="reverse-section-title">
-          <span className="reverse-section-kicker lat">today's best</span>
           <h3 className="maru">{isTimeToday ? '本日の時間帯別ベスト' : `${formatDisplayDate(date)} の時間帯別ベスト`}</h3>
         </div>
         <p className="tsl-lead"><Ja>時間帯を押すと、その時間の8方位を比べて、地図で行き先を探せます。</Ja></p>
@@ -924,7 +921,6 @@ export default function ReverseDirectionView({
             </>
           ) : (
             <>
-              <span className="reverse-kicker lat">lucky direction</span>
               <h2 className="maru">吉方位</h2>
             </>
           )}
@@ -1148,7 +1144,6 @@ export default function ReverseDirectionView({
           {/* 日盤の「この日の方位ランキング」と同じ一覧を、時盤にも出す（今の時間帯の8方位） */}
           <div className="reverse-timeline">
             <div className="reverse-section-title">
-              <span className="reverse-section-kicker lat">time ranking</span>
               <h3 className="maru">この時間の方位ランキング</h3>
             </div>
             {visibleRankings.length === 0 && (
@@ -1277,7 +1272,6 @@ export default function ReverseDirectionView({
 
               <div className="reverse-timeline">
                 <div className="reverse-section-title">
-                  <span className="reverse-section-kicker lat">day ranking</span>
                   <h3 className="maru">この日の方位ランキング</h3>
                 </div>
                 {dayVisibleRankings.map((item, index) => (
