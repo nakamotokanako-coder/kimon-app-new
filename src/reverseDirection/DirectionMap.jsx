@@ -24,6 +24,7 @@ import {
 } from './mapFan.js';
 import { isOverseas } from './geoRegion.js';
 import BearingControls from './BearingControls.jsx';
+import MapGuide from './MapGuide.jsx';
 import {
   FACILITY_PRESETS,
   MAP_SEARCH_STORAGE_KEY,
@@ -261,6 +262,7 @@ export default function DirectionMap({
   // 地図中心インジケータ: 基準点→地図中心の方位・距離・吉凶（moveend/zoomendで更新）。
   const [centerOffset, setCenterOffset] = useState(null);
   const [bearingPanelOpen, setBearingPanelOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [mapQuery, setMapQuery] = useState('');
   const [mapStatus, setMapStatus] = useState('');
   const [mapError, setMapError] = useState(null);
@@ -1159,6 +1161,11 @@ export default function DirectionMap({
             <span>{profile.note[1]}</span>
           </div>
         )}
+        {!isFullscreen && (
+          <button type="button" className="direction-map-action direction-map-guide-button" onClick={() => setGuideOpen(true)}>
+            ？ 使い方
+          </button>
+        )}
         <button
           type="button"
           className={`direction-map-action direction-map-live-action ${liveOn ? 'is-active' : ''}`}
@@ -1473,22 +1480,35 @@ export default function DirectionMap({
                 <span className="reverse-section-kicker lat">places</span>
                 <h3 className="maru">{selectedPlace ? '検索した場所' : '検索結果'}</h3>
               </div>
+              <p className="direction-place-hint">☆ を押すと、お気に入りに登録できます。</p>
               {(selectedPlace ? [{ item: selectedPlace, markerNo: null }] : numberedSearchResults).map(({ item, markerNo }) => {
                 const subLabel = placeSubLabel(item);
+                const isSaved = favorites.some((fav) => favoriteKey(fav) === favoriteKey(item));
                 return (
-                  <button key={favoriteKey(item)} type="button" className={`direction-place-row ${markerNo ? 'is-numbered' : ''}`} onClick={() => showPlace(item)}>
-                    {markerNo ? (
-                      <span className={`direction-place-number ${toneClass(item.direction?.tone)}`}>{placeNumberLabel(markerNo)}</span>
-                    ) : (
-                      <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
-                    )}
-                    <span>
-                      <strong>{item.name}</strong>
-                      {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
-                      <small>出発点から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
-                    </span>
-                    <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
-                  </button>
+                  <div key={favoriteKey(item)} className="direction-place-row is-editable">
+                    <button type="button" className={`direction-place-main ${markerNo ? 'is-numbered' : ''}`} onClick={() => showPlace(item)}>
+                      {markerNo ? (
+                        <span className={`direction-place-number ${toneClass(item.direction?.tone)}`}>{placeNumberLabel(markerNo)}</span>
+                      ) : (
+                        <span className={`direction-place-dot ${toneClass(item.direction?.tone)}`} />
+                      )}
+                      <span>
+                        <strong>{item.name}</strong>
+                        {subLabel && <small className="direction-place-sublabel">{subLabel}</small>}
+                        <small>出発点から約<span className="lat">{formatDistance(item.distanceM)}</span></small>
+                      </span>
+                      <b>{item.direction?.label || '-'} <span className="lat">{scoreText(item.direction?.score || 0)}</span></b>
+                    </button>
+                    <button
+                      type="button"
+                      className={`direction-place-edit direction-place-star${isSaved ? ' is-on' : ''}`}
+                      aria-pressed={isSaved}
+                      aria-label={isSaved ? `${item.name}をお気に入りから外す` : `${item.name}をお気に入りに登録`}
+                      onClick={() => (isSaved ? removeFavorite(item) : addFavorite(item))}
+                    >
+                      {isSaved ? '★' : '☆'}
+                    </button>
+                  </div>
                 );
               })}
             </div>
@@ -1533,6 +1553,7 @@ export default function DirectionMap({
         <span><i className="legend-swatch tone-neutral" />中立</span>
         <span><i className="legend-swatch tone-bad" />凶</span>
       </div>
+      {guideOpen && <MapGuide onClose={() => setGuideOpen(false)} />}
       {editingFavorite && (
         <div className="direction-favorite-modal" role="dialog" aria-modal="true" aria-label="お気に入りの編集">
           <div className="direction-favorite-sheet">

@@ -10773,3 +10773,66 @@ p.saikyo-annual-note.is-open {
 .direction-poi-pin.is-numbered span {
   font-size: 10px;
 }
+
+/* 地図の使い方（src/reverseDirection/MapGuide.jsx）と、検索結果の ☆ */
+.map-guide-list,
+.map-guide-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-guide-steps {
+  padding-left: 1.4em;
+  list-style: decimal;
+}
+
+.map-guide-list li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.map-guide-list .legend-swatch {
+  justify-self: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.map-guide-pin {
+  display: grid;
+  place-items: center;
+  height: 34px;
+}
+
+.map-guide b {
+  color: var(--text-primary);
+}
+
+.direction-place-main.is-numbered {
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+}
+
+.direction-place-star {
+  min-width: 44px;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+}
+
+.direction-place-star.is-on {
+  color: var(--accent);
+}
+
+.direction-place-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.direction-place-row.is-editable:has(.direction-place-star) {
+  grid-template-columns: minmax(0, 1fr) 44px;
+}

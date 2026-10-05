@@ -558,3 +558,44 @@ describe('DirectionMap 種類の検索（カフェなど）が混んでいて失
     expect(screen.queryByRole('link', { name: /Googleマップ/ })).toBe(null);
   });
 });
+
+describe('DirectionMap 初めての人向けの案内（使い方・☆でお気に入り）', () => {
+  afterEach(() => { vi.unstubAllGlobals(); window.localStorage.clear(); });
+
+  it('「？ 使い方」で、色とピンの意味・お気に入りの登録のしかたを開ける', () => {
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+    fireEvent.click(screen.getByRole('button', { name: '？ 使い方' }));
+    const guide = screen.getByRole('dialog', { name: '地図の使い方' });
+    expect(within(guide).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+      '方位の色', 'ピンの色と数字', 'お気に入りに登録する', '拠点にする', 'そのほかのボタン',
+    ]);
+    expect(guide.textContent).toContain('赤いピン：凶方位にある場所');
+    expect(guide.textContent).toContain('青いピン：吉方位にある場所');
+    // 見本のピンは、実際の地図と同じ見た目
+    expect(guide.querySelectorAll('.direction-poi-pin')).toHaveLength(4);
+    fireEvent.click(within(guide).getAllByRole('button', { name: '閉じる' })[0]);
+    expect(screen.queryByRole('dialog', { name: '地図の使い方' })).toBe(null);
+  });
+
+  it('検索結果の一覧の ☆ で、お気に入りに登録・解除できる', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (String(url).startsWith('/api/overpass')) return { ok: false, status: 502 };
+      return { ok: true, json: async () => [{ lat: '35.69', lon: '139.767', name: 'カフェ パウリスタ', osm_type: 'node', osm_id: 1 }] };
+    }));
+    render(<DirectionMap location={LOCATION} rankings={EIGHT} bestPalace="gon" profileKey="jiban" />);
+    fireEvent.click(within(document.querySelector('.direction-map-chips')).getByRole('button', { name: 'カフェ' }));
+    const star = await screen.findByRole('button', { name: 'カフェ パウリスタをお気に入りに登録' });
+    expect(screen.getByText('☆ を押すと、お気に入りに登録できます。')).toBeTruthy();
+    expect(star.textContent).toBe('☆');
+
+    fireEvent.click(star);
+    const saved = JSON.parse(window.localStorage.getItem('kimon_map_favorites_v1'));
+    expect(saved.map((f) => f.name)).toEqual(['カフェ パウリスタ']);
+    const on = screen.getByRole('button', { name: 'カフェ パウリスタをお気に入りから外す' });
+    expect(on.textContent).toBe('★');
+
+    fireEvent.click(on);
+    expect(JSON.parse(window.localStorage.getItem('kimon_map_favorites_v1'))).toEqual([]);
+  });
+});
