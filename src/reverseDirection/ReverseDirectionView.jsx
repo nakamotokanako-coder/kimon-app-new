@@ -1284,7 +1284,7 @@ export default function ReverseDirectionView({
               </div>
 
               <div className="reverse-card reverse-aux-card">
-                <p><strong>補助</strong>：出発の瞬間は時盤の吉方位を5〜10分取ってから出発（本格作法）。</p>
+                <p><strong>補助</strong>：出発するときは、まず時盤の吉方位へ5〜10分進んでから向かいます。</p>
               </div>
             </>
           )}

@@ -66,10 +66,9 @@ export const DISTANCE_PROFILE = {
     confirmKm: 0.5,
     fadeMaxKm: 10,
     initialZoom: 13,
-    caption: '500m以上＋5分滞在で効果（効果5日）。500mの確定ゾーンが濃く、外側は10kmまで薄くフェード表示。',
-    note: ['500m 確定ライン', '外側は10kmまでフェード表示'],
+    caption: '500m以上＋5分滞在で効果（効果5日）。地図の色は、近いほど濃くしています。',
     scaleTitle: '時盤の距離：内が濃い → 外が薄い',
-    scaleNote: '徒歩5分≒400m。500m未満は近すぎ。確定ゾーンを出ると効果が薄れる＝外ほど淡く。',
+    scaleNote: '徒歩5分は、およそ400mです。500m未満は近すぎ。遠くなるほど効果が薄れます。',
     fadeBands: [
       { from: 0, to: 0.5, op: 0.55 },
       { from: 0.5, to: 2, op: 0.40 },
@@ -78,13 +77,13 @@ export const DISTANCE_PROFILE = {
       { from: 7, to: 10, op: 0.10 },
     ],
     rings: [
-      { km: 0.5, label: '500m 確定' },
+      { km: 0.5, label: '500m' },
       { km: 10, label: '10km' },
     ],
     ruler: [
       { x: 0, w: 5, op: 0.9, label: '0', bottom: '起点' },
-      { x: 5, w: 20, op: 0.7, label: '500m', bottom: '確定ライン' },
-      { x: 25, w: 75, op: 0.3, label: '', bottom: '10kmへフェード' },
+      { x: 5, w: 20, op: 0.7, label: '500m', bottom: '' },
+      { x: 25, w: 75, op: 0.3, label: '', bottom: '10kmまで' },
     ],
   },
   nichiban: {
@@ -92,10 +91,9 @@ export const DISTANCE_PROFILE = {
     confirmKm: 50,
     fadeMaxKm: 250,
     initialZoom: 7,
-    caption: '50km以上＋3時間滞在で効果（効果60日）。50km未満は近すぎ＝薄く、遠いほど効果が増すので外ほど濃い（時盤と逆）。',
-    note: ['50km 有効ライン', '遠いほど濃い反転フェード'],
+    caption: '50km以上＋3時間滞在で効果（効果60日）。50km未満は近すぎ、遠いほど効果が増します。地図の色は、遠いほど濃くしています。',
     scaleTitle: '日盤の距離：内が薄い → 外が濃い',
-    scaleNote: '日帰り行軍≒39km、50kmで無難、50〜100km以上が理想。直線距離で測る。',
+    scaleNote: '50kmで無難、50〜100km以上が理想です。直線距離で測ります。',
     fadeBands: [
       { from: 0, to: 50, op: 0.10 },
       { from: 50, to: 100, op: 0.28 },
@@ -103,13 +101,13 @@ export const DISTANCE_PROFILE = {
       { from: 160, to: 250, op: 0.55 },
     ],
     rings: [
-      { km: 50, label: '50km 有効ライン' },
+      { km: 50, label: '50km' },
       { km: 100, label: '100km' },
       { km: 200, label: '200km' },
     ],
     ruler: [
       { x: 0, w: 20, op: 0.12, label: '0', bottom: '近すぎ' },
-      { x: 20, w: 20, op: 0.30, label: '50km', bottom: '有効ライン' },
+      { x: 20, w: 20, op: 0.30, label: '50km', bottom: '' },
       { x: 40, w: 30, op: 0.45, label: '100km', bottom: '' },
       { x: 70, w: 30, op: 0.60, label: '200km〜', bottom: '遠いほど強' },
     ],
