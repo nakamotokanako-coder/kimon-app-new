@@ -98,7 +98,6 @@ export default function FusionCard({
   selAxis = 'goen',
   onAxisChange,
   onGoToSearch,
-  emptyNote = '吉のみ表示中です。凶も見ると全方位を確認できます。',
 }) {
   const [isL3Open, setIsL3Open] = useState(false);
   const palace = best?.palace || null;
@@ -111,7 +110,7 @@ export default function FusionCard({
         <div className="f-top">
           <div className="f-meta">
             <div className="f-tags">該当なし</div>
-            <div className="f-tags" style={{ opacity: 0.7 }}>{emptyNote}</div>
+            <div className="f-tags" style={{ opacity: 0.7 }}>吉のみ表示中です。凶も見ると全方位を確認できます。</div>
           </div>
         </div>
       </div>

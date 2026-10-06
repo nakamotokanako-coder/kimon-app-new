@@ -17,6 +17,7 @@ import { BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
 import { GATE_ICONS, THEME_MARKS } from '../reverseDirection/CompassWheel.jsx';
 import { DEFAULT_LOCATIONS } from '../reverseDirection/locations.js';
 import { lockedMessage } from '../../lib/accessPolicy.js';
+import { THEMES } from '../reverseDirection/themeSearch.js';
 
 // ホーム画面。役割は「今日の私に必要なことを、ひと目で伝える」。
 //   上: 今から使える吉方位（今の時盤の最高方位。基準点の経度で自然時補正）→ 地図へ
@@ -113,6 +114,7 @@ export default function HomeView({
   onOpenNotifications,
   onGoMap,
   onGoSearch,
+  onGoTheme,
   onOpenBoard,
   onOpenGuide,
   onLogin,
@@ -221,6 +223,14 @@ export default function HomeView({
               <b aria-hidden="true">→</b>
             </button>
           ))}
+        </div>
+        <div className="home-theme">
+          <p className="home-theme-title">目的で選ぶ</p>
+          <div className="theme-picker-chips">
+            {THEMES.map((item) => (
+              <button key={item.key} type="button" onClick={() => (limited ? onLogin() : onGoTheme?.(item.key))}>{item.label}</button>
+            ))}
+          </div>
         </div>
         <div className="home-more">
           <button type="button" onClick={onOpenGuide}>使い方ガイド <span aria-hidden="true">›</span></button>

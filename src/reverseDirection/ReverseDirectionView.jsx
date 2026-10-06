@@ -10,6 +10,7 @@ import { getCharm } from '../kimon/charm.js';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import TimeSlotList from './TimeSlotList.jsx';
+import ThemeBestView from './ThemeBestView.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import BasePointBar from '../components/yoho/BasePointBar.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
@@ -35,7 +36,6 @@ import {
 } from './mapSearch.js';
 import { DEFAULT_LOCATIONS } from './locations.js';
 import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
-import { THEMES, themeLabel, rankingsForTheme, timelineForTheme, nextSlotForTheme } from './themeSearch.js';
 
 // 画面の見出し。機能の名前ではなく使い方で呼び、専門の名前（tech）は小さく添える。
 // variant（'map' = 地図タブ / 'search' = 探すタブ）が渡されたときに使う。
@@ -43,6 +43,7 @@ export const MODE_TITLES = {
   time: { title: '今から吉方位へ', lead: '今いる場所から、今の時間の吉方位へ。散歩・カフェ・買い物など、日常の小さな移動に。', tech: '時盤を使用' },
   day: { title: '次の休み、どこへ行く？', lead: '日付を選ぶと、その日の8方位を比較。一番良い方位から旅先を探せます。', tech: '日盤を使用' },
   ranking: { title: 'この方位、いつ行く？', lead: '行きたい方位を選ぶと、良い日がわかります。全方位から探すこともできます。', tech: '日盤ランキング｜遠出 50km〜' },
+  theme: { title: '目的で選ぶ', lead: '目的を選ぶと、いつ・どの方位が一番向くかがわかります。', tech: '時盤・日盤' },
   timeRanking: { title: '今日の時間帯から探す', lead: '今日のどの時間帯に、どの方位が良いかを一覧で見られます。', tech: '時盤ランキング' },
   kakkyoku: { title: 'この条件が出るのはいつ？', lead: '特定の格局が成立する日時を検索します。', tech: '格局検索' },
   range: { title: '吉を3回つなぐ', lead: '同じ日に、吉方位が3回続くルートを探します。', tech: '奇門三盤ルート' },
@@ -226,6 +227,7 @@ export default function ReverseDirectionView({
   onOpenTimeRanking,  // 地図タブの時盤から、今日の時間帯別ランキング（探すタブ）へ
   onOpenMapTime,      // 探すタブの時間帯一覧から、選んだ時間・方位のまま地図タブ（時盤）へ
   onOpenMapDay,       // 探すタブの吉日検索から、選んだ日・方位のまま地図タブ（日盤）へ
+  themeRequest = null, // ホーム・探すの入口で選んだ目的（{ theme, at }）。変わるたびに、「目的で選ぶ」の画面の目的を切り替える
   longRangeLocked = false, // 吉日検索の3ヶ月以上が年額プラン限定か（lib/accessPolicy.js）
   longRangeLimit = null,   // 年額プランの人が探せる最後の日（契約期間の終わり。'YYYY-MM-DD'）
   annualMark = false,      // 鍵をかけていなくても「年額」の印を出すか
@@ -282,9 +284,12 @@ export default function ReverseDirectionView({
   const [now, setNow] = useState(() => new Date());
   // L3ボトムシート（PR-5）: FusionCard(L2)と共有する軸選択。
   const [selAxis, setSelAxis] = useState('goen');
-  // 目的から探す（'' は選んでいない＝総合点の順）。選ぶと、その目的に向く方位だけを出す。
-  const [theme, setTheme] = useState('');
-  const themeName = themeLabel(theme);
+  // 「目的で選ぶ」の画面: 選んでいる目的と、近所（時盤）か遠出（日盤）か。
+  const [bestTheme, setBestTheme] = useState('goen');
+  const [bestKind, setBestKind] = useState('time');
+  useEffect(() => {
+    if (themeRequest?.theme) setBestTheme(themeRequest.theme);
+  }, [themeRequest]);
 
   const correction = getLongitudeCorrectionMinutes(location.longitude);
   const naturalNow = applyNaturalTime(new Date(), correction);
@@ -329,10 +334,7 @@ export default function ReverseDirectionView({
   // お守り: その盤の吉方位の象意を、物・色・行動に置き換えた提案（src/kimon/charm.js）。
   const timeCharm = useMemo(() => getCharm({ rankings: reverse.rankings, sourceType: 'hour' }), [reverse.rankings]);
 
-  const timeBoardKey = makeKaisetsuKey(reverse.board.meta);
-  const visibleRankings = useMemo(() => (
-    theme ? rankingsForTheme(timeBoardKey, reverse.rankings, theme) : filterGoodRankings(reverse.rankings, goodOnly)
-  ), [theme, timeBoardKey, reverse.rankings, goodOnly]);
+  const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
   // 一覧で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
   const pickedItem = pickedPalace ? reverse.rankings.find((item) => item.palace === pickedPalace) : null;
   // topItem = 一番評価の高い方位（BEST）。best = 詳しく見せる方位（選んでいればそれ、なければ BEST）。
@@ -353,19 +355,9 @@ export default function ReverseDirectionView({
     }
   }, [dayDate]);
   const dayReverse = dayReverseState.result;
-  const dayVisibleRankings = useMemo(() => (
-    theme && dayReverse
-      ? rankingsForTheme(makeKaisetsuKey(dayReverse.board.meta), dayReverse.rankings, theme)
-      : filterGoodRankings(dayReverse?.rankings || [], goodOnly)
-  ), [theme, dayReverse, goodOnly]);
+  const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
   // 吉日検索で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
   const [dayPickedPalace, setDayPickedPalace] = useState(null);
-  const chooseTheme = (next) => {
-    setTheme(next);
-    if (next) setSelAxis(next); // 方位の詳しいカードも、同じ目的の読みにそろえる
-    setPickedPalace(null);
-    setDayPickedPalace(null);
-  };
   const dayPickedItem = dayPickedPalace ? (dayReverse?.rankings || []).find((item) => item.palace === dayPickedPalace) : null;
   const dayTopItem = dayVisibleRankings[0] || null;
   const dayBest = dayPickedItem || dayTopItem;
@@ -375,15 +367,12 @@ export default function ReverseDirectionView({
       : []
   ), [dayReverse, favorites, location.latitude, location.longitude]);
 
-  const baseTimeline = useMemo(() => (
+  const timeline = useMemo(() => (
     buildTimeline({ date, goodOnly })
   ), [date, goodOnly]);
-  // 目的を選んでいるときは、各時間帯の「一番」を、その目的に向く方位の一番にする。
-  const timeline = useMemo(() => timelineForTheme(baseTimeline, theme), [baseTimeline, theme]);
   const displayedTimeline = useMemo(() => (
     timelineSortMode === 'score' ? sortTimelineSlotsByScore(timeline) : timeline
   ), [timeline, timelineSortMode]);
-  const nextThemeSlot = theme && visibleRankings.length === 0 ? nextSlotForTheme(timeline, slotHour) : null;
 
   const useCurrentLocation = useCallback(() => {
     setSelectedFavoriteId(null);
@@ -589,26 +578,6 @@ export default function ReverseDirectionView({
 
   const filterCard = (
     <div className="reverse-card reverse-filter-card">
-      <div className="theme-picker is-in-card" role="group" aria-label="目的で選ぶ">
-        <span className="theme-picker-label">目的で選ぶ</span>
-        <div className="theme-picker-chips">
-          <button type="button" className={theme === '' ? 'is-active' : ''} aria-pressed={theme === ''} onClick={() => chooseTheme('')}>
-            すべて
-          </button>
-          {THEMES.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={theme === item.key ? 'is-active' : ''}
-              aria-pressed={theme === item.key}
-              onClick={() => chooseTheme(item.key)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-        {theme && <p className="theme-picker-note"><Ja>{`総合が吉で、${themeName}に◎か○が付く方位だけを出しています。`}</Ja></p>}
-      </div>
       <div className="reverse-filter-controls">
         <label className="reverse-toggle-row">
           <span>吉のみ表示</span>
@@ -928,13 +897,12 @@ export default function ReverseDirectionView({
 
       <div className="reverse-timeline">
         <div className="reverse-section-title">
-          <h3 className="maru">{isTimeToday ? '本日の時間帯別ベスト' : `${formatDisplayDate(date)} の時間帯別ベスト`}{themeName ? `（${themeName}）` : ''}</h3>
+          <h3 className="maru">{isTimeToday ? '本日の時間帯別ベスト' : `${formatDisplayDate(date)} の時間帯別ベスト`}</h3>
         </div>
         <p className="tsl-lead"><Ja>時間帯を押すと、その時間の8方位を比べて、地図で行き先を探せます。</Ja></p>
         <TimeSlotList
           timeline={displayedTimeline}
           nowHour={isTimeToday ? liveSlotHour : null}
-          themeName={themeName}
           onOpenBoard={(hour) => onOpenBoard({ date, hour, boardType: '時' })}
           onGoMap={({ hour, palace }) => {
             setPickedHour(hour);
@@ -999,7 +967,7 @@ export default function ReverseDirectionView({
 <div className="reverse-header-actions">
           {mode !== 'range' && variant !== 'map' && (
             <div className="reverse-time-chip lat">
-              {mode === 'timeRanking'
+              {mode === 'timeRanking' || mode === 'theme'
                 ? `現在 ${formatCurrentClock(now)}`
                 : mode === 'day' || mode === 'ranking'
                 ? formatDisplayDate(dayDate)
@@ -1093,7 +1061,7 @@ export default function ReverseDirectionView({
             <div className="reverse-slot-picker" role="group" aria-label="時間帯を選ぶ" ref={slotPickerRef}>
               {timeline.map((slot) => {
                 const isActive = slot.hour === slotHour;
-                const top = theme ? slot.best : slot.rawBest;
+                const top = slot.rawBest;
                 return (
                   <button
                     key={slot.hour}
@@ -1109,7 +1077,7 @@ export default function ReverseDirectionView({
                     <span className="lat">{slot.label}</span>
                     <small>
                       {isTimeToday && slot.hour === liveSlotHour ? 'いま・' : ''}
-                      {top ? `${top.label} ${top.score > 0 ? '+' : ''}${top.score}` : (theme ? 'なし' : '—')}
+                      {top ? `${top.label} ${top.score > 0 ? '+' : ''}${top.score}` : '—'}
                     </small>
                   </button>
                 );
@@ -1124,44 +1092,6 @@ export default function ReverseDirectionView({
                     : `${formatDisplayDate(date)} ${getTimeSlotLabel(slotHour)} の盤を表示しています。`}
                 </span>
                 <button type="button" onClick={clearPicked}>今の時間に戻す</button>
-              </div>
-            )}
-
-            <div className="theme-picker" role="group" aria-label="目的で選ぶ">
-              <span className="theme-picker-label">目的で選ぶ</span>
-              <div className="theme-picker-chips">
-                <button type="button" className={theme === '' ? 'is-active' : ''} aria-pressed={theme === ''} onClick={() => chooseTheme('')}>
-                  すべて
-                </button>
-                {THEMES.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={theme === item.key ? 'is-active' : ''}
-                    aria-pressed={theme === item.key}
-                    onClick={() => chooseTheme(item.key)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              {theme && <p className="theme-picker-note"><Ja>{`総合が吉で、${themeName}に◎か○が付く方位だけを出しています。`}</Ja></p>}
-            </div>
-
-            {theme && visibleRankings.length === 0 && (
-              <div className="reverse-picked-note">
-                <span><Ja>{`この時間は、${themeName}に向く方位がありません。`}</Ja></span>
-                {nextThemeSlot && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPickedHour(isTimeToday && nextThemeSlot.hour === liveSlotHour ? null : nextThemeSlot.hour);
-                      setPickedPalace(null);
-                    }}
-                  >
-                    {`次は ${nextThemeSlot.label}（${nextThemeSlot.best.label}）を見る`}
-                  </button>
-                )}
               </div>
             )}
 
@@ -1193,7 +1123,6 @@ export default function ReverseDirectionView({
               selAxis={selAxis}
               onAxisChange={setSelAxis}
               onGoToSearch={scrollToGoSearch}
-              emptyNote={theme ? `この時間は、${themeName}に向く方位がありません。` : undefined}
             />
 
             <div className="reverse-card reverse-now-board-card">
@@ -1224,17 +1153,17 @@ export default function ReverseDirectionView({
           {/* 日盤の「この日の方位ランキング」と同じ一覧を、時盤にも出す（今の時間帯の8方位） */}
           <div className="reverse-timeline">
             <div className="reverse-section-title">
-              <h3 className="maru">{themeName ? `この時間の方位ランキング（${themeName}）` : 'この時間の方位ランキング'}</h3>
+              <h3 className="maru">この時間の方位ランキング</h3>
             </div>
             {visibleRankings.length === 0 && (
-              <p className="reverse-status">{themeName ? `この時間帯には、${themeName}に向く方位がありません。` : 'この時間帯には、吉の方位がありません。'}</p>
+              <p className="reverse-status">この時間帯には、吉の方位がありません。</p>
             )}
             {visibleRankings.map((item, index) => (
               <div key={item.palace} className="reverse-tl-item">
                 <span className="reverse-tl-time lat">{index + 1}</span>
                 <div className="reverse-tl-main">
                   <strong>{item.label}</strong>
-                  <span>{`${item.themeRank ? `${themeName}${item.themeRank}・` : ''}${item.reasons.slice(0, 2).join('・') || '吉凶判定'}`}</span>
+                  <span>{item.reasons.slice(0, 2).join('・') || '吉凶判定'}</span>
                 </div>
                 <span className={`reverse-tl-score ${item.score < 0 ? 'is-bad' : ''}`}>
                   {item.score > 0 ? '+' : ''}{item.score}
@@ -1259,6 +1188,34 @@ export default function ReverseDirectionView({
 
       {mode === 'timeRanking' && timelineSection}
 
+      {mode === 'theme' && (
+        <ThemeBestView
+          theme={bestTheme}
+          onThemeChange={setBestTheme}
+          kind={bestKind}
+          onKindChange={setBestKind}
+          today={today}
+          liveSlotHour={liveSlotHour}
+          onGoTime={({ date: pickedDate, hour, palace }) => {
+            setSelAxis(bestTheme); // 方位の詳しいカードを、同じ目的の読みで開く
+            setTimeDate(pickedDate !== today ? pickedDate : null);
+            setPickedHour(pickedDate === today && hour === liveSlotHour ? null : hour);
+            setPickedPalace(palace);
+            setMode('time');
+            onOpenMapTime?.();
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }}
+          onGoDay={({ date: pickedDate, palace }) => {
+            setSelAxis(bestTheme);
+            setDayDate(pickedDate);
+            setDayPickedPalace(palace);
+            setMode('day');
+            onOpenMapDay?.();
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }}
+        />
+      )}
+
       {mode === 'day' && (
         <>
           <div className="reverse-card reverse-day-card">
@@ -1275,26 +1232,6 @@ export default function ReverseDirectionView({
                 onChange={(e) => { setDayDate(e.target.value); setDayPickedPalace(null); }}
               />
             </label>
-            <div className="theme-picker is-in-card" role="group" aria-label="目的で選ぶ">
-              <span className="theme-picker-label">目的で選ぶ</span>
-              <div className="theme-picker-chips">
-                <button type="button" className={theme === '' ? 'is-active' : ''} aria-pressed={theme === ''} onClick={() => chooseTheme('')}>
-                  すべて
-                </button>
-                {THEMES.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={theme === item.key ? 'is-active' : ''}
-                    aria-pressed={theme === item.key}
-                    onClick={() => chooseTheme(item.key)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-              {theme && <p className="theme-picker-note"><Ja>{`総合が吉で、${themeName}に◎か○が付く方位だけを出しています。`}</Ja></p>}
-            </div>
           </div>
 
           {dayReverseState.error ? (
@@ -1358,12 +1295,12 @@ export default function ReverseDirectionView({
                   {dayBest ? (
                     <>
                       <strong>{dayBest.label}<small>{dayBest.reasons.slice(0, 2).join('・') || '吉方位'}</small></strong>
-                      <p>{themeName && dayBest.themeRank ? `この日、${themeName}に一番向く方位（${themeName}${dayBest.themeRank}）` : 'この日の最大吉'}</p>
+                      <p>この日の最大吉</p>
                     </>
                   ) : (
                     <>
                       <strong>該当なし</strong>
-                      <p>{themeName ? `この日は、${themeName}に向く方位がありません。` : '吉のみ表示中です。凶も見ると全方位を確認できます。'}</p>
+                      <p>吉のみ表示中です。凶も見ると全方位を確認できます。</p>
                     </>
                   )}
                 </div>
@@ -1372,14 +1309,14 @@ export default function ReverseDirectionView({
 
               <div className="reverse-timeline">
                 <div className="reverse-section-title">
-                  <h3 className="maru">{themeName ? `この日の方位ランキング（${themeName}）` : 'この日の方位ランキング'}</h3>
+                  <h3 className="maru">この日の方位ランキング</h3>
                 </div>
                 {dayVisibleRankings.map((item, index) => (
                   <div key={item.palace} className="reverse-tl-item">
                     <span className="reverse-tl-time lat">{index + 1}</span>
                     <div className="reverse-tl-main">
                       <strong>{item.label}</strong>
-                      <span>{`${item.themeRank ? `${themeName}${item.themeRank}・` : ''}${item.reasons.slice(0, 2).join('・') || '吉凶判定'}`}</span>
+                      <span>{item.reasons.slice(0, 2).join('・') || '吉凶判定'}</span>
                     </div>
                     <span className={`reverse-tl-score ${item.score < 0 ? 'is-bad' : ''}`}>
                       {item.score > 0 ? '+' : ''}{item.score}

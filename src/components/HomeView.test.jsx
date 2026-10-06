@@ -110,18 +110,26 @@ describe('探すの入口', () => {
       ['detail', '吉を3回つなぐ', '1日で、吉方位を3回', '奇門三盤ルート'],
     ]);
     const { container } = render(<SearchHub onSelect={() => {}} onOpenGuide={() => {}} onOpenNotifications={() => {}} />);
-    expect([...container.querySelectorAll('.hub-group-title')].map((h) => h.textContent)).toEqual(['予定から探す', 'こだわって探す']);
+    expect([...container.querySelectorAll('.hub-group-title')].map((h) => h.textContent)).toEqual(['目的で選ぶ', '予定から探す', 'こだわって探す']);
     expect(container.querySelectorAll('.hub-group.is-plan .hub-tile')).toHaveLength(2);
     expect(container.querySelectorAll('.hub-group.is-detail .hub-tile')).toHaveLength(2);
     expect(container.querySelector('.hub-no')).toBe(null);
     expect(container.querySelector('.hub-lead').textContent).toBe('どんな探し方をしますか？');
   });
 
-  it('いちばん上は「今から吉方位へ」。その下に、予定から探す・こだわって探す・使い方ガイドの順', () => {
+  it('いちばん上は「今から吉方位へ」。その下に、目的で選ぶ・予定から探す・こだわって探す・使い方ガイドの順', () => {
     const { container } = render(<SearchHub onSelect={() => {}} onOpenGuide={() => {}} onOpenNotifications={() => {}} />);
     const order = [...container.querySelectorAll('.search-hub > section, .search-hub > .hub-row')]
       .map((el) => el.getAttribute('aria-label') || el.querySelector('strong').textContent);
-    expect(order).toEqual(['今から吉方位へ', '予定から探す', 'こだわって探す', '使い方ガイド']);
+    expect(order).toEqual(['今から吉方位へ', '目的で選ぶ', '予定から探す', 'こだわって探す', '使い方ガイド']);
+    // 目的を押すと、「目的で選ぶ」の画面へ
+    const onSelect = vi.fn();
+    cleanup();
+    const hub = render(<SearchHub onSelect={onSelect} onOpenGuide={() => {}} onOpenNotifications={() => {}} />);
+    const chips = [...hub.container.querySelectorAll('.hub-theme .theme-picker-chips button')];
+    expect(chips.map((b) => b.textContent)).toEqual(['ご縁', '仕事', '金運', '健康', '勉強']);
+    fireEvent.click(chips[1]);
+    expect(onSelect).toHaveBeenCalledWith({ key: 'theme', target: 'search', theme: 'shigoto' });
     expect(NOW_ENTRY).toMatchObject({ key: 'time', target: 'map', cta: '今から探す' });
   });
 
