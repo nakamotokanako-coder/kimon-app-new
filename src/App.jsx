@@ -329,6 +329,25 @@ export default function App() {
     setSearchMode(nextMode);
     setActiveTab('search');
   };
+  // LINE の返信などからのリンク: アドレスに ?go=time / day / ranking / guide を付けて開くと、その画面から始める。
+  //   time … 地図（時盤）  day … 地図（日盤）  ranking … この方位、いつ行く？  guide … 使い方ガイド
+  // 地図と検索は全機能を使える人だけ（使えない人はホームのまま）。ログインの判定が済んでから1回だけ移る。
+  const [goTarget, setGoTarget] = useState(() => (
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('go') : null
+  ));
+  useEffect(() => {
+    if (!goTarget || auth.phase !== 'ready') return;
+    const params = new URLSearchParams(window.location.search);
+    params.delete('go');
+    const rest = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}`);
+    setGoTarget(null);
+    if (goTarget === 'guide') setGuideOpen(true);
+    else if (limited) return;
+    else if (goTarget === 'time' || goTarget === 'day') goMap(goTarget);
+    else if (goTarget === 'ranking') goSearch('ranking');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goTarget, auth.phase]);
   const directionVisible = activeTab === 'map' || (activeTab === 'search' && searchMode !== null);
   const returnFromFullBoard = () => {
     if (!boardReturnTab) return;
