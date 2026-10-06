@@ -12484,3 +12484,11 @@ p.saikyo-annual-note.is-open {
   font-size: 0.76rem;
   line-height: 1.6;
 }
+
+/* 格局検索: やりたいことから選ぶ */
+.kakkyoku-use-note {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}

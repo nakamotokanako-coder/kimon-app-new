@@ -31,6 +31,27 @@ export const SPECIAL_KAKKYOKU_GROUPS = [
 
 export const SPECIAL_KAKKYOKU_NAMES = SPECIAL_KAKKYOKU_GROUPS.flatMap((group) => group.items);
 
+/**
+ * やりたいことから格局を選ぶ（格局の名前を知らない人のための逆引き）。
+ * どの用事にどの格局を当てるかは、象意辞書（data/shoui_dict.json）の説明（original / practical）に
+ * 書いてある使い道をそのまま拾っている。新しい解釈は足さない。
+ *   風遁「放送･広報･宣伝活動に用いて良好」/ 青龍返首「公の場での発表に向く」/ 飛鳥跌穴「告白・応募はその場で」
+ *   玉女守門「面接、縁談、商談、試験」/ 天遁「営業、人脈拡大」/ 人遁「紹介営業、チームでの成果」
+ *   地遁「積み重ねてきたものが報われる」/ 雲遁「戦略的な交渉」/ 虎遁「強気の交渉」/ 鬼遁「競合の隙を突く」
+ *   神遁「ひらめき型の企画」/ 龍遁「海外取引、物流、ネット配信」
+ */
+export const KAKKYOKU_USES = [
+  { key: 'sns', label: 'SNSの更新・告知・宣伝', names: ['風遁', '青龍返首'] },
+  { key: 'present', label: '人前での発表・勝負に出る', names: ['青龍返首'] },
+  { key: 'apply', label: '告白・申し込み・応募', names: ['飛鳥跌穴'] },
+  { key: 'meet', label: '面接・商談・縁談・試験', names: ['玉女守門'] },
+  { key: 'network', label: '人脈を広げる・営業・紹介', names: ['天遁', '人遁'] },
+  { key: 'result', label: '積み重ねの成果を出す', names: ['地遁'] },
+  { key: 'negotiate', label: '交渉・駆け引き', names: ['雲遁', '虎遁', '鬼遁'] },
+  { key: 'idea', label: '企画・ひらめき', names: ['神遁'] },
+  { key: 'flow', label: '海外・ネット配信・物流', names: ['龍遁'] },
+];
+
 const PALACE_ORDER = PALACE_DIRECTIONS.map((item) => item.palace);
 
 function addDays(date, days) {

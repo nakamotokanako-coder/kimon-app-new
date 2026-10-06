@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  KAKKYOKU_USES,
   SPECIAL_KAKKYOKU_GROUPS,
   SPECIAL_KAKKYOKU_NAMES,
   scanSpecialKakkyoku,
@@ -106,6 +107,15 @@ export default function KakkyokuSearchView({
   const [hasSearched, setHasSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(null);
   const [openResultKey, setOpenResultKey] = useState(null);
+  // やりたいことから選んだとき、その用事（KAKKYOKU_USES の key）。格局を自分で選び直したら外す。
+  const [useKey, setUseKey] = useState(null);
+  const activeUse = KAKKYOKU_USES.find((item) => item.key === useKey) || null;
+  // やりたいことを押したら、結果のところまで画面を送る（間に格局の一覧と検索ボタンがあって、結果が見えないため）。
+  const resultRef = useRef(null);
+  const [scrollToResult, setScrollToResult] = useState(0);
+  useEffect(() => {
+    if (scrollToResult > 0) resultRef.current?.scrollIntoView?.({ block: 'start' });
+  }, [scrollToResult]);
 
   const selectedSet = useMemo(() => new Set(selectedNames), [selectedNames]);
   const periods = PERIODS_BY_BOARD[boardType];
@@ -118,6 +128,15 @@ export default function KakkyokuSearchView({
     setHasSearched(false);
     setSearchParams(null);
     setOpenResultKey(null);
+  };
+  // やりたいことを押すと、向く格局を選んで、そのまま検索する。
+  const pickUse = (use) => {
+    setUseKey(use.key);
+    setSelectedNames(use.names);
+    setOpenResultKey(null);
+    setHasSearched(true);
+    setSearchParams({ days: period.days, selectedNames: use.names, boardType });
+    setScrollToResult((count) => count + 1);
   };
   const selectedCount = selectedNames.length;
 
@@ -136,6 +155,7 @@ export default function KakkyokuSearchView({
   ), [result.rows]);
 
   const toggleName = (name) => {
+    setUseKey(null);
     setSelectedNames((current) => (
       current.includes(name)
         ? current.filter((item) => item !== name)
@@ -143,8 +163,8 @@ export default function KakkyokuSearchView({
     ));
   };
 
-  const selectAll = () => setSelectedNames(SPECIAL_KAKKYOKU_NAMES);
-  const clearAll = () => setSelectedNames([]);
+  const selectAll = () => { setUseKey(null); setSelectedNames(SPECIAL_KAKKYOKU_NAMES); };
+  const clearAll = () => { setUseKey(null); setSelectedNames([]); };
 
   const search = () => {
     if (selectedCount === 0) return;
@@ -158,7 +178,7 @@ export default function KakkyokuSearchView({
         <div>
           <p>時盤・日盤</p>
           <h3>特別格局の出現検索</h3>
-          <span>狙った大吉格が、いつ・どの方位に出るかを探す</span>
+          <span>やりたいことに向く大吉格が、いつ・どの方位に出るかを探す</span>
         </div>
         <b>格局を探す</b>
       </div>
@@ -202,10 +222,38 @@ export default function KakkyokuSearchView({
         </div>
       </div>
 
+      <div className="kakkyoku-picker kakkyoku-uses">
+        <div className="kakkyoku-picker-head">
+          <div>
+            <h3>やりたいことから選ぶ</h3>
+          </div>
+        </div>
+        <div className="kakkyoku-group">
+          <div>
+            {KAKKYOKU_USES.map((use) => (
+              <button
+                key={use.key}
+                type="button"
+                className={useKey === use.key ? 'is-active' : ''}
+                aria-pressed={useKey === use.key}
+                onClick={() => pickUse(use)}
+              >
+                {use.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="kakkyoku-use-note">
+          {activeUse
+            ? `「${activeUse.label}」に向く格局：${activeUse.names.join('・')}`
+            : '押すと、その用事に向く格局が出る日時と方位を、すぐに探します。'}
+        </p>
+      </div>
+
       <div className="kakkyoku-picker">
         <div className="kakkyoku-picker-head">
           <div>
-            <h3>格局</h3>
+            <h3>格局の名前から選ぶ</h3>
             <span>{selectedCount}件選択中</span>
           </div>
           <div>
@@ -244,9 +292,9 @@ export default function KakkyokuSearchView({
 
       {hasSearched && (
         <>
-          <div className="kakkyoku-result-head">
+          <div className="kakkyoku-result-head" ref={resultRef}>
             <div>
-              <h3>検索結果</h3>
+              <h3>{activeUse ? `「${activeUse.label}」に向く日時` : '検索結果'}</h3>
               <span>{result.rows.length}件</span>
             </div>
             <div className="kakkyoku-sort-toggle" role="group" aria-label="検索結果の並び順">

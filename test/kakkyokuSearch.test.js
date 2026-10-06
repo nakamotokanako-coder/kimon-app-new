@@ -108,3 +108,27 @@ describe('special kakkyoku lookup search', () => {
     expect(missing).toEqual([]);
   }, 60000);
 });
+
+describe('やりたいことから格局を選ぶ（逆引き）', () => {
+  it('用事ごとの格局は、どれも検索できる格局。検索できる格局は、どれかの用事に入っている', async () => {
+    const { KAKKYOKU_USES, SPECIAL_KAKKYOKU_NAMES } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    expect(KAKKYOKU_USES.length).toBeGreaterThan(0);
+    expect(new Set(KAKKYOKU_USES.map((use) => use.key)).size).toBe(KAKKYOKU_USES.length);
+    for (const use of KAKKYOKU_USES) {
+      expect(use.label).toBeTruthy();
+      expect(use.names.length).toBeGreaterThan(0);
+      for (const name of use.names) expect(SPECIAL_KAKKYOKU_NAMES).toContain(name);
+    }
+    const covered = new Set(KAKKYOKU_USES.flatMap((use) => use.names));
+    expect([...covered].sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
+  });
+
+  it('「SNSの更新・告知・宣伝」は、宣伝に用いる風遁と、公の場での発表に向く青龍返首', async () => {
+    const { KAKKYOKU_USES } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const { getKakkyokuShoui, getJukanShoui } = await import('../src/kimon/loadShouiDict.js');
+    const sns = KAKKYOKU_USES.find((use) => use.key === 'sns');
+    expect(sns.names).toEqual(['風遁', '青龍返首']);
+    expect(getKakkyokuShoui('風遁').original).toContain('宣伝');
+    expect((getKakkyokuShoui('青龍返首') || getJukanShoui('青龍返首')).practical).toContain('発表');
+  });
+});
