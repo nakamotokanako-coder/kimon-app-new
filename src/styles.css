@@ -13131,3 +13131,183 @@ p.saikyo-annual-note.is-open {
 .kakkyoku-match button {
   white-space: nowrap;
 }
+
+/* 格局検索の上の部分: 題・説明・現在の時刻だけにして、すぐ条件を選べるようにする */
+.reverse-view .reverse-header.reverse-header--top {
+  position: relative;
+  display: block;
+  padding-top: 2px;
+  background: url("/divination/mountain-bg.webp") right bottom / 64% auto no-repeat;
+}
+
+.reverse-header--top .reverse-header-actions {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reverse-header--top .reverse-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+.reverse-header--top h2 {
+  margin-top: 14px;
+  font-size: 1.42rem;
+  line-height: 1.35;
+}
+
+.reverse-header--top .reverse-lead {
+  max-width: 19em;
+}
+
+.reverse-header--top .reverse-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.reverse-header--top .reverse-time-chip i {
+  width: 1px;
+  height: 12px;
+  background: var(--border-subtle);
+}
+
+/* 基準点の帯（短い地名と自然時だけ） */
+.base-bar.is-simple .base-natural {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+/* どんな移動？／いつまで探す？ */
+.kakkyoku-step {
+  display: grid;
+  gap: 10px;
+}
+
+.kakkyoku-step-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.kakkyoku-step .theme-kind {
+  justify-items: start;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.kakkyoku-step .theme-kind strong small {
+  margin-left: 2px;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.kakkyoku-step-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kakkyoku-step-chips button {
+  min-height: 38px;
+  padding: 6px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kakkyoku-step-chips button.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-card));
+  color: var(--text-primary);
+}
+
+/* 条件と「何をしたい？」の間の、雲の飾り */
+.kakkyoku-ornament {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0;
+}
+
+.kakkyoku-ornament::before,
+.kakkyoku-ornament::after {
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+  content: "";
+}
+
+.kakkyoku-ornament img {
+  width: 76px;
+  height: auto;
+  opacity: 0.7;
+}
+
+/* 「何をしたい？」の見出しの横: 格局の一覧への近道 */
+.kakkyoku-uses .kakkyoku-picker-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kakkyoku-search-view .kakkyoku-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-accent);
+  font: inherit;
+  font-size: 0.76rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 山の絵は、題と説明の文字に重ならないよう、右下に小さく薄く置く */
+.reverse-view .reverse-header.reverse-header--top {
+  background: none;
+}
+
+.reverse-header--top::after {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  z-index: 0;
+  width: 42%;
+  aspect-ratio: 3 / 1;
+  background: url("/divination/mountain-bg.webp") right bottom / contain no-repeat;
+  opacity: 0.45;
+  pointer-events: none;
+  content: "";
+}
+
+.reverse-header--top > div:first-child {
+  position: relative;
+  z-index: 1;
+}
+
+.reverse-header--top .reverse-lead {
+  max-width: 58%;
+}

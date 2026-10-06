@@ -45,7 +45,7 @@ export const MODE_TITLES = {
   ranking: { title: 'この方位、いつ行く？', lead: '行きたい方位を選ぶと、良い日がわかります。全方位から探すこともできます。', tech: '日盤ランキング｜遠出 50km〜' },
   theme: { title: '目的で選ぶ', lead: '目的を選ぶと、いつ・どの方位が一番向くかがわかります。', tech: '時盤・日盤' },
   timeRanking: { title: '今日の時間帯から探す', lead: '今日のどの時間帯に、どの方位が良いかを一覧で見られます。', tech: '時盤ランキング' },
-  kakkyoku: { title: 'この条件が出るのはいつ？', lead: '特定の格局が成立する日時を検索します。', tech: '格局検索' },
+  kakkyoku: { title: '特別な吉格が出る日を探す', lead: 'やりたいことに合う格局が、いつ・どの方位に現れるかを探します。', tech: '格局検索' },
   range: { title: '吉を3回つなぐ', lead: '同じ日に、吉方位が3回続くルートを探します。', tech: '奇門三盤ルート' },
 };
 
@@ -918,7 +918,7 @@ export default function ReverseDirectionView({
 
   return (
     <section className={`reverse-view${mode === 'time' ? ' reverse-view--walk' : ''}`} aria-label="逆引き方位検索">
-      <div className={`reverse-header${variant === 'map' ? ' reverse-header--map' : ''}${mode === 'theme' ? ' reverse-header--theme' : ''}`}>
+      <div className={`reverse-header${variant === 'map' ? ' reverse-header--map' : ''}${mode === 'theme' ? ' reverse-header--theme' : ''}${mode === 'kakkyoku' && variant !== 'map' ? ' reverse-header--top' : ''}`}>
         <div>
           {variant === 'search' && onBackToSearch && (
             <button type="button" className="reverse-back" onClick={onBackToSearch}>‹ 探す</button>
@@ -942,7 +942,7 @@ export default function ReverseDirectionView({
               onCenterChange={handleGlobalBasePointChange}
             />
           )}
-          {modeTitle && variant !== 'map' && mode !== 'theme' && (
+          {modeTitle && variant !== 'map' && mode !== 'theme' && mode !== 'kakkyoku' && (
             <p className="reverse-tech">
               {modeTitle.tech} / {location.name}
               {mode === 'time' ? ` / 自然時補正 ${formatCorrection(correction)}` : ''}
@@ -967,7 +967,9 @@ export default function ReverseDirectionView({
 <div className="reverse-header-actions">
           {mode !== 'range' && mode !== 'theme' && variant !== 'map' && (
             <div className="reverse-time-chip lat">
-              {mode === 'timeRanking'
+              {mode === 'kakkyoku'
+                ? <>現在 {formatCurrentClock(now)}<i aria-hidden="true" />奇門時 {getTimeSlotLabel(liveSlotHour)}</>
+                : mode === 'timeRanking'
                 ? `現在 ${formatCurrentClock(now)}`
                 : mode === 'day' || mode === 'ranking'
                 ? formatDisplayDate(dayDate)
@@ -984,6 +986,7 @@ export default function ReverseDirectionView({
           baseName={location.name}
           onCenterChange={handleGlobalBasePointChange}
           nowLabel={mode === 'theme' ? formatCurrentClock(now) : ''}
+          simple={mode === 'kakkyoku'}
         />
       )}
 
