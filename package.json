@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:kaisetsu": "node scripts/build_kaisetsu_text.mjs",
-    "build:line": "node scripts/build_line_today.mjs",
-    "vercel-build": "npm run build:kaisetsu && npm run build:line && vite build",
+    "vercel-build": "npm run build:kaisetsu && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
