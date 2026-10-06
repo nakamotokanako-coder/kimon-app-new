@@ -5,6 +5,9 @@ import { ANNUAL_PRICE_LABEL, isBillingUiVisible, PRO_PRICE_LABEL } from '../../l
 import {
   isSyncEnabled, enableUserDataSync, disableUserDataSync, SYNC_SETTING_CHANGED_EVENT,
 } from '../sync/userDataSync.js';
+import {
+  clearPendingLineLink, confirmLineLink, fetchLineLinked, peekLineLink, readPendingLineLink, unlinkLine,
+} from '../auth/lineLink.js';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
 // 認証状態・利用範囲の判定はすべてサーバー側（/api/auth/me → AuthContext）。ここでは表示だけ。
@@ -158,6 +161,84 @@ function SyncSetting({ email }) {
         </button>
       </div>
       {error && <p className="account-note account-note-small">{error}</p>}
+    </>
+  );
+}
+
+// LINE との連携。LINE の「アプリと連携」で届いたリンクから開いたときに、相手を確かめてから結びつける。
+// 連携済みのときは、その旨と、やめるボタンを出す。
+function LineLink({ loggedIn }) {
+  const [token, setToken] = useState(() => readPendingLineLink());
+  // step: idle | checking | confirm | done | expired | error
+  const [step, setStep] = useState('idle');
+  const [name, setName] = useState('');
+  const [linked, setLinked] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!loggedIn) return undefined;
+    let alive = true;
+    fetchLineLinked().then((value) => { if (alive) setLinked(value); }).catch(() => {});
+    return () => { alive = false; };
+  }, [loggedIn]);
+
+  useEffect(() => {
+    if (!loggedIn || !token) return undefined;
+    let alive = true;
+    setStep('checking');
+    peekLineLink(token).then((result) => {
+      if (!alive) return;
+      if (result.expired) { clearPendingLineLink(); setToken(''); setStep('expired'); return; }
+      if (result.error) { setStep('error'); return; }
+      setName(result.name);
+      setStep('confirm');
+    }).catch(() => { if (alive) setStep('error'); });
+    return () => { alive = false; };
+  }, [loggedIn, token]);
+
+  const forget = () => { clearPendingLineLink(); setToken(''); };
+  const confirm = async () => {
+    setBusy(true);
+    const result = await confirmLineLink(token).catch(() => ({ error: true }));
+    setBusy(false);
+    if (result.error) { setStep('error'); return; }
+    forget();
+    setLinked(Boolean(result.linked));
+    setStep(result.linked ? 'done' : 'expired');
+  };
+  const cancel = () => { forget(); setStep('idle'); };
+  const unlink = async () => {
+    setBusy(true);
+    const ok = await unlinkLine().catch(() => false);
+    setBusy(false);
+    if (ok) { setLinked(false); setStep('idle'); }
+  };
+
+  if (!loggedIn) {
+    return token ? <p className="account-note">ログインすると、LINEと連携できます。</p> : null;
+  }
+  return (
+    <>
+      {step === 'confirm' && (
+        <div className="account-login">
+          <p className="account-note">
+            {name ? `LINEの「${name}」さんと、このアカウントを連携しますか？` : 'LINEと、このアカウントを連携しますか？'}
+          </p>
+          <button type="button" className="account-btn" onClick={confirm} disabled={busy}>連携する</button>
+          <button type="button" className="account-btn account-btn-ghost" onClick={cancel} disabled={busy}>やめる</button>
+        </div>
+      )}
+      {step === 'done' && <p className="account-note">LINEと連携しました。LINEに戻ってお使いください。</p>}
+      {step === 'expired' && (
+        <p className="account-note">連携用のリンクの期限が切れています。LINEでもう一度「アプリと連携」を押してください。</p>
+      )}
+      {step === 'error' && <p className="account-note">連携できませんでした。時間をおいてもう一度お試しください。</p>}
+      {linked && (
+        <div className="settings-info-row">
+          <span>LINEとの連携</span>
+          <button type="button" className="account-btn account-btn-ghost" onClick={unlink} disabled={busy}>連携をやめる</button>
+        </div>
+      )}
     </>
   );
 }
@@ -443,6 +524,7 @@ export default function AccountSettings() {
           <span>ご利用プラン</span>
           <strong>{planLabel(auth)}</strong>
         </div>
+        <LineLink loggedIn />
         <BillingSection auth={auth} />
         <DeviceList email={auth.email} />
         <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
@@ -461,6 +543,7 @@ export default function AccountSettings() {
   if (sent) {
     return (
       <div className="account-login">
+        <LineLink loggedIn={false} />
         <p className="account-note">
           {email.trim().toLowerCase()} にメールを送りました。<br />
           メールに書かれた6桁のコードを入力してください（15分間有効）。
@@ -500,6 +583,7 @@ export default function AccountSettings() {
 
   return (
     <div className="account-login">
+      <LineLink loggedIn={false} />
       {note && <p className="account-note">{note}</p>}
       <label className="account-label" htmlFor="account-email-input">メールアドレスでログイン</label>
       <input

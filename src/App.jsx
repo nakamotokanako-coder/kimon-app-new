@@ -25,6 +25,7 @@ import PlaceSettings from './components/PlaceSettings.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
+import { capturePendingLineLink } from './auth/lineLink.js';
 import packageJson from '../package.json';
 
 // 標準は白地に金（パール）。前から使っている人が選んだテーマは localStorage に残っているのでそのまま。
@@ -249,6 +250,13 @@ export default function App() {
     // Webhook の反映を待って、何度か取り直す。
     const timers = [0, 3000, 8000].map((ms) => window.setTimeout(() => auth.refresh?.(), ms));
     return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // LINE の「アプリと連携」で届いたリンク（?line=合言葉）から開いたとき: 合言葉を覚えて、アカウントの画面を出す。
+  // 結びつけるのは、ログインして「連携する」を押したとき（src/components/AccountSettings.jsx の LineLink）。
+  useEffect(() => {
+    if (typeof window !== 'undefined' && capturePendingLineLink()) setActiveTab('settings');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

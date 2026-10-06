@@ -2,18 +2,25 @@
 // GET /api/auth/me → { loggedIn, email, status, paidUntil, full, accessMode }（未ログインは loggedIn:false）
 //   full: 全機能を使えるか（lib/accessPolicy.js の判定。ベータ期間はログインで true）
 // GET / PUT / DELETE /api/auth/me?data=1 → アカウントに保存したお気に入りと基準点（lib/userData.js。利用者がオンにしたときだけ）
+// GET / POST / DELETE /api/auth/me?line=1 → LINE との連携（lib/lineLink.js）
 //   （Vercel の Hobby プランは関数が12個までのため、この関数に同居させている）
 import { getActiveSession } from '../../lib/auth.js';
 import { ACCESS_MODE } from '../../lib/accessPolicy.js';
 import { isBillingConfigured } from '../../lib/billing.js';
 import { handleUserData } from '../../lib/userData.js';
 import { handleInvites } from '../../lib/invite.js';
+import { handleLineLink } from '../../lib/lineLink.js';
 
 export default async function handler(req, res) {
   const wantsData = req.query?.data === '1';
   // 招待の一覧（運営者だけ。lib/invite.js）
   const wantsInvites = req.query?.invites === '1';
-  const allowed = wantsData ? ['GET', 'PUT', 'DELETE'] : (wantsInvites ? ['GET', 'PUT'] : ['GET']);
+  // LINE との連携（lib/lineLink.js）
+  const wantsLine = req.query?.line === '1';
+  let allowed = ['GET'];
+  if (wantsData) allowed = ['GET', 'PUT', 'DELETE'];
+  else if (wantsInvites) allowed = ['GET', 'PUT'];
+  else if (wantsLine) allowed = ['GET', 'POST', 'DELETE'];
   if (!allowed.includes(req.method)) {
     res.setHeader('Allow', allowed.join(', '));
     return res.status(405).end();
@@ -24,6 +31,7 @@ export default async function handler(req, res) {
   const active = await getActiveSession(req);
   if (wantsData) return handleUserData(req, res, active);
   if (wantsInvites) return handleInvites(req, res, active);
+  if (wantsLine) return handleLineLink(req, res, active);
   if (!active) return res.status(200).json({ loggedIn: false, full: false, accessMode: ACCESS_MODE });
 
   return res.status(200).json({

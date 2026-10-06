@@ -12,6 +12,8 @@ function fakeLoginForLocalPreview() {
     configureServer(server) {
       // 招待の管理（運営者の画面）を手元で確かめるための、仮の一覧
       const invites = { restricted: false, emails: ['friend@example.com'] };
+      // LINE との連携を手元で確かめるための、仮の状態
+      let lineLinked = false;
       server.middlewares.use('/api/auth/me', (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         if (req.url.includes('invites=1')) {
@@ -24,6 +26,18 @@ function fakeLoginForLocalPreview() {
             if (body.add && !invites.emails.includes(body.add)) invites.emails.push(body.add);
             if (body.remove) invites.emails = invites.emails.filter((e) => e !== body.remove);
             res.end(JSON.stringify(invites));
+          });
+          return;
+        }
+        if (req.url.includes('line=1')) {
+          if (req.method === 'GET') { res.end(JSON.stringify({ linked: lineLinked })); return; }
+          if (req.method === 'DELETE') { lineLinked = false; res.end(JSON.stringify({ linked: false })); return; }
+          let raw = '';
+          req.on('data', (chunk) => { raw += chunk; });
+          req.on('end', () => {
+            const body = JSON.parse(raw || '{}');
+            if (body.confirm) { lineLinked = true; res.end(JSON.stringify({ linked: true })); return; }
+            res.end(JSON.stringify({ name: 'かなこ' }));
           });
           return;
         }
