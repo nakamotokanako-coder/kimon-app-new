@@ -12705,3 +12705,61 @@ p.saikyo-annual-note.is-open {
   justify-content: space-between;
   gap: 12px;
 }
+
+/* 格局検索: やりたいことから選ぶ */
+.kakkyoku-use-note {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+/* 格局検索: 格局の名前に、何に使うか（一言と札）を添える */
+.kakkyoku-names > div {
+  display: grid;
+  gap: 8px;
+}
+
+.kakkyoku-names .kakkyoku-name {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  text-align: left;
+  white-space: normal;
+}
+
+.kakkyoku-name strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.kakkyoku-name span {
+  font-size: 0.78rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.kakkyoku-name small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.kakkyoku-name small i {
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+/* 古典にある用途の札（講座の用途と見分ける） */
+.kakkyoku-name small i.is-classic {
+  border-style: dashed;
+}
