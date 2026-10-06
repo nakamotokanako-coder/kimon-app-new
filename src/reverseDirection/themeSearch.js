@@ -50,10 +50,13 @@ const byBest = (a, b) => (
  * @param {string} options.theme
  * @param {string[]} options.dates - 調べる日（'YYYY-MM-DD'）。先頭の日は fromHour 以降の時間帯だけを見る
  * @param {number|null} options.fromHour - 先頭の日の、今の時間帯（TIME_SLOTS の hour）。null なら1日ぶん
+ * @param {boolean} options.onlyNowOnFirstDay - 先頭の日は、今の時間帯だけを見る。
+ *   夜11時前でも、自然時の補正で「23-1時」に入っていることがある。そのとき「23-1時」は一覧の先頭なので、
+ *   そのままだと、その日のもう過ぎた時間帯まで「これから」に入ってしまう。
  * @param {number} options.limit
  * @returns {{ date: string, hour: number, label: string, item: object }[]}
  */
-export function bestTimesForTheme({ theme, dates, fromHour = null, limit = 3 }) {
+export function bestTimesForTheme({ theme, dates, fromHour = null, onlyNowOnFirstDay = false, limit = 3 }) {
   if (!theme) return [];
   const fromIndex = fromHour === null ? 0 : Math.max(0, TIME_SLOTS.findIndex((slot) => slot.hour === fromHour));
   const found = [];
@@ -61,6 +64,7 @@ export function bestTimesForTheme({ theme, dates, fromHour = null, limit = 3 }) 
     TIME_SLOTS.forEach((slot, slotIndex) => {
       const isNow = dateIndex === 0 && fromHour !== null && slot.hour === fromHour;
       if (dateIndex === 0 && slotIndex < fromIndex) return;       // 今日の、もう過ぎた時間帯
+      if (dateIndex === 0 && onlyNowOnFirstDay && !isNow) return;
       if (!isNow && !DAYTIME_HOURS.includes(slot.hour)) return;   // 深夜・早朝（今の時間帯だけは出す）
       let result;
       try {
@@ -93,4 +97,26 @@ export function bestDaysForTheme({ theme, dates, limit = 3 }) {
     if (item) found.push({ date, item, order });
   });
   return found.sort(byBest).slice(0, limit).map(({ order, ...entry }) => entry);
+}
+
+// ---- 画面に出す評価（点数の代わりに、星とランクの言葉で見せる）----
+
+/**
+ * 目的に向く方位（rankingsForTheme の item）を、星とランクの言葉にする。
+ *   ★5 最適       … その目的が◎で、総合点が80点以上
+ *   ★4 かなり良い … その目的が◎（総合は大吉＝40点以上）
+ *   ★3 良い       … その目的が○
+ * 点数そのものは、地図を開いた先の詳しいカードに出す。
+ */
+export function gradeOf(item) {
+  if (item?.themeRank === '◎' && item.score >= 80) return { stars: 5, label: '最適' };
+  if (item?.themeRank === '◎') return { stars: 4, label: 'かなり良い' };
+  return { stars: 3, label: '良い' };
+}
+
+/** 時間帯（TIME_SLOTS の hour）を「9:00–11:00」の形にする */
+export function slotClock(hour) {
+  const start = (hour + 23) % 24;
+  const end = (hour + 1) % 24;
+  return `${start}:00–${end}:00`;
 }
