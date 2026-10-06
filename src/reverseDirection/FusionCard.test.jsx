@@ -246,20 +246,15 @@ describe('FusionCard → L3ボトムシート（PR-5）', () => {
     expect(within(dialog).getByText('ログインすると、ベータ期間中は全機能を無料で使えます。')).toBeTruthy();
   });
 
-  it('「評価の解説」は点数付きで、盤のシートと同じ内訳（行を足すと総合点）', async () => {
+  it('詳しい画面に、点数の内訳は出さない（総合点だけ）', async () => {
     mockFetchAuth({ loggedIn: false });
     render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(SHORT_TEXT);
     fireEvent.click(screen.getByText('詳しく ›'));
     const dialog = await screen.findByRole('dialog');
-    fireEvent.click(within(dialog).getByText('評価の解説'));
-
-    const detail = dialog.querySelector('.l3-why-detail');
-    expect(detail).toBeTruthy();
-    expect(within(detail).getByText('総合評価')).toBeTruthy();
-    const pts = [...detail.querySelectorAll('.l3-why-row:not(.l3-why-total) .l3-why-pts')].map((el) => Number(el.textContent));
-    expect(pts.length).toBeGreaterThan(0);
-    expect(pts.reduce((a, b) => a + b, 0)).toBe(BEST.score);
+    expect(within(dialog).queryByText('評価の解説')).toBe(null);
+    expect(dialog.querySelector('.l3-why-detail')).toBe(null);
+    expect(within(dialog).queryByText('総合評価')).toBe(null);
   });
 });
