@@ -62,7 +62,7 @@ describe('ホーム画面', () => {
   });
 
   it('門のテーマは、名前だけ添える（効果は書かない）', () => {
-    expect(gateLine({ palaceData: { hachimon: '開門' } })).toBe('開門｜仕事のテーマ');
+    expect(gateLine({ palaceData: { hachimon: '開門' } })).toBe('開門｜仕事運のテーマ');
     expect(gateLine({ palaceData: { hachimon: '死門' } })).toBe('死門');
     expect(gateLine({ palaceData: {} })).toBe('');
   });
@@ -127,7 +127,7 @@ describe('探すの入口', () => {
     cleanup();
     const hub = render(<SearchHub onSelect={onSelect} onOpenGuide={() => {}} onOpenNotifications={() => {}} />);
     const chips = [...hub.container.querySelectorAll('.hub-theme .theme-picker-chips button')];
-    expect(chips.map((b) => b.textContent)).toEqual(['ご縁', '仕事', '金運', '健康', '勉強']);
+    expect(chips.map((b) => b.textContent)).toEqual(['ご縁', '仕事運', '金運', '健康運', '勉強運']);
     fireEvent.click(chips[1]);
     expect(onSelect).toHaveBeenCalledWith({ key: 'theme', target: 'search', theme: 'shigoto' });
     expect(NOW_ENTRY).toMatchObject({ key: 'time', target: 'map', cta: '今から探す' });

@@ -26,10 +26,10 @@ export const GATE_ICONS = {
 // テーマ → しるしの名前と、画面に出す言葉
 export const THEME_MARKS = {
   bond: { icon: 'theme-love', label: 'ご縁' },
-  work: { icon: 'theme-work', label: '仕事' },
+  work: { icon: 'theme-work', label: '仕事運' },
   money: { icon: 'theme-money', label: '金運' },
-  health: { icon: 'theme-health', label: '健康' },
-  study: { icon: 'theme-study', label: '勉強' },
+  health: { icon: 'theme-health', label: '健康運' },
+  study: { icon: 'theme-study', label: '勉強運' },
 };
 
 const TONE_LABEL = { daikichi: '大吉', shokichi: '吉', churitsu: '中立', kyo: '凶' };

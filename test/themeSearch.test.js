@@ -9,14 +9,14 @@ import {
   bestTimesForTheme, bestDaysForTheme, DAYTIME_HOURS,
 } from '../src/reverseDirection/themeSearch.js';
 
-// 目的で選ぶ: 目的（ご縁・仕事・金運・健康・勉強）を選ぶと、いつ・どの方位が一番向くかを順位で出す。
+// 目的で選ぶ: 目的（ご縁・仕事運・金運・健康運・勉強運）を選ぶと、いつ・どの方位が一番向くかを順位で出す。
 
 const weight = (rank) => (rank === '◎' ? 2 : 1);
 
 describe('目的から方位を探す', () => {
   it('選べる目的は5つ。名前を引ける', () => {
-    expect(THEMES.map((item) => item.label)).toEqual(['ご縁', '仕事', '金運', '健康', '勉強']);
-    expect(themeLabel('shigoto')).toBe('仕事');
+    expect(THEMES.map((item) => item.label)).toEqual(['ご縁', '仕事運', '金運', '健康運', '勉強運']);
+    expect(themeLabel('shigoto')).toBe('仕事運');
     expect(themeLabel('')).toBe('');
   });
 

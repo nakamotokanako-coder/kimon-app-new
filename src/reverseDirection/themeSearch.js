@@ -1,4 +1,4 @@
-// 目的で選ぶ: 目的（ご縁・仕事・金運・健康・勉強）を選ぶと、いつ・どの方位が一番向くかを順位で出す。
+// 目的で選ぶ: 目的（ご縁・仕事運・金運・健康運・勉強運）を選ぶと、いつ・どの方位が一番向くかを順位で出す。
 //
 // 「その目的に向く方位」＝ テーマ別の◎○×が ◎ か ○ の方位。
 // ◎○×は総合点を超えないので（docs/axis_score_alignment_v2.md）、◎か○が付く方位は必ず総合も吉になる。
@@ -8,7 +8,7 @@ import { AXES, computeAxisRanks } from './FusionCard.jsx';
 import { buildReverseBoard, buildDayReverseBoard, TIME_SLOTS } from './reverseDirection.js';
 import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
 
-/** 選べる目的（ご縁・仕事・金運・健康・勉強） */
+/** 選べる目的（ご縁・仕事運・金運・健康運・勉強運） */
 export const THEMES = AXES;
 
 export function themeLabel(theme) {

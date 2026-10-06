@@ -194,7 +194,7 @@ describe('BottomSheet', () => {
 
   it('5テーマの結果を、ひとことにまとめる', () => {
     expect(summarizeAxes({ goen: '◎', shigoto: '×', kinun: '○', kenko: '×', benkyo: '△' })).toBe('向いているのは、ご縁・金運です。');
-    expect(summarizeAxes({ goen: '×', shigoto: '×', kinun: '×', kenko: '△', benkyo: '△' })).toContain('健康・勉強の用事にとどめます');
+    expect(summarizeAxes({ goen: '×', shigoto: '×', kinun: '×', kenko: '△', benkyo: '△' })).toContain('健康運・勉強運の用事にとどめます');
     expect(summarizeAxes({ goen: '×', shigoto: '×', kinun: '×', kenko: '×', benkyo: '×' })).toContain('どのテーマにも向きません');
     expect(summarizeAxes(null)).toBe('');
   });
