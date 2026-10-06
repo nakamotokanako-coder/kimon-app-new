@@ -49,7 +49,7 @@ function post(payload, { signature } = {}) {
   const req = {
     method: 'POST',
     query: { action: 'line' },
-    headers: { 'x-line-signature': signature ?? sign(raw), host: 'kimon-app-new.vercel.app' },
+    headers: { 'x-line-signature': signature ?? sign(raw), host: 'kimon-tonko.vercel.app' },
     body: raw,
   };
   return billingHandler(req, res).then(() => res);
@@ -151,7 +151,7 @@ describe('今の吉方位の文（時盤）', () => {
     expect(text).toContain('休門｜ご縁のテーマ');
     expect(text).toContain('ほかに北東も吉です。');
     expect(text).not.toContain('注意条件');
-    expect(text.endsWith(`\n${APP}/?go=time`)).toBe(true);
+    expect(text.endsWith(`\n${APP}/?go=time&openExternalBrowser=1`)).toBe(true);
   });
 
   it('時間帯は日本の時計の時刻で決める（11時からは次の時間帯）', () => {
@@ -195,7 +195,7 @@ describe('選んだ日の吉方位の文（日盤）', () => {
     const text = buildDayText('2026-10-10', APP);
     expect(text).toContain('10月10日（土）の吉方位は「南」です。');
     expect(text).toContain('+70点・大吉');
-    expect(text.endsWith(`\n${APP}/?go=day`)).toBe(true);
+    expect(text.endsWith(`\n${APP}/?go=day&openExternalBrowser=1`)).toBe(true);
   });
 
   it('吉方位がない日・表にない日', () => {
@@ -237,7 +237,7 @@ describe('方位から探す文（日盤・これから30日）', () => {
     const lines = text.split('\n');
     expect(lines[0]).toBe('「北」が吉の日（これから30日・点数の高い順）');
     expect(lines.slice(1, 4)).toEqual(['10月8日（木） +90点・大吉', '10月20日（火） +90点・大吉', '11月4日（水） +90点・大吉']);
-    expect(text.endsWith(`\n${APP}/?go=ranking`)).toBe(true);
+    expect(text.endsWith(`\n${APP}/?go=ranking&openExternalBrowser=1`)).toBe(true);
   });
 
   it('吉の日がなければ、ないと伝える。知らない方位は null', () => {
@@ -285,7 +285,7 @@ describe('LINE の Webhook（/api/billing?action=line）', () => {
     expect(init.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(JSON.parse(init.body).replyToken).toBe('rt-1');
     expect(sentMessage().text).toMatch(/吉方位は「|吉の方位がありません/);
-    expect(sentMessage().text).toContain('https://kimon-app-new.vercel.app/?go=time');
+    expect(sentMessage().text).toContain('https://kimon-tonko.vercel.app/?go=time');
   });
 
   it('「次の休みの吉方位」を押したら、日付を選ぶボタンを出す', async () => {

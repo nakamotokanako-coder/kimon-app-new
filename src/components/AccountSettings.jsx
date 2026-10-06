@@ -546,7 +546,7 @@ export default function AccountSettings() {
         <LineLink loggedIn canLineLogin={auth.lineLogin} />
         <BillingSection auth={auth} />
         <DeviceList email={auth.email} />
-        <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
+        <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、もう一度ログインしてください。</p>
         {auth.full && <SyncSetting email={auth.email} />}
         {auth.owner && <InviteAdmin />}
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(false)} disabled={busy}>

@@ -5,7 +5,7 @@ import meHandler from '../api/auth/me.js';
 import logoutHandler from '../api/auth/logout.js';
 import verifyCodeHandler from '../api/auth/verify-code.js';
 import sessionsHandler from '../api/auth/sessions.js';
-import { deviceLabel, MAX_DEVICES } from '../lib/auth.js';
+import { deviceLabel, issueSession, MAX_DEVICES } from '../lib/auth.js';
 import { SESSION_MAX_AGE_SEC } from '../lib/session.js';
 import { setKvClient } from '../lib/kv.js';
 import {
@@ -432,6 +432,18 @@ describe('端末の上限（3台）と有効期間（30日）', () => {
     expect(kvFake.store.get(`user:${email}`).sessions).toHaveLength(3);
   });
 
+  it('ログイン中のブラウザでもう一度ログインしても、端末は1台ぶんのまま', async () => {
+    const email = 'again@example.com';
+    const first = await loginOn(email, UA.iphone);
+    const v = createRes();
+    await issueSession(v, email, { headers: { 'user-agent': UA.iphone, cookie: first } });
+    const second = v.headers['Set-Cookie'].split(';')[0];
+
+    expect(kvFake.store.get(`user:${email}`).sessions).toHaveLength(1);
+    expect(await isLoggedIn(second)).toBe(true);
+    expect(await isLoggedIn(first)).toBe(false);
+  });
+
   it('30日を過ぎたセッションは無効', async () => {
     const email = 'old@example.com';
     const c1 = await loginOn(email, UA.iphone);
@@ -471,6 +483,8 @@ describe('端末の上限（3台）と有効期間（30日）', () => {
   it('端末名は User-Agent から', () => {
     expect(deviceLabel(UA.iphone)).toBe('iPhone・Safari');
     expect(deviceLabel(UA.mac)).toBe('Mac・Chrome');
+    // LINE の中のブラウザは、Safari と見分けて出す
+    expect(deviceLabel('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1 Line/15.1.0')).toBe('iPhone・LINE');
     expect(deviceLabel('')).toBe('その他の端末');
   });
 });
