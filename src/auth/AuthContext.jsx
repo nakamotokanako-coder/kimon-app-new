@@ -9,7 +9,7 @@ const LOADING = { phase: 'loading', loggedIn: false, status: 'free', full: false
 const ANON = { phase: 'ready', loggedIn: false, status: 'free', full: false, accessMode: ACCESS_MODE };
 
 export function normalizeMe(data) {
-  if (!data?.loggedIn) return { ...ANON, accessMode: data?.accessMode || ACCESS_MODE };
+  if (!data?.loggedIn) return { ...ANON, accessMode: data?.accessMode || ACCESS_MODE, lineLogin: Boolean(data?.lineLogin) };
   const status = data.status || 'free';
   return {
     phase: 'ready',
@@ -26,6 +26,8 @@ export function normalizeMe(data) {
       ? data.full
       : hasFullAccess({ loggedIn: true, status, paidUntil: data.paidUntil }),
     accessMode: data.accessMode || ACCESS_MODE,
+    // 「LINEでログイン」を出してよいか（サーバーに鍵が設定されているとき）
+    lineLogin: Boolean(data.lineLogin),
   };
 }
 

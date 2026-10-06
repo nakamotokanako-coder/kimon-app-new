@@ -265,7 +265,7 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
   it('reports loggedIn:false without a cookie', async () => {
     const res = createRes();
     await meHandler({ method: 'GET', headers: {} }, res);
-    expect(res.body).toEqual({ loggedIn: false, full: false, accessMode: 'beta' });
+    expect(res.body).toEqual({ loggedIn: false, full: false, accessMode: 'beta', lineLogin: false });
   });
 
   it('reports loggedIn + email + status + full（ベータ期間はログインで全機能） with a valid cookie', async () => {

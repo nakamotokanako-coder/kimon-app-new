@@ -25,7 +25,7 @@ import PlaceSettings from './components/PlaceSettings.jsx';
 import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './sync/userDataSync.js';
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
-import { capturePendingLineLink } from './auth/lineLink.js';
+import { captureLineLoginCallback, capturePendingLineLink, finishLineLogin } from './auth/lineLink.js';
 import packageJson from '../package.json';
 
 // 標準は白地に金（パール）。前から使っている人が選んだテーマは localStorage に残っているのでそのまま。
@@ -257,6 +257,28 @@ export default function App() {
   // 結びつけるのは、ログインして「連携する」を押したとき（src/components/AccountSettings.jsx の LineLink）。
   useEffect(() => {
     if (typeof window !== 'undefined' && capturePendingLineLink()) setActiveTab('settings');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // 「LINEでログイン」で LINE の画面から戻ってきたとき（?code=…&state=…）: サーバーへ渡してログインする。
+  // はじめての人はアカウントの画面でメールアドレスを登録してもらう（案内は AccountSettings の LineLink が出す）。
+  const [lineLoginNotice, setLineLoginNotice] = useState('');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const callback = captureLineLoginCallback();
+    if (!callback || callback.cancelled) return;
+    finishLineLogin(callback).then((result) => {
+      if (result.error) {
+        setLineLoginNotice('LINEでログインできませんでした。もう一度お試しください。');
+        setActiveTab('settings');
+        return;
+      }
+      if (result.loggedIn) {
+        if (result.linked) setActiveTab('settings');
+        auth.refresh?.();
+        return;
+      }
+      setActiveTab('settings');
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -676,6 +698,7 @@ export default function App() {
         )))}
         <div className="settings-group-body is-plain">
           {billingNotice && <p className="account-note">{billingNotice}</p>}
+          {lineLoginNotice && <p className="account-note">{lineLoginNotice}</p>}
           <AccountSettings />
         </div>
       </section>

@@ -6933,6 +6933,25 @@ body {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
+/* 「LINEでログイン」「LINEと連携する」（LINE の色） */
+.account-btn.account-btn-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: #06c755;
+  background: #06c755;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.account-or {
+  margin: 2px 0;
+  font-size: 0.78rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
 .account-btn {
   min-height: 42px;
   padding: 10px 18px;

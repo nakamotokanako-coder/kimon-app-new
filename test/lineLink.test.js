@@ -141,7 +141,7 @@ describe('/api/auth/me?line=1', () => {
     const token = await createLinkToken('U1', 'かなこ');
     const res = await me('POST', { body: { token } });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ name: 'かなこ' });
+    expect(res.body).toEqual({ name: 'かなこ', trusted: false });
     expect(await linkedEmail('U1')).toBeNull();
     expect((await me('GET')).body).toEqual({ linked: false });
   });

@@ -52,6 +52,7 @@ function fakeLoginForLocalPreview() {
           paidUntil: null,
           full: true,
           accessMode: 'beta',
+          lineLogin: true,
           invited: true,
           owner: true,
           billing: { available: false, subscribed: false, cancelAtPeriodEnd: false },

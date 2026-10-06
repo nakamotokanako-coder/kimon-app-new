@@ -6,7 +6,8 @@ import {
   isSyncEnabled, enableUserDataSync, disableUserDataSync, SYNC_SETTING_CHANGED_EVENT,
 } from '../sync/userDataSync.js';
 import {
-  clearPendingLineLink, confirmLineLink, fetchLineLinked, peekLineLink, readPendingLineLink, unlinkLine,
+  clearPendingLineLink, confirmLineLink, fetchLineLinked, isPendingFromLineLogin, LINE_LOGIN_START,
+  peekLineLink, readPendingLineLink, unlinkLine,
 } from '../auth/lineLink.js';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
@@ -166,19 +167,22 @@ function SyncSetting({ email }) {
 }
 
 // LINE との連携。LINE の「アプリと連携」で届いたリンクから開いたときに、相手を確かめてから結びつける。
-// 連携済みのときは、その旨と、やめるボタンを出す。
-function LineLink({ loggedIn }) {
+// 「LINEでログイン」から来たはじめての人は、メールのコードでログインした時点で確認なしに結びつける
+// （LINE での本人確認が、この端末で済んでいるため）。
+// 連携済みのときは、その旨と、やめるボタンを出す。まだのときは「LINEと連携する」を出す。
+function LineLink({ loggedIn, canLineLogin = false }) {
   const [token, setToken] = useState(() => readPendingLineLink());
   // step: idle | checking | confirm | done | expired | error
   const [step, setStep] = useState('idle');
   const [name, setName] = useState('');
-  const [linked, setLinked] = useState(false);
+  // linked: null は確認中
+  const [linked, setLinked] = useState(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!loggedIn) return undefined;
     let alive = true;
-    fetchLineLinked().then((value) => { if (alive) setLinked(value); }).catch(() => {});
+    fetchLineLinked().then((value) => { if (alive) setLinked(value); }).catch(() => { if (alive) setLinked(false); });
     return () => { alive = false; };
   }, [loggedIn]);
 
@@ -190,6 +194,7 @@ function LineLink({ loggedIn }) {
       if (!alive) return;
       if (result.expired) { clearPendingLineLink(); setToken(''); setStep('expired'); return; }
       if (result.error) { setStep('error'); return; }
+      if (result.trusted) { finish(token); return; }
       setName(result.name);
       setStep('confirm');
     }).catch(() => { if (alive) setStep('error'); });
@@ -197,15 +202,16 @@ function LineLink({ loggedIn }) {
   }, [loggedIn, token]);
 
   const forget = () => { clearPendingLineLink(); setToken(''); };
-  const confirm = async () => {
+  async function finish(value) {
     setBusy(true);
-    const result = await confirmLineLink(token).catch(() => ({ error: true }));
+    const result = await confirmLineLink(value).catch(() => ({ error: true }));
     setBusy(false);
     if (result.error) { setStep('error'); return; }
     forget();
     setLinked(Boolean(result.linked));
     setStep(result.linked ? 'done' : 'expired');
-  };
+  }
+  const confirm = () => finish(token);
   const cancel = () => { forget(); setStep('idle'); };
   const unlink = async () => {
     setBusy(true);
@@ -215,7 +221,14 @@ function LineLink({ loggedIn }) {
   };
 
   if (!loggedIn) {
-    return token ? <p className="account-note">ログインすると、LINEと連携できます。</p> : null;
+    if (!token) return null;
+    return (
+      <p className="account-note">
+        {isPendingFromLineLogin()
+          ? 'LINEでのログインは、はじめの1回だけメールアドレスの登録が要ります。下でメールアドレスを入れてログインすると、次からはLINEだけでログインできます。'
+          : 'ログインすると、LINEと連携できます。'}
+      </p>
+    );
   }
   return (
     <>
@@ -228,7 +241,7 @@ function LineLink({ loggedIn }) {
           <button type="button" className="account-btn account-btn-ghost" onClick={cancel} disabled={busy}>やめる</button>
         </div>
       )}
-      {step === 'done' && <p className="account-note">LINEと連携しました。LINEに戻ってお使いください。</p>}
+      {step === 'done' && <p className="account-note">LINEと連携しました。次からは、LINEでもログインできます。</p>}
       {step === 'expired' && (
         <p className="account-note">連携用のリンクの期限が切れています。LINEでもう一度「アプリと連携」を押してください。</p>
       )}
@@ -238,6 +251,12 @@ function LineLink({ loggedIn }) {
           <span>LINEとの連携</span>
           <button type="button" className="account-btn account-btn-ghost" onClick={unlink} disabled={busy}>連携をやめる</button>
         </div>
+      )}
+      {linked === false && canLineLogin && !token && step !== 'confirm' && (
+        <>
+          <a className="account-btn account-btn-line" href={LINE_LOGIN_START}>LINEと連携する</a>
+          <p className="account-note account-note-small">連携すると、次からはLINEでもログインできます。</p>
+        </>
       )}
     </>
   );
@@ -524,7 +543,7 @@ export default function AccountSettings() {
           <span>ご利用プラン</span>
           <strong>{planLabel(auth)}</strong>
         </div>
-        <LineLink loggedIn />
+        <LineLink loggedIn canLineLogin={auth.lineLogin} />
         <BillingSection auth={auth} />
         <DeviceList email={auth.email} />
         <p className="account-note account-note-small">ログインの有効期間は30日です。期間が過ぎたら、メールのコードでもう一度ログインしてください。</p>
@@ -585,6 +604,12 @@ export default function AccountSettings() {
     <div className="account-login">
       <LineLink loggedIn={false} />
       {note && <p className="account-note">{note}</p>}
+      {auth.lineLogin && (
+        <>
+          <a className="account-btn account-btn-line" href={LINE_LOGIN_START}>LINEでログイン</a>
+          <p className="account-or" aria-hidden="true">または</p>
+        </>
+      )}
       <label className="account-label" htmlFor="account-email-input">メールアドレスでログイン</label>
       <input
         id="account-email-input"
