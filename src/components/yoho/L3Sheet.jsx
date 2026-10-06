@@ -9,21 +9,15 @@ import {
   scoreText,
 } from '../../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../../reverseDirection/reverseDirection.js';
-import { buildScoreBreakdown, dateBoundParagraph } from '../../kimon/palaceExplain.js';
+import { dateBoundParagraph } from '../../kimon/palaceExplain.js';
 import { ProseText } from '../../kaisetsu/renderProse.jsx';
 import { lockedMessage } from '../../../lib/accessPolicy.js';
 
 // 時盤お散歩モードのFusionCard（L2）をタップすると開く30秒の層（L3）。
 // 開閉の実装（createPortal・常時マウント・.openクラス・Escape対応）は
-// src/components/BottomSheet.jsx（盤タブ）と同じ方式。「評価の解説」も盤タブと同じ
-// kimon/palaceExplain.js を使う（点数付き・行を足すと総合点）。
+// src/components/BottomSheet.jsx（盤タブ）と同じ方式。点数は総合点だけを出す（要素ごとの内訳は出さない）。
 export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChange, onClose, onGoToSearch }) {
-  const [whyOpen, setWhyOpen] = useState(false);
   const palace = best?.palace || null;
-
-  useEffect(() => {
-    setWhyOpen(false);
-  }, [palace]);
 
   useEffect(() => {
     if (!best) return undefined;
@@ -46,10 +40,6 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
   const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace, best?.palaceScore), [boardKey, palace, best?.palaceScore]);
   const capNote = useMemo(() => dateCapNote(boardKey, palace, best?.palaceScore), [boardKey, palace, best?.palaceScore]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
-  const breakdown = useMemo(
-    () => (best ? buildScoreBreakdown(best.palaceScore, best.palaceData, banLevel) : []),
-    [best, banLevel],
-  );
 
   if (!best) return null;
 
@@ -150,40 +140,6 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
 
           <div className="l3-walk-tip">
             <p>500m以上・5分ほど滞在すると効果が出やすいとされます（目安の効果は5日）。</p>
-          </div>
-
-          <div className="l3-why">
-            <button
-              type="button"
-              className={`l3-why-toggle${whyOpen ? ' open' : ''}`}
-              aria-expanded={whyOpen}
-              onClick={() => setWhyOpen((value) => !value)}
-            >
-              評価の解説
-            </button>
-            <div className={`l3-why-detail${whyOpen ? ' open' : ''}`}>
-              {breakdown.length > 0 ? (
-                <>
-                  {breakdown.map((item) => (
-                    <div className="l3-why-row" key={item.key}>
-                      <span className="l3-why-factor">
-                        {item.label}
-                        <b className={`l3-why-pts shoui-${item.tone}`}>{scoreText(item.points)}</b>
-                      </span>
-                      <span className={`l3-why-desc shoui-${item.tone}`}>{item.desc}</span>
-                    </div>
-                  ))}
-                  <div className="l3-why-row l3-why-total">
-                    <span className="l3-why-factor">
-                      総合評価
-                      <b className="l3-why-pts">{scoreText(best.score)}</b>
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="l3-why-empty">評価内訳はありません</div>
-              )}
-            </div>
           </div>
 
           <div className="l3-actions">

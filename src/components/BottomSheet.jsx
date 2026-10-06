@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { computeAxisRanks, dateCapNote, BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../reverseDirection/reverseDirection.js';
-import { buildScoreBreakdown, dateBoundParagraph } from '../kimon/palaceExplain.js';
+import { dateBoundParagraph } from '../kimon/palaceExplain.js';
 import { buildElementStudyCards, buildKakkyokuStudyCards } from '../kimon/studyCards.js';
 import StudyCard from './StudyCard.jsx';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
@@ -13,13 +13,13 @@ import './BottomSheet.css';
 // 盤のセルをタップしたときの詳細シート。2つの層に分ける。
 //   1. この方位をどう使う？ … 専門の知識がなくても分かる結論（点数・吉凶・ひとこと・5テーマ・テーマ別の読み方）
 //   2. この盤から学ぶ       … この判定になった理由。実際の盤を教材にして、格局や八門を覚える（学習カード）
+// 点数は総合点だけを出す。要素ごとの点数（内訳）は出さない。
 // 情報は減らさない。同じ強さで並べず、階層を分ける。
 // 判定・文章はすべて吉方位タブと同じ出どころを使う（画面ごとに評価がぶれないように）:
 //   吉凶バッジ … reverseDirection.getMiniBoardToneClass（吉方位タブと同じ基準）
 //   5テーマの◎○× … classifyPalace の軸ランク（FusionCard.computeAxisRanks）
 //   解説文 … /api/kaisetsu・/api/kaisetsu-full（useKaisetsuPalace。出し分けは lib/accessPolicy.js）
 //             全機能を使える人には、吉方位タブと同じ4段落の文章（full）を出す
-//   評価の解説 … kimon/palaceExplain.js（点数付き。行を足すと総合点になる）
 
 const AXES = [
   { key: 'goen', label: 'ご縁' },
@@ -75,13 +75,11 @@ function rankClass(symbol) {
 export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap, onOpenAccountSettings, prev, next, onNavigate }) {
   const contentRef = useRef(null);
   const [activeAxis, setActiveAxis] = useState('goen');
-  const [whyOpen, setWhyOpen] = useState(false);
   const { palaces, fullPalaces, fullErrorKey, isPaid, auth } = useKaisetsuPalace(palace ? kaisetsuKey : null);
 
-  // 隣の方位へ移ったら先頭から読めるように戻す。「評価の解説」の開閉は見比べやすいようにそのまま、閉じたら畳む。
+  // 隣の方位へ移ったら先頭から読めるように戻す。
   useEffect(() => {
-    if (!palace?.key) setWhyOpen(false);
-    else if (contentRef.current) contentRef.current.scrollTop = 0;
+    if (palace?.key && contentRef.current) contentRef.current.scrollTop = 0;
   }, [palace?.key]);
 
   useEffect(() => {
@@ -104,10 +102,6 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
 
   const axisRanks = useMemo(() => computeAxisRanks(kaisetsuKey, palace?.key, palace?.score), [kaisetsuKey, palace?.key, palace?.score]);
   const capNote = useMemo(() => dateCapNote(kaisetsuKey, palace?.key, palace?.score), [kaisetsuKey, palace?.key, palace?.score]);
-  const breakdown = useMemo(
-    () => buildScoreBreakdown(palace?.score, palace?.data, palace?.banLevel),
-    [palace?.score, palace?.data, palace?.banLevel],
-  );
   const kakkyokuCards = useMemo(() => buildKakkyokuStudyCards(palace?.score, palace?.data), [palace?.score, palace?.data]);
   const elementCards = useMemo(() => buildElementStudyCards(palace?.score, palace?.data), [palace?.score, palace?.data]);
 
@@ -285,38 +279,6 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
               </>
             )}
 
-            <div className="why-card">
-              <button
-                type="button"
-                className={`why-toggle ${whyOpen ? 'open' : ''}`}
-                aria-expanded={whyOpen}
-                aria-label="評価の解説"
-                onClick={() => setWhyOpen((current) => !current)}
-              >
-                点数の内訳
-              </button>
-              <div className={`why-detail ${whyOpen ? 'open' : ''}`}>
-                {breakdown.length > 0 ? (
-                  <>
-                    {breakdown.map((item) => (
-                      <div className="why-item why-row" key={item.key}>
-                        <span className="factor">{item.label}</span>
-                        <span className={`pts ${item.points >= 0 ? 'plus' : 'minus'}`}>{scoreText(item.points)}</span>
-                        <span className={`why-desc ${item.tone}`}>{item.desc}</span>
-                      </div>
-                    ))}
-                    {typeof score === 'number' && (
-                      <div className="why-item why-row total">
-                        <span className="factor">総合評価</span>
-                        <span className={`pts ${score >= 0 ? 'plus' : 'minus'}`}>{scoreText(score)}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="why-empty">評価内訳はありません</div>
-                )}
-              </div>
-            </div>
           </section>
         </div>
       </section>
