@@ -474,6 +474,7 @@ export default function AccountSettings() {
           autoComplete="one-time-code"
           pattern="[0-9]*"
           maxLength={6}
+          placeholder="123456"
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
           onKeyDown={(e) => { if (e.key === 'Enter') verifyCode(); }}
