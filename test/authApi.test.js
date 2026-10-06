@@ -483,6 +483,8 @@ describe('端末の上限（3台）と有効期間（30日）', () => {
   it('端末名は User-Agent から', () => {
     expect(deviceLabel(UA.iphone)).toBe('iPhone・Safari');
     expect(deviceLabel(UA.mac)).toBe('Mac・Chrome');
+    // LINE の中のブラウザは、Safari と見分けて出す
+    expect(deviceLabel('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1 Line/15.1.0')).toBe('iPhone・LINE');
     expect(deviceLabel('')).toBe('その他の端末');
   });
 });

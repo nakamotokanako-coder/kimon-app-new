@@ -259,6 +259,16 @@ export default function App() {
     if (typeof window !== 'undefined' && capturePendingLineLink()) setActiveTab('settings');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // LINE から開くリンクに付けている印（openExternalBrowser。LINE の中ではなく、ふだんのブラウザで開かせる）を、
+  // アドレスから消す。アプリの動きには関係しない。
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('openExternalBrowser')) return;
+    params.delete('openExternalBrowser');
+    const rest = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}`);
+  }, []);
   // 「LINEでログイン」で LINE の画面から戻ってきたとき（?code=…&state=…）: サーバーへ渡してログインする。
   // はじめての人はアカウントの画面でメールアドレスを登録してもらう（案内は AccountSettings の LineLink が出す）。
   const [lineLoginNotice, setLineLoginNotice] = useState('');

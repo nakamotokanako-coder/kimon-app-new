@@ -177,7 +177,7 @@ describe('LINE の「アプリと連携」', () => {
   it('連携していない人には、合言葉つきのリンクを返す（表示名も合言葉に入れる）', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ displayName: 'かなこ' }) })));
     const message = await answer(textEvent(MENU.link), NOW, APP, 'channel-token');
-    const token = message.text.match(/\?line=([A-Za-z0-9_-]+)$/)?.[1];
+    const token = message.text.match(/\?line=([A-Za-z0-9_-]+)&openExternalBrowser=1$/)?.[1];
     expect(token).toBeTruthy();
     expect(message.text).toContain('15分');
     expect(await peekLinkToken(token)).toEqual({ userId: 'U1', name: 'かなこ' });
