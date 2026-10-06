@@ -4,6 +4,7 @@ import {
   KAKKYOKU_USES,
   SPECIAL_KAKKYOKU_GROUPS,
   SPECIAL_KAKKYOKU_NAMES,
+  groupRowsByDay,
   scanSpecialKakkyoku,
 } from './kakkyokuSearch.js';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
@@ -145,6 +146,8 @@ export default function KakkyokuSearchView({
   const [boardType, setBoardType] = useState(TIME_BOARD_TYPE);
   const [periodKey, setPeriodKey] = useState('month');
   const [sortMode, setSortMode] = useState('date');
+  // 探し方: 'any' … 選んだ格局のどれか1つでも出る日時 ／ 'all' … 選んだ格局が全部そろう日
+  const [matchMode, setMatchMode] = useState('any');
   const [hasSearched, setHasSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(null);
   const [openResultKey, setOpenResultKey] = useState(null);
@@ -193,6 +196,12 @@ export default function KakkyokuSearchView({
       boardType: searchParams.boardType,
     });
   }, [searchParams, sortMode, startDate]);
+  // 全部そろう日: 結果を日ごとにまとめる。全部そろう日が無ければ、いちばん多くそろう日を3つまで出す。
+  const searchedNames = searchParams?.selectedNames || [];
+  const wantAll = matchMode === 'all' && searchedNames.length >= 2;
+  const days = useMemo(() => (wantAll ? groupRowsByDay(result.rows, searchedNames) : []), [wantAll, result.rows, searchedNames]);
+  const completeDays = days.filter((day) => day.complete);
+  const shownDays = completeDays.length > 0 ? completeDays : days.slice(0, 3);
   const maxResultScore = useMemo(() => (
     result.rows.length > 0 ? Math.max(...result.rows.map((item) => item.score)) : null
   ), [result.rows]);
@@ -223,6 +232,7 @@ export default function KakkyokuSearchView({
     if (selectedCount === 0) return;
     setHasSearched(true);
     setSearchParams({ days: period.days, selectedNames, boardType });
+    setScrollToResult((count) => count + 1); // 結果のところまで画面を送る
   };
 
   return (
@@ -356,22 +366,44 @@ export default function KakkyokuSearchView({
         ))}
       </div>
 
+      {selectedCount >= 2 && (
+        <div className="kakkyoku-period kakkyoku-match">
+          <p>探し方</p>
+          <div role="group" aria-label="探し方">
+            <button type="button" className={matchMode === 'any' ? 'is-active' : ''} aria-pressed={matchMode === 'any'} onClick={() => setMatchMode('any')}>
+              どれか1つでも出る日時
+            </button>
+            <button type="button" className={matchMode === 'all' ? 'is-active' : ''} aria-pressed={matchMode === 'all'} onClick={() => setMatchMode('all')}>
+              全部がそろう日
+            </button>
+          </div>
+          <small className="kakkyoku-board-note">
+            {matchMode === 'all'
+              ? '選んだ格局が、同じ日のうちに全部出る日を探します（時間帯と方位は、ばらばらでも数えます）。'
+              : '選んだ格局のどれかが出る日時を、すべて並べます。'}
+          </small>
+        </div>
+      )}
+
       <button
         type="button"
         className="kakkyoku-search-button"
         disabled={selectedCount === 0}
         onClick={search}
       >
-        {selectedCount === 0 ? '格局を選んでください' : `この${selectedCount}件が出る日時を検索`}
+        {selectedCount === 0
+          ? '格局を選んでください'
+          : (matchMode === 'all' && selectedCount >= 2 ? `この${selectedCount}件が全部そろう日を検索` : `この${selectedCount}件が出る日時を検索`)}
       </button>
 
       {hasSearched && (
         <>
           <div className="kakkyoku-result-head" ref={resultRef}>
             <div>
-              <h3>{activeUse ? `「${activeUse.label}」の格局が出る日時` : '検索結果'}</h3>
-              <span>{result.rows.length}件</span>
+              <h3>{wantAll ? `${searchedNames.length}件が全部そろう日` : (activeUse ? `「${activeUse.label}」の格局が出る日時` : '検索結果')}</h3>
+              <span>{wantAll ? `${completeDays.length}日` : `${result.rows.length}件`}</span>
             </div>
+            {!wantAll && (
             <div className="kakkyoku-sort-toggle" role="group" aria-label="検索結果の並び順">
               <button
                 type="button"
@@ -388,6 +420,7 @@ export default function KakkyokuSearchView({
                 スコアが高い順
               </button>
             </div>
+            )}
           </div>
 
           {result.errors.length > 0 && result.rows.length === 0 && (
@@ -404,6 +437,39 @@ export default function KakkyokuSearchView({
             </div>
           )}
 
+          {wantAll && result.rows.length > 0 && completeDays.length === 0 && (
+            <div className="reverse-card reverse-placeholder">
+              <h3>全部がそろう日は、この期間にありません</h3>
+              <p>{`いちばん多くそろう日を、${shownDays.length}日ぶん出します。期間を長くするか、格局を減らすと見つかりやすくなります。`}</p>
+            </div>
+          )}
+
+          {wantAll ? (
+            <div className="kakkyoku-result-list">
+              {shownDays.map((day) => (
+                <section key={day.date} className={`kakkyoku-day${day.complete ? ' is-complete' : ''}`} aria-label={`${day.text}（${day.weekday}）`}>
+                  <header className="kakkyoku-day-head">
+                    <strong>{day.text}<small className={weekdayClass(day.weekday)}>({day.weekday})</small></strong>
+                    <span>{day.complete ? `${searchedNames.length}件そろう` : `${searchedNames.length}件中${day.matched.length}件`}</span>
+                  </header>
+                  {!day.complete && <p className="kakkyoku-day-missing">{`出ない格局：${day.missing.join('・')}`}</p>}
+                  {day.rows.map((item) => {
+                    const key = `${item.date}-${item.hour}-${item.palace}-${item.matches.join('-')}`;
+                    return (
+                    <KakkyokuResultCard
+                      key={key}
+                      item={item}
+                      isFeatured={false}
+                      isOpen={openResultKey === key}
+                      onToggle={() => setOpenResultKey((current) => (current === key ? null : key))}
+                      onOpenBoard={onOpenBoard}
+                    />
+                    );
+                  })}
+                </section>
+              ))}
+            </div>
+          ) : (
           <div className="kakkyoku-result-list">
             {result.rows.map((item) => {
               const key = `${item.date}-${item.hour}-${item.palace}-${item.matches.join('-')}`;
@@ -419,6 +485,7 @@ export default function KakkyokuSearchView({
               );
             })}
           </div>
+          )}
         </>
       )}
     </div>

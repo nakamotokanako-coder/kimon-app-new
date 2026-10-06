@@ -186,3 +186,49 @@ describe('格局の絵', () => {
     for (const name of ['mountain-bg', 'botanical-branch', 'cloud-ornament']) expect(existsSync(`public/divination/${name}.webp`), name).toBe(true);
   });
 });
+
+describe('選んだ格局が全部そろう日を探す', () => {
+  const row = (date, hour, palace, matches) => ({ date, text: date.replaceAll('-', '/'), weekday: '水', hour, palace, matches });
+
+  it('日ごとにまとめて、そろう数の多い日を先に、同じ数なら早い日を先に出す', async () => {
+    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const rows = [
+      row('2026-10-07', 10, 'ken', ['人遁']),
+      row('2026-10-07', 14, 'kun', ['玉女守門']),
+      row('2026-10-08', 4, 'son', ['風遁']),
+      row('2026-10-09', 16, 'kan', ['人遁', '風遁']),
+      row('2026-10-09', 6, 'ri', ['玉女守門']),
+    ];
+    const days = groupRowsByDay(rows, ['人遁', '玉女守門', '風遁']);
+    expect(days.map((day) => [day.date, day.matched.length, day.complete])).toEqual([
+      ['2026-10-09', 3, true],
+      ['2026-10-07', 2, false],
+      ['2026-10-08', 1, false],
+    ]);
+    expect(days[0].rows.map((item) => item.hour)).toEqual([6, 16]); // 日の中は時間順
+    expect(days[1].missing).toEqual(['風遁']);
+    expect(days[2].missing).toEqual(['人遁', '玉女守門']);
+  });
+
+  it('時間帯や方位が違っても、同じ日に出ていれば「そろう」と数える。1つも選んでいなければ、そろわない', async () => {
+    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const days = groupRowsByDay([row('2026-10-07', 0, 'kan', ['天遁']), row('2026-10-07', 22, 'ri', ['地遁'])], ['天遁', '地遁']);
+    expect(days).toHaveLength(1);
+    expect(days[0].complete).toBe(true);
+    expect(groupRowsByDay([row('2026-10-07', 0, 'kan', ['天遁'])], [])[0].complete).toBe(false);
+    expect(groupRowsByDay([], ['天遁'])).toEqual([]);
+  });
+
+  it('実際の盤: 全部そろう日には、選んだ格局がすべて出ている', async () => {
+    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const names = ['青龍返首', '飛鳥跌穴', '人遁'];
+    const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-07', days: 30, selectedNames: names });
+    const days = groupRowsByDay(rows, names);
+    expect(days.reduce((sum, day) => sum + day.rows.length, 0)).toBe(rows.length);
+    for (const day of days.filter((item) => item.complete)) {
+      const present = new Set(day.rows.flatMap((item) => item.matches));
+      for (const name of names) expect(present.has(name)).toBe(true);
+    }
+    for (let i = 1; i < days.length; i += 1) expect(days[i - 1].matched.length).toBeGreaterThanOrEqual(days[i].matched.length);
+  });
+});
