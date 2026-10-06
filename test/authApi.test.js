@@ -388,7 +388,7 @@ describe('POST /api/auth/verify-code（ホーム画面のアプリ内でコー�
   });
 });
 
-describe('端末の上限（3台）と有効期間（30日）', () => {
+describe('端末の上限（5台）と有効期間（30日）', () => {
   const UA = {
     iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
     mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36',
@@ -414,22 +414,20 @@ describe('端末の上限（3台）と有効期間（30日）', () => {
     expect(SESSION_MAX_AGE_SEC).toBe(30 * 24 * 60 * 60);
   });
 
-  it('4台目でログインすると、一番使っていない端末がログアウトされる', async () => {
-    expect(MAX_DEVICES).toBe(3);
+  it('上限を超えてログインすると、一番使っていない端末がログアウトされる', async () => {
+    expect(MAX_DEVICES).toBe(5);
     const email = 'share@example.com';
-    const c1 = await loginOn(email, UA.iphone);
-    const c2 = await loginOn(email, UA.mac);
-    const c3 = await loginOn(email, UA.iphone);
+    const cookies = [];
+    for (let i = 0; i < MAX_DEVICES; i += 1) cookies.push(await loginOn(email, i % 2 ? UA.mac : UA.iphone));
     // 1台目を「一番使っていない」状態にする
     const user = kvFake.store.get(`user:${email}`);
     user.sessions[0].lastSeenAt = '2026-01-01T00:00:00.000Z';
-    const c4 = await loginOn(email, UA.mac);
+    const extra = await loginOn(email, UA.mac);
 
-    expect(await isLoggedIn(c1)).toBe(false);
-    expect(await isLoggedIn(c2)).toBe(true);
-    expect(await isLoggedIn(c3)).toBe(true);
-    expect(await isLoggedIn(c4)).toBe(true);
-    expect(kvFake.store.get(`user:${email}`).sessions).toHaveLength(3);
+    expect(await isLoggedIn(cookies[0])).toBe(false);
+    for (const cookie of cookies.slice(1)) expect(await isLoggedIn(cookie)).toBe(true);
+    expect(await isLoggedIn(extra)).toBe(true);
+    expect(kvFake.store.get(`user:${email}`).sessions).toHaveLength(MAX_DEVICES);
   });
 
   it('ログイン中のブラウザでもう一度ログインしても、端末は1台ぶんのまま', async () => {
@@ -459,7 +457,7 @@ describe('端末の上限（3台）と有効期間（30日）', () => {
 
     const list = createRes();
     await sessionsHandler({ method: 'GET', headers: { cookie: phone } }, list);
-    expect(list.body.max).toBe(3);
+    expect(list.body.max).toBe(MAX_DEVICES);
     expect(list.body.sessions.map((s) => s.label).sort()).toEqual(['Mac・Chrome', 'iPhone・Safari']);
     const macEntry = list.body.sessions.find((s) => !s.current);
 
