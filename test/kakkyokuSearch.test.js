@@ -187,48 +187,78 @@ describe('格局の絵', () => {
   });
 });
 
-describe('選んだ格局が全部そろう日を探す', () => {
-  const row = (date, hour, palace, matches) => ({ date, text: date.replaceAll('-', '/'), weekday: '水', hour, palace, matches });
+describe('選んだ格局が、同じ1つの盤に全部そろう日時を探す', () => {
+  const row = (date, hour, palace, matches) => ({ date, text: date.replaceAll('-', '/'), weekday: '水', hour, timeLabel: `${hour}時`, palace, matches });
 
-  it('日ごとにまとめて、そろう数の多い日を先に、同じ数なら早い日を先に出す', async () => {
-    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
-    const rows = [
+  it('同じ日でも、時間帯が違えば「そろう」と数えない', async () => {
+    const { groupRowsByBoard } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    // 10/9 は青龍返首が5-7時・13-15時、風遁が17-19時。同じ時間帯には重ならない
+    const boards = groupRowsByBoard([
+      row('2026-10-09', 6, 'kun', ['青龍返首']),
+      row('2026-10-09', 14, 'kun', ['青龍返首']),
+      row('2026-10-09', 18, 'son', ['風遁']),
+    ], ['青龍返首', '風遁']);
+    expect(boards).toHaveLength(3);
+    expect(boards.some((board) => board.complete)).toBe(false);
+    expect(boards.every((board) => board.matched.length === 1)).toBe(true);
+  });
+
+  it('同じ時間帯の盤に出ていれば、方位が違っても「そろう」と数える。多くそろう盤が先、同じなら早い日時', async () => {
+    const { groupRowsByBoard } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const boards = groupRowsByBoard([
       row('2026-10-07', 10, 'ken', ['人遁']),
-      row('2026-10-07', 14, 'kun', ['玉女守門']),
       row('2026-10-08', 4, 'son', ['風遁']),
-      row('2026-10-09', 16, 'kan', ['人遁', '風遁']),
-      row('2026-10-09', 6, 'ri', ['玉女守門']),
-    ];
-    const days = groupRowsByDay(rows, ['人遁', '玉女守門', '風遁']);
-    expect(days.map((day) => [day.date, day.matched.length, day.complete])).toEqual([
-      ['2026-10-09', 3, true],
-      ['2026-10-07', 2, false],
-      ['2026-10-08', 1, false],
+      row('2026-10-09', 16, 'kan', ['人遁']),
+      row('2026-10-09', 16, 'ri', ['風遁']),
+      row('2026-10-12', 8, 'da', ['人遁', '風遁']),
+    ], ['人遁', '風遁']);
+    expect(boards.map((board) => [board.date, board.hour, board.matched.length, board.complete])).toEqual([
+      ['2026-10-09', 16, 2, true],
+      ['2026-10-12', 8, 2, true],
+      ['2026-10-07', 10, 1, false],
+      ['2026-10-08', 4, 1, false],
     ]);
-    expect(days[0].rows.map((item) => item.hour)).toEqual([6, 16]); // 日の中は時間順
-    expect(days[1].missing).toEqual(['風遁']);
-    expect(days[2].missing).toEqual(['人遁', '玉女守門']);
+    expect(boards[0].rows).toHaveLength(2);
+    expect(boards[2].missing).toEqual(['風遁']);
+    expect(groupRowsByBoard([], ['天遁'])).toEqual([]);
+    expect(groupRowsByBoard([row('2026-10-07', 0, 'kan', ['天遁'])], [])[0].complete).toBe(false);
   });
 
-  it('時間帯や方位が違っても、同じ日に出ていれば「そろう」と数える。1つも選んでいなければ、そろわない', async () => {
-    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
-    const days = groupRowsByDay([row('2026-10-07', 0, 'kan', ['天遁']), row('2026-10-07', 22, 'ri', ['地遁'])], ['天遁', '地遁']);
-    expect(days).toHaveLength(1);
-    expect(days[0].complete).toBe(true);
-    expect(groupRowsByDay([row('2026-10-07', 0, 'kan', ['天遁'])], [])[0].complete).toBe(false);
-    expect(groupRowsByDay([], ['天遁'])).toEqual([]);
-  });
-
-  it('実際の盤: 全部そろう日には、選んだ格局がすべて出ている', async () => {
-    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
-    const names = ['青龍返首', '飛鳥跌穴', '人遁'];
+  it('実際の盤（時盤）: 全部そろう盤には、同じ日時の行に、選んだ格局がすべて出ている', async () => {
+    const { groupRowsByBoard } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const names = ['青龍返首', '人遁'];
     const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-07', days: 30, selectedNames: names });
-    const days = groupRowsByDay(rows, names);
-    expect(days.reduce((sum, day) => sum + day.rows.length, 0)).toBe(rows.length);
-    for (const day of days.filter((item) => item.complete)) {
-      const present = new Set(day.rows.flatMap((item) => item.matches));
+    const boards = groupRowsByBoard(rows, names);
+    expect(boards.reduce((sum, board) => sum + board.rows.length, 0)).toBe(rows.length);
+    for (const board of boards) {
+      expect(new Set(board.rows.map((item) => `${item.date}|${item.hour}`)).size).toBe(1);
+      if (!board.complete) continue;
+      const present = new Set(board.rows.flatMap((item) => item.matches));
       for (const name of names) expect(present.has(name)).toBe(true);
     }
-    for (let i = 1; i < days.length; i += 1) expect(days[i - 1].matched.length).toBeGreaterThanOrEqual(days[i].matched.length);
+  });
+
+  it('実際の盤（日盤）: 1日に盤は1つなので、日ごとにまとまる', async () => {
+    const { groupRowsByBoard } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const names = ['青龍返首', '飛鳥跌穴'];
+    const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-07', days: 92, selectedNames: names, boardType: '日' });
+    const boards = groupRowsByBoard(rows, names);
+    expect(new Set(boards.map((board) => board.date)).size).toBe(boards.length);
+  });
+});
+
+describe('同じ時間帯にそろわないときの、次の手がかり（同じ日のうちに出る日）', () => {
+  it('青龍返首と風遁（2026-10-07から30日・時盤）: 同じ時間帯にはそろわない。同じ日のうちに両方出る日はある', async () => {
+    const { groupRowsByBoard, groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const names = ['青龍返首', '風遁'];
+    const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-07', days: 30, selectedNames: names });
+    expect(groupRowsByBoard(rows, names).filter((board) => board.complete)).toEqual([]);
+    const days = groupRowsByDay(rows, names).filter((day) => day.complete);
+    expect(days.map((day) => day.date).slice(0, 2)).toEqual(['2026-10-09', '2026-10-11']);
+    for (const day of days) {
+      const present = new Set(day.rows.flatMap((item) => item.matches));
+      expect(present.has('青龍返首') && present.has('風遁')).toBe(true);
+      expect(day.rows.map((item) => item.hour)).toEqual([...day.rows.map((item) => item.hour)].sort((a, b) => a - b));
+    }
   });
 });

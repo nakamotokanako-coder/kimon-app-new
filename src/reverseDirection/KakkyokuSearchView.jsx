@@ -4,6 +4,7 @@ import {
   KAKKYOKU_USES,
   SPECIAL_KAKKYOKU_GROUPS,
   SPECIAL_KAKKYOKU_NAMES,
+  groupRowsByBoard,
   groupRowsByDay,
   scanSpecialKakkyoku,
 } from './kakkyokuSearch.js';
@@ -146,7 +147,7 @@ export default function KakkyokuSearchView({
   const [boardType, setBoardType] = useState(TIME_BOARD_TYPE);
   const [periodKey, setPeriodKey] = useState('month');
   const [sortMode, setSortMode] = useState('date');
-  // 探し方: 'any' … 選んだ格局のどれか1つでも出る日時 ／ 'all' … 選んだ格局が全部そろう日
+  // 探し方: 'any' … 選んだ格局のどれか1つでも出る日時 ／ 'all' … 選んだ格局が、同じ1つの盤に全部そろう日時
   const [matchMode, setMatchMode] = useState('any');
   const [hasSearched, setHasSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(null);
@@ -197,12 +198,21 @@ export default function KakkyokuSearchView({
       boardType: searchParams.boardType,
     });
   }, [searchParams, sortMode, startDate]);
-  // 全部そろう日: 結果を日ごとにまとめる。全部そろう日が無ければ、いちばん多くそろう日を3つまで出す。
+  // 全部そろう: 結果を盤ごと（時盤は時間帯、日盤は日）にまとめる。全部そろう盤が無ければ、いちばん多くそろう盤を3つまで出す。
   const searchedNames = searchParams?.selectedNames || [];
   const wantAll = matchMode === 'all' && searchedNames.length >= 2;
-  const days = useMemo(() => (wantAll ? groupRowsByDay(result.rows, searchedNames) : []), [wantAll, result.rows, searchedNames]);
+  const days = useMemo(() => (wantAll ? groupRowsByBoard(result.rows, searchedNames) : []), [wantAll, result.rows, searchedNames]);
+  const isDaySearch = (searchParams?.boardType || boardType) === DAY_BOARD_TYPE;
+  const unit = isDaySearch ? '日' : '時間帯'; // そろうのを数える単位（1つの盤）
   const completeDays = days.filter((day) => day.complete);
-  const shownDays = completeDays.length > 0 ? completeDays : days.slice(0, 3);
+  // 時盤で、同じ時間帯にそろう盤が無いとき: 同じ日のうちに（別々の時間帯で）全部出る日を、次の手がかりとして出す。
+  const sameDayDays = useMemo(() => (
+    wantAll && !isDaySearch && completeDays.length === 0
+      ? groupRowsByDay(result.rows, searchedNames).filter((day) => day.complete)
+      : []
+  ), [wantAll, isDaySearch, completeDays.length, result.rows, searchedNames]);
+  const usingSameDay = sameDayDays.length > 0;
+  const shownDays = completeDays.length > 0 ? completeDays : (usingSameDay ? sameDayDays : days.slice(0, 3));
   const maxResultScore = useMemo(() => (
     result.rows.length > 0 ? Math.max(...result.rows.map((item) => item.score)) : null
   ), [result.rows]);
@@ -367,12 +377,14 @@ export default function KakkyokuSearchView({
               どれか1つでも出る日時
             </button>
             <button type="button" className={matchMode === 'all' ? 'is-active' : ''} aria-pressed={matchMode === 'all'} onClick={() => setMatchMode('all')}>
-              全部がそろう日
+              {boardType === DAY_BOARD_TYPE ? '全部がそろう日' : '全部がそろう時間帯'}
             </button>
           </div>
           <small className="kakkyoku-board-note">
             {matchMode === 'all'
-              ? '選んだ格局が、同じ日のうちに全部出る日を探します（時間帯と方位は、ばらばらでも数えます）。'
+              ? (boardType === DAY_BOARD_TYPE
+                ? '選んだ格局が、同じ日の日盤に全部出る日だけを出します（方位は違っていても数えます）。'
+                : '選んだ格局が、同じ時間帯の盤に全部出る日時だけを出します（方位は違っていても数えます）。')
               : '選んだ格局のどれかが出る日時を、すべて並べます。'}
           </small>
         </div>
@@ -386,15 +398,17 @@ export default function KakkyokuSearchView({
       >
         {selectedCount === 0
           ? '格局を選んでください'
-          : (matchMode === 'all' && selectedCount >= 2 ? `この${selectedCount}件が全部そろう日を検索` : `この${selectedCount}件が出る日時を検索`)}
+          : (matchMode === 'all' && selectedCount >= 2
+            ? `この${selectedCount}件が全部そろう${boardType === DAY_BOARD_TYPE ? '日' : '時間帯'}を検索`
+            : `この${selectedCount}件が出る日時を検索`)}
       </button>
 
       {hasSearched && (
         <>
           <div className="kakkyoku-result-head" ref={resultRef}>
             <div>
-              <h3>{wantAll ? `${searchedNames.length}件が全部そろう日` : (activeUse ? `「${activeUse.label}」の格局が出る日時` : '検索結果')}</h3>
-              <span>{wantAll ? `${completeDays.length}日` : `${result.rows.length}件`}</span>
+              <h3>{wantAll ? `${searchedNames.length}件が全部そろう${unit}` : (activeUse ? `「${activeUse.label}」の格局が出る日時` : '検索結果')}</h3>
+              <span>{wantAll ? `${completeDays.length}${isDaySearch ? '日' : '回'}` : `${result.rows.length}件`}</span>
             </div>
             {!wantAll && (
             <div className="kakkyoku-sort-toggle" role="group" aria-label="検索結果の並び順">
@@ -432,18 +446,22 @@ export default function KakkyokuSearchView({
 
           {wantAll && result.rows.length > 0 && completeDays.length === 0 && (
             <div className="reverse-card reverse-placeholder">
-              <h3>全部がそろう日は、この期間にありません</h3>
-              <p>{`いちばん多くそろう日を、${shownDays.length}日ぶん出します。期間を長くするか、格局を減らすと見つかりやすくなります。`}</p>
+              <h3>{`全部がそろう${unit}は、この期間にありません`}</h3>
+              <p>
+                {usingSameDay
+                  ? `代わりに、同じ日のうちに全部出る日を${shownDays.length}日ぶん出します（時間帯は別々です）。`
+                  : `いちばん多くそろう${unit}を、${shownDays.length}つ出します。期間を長くするか、格局を減らすと見つかりやすくなります。`}
+              </p>
             </div>
           )}
 
           {wantAll ? (
             <div className="kakkyoku-result-list">
               {shownDays.map((day) => (
-                <section key={day.date} className={`kakkyoku-day${day.complete ? ' is-complete' : ''}`} aria-label={`${day.text}（${day.weekday}）`}>
+                <section key={`${day.date}-${day.hour}`} className={`kakkyoku-day${day.complete && !usingSameDay ? ' is-complete' : ''}`} aria-label={`${day.text}（${day.weekday}）${day.timeLabel || ''}`}>
                   <header className="kakkyoku-day-head">
-                    <strong>{day.text}<small className={weekdayClass(day.weekday)}>({day.weekday})</small></strong>
-                    <span>{day.complete ? `${searchedNames.length}件そろう` : `${searchedNames.length}件中${day.matched.length}件`}</span>
+                    <strong>{day.text}<small className={weekdayClass(day.weekday)}>({day.weekday})</small>{day.timeLabel && !isDaySearch && <b>{day.timeLabel}</b>}</strong>
+                    <span>{usingSameDay ? '同じ日のうちに出る' : (day.complete ? `${searchedNames.length}件そろう` : `${searchedNames.length}件中${day.matched.length}件`)}</span>
                   </header>
                   {!day.complete && <p className="kakkyoku-day-missing">{`出ない格局：${day.missing.join('・')}`}</p>}
                   {day.rows.map((item) => {
