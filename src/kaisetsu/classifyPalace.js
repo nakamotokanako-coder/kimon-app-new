@@ -14,7 +14,10 @@
 //   board レベル: ban_level / kuubou / junshu / chokufu / chokushi
 
 import { TIME_ONLY_SHOUI } from './boardKey.js';
-import { isKuubouCell, isMonpakuCell, PALACE_NAMES } from '../kimon/banLevel.js';
+import {
+  isKuubouCell, isMonpakuCell, PALACE_NAMES, detectBanLevel, scoreBoardBanLevel,
+} from '../kimon/banLevel.js';
+import { scorePalace, applyVetoCap, USABLE_THRESHOLD } from '../kimon/palaceScore.js';
 import { SANDAI_KYOKAKU } from './kyoVeto.js';
 
 // ============================================================
@@ -240,9 +243,11 @@ function buildAxisRanks(axes, { boardFukugin, boardHangin, hardVeto, vetoRelief 
   const ranks = {};
   for (const k of AXIS_KEYS) ranks[k] = axisScoreToRank(axes[k]);
 
+  // 伏吟: 物事が停滞しやすい日。門・星の性質は残し（「八門返伏皆如此、生在生兮死在死」）、◎だけ○に抑える。
+  // 吉門・吉格の救いがない方位は総合点がプラスにならず、総合点の上限（axisCapForTotal）でテーマも凶になる
+  // （「若不遇吉門吉格更凶、如遇吉門吉格為有救」）。根拠: docs/axis_score_alignment_v2.md
   if (boardFukugin) {
-    for (const k of AXIS_KEYS) ranks[k] = '×';
-    ranks.kinun = '△';
+    for (const k of AXIS_KEYS) ranks[k] = capRank(ranks[k], '○');
   }
 
   // 反吟: 門・星の性質は残る（煙波釣叟歌「八門返伏皆如此、生在生兮死在死」）。全軸×にはせず、
@@ -257,6 +262,68 @@ function buildAxisRanks(axes, { boardFukugin, boardHangin, hardVeto, vetoRelief 
   }
 
   return ranks;
+}
+
+// ============================================================
+// 総合点との整合（根拠: docs/axis_score_alignment_v2.md）
+// ============================================================
+
+/**
+ * 総合点から、テーマ別の◎○×の上限を決める。テーマ別の評価は総合点を超えない。
+ *   凶（マイナス・三大凶格）→ ▲まで / 中立（0点）→ △まで / 吉（1〜39点）→ ○まで / 大吉（40点以上）→ ◎まで
+ * 区切りは画面の吉凶バッジ（reverseDirection.getScoreTone）と同じ。
+ */
+export function axisCapForTotal(score, hasSandaiKyokaku = false) {
+  if (hasSandaiKyokaku || score < 0) return '▲';
+  if (score === 0) return '△';
+  if (score < USABLE_THRESHOLD) return '○';
+  return '◎';
+}
+
+/** テーマ別の◎○×に上限を掛けた写しを返す */
+export function capAxisRanks(axisRanks, cap) {
+  if (!axisRanks || !cap) return axisRanks;
+  const out = {};
+  for (const k of Object.keys(axisRanks)) out[k] = capRank(axisRanks[k], cap);
+  return out;
+}
+
+const BOARD_ELEMENTS = ['tenban', 'chiban', 'kyusei', 'hasshin', 'hachimon'];
+const _boardCache = new WeakMap();
+
+/** CSV の1行から、点数計算に渡す盤（8宮＋局の情報）を作る。日付で決まる情報（年・月の干、時盤の日の干）は持たない。 */
+function boardFromRow(row, boardType) {
+  let byType = _boardCache.get(row);
+  if (!byType) { byType = {}; _boardCache.set(row, byType); }
+  if (byType[boardType]) return byType[boardType];
+  const palaces = {};
+  for (const p of PALACE_NAMES) {
+    const cell = {};
+    for (const el of BOARD_ELEMENTS) cell[el] = row[`${el}_${p}`];
+    palaces[p] = cell;
+  }
+  const eto = String(row.key || '').slice(-2);
+  const meta = { boardType, junshu: row.junshu, chokushi: row.chokushi, kuubou: row.kuubou };
+  if (boardType === '日') meta.eto_day = eto;
+  else meta.eto_time = eto;
+  const board = { meta, palaces };
+  board.banMinus = scoreBoardBanLevel(detectBanLevel(board));
+  byType[boardType] = board;
+  return board;
+}
+
+/**
+ * 局と干支だけで決まる総合点（講座の点数表＋拒否権の上限。src/kimon/scoreEngine.js と同じ計算）。
+ * 日付で決まる分（歳格・月格、時盤の日格・伏干・雲干・五不遇時、順利の+20）は入らない。
+ * その分は画面側で、実際の総合点からもう一度上限を掛ける（FusionCard.computeAxisRanks）。
+ */
+function baseTotal(row, palace, boardType, palaceVetoes, kuubouRelief) {
+  const board = boardFromRow(row, boardType);
+  const ps = scorePalace(board.palaces[palace], palace, board.meta, { ban_level_minus: board.banMinus });
+  return {
+    score: applyVetoCap(ps.score, palaceVetoes, kuubouRelief),
+    sandai: ps.detected_kakkyoku.some((k) => SANDAI_KYOKAKU.includes(k.name)),
+  };
 }
 
 /**
@@ -368,6 +435,10 @@ export function classifyPalace(row, palace, { boardType = '時' } = {}) {
     && !boardFukugin && !boardHangin;
   const hardVeto = vetoes.length > 0 && !kuubouRelief;
 
+  // 総合点（この時点の vetoes は宮の拒否権だけ）。テーマ別の◎○×と総ランクは、これを超えない。
+  const total = baseTotal(row, palace, boardType, vetoes, kuubouRelief);
+  const totalCap = axisCapForTotal(total.score, total.sandai);
+
   // 盤レベル拒否権は vetoes 末尾に（×固定ではなく上限cap）
   let vetoRelief = null;
   if (boardHangin) {
@@ -408,13 +479,15 @@ export function classifyPalace(row, palace, { boardType = '時' } = {}) {
 
   let rank = RANK_LADDER[idx];
 
-  // 盤レベル上限cap（伏吟=▲ / 反吟=○まで。反吟でも三奇＋吉門が重なる宮は抑えない）
-  if (boardFukugin) rank = capRank(rank, '▲');
+  // 盤レベル上限cap（伏吟・反吟=○まで。反吟でも三奇＋吉門が重なる宮は抑えない）
+  if (boardFukugin) rank = capRank(rank, '○');
   if (boardHangin && !vetoRelief) rank = capRank(rank, '○');
 
   // 宮の拒否権は ×固定（全てに優先）
   if (hardVeto) rank = '×';
   if (kuubouRelief) rank = capRank(rank, '○');
+  // 総合点を超えない
+  rank = capRank(rank, totalCap);
 
   // ---- Level 4: 願い5軸 ----
   const axes = { goen: 0, shigoto: 0, kinun: 0, kenko: 0, benkyo: 0 };
@@ -433,6 +506,8 @@ export function classifyPalace(row, palace, { boardType = '時' } = {}) {
   if (kuubouRelief) {
     for (const k of AXIS_KEYS) axisRanks[k] = capRank(axisRanks[k], '○');
   }
+  // 総合点を超えない（総合が凶の方位に、テーマ別の吉を出さない）
+  for (const k of AXIS_KEYS) axisRanks[k] = capRank(axisRanks[k], totalCap);
 
   // ---- Level 5: 八神 ----
   let godClass = GOD_KICHI.includes(god) ? 'kichi' : (GOD_KYO.includes(god) ? 'kyo' : 'kichi');
@@ -470,6 +545,9 @@ export function classifyPalace(row, palace, { boardType = '時' } = {}) {
     shouiVariant: resolveShouiVariants(tenban, row[`chiban_${palace}`] || '', shouiNames),
     axes,
     axisRanks,
+    // 局と干支だけで決まる総合点と、そこから決まるテーマ別の上限
+    totalScore: total.score,
+    totalCap,
     patternId,
     // 付帯情報（文言生成・デバッグ用。判定の核ではない）
     tenpouKyusai,

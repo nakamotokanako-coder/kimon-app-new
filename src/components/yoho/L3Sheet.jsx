@@ -5,6 +5,7 @@ import {
   AXES,
   BADGE_LABEL,
   computeAxisRanks,
+  dateCapNote,
   scoreText,
 } from '../../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../../reverseDirection/reverseDirection.js';
@@ -42,7 +43,8 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
     return () => root.classList.remove('sheet-scroll-lock');
   }, [isOpen]);
 
-  const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace), [boardKey, palace]);
+  const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace, best?.palaceScore), [boardKey, palace, best?.palaceScore]);
+  const capNote = useMemo(() => dateCapNote(boardKey, palace, best?.palaceScore), [boardKey, palace, best?.palaceScore]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
   const breakdown = useMemo(
     () => (best ? buildScoreBreakdown(best.palaceScore, best.palaceData, banLevel) : []),
@@ -140,6 +142,7 @@ export default function L3Sheet({ best, boardKey, banLevel, selAxis, onAxisChang
           <div className="meaning l3-reading" style={{ borderLeftColor: `var(--axis-${selAxis})` }}>
             <div className="m-lead">{activeAxis.label}の読み</div>
             {readingNode}
+            {capNote && <p className="l3-reading-text date-cap-note">{capNote}</p>}
             {dateBoundParagraph(best.palaceScore) && (
               <ProseText text={dateBoundParagraph(best.palaceScore)} className="date-bound-prose l3-reading-text" />
             )}

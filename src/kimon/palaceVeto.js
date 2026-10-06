@@ -16,9 +16,10 @@
 
 import { lookupChito } from './loadChito.js';
 import { classifyPalace } from '../kaisetsu/classifyPalace.js';
-import { SANDAI_KYOKAKU } from '../kaisetsu/kyoVeto.js';
+import { applyVetoCap, VETO_KYO_SCORE_CAP } from './palaceScore.js';
 
-export const VETO_KYO_SCORE_CAP = -20;
+// 上限の計算そのものは palaceScore.js（解説エンジンからも同じものを使う）。
+export { applyVetoCap, VETO_KYO_SCORE_CAP };
 
 /**
  * @param {string} boardKey - 局数＋干支（例 '陰6局壬申'）
@@ -42,13 +43,4 @@ export function getPalaceVetoInfo(boardKey, palace) {
 
 export function getPalaceVetoes(boardKey, palace) {
   return getPalaceVetoInfo(boardKey, palace).vetoes;
-}
-
-export function applyVetoCap(score, vetoes, kuubouRelief = false) {
-  const capping = (vetoes || []).filter((name) => !SANDAI_KYOKAKU.includes(name));
-  if (!capping.length) return score;
-  const hardVeto = capping.some((name) => name !== '空亡');
-  if (hardVeto) return Math.min(score, VETO_KYO_SCORE_CAP);
-  if (kuubouRelief) return score;
-  return Math.min(score, 0);
 }
