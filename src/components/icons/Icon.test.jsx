@@ -33,7 +33,8 @@ describe('線画アイコン', () => {
       expect(svg.getAttribute('viewBox')).toBe(`0 0 ${box} ${box}`);
       expect(svg.getAttribute('stroke')).toBe('currentColor');
       expect(svg.getAttribute('fill')).toBe('none');
-      expect(svg.getAttribute('stroke-width')).toBe('1.6');
+      // 線の太さは 1.6。描き込んだ格局の印だけ、印ごとに決める
+      expect(svg.getAttribute('stroke-width')).toBe(String(ICONS[name].strokeWidth ?? 1.6));
       expect(svg.getAttribute('stroke-linecap')).toBe('round');
       expect(svg.getAttribute('stroke-linejoin')).toBe('round');
       expect(svg.getAttribute('aria-hidden')).toBe('true');
@@ -57,10 +58,14 @@ describe('線画アイコン', () => {
     expect(render(<Icon name="no-such-icon" />).container.innerHTML).toBe('');
   });
 
-  it('格局の印は 48 の枠で描く', () => {
+  it('格局の印は 48 の枠で描く（描き込んだ印は 96）', () => {
     const { container } = render(<Icon name="symbol-shendun" />);
     expect(container.querySelector('svg').getAttribute('viewBox')).toBe('0 0 48 48');
     expect(container.querySelector('svg').getAttribute('width')).toBe('48');
+    cleanup();
+    const detailed = render(<Icon name="symbol-qinglong" size={56} />).container.querySelector('svg');
+    expect(detailed.getAttribute('viewBox')).toBe('0 0 96 96');
+    expect(detailed.getAttribute('width')).toBe('56');
   });
 
   it('格局検索で使うアイコンは、すべてある', () => {

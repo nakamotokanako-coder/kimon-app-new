@@ -37,7 +37,7 @@ function KakkyokuArt({ name, size = 56 }) {
   if (guide?.image) {
     return <img className="kakkyoku-art" src={`/divination/${guide.image}.webp`} alt="" width={size} height={size} loading="lazy" decoding="async" />;
   }
-  return <Icon name={guide?.symbol} size={size} strokeWidth={2} className="kakkyoku-art" />;
+  return <Icon name={guide?.symbol} size={size} className="kakkyoku-art" />;
 }
 
 /** 格局の案内（開いたときに読む）: 説明・こんな日に・向かない例 */

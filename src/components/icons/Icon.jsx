@@ -11,6 +11,7 @@ import { SYMBOL_ICONS } from './symbolIcons.jsx';
 //   色は固定しない（currentColor）。色は置く側の CSS の color で決める。
 //     ふだん … 文字の色のまま    選択中 … 親に color: var(--accent) を付ける
 //   塗りが要るのは「評価の星」だけ（filled）。ほかは線だけで見せる。
+//   格局の印（symbol-*）のうち描き込んだものは、枠 96・線に強弱・薄い塗りを使う（色は currentColor のまま）。
 // 使い方:
 //   <Icon name="purpose-shrine" />            24px
 //   <Icon name="symbol-shendun" size={48} />  格局の印
@@ -31,7 +32,7 @@ export const ICON_NAMES = Object.keys(ICONS);
 export default function Icon({
   name,
   size,
-  strokeWidth = 1.6,
+  strokeWidth,
   filled = false,
   title = '',
   className = '',
@@ -49,7 +50,7 @@ export default function Icon({
       viewBox={`0 0 ${box} ${box}`}
       fill="none"
       stroke="currentColor"
-      strokeWidth={strokeWidth}
+      strokeWidth={strokeWidth ?? icon.strokeWidth ?? 1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
       role={title ? 'img' : undefined}
