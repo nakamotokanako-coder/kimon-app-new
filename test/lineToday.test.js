@@ -49,7 +49,7 @@ function post(payload, { signature } = {}) {
   const req = {
     method: 'POST',
     query: { action: 'line' },
-    headers: { 'x-line-signature': signature ?? sign(raw), host: 'kimon-app-new.vercel.app' },
+    headers: { 'x-line-signature': signature ?? sign(raw), host: 'kimon-tonko.vercel.app' },
     body: raw,
   };
   return billingHandler(req, res).then(() => res);
@@ -285,7 +285,7 @@ describe('LINE の Webhook（/api/billing?action=line）', () => {
     expect(init.headers.Authorization).toBe(`Bearer ${TOKEN}`);
     expect(JSON.parse(init.body).replyToken).toBe('rt-1');
     expect(sentMessage().text).toMatch(/吉方位は「|吉の方位がありません/);
-    expect(sentMessage().text).toContain('https://kimon-app-new.vercel.app/?go=time');
+    expect(sentMessage().text).toContain('https://kimon-tonko.vercel.app/?go=time');
   });
 
   it('「次の休みの吉方位」を押したら、日付を選ぶボタンを出す', async () => {
