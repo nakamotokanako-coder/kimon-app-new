@@ -9,7 +9,7 @@ const PALACES = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
 
 // 全文のハッシュロック。文章が意図せず変わったら落ちる。部品や組み立てを意図して変えたときだけ更新する。
 // v3-prose: です・ます調の4段落（見出し → 門と拒否権 → 神と星 → 象意としめ）へ全面的に書き直し（意図した変更）。
-const FULL_SORTED_SHA256 = 'e2c6c0967b7dd847a590d31c629f294c8011622cc51824a295b08b02810a8031';
+const FULL_SORTED_SHA256 = '1556852f2000c79009154f9ea83528f3cc6898b20be5f73be0ae964e8bd597c7';
 
 const bank = loadBank();
 const rows = loadRows();
@@ -108,18 +108,18 @@ describe('解説文 v3: 組み立て', () => {
   });
 
   it('△で伏吟と吉門が同居する方位は「伏吟の影響で → 一方で、門は〜には使えます」とつなぐ', () => {
-    const d = compose('陰2局壬子', 'ri', 'kinun');
+    const d = compose('陰1局戊辰', 'da', 'kinun');
     const reason = d.full.split('\n\n')[1];
-    expect(reason).toMatch(/^伏吟の影響で.+。一方で、生門は、.+。$/u);
+    expect(reason).toMatch(/^伏吟の影響で.+。一方で、開門は、.+。$/u);
     expect(d.full).not.toContain('最も向いています');
   });
 
   it('凶門なのに吉で、吉の象意が入る方位は象意を主役にする（門の限定的な使い道を見出しにしない）', () => {
-    const d = compose('陰1局丁卯', 'kan', 'goen');
+    // 凶門でも、吉の象意が勝って総合点がプラスになる方位だけが吉になる（総合が凶なら、テーマ別も凶）。
+    const d = compose('陰1局丙子', 'kan', 'goen');
     expect(d.meta.shouiLed).toBe(true);
-    expect(d.short).toContain('天乙会合の後押し');
-    expect(d.full.split('\n\n')[1]).toMatch(/^天乙会合により、.+。ただし、傷門は.+。$/u);
-    expect(d.full).not.toContain('関係の清算に限って');
+    expect(d.short).toContain('飛鳥跌穴の後押し');
+    expect(d.full.split('\n\n')[1]).toMatch(/^飛鳥跌穴により、.+。ただし、驚門は.+。$/u);
   });
 
   it('凶で吉門の方位は「本来は〜に向く門です。しかし、…」と書く', () => {

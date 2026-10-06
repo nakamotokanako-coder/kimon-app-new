@@ -12247,3 +12247,10 @@ p.saikyo-annual-note.is-open {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 日付で決まる凶のために、◎○×を解説の文より下げたときの一言 */
+.date-cap-note {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+}

@@ -4,8 +4,10 @@
 //   TZ=Asia/Tokyo npx vitest run src/kaisetsu/
 
 import { describe, it, expect } from 'vitest';
-import { HOMONYM_JUKKAN, resolveShouiVariants, classifyPalace, PRIORITY_ORDER, RANK_LADDER } from './classifyPalace.js';
-import { lookupChito } from '../kimon/loadChito.js';
+import {
+  HOMONYM_JUKKAN, resolveShouiVariants, classifyPalace, PRIORITY_ORDER, RANK_LADDER, axisCapForTotal, capAxisRanks,
+} from './classifyPalace.js';
+import { loadChito, lookupChito } from '../kimon/loadChito.js';
 import shouiPriority from '../../data/shoui_priority.json';
 
 const rankIdx = (r) => RANK_LADDER.indexOf(r);
@@ -21,12 +23,13 @@ describe('classifyPalace 固定ケース（陰1局丁卯）', () => {
     expect(j.shoui).toContain('丙奇得使');
   });
 
-  it('ken(北西): 空亡でも生門が同宮なら×にせず上限○（docs/palace_veto_policy_v1.md）', () => {
+  it('ken(北西): 空亡でも生門が同宮なら×にしない（docs/palace_veto_policy_v1.md）。総合点が0点なので△まで', () => {
     const j = classifyPalace(row, 'ken');
     expect(j.vetoes).toEqual(['空亡']);
     expect(j.gate).toBe('生門');
     expect(j.kuubouRelief).toBe(true);
-    expect(j.rank).toBe('○');
+    expect(j.totalScore).toBe(0);
+    expect(j.rank).toBe('△');
   });
 
   it('son(南東): 死門は直符・青龍耀明があっても × ', () => {
@@ -42,13 +45,16 @@ describe('classifyPalace 固定ケース（陰1局丁卯）', () => {
 });
 
 describe('classifyPalace 盤レベル拒否権', () => {
-  it('陰1局甲子(伏吟局): 全宮 rank が ▲ 以下', () => {
+  it('陰1局甲子(伏吟局): 全宮 rank が ○ 以下。吉になるのは総合点がプラスの方位（休門＋直符の坎）だけ', () => {
     const row = lookupChito('陰1局甲子');
     const palaces = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
     for (const p of palaces) {
       const j = classifyPalace(row, p);
-      expect(rankIdx(j.rank)).toBeLessThanOrEqual(rankIdx('▲'));
+      expect(rankIdx(j.rank)).toBeLessThanOrEqual(rankIdx('○'));
       expect(j.vetoes).toContain('伏吟');
+      const hasGood = Object.values(j.axisRanks).some((r) => r === '○' || r === '◎');
+      expect(hasGood).toBe(p === 'kan');
+      expect(Object.values(j.axisRanks)).not.toContain('◎');
     }
   });
 
@@ -141,7 +147,7 @@ describe('axisRanks', () => {
     expect(Object.values(j.axisRanks).every((rank) => rankIdx(rank) <= rankIdx('▲'))).toBe(true);
   });
 
-  it('伏吟は金運だけ △ に緩和し、他軸は × に固定する', () => {
+  it('伏吟は門・星の性質を残し、◎だけ ○ に抑える（docs/axis_score_alignment_v2.md）', () => {
     const synthetic = {
       hachimon_kan: '休門',
       kyusei_kan: '天禽',
@@ -155,12 +161,13 @@ describe('axisRanks', () => {
     };
     const j = classifyPalace(synthetic, 'kan');
     expect(j.vetoes).toContain('伏吟');
+    expect(j.axes.goen).toBe(2); // 伏吟でなければ ◎
     expect(j.axisRanks).toEqual({
-      goen: '×',
-      shigoto: '×',
+      goen: '○',
+      shigoto: '○',
       kinun: '△',
-      kenko: '×',
-      benkyo: '×',
+      kenko: '○',
+      benkyo: '△',
     });
   });
 
@@ -203,7 +210,7 @@ describe('axisRanks', () => {
   });
 
   it('空亡＋開休生門の宮は軸別も上限○（◎・×固定にしない）', () => {
-    const j = classifyPalace(lookupChito('陰1局丁卯'), 'ken');
+    const j = classifyPalace(lookupChito('陰1局庚辰'), 'da');
     expect(j.kuubouRelief).toBe(true);
     expect(Object.values(j.axisRanks)).not.toContain('◎');
     expect(Object.values(j.axisRanks)).toContain('○');
@@ -240,12 +247,47 @@ describe('shoui_priority.json との同期（ドリフト検出）', () => {
   });
 });
 
+describe('テーマ別の◎○×は総合点を超えない（docs/axis_score_alignment_v2.md）', () => {
+  const PALACES = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
+
+  it('上限の区切り: 凶→▲ / 0点→△ / 1〜39点→○ / 40点以上→◎。三大凶格は点数にかかわらず▲', () => {
+    expect(axisCapForTotal(-10)).toBe('▲');
+    expect(axisCapForTotal(0)).toBe('△');
+    expect(axisCapForTotal(10)).toBe('○');
+    expect(axisCapForTotal(39)).toBe('○');
+    expect(axisCapForTotal(40)).toBe('◎');
+    expect(axisCapForTotal(90, true)).toBe('▲');
+    expect(capAxisRanks({ goen: '◎', kinun: '×' }, '○')).toEqual({ goen: '○', kinun: '×' });
+    expect(capAxisRanks({ goen: '◎' }, null)).toEqual({ goen: '◎' });
+  });
+
+  it('総合が凶の方位は、吉の象意があってもテーマ別を▲までにする（陰1局丁卯・坎＝傷門＋天乙会合）', () => {
+    const j = classifyPalace(lookupChito('陰1局丁卯'), 'kan');
+    expect(j.totalScore).toBeLessThan(0);
+    expect(j.totalCap).toBe('▲');
+    expect(new Set(Object.values(j.axisRanks))).toEqual(new Set(['▲']));
+  });
+
+  it('全1080局×8宮×時盤・日盤: テーマ別も総ランクも、総合点から決まる上限を超えない', () => {
+    for (const row of Object.values(loadChito())) {
+      for (const p of PALACES) {
+        for (const boardType of ['時', '日']) {
+          const j = classifyPalace(row, p, { boardType });
+          expect(rankIdx(j.rank)).toBeLessThanOrEqual(rankIdx(j.totalCap));
+          for (const r of Object.values(j.axisRanks)) expect(rankIdx(r)).toBeLessThanOrEqual(rankIdx(j.totalCap));
+          if (j.totalScore < 0) expect(j.totalCap).toBe('▲');
+        }
+      }
+    }
+  });
+});
+
 describe('judgment オブジェクトの形', () => {
   it('指示書のキーを全て備える', () => {
     const j = classifyPalace(lookupChito('陰1局丁卯'), 'kun');
     for (const k of [
       'rank', 'vetoes', 'vetoRelief', 'gate', 'gateClass', 'gateForce',
-      'star', 'starRank', 'god', 'godClass', 'shoui', 'shouiTop', 'axes', 'axisRanks', 'patternId',
+      'star', 'starRank', 'god', 'godClass', 'shoui', 'shouiTop', 'axes', 'axisRanks', 'totalScore', 'totalCap', 'patternId',
     ]) {
       expect(j).toHaveProperty(k);
     }

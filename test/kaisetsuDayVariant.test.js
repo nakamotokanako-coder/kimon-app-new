@@ -66,15 +66,20 @@ describe('日盤では、時の干で決まる格局（時格・天羅・地網�
     expect(affected).toBeGreaterThan(100);
   });
 
-  it('生成物: 日盤用の解説は、その3つが入る宮だけにあり、文章にその名前が出ない', () => {
+  it('生成物: 日盤用の解説は、その3つが入る宮と、日盤で◎○×が変わる宮だけにあり、文章にその名前が出ない', () => {
     const overrides = data[DAY_OVERRIDES_KEY];
     let count = 0;
     for (const row of rows) {
       for (const palace of PALACES) {
         const has = parseShoui(row, palace).some((item) => TIME_ONLY_SHOUI.includes(item.name));
         const cell = overrides[row.key]?.[palace];
-        expect(Boolean(cell)).toBe(has);
+        // 日盤では日の干で決まる格局（日格・伏干・雲干）も総合点に入るので、◎○×が時盤と変わる宮も作り直す。
+        const time = classifyPalace(row, palace).axisRanks;
+        const day = classifyPalace(row, palace, { boardType: '日' }).axisRanks;
+        const ranksDiffer = Object.keys(time).some((axis) => time[axis] !== day[axis]);
+        expect(Boolean(cell)).toBe(has || ranksDiffer);
         if (!cell) continue;
+        expect(cell.axisRanks).toEqual(day);
         count += 1;
         for (const axis of ['goen', 'shigoto', 'kinun', 'kenko', 'benkyo']) {
           expect(mentionsTimeOnly(cell[axis].full)).toBe(false);
