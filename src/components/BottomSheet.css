@@ -787,16 +787,18 @@ html.sheet-scroll-lock body {
    墨色の地に、細い線と小さな札だけで吉凶を示す（カード全体は塗らない）。
    ========================================================================== */
 .sheet.ds {
-  --ds-bg: #131311;
-  --ds-card: #1d1d1a;
-  --ds-card-2: #24241f;
-  --ds-line: rgba(241, 238, 230, 0.1);
-  --ds-text: #f1eee6;
-  --ds-sub: #aaa69c;
-  --ds-gold: #c1a363;
-  --ds-neg: #a84d47;
-  --ds-pos: #70866f;
-  --ds-caution: #b28a4a;
+  /* 色は、選んでいるテーマ（漆黒・深海・パール・ピンク）に合わせる。
+     吉凶の色は、テーマの色を文字色に少し寄せて落ち着かせる（原色のままにしない）。 */
+  --ds-bg: var(--bg-main);
+  --ds-card: var(--bg-cell);
+  --ds-card-2: color-mix(in srgb, var(--bg-elevated) 45%, var(--bg-cell));
+  --ds-line: color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  --ds-text: var(--text-primary);
+  --ds-sub: var(--text-secondary);
+  --ds-gold: color-mix(in srgb, var(--accent) 78%, var(--text-primary));
+  --ds-neg: color-mix(in srgb, var(--text-danger) 74%, #8a8078);
+  --ds-pos: color-mix(in srgb, var(--text-success) 66%, #8a8078);
+  --ds-caution: color-mix(in srgb, var(--accent) 62%, var(--text-primary));
   background: var(--ds-bg);
   color: var(--ds-text);
 }
@@ -1201,7 +1203,7 @@ html.sheet-scroll-lock body {
 
 .sheet.ds .study-card.tone-kichi { border-left-color: var(--ds-pos); }
 .sheet.ds .study-card.tone-kyo { border-left-color: var(--ds-neg); }
-.sheet.ds .study-card.tone-chu { border-left-color: rgba(170, 166, 156, 0.5); }
+.sheet.ds .study-card.tone-chu { border-left-color: color-mix(in srgb, var(--ds-sub) 50%, transparent); }
 
 .study-kind {
   display: flex;
@@ -1391,4 +1393,16 @@ html.sheet-scroll-lock body {
   top: 4px;
   width: 80px;
   height: 18px;
+}
+
+.sheet.ds .reading-state.error {
+  padding: 10px 12px;
+  border: 1px solid var(--ds-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ds-sub);
+}
+
+.sheet.ds .sheet-handle::before {
+  background: var(--ds-line);
 }
