@@ -120,3 +120,45 @@ describe('目的で選ぶ: いつ・どの方位が一番向くか（順位）',
     expect(bestDaysForTheme({ theme: 'goen', dates: ['1900-01-01'] })).toEqual([]);
   });
 });
+
+describe('目的で選ぶ: 画面に出す評価（星とランクの言葉）', () => {
+  it('◎で80点以上は ★5 最適、◎は ★4 かなり良い、○は ★3 良い', async () => {
+    const { gradeOf } = await import('../src/reverseDirection/themeSearch.js');
+    expect(gradeOf({ themeRank: '◎', score: 105 })).toEqual({ stars: 5, label: '最適' });
+    expect(gradeOf({ themeRank: '◎', score: 80 })).toEqual({ stars: 5, label: '最適' });
+    expect(gradeOf({ themeRank: '◎', score: 60 })).toEqual({ stars: 4, label: 'かなり良い' });
+    expect(gradeOf({ themeRank: '○', score: 100 })).toEqual({ stars: 3, label: '良い' });
+    expect(gradeOf({ themeRank: '○', score: 20 })).toEqual({ stars: 3, label: '良い' });
+  });
+
+  it('順位が上の方位は、星の数が下の方位より少なくならない', async () => {
+    const { gradeOf } = await import('../src/reverseDirection/themeSearch.js');
+    const week = ['2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12'];
+    for (const theme of THEMES.map((item) => item.key)) {
+      const found = bestTimesForTheme({ theme, dates: week, fromHour: 18, limit: 30 });
+      found.slice(1).forEach((entry, index) => {
+        expect(gradeOf(found[index].item).stars).toBeGreaterThanOrEqual(gradeOf(entry.item).stars);
+      });
+    }
+  });
+
+  it('時間帯は「9:00–11:00」の形で出す', async () => {
+    const { slotClock } = await import('../src/reverseDirection/themeSearch.js');
+    expect(slotClock(10)).toBe('9:00–11:00');
+    expect(slotClock(18)).toBe('17:00–19:00');
+    expect(slotClock(0)).toBe('23:00–1:00');
+    expect(slotClock(22)).toBe('21:00–23:00');
+  });
+});
+
+describe('目的で選ぶ: 夜、自然時の補正で「23-1時」に入っているとき', () => {
+  it('今日の残りは今の時間帯だけ。もう過ぎた昼の時間帯は出さない', () => {
+    const all = bestTimesForTheme({ theme: 'shigoto', dates: ['2026-10-06'], fromHour: 0, limit: 50 });
+    expect(all.some((entry) => entry.hour !== 0)).toBe(true); // 何もしなければ、1日ぶんが入ってしまう
+    const late = bestTimesForTheme({ theme: 'shigoto', dates: ['2026-10-06'], fromHour: 0, onlyNowOnFirstDay: true, limit: 50 });
+    expect(late.every((entry) => entry.hour === 0)).toBe(true);
+    const week = bestTimesForTheme({ theme: 'shigoto', dates: ['2026-10-06', '2026-10-07'], fromHour: 0, onlyNowOnFirstDay: true, limit: 50 });
+    expect(week.filter((entry) => entry.date === '2026-10-06').every((entry) => entry.hour === 0)).toBe(true);
+    expect(week.some((entry) => entry.date === '2026-10-07')).toBe(true);
+  });
+});

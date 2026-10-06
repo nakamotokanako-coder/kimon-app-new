@@ -12356,33 +12356,235 @@ p.saikyo-annual-note.is-open {
   text-align: center;
 }
 
-/* 目的で選ぶ: 順位の画面 */
+/* 目的で選ぶ: 答えを出す画面。金色は「選択中」「BEST 1」「最後のボタン」の3つだけに使う */
 .theme-screen {
   display: grid;
+  gap: 20px;
+}
+
+.theme-step {
+  display: grid;
+  gap: 10px;
+}
+
+.theme-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.theme-best {
-  display: grid;
-  gap: 6px;
-  padding: 14px 12px;
-  border: 1px solid var(--accent-edge);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--text-accent) 6%, var(--bg-card));
+.theme-step-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
-.theme-best-title {
-  margin: 0;
+/* 目的のボタン: 選択中は金のベタ塗りにせず、枠と薄い地色で示す */
+.theme-screen .theme-picker-chips button {
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.theme-screen .theme-picker-chips button.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-card));
+  color: var(--text-primary);
+}
+
+/* どんな移動？: 近場／遠く。専門の名前（時盤・日盤）は小さく添える */
+.theme-kinds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.theme-kind {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  padding: 12px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.theme-kind strong {
+  color: var(--text-primary);
   font-family: var(--font-display);
-  font-size: 1.08rem;
+  font-size: 1rem;
   letter-spacing: 0.04em;
 }
 
-.theme-best-group-label {
-  margin: 8px 0 0;
+.theme-kind span {
+  font-size: 0.74rem;
+}
+
+.theme-kind small {
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+
+.theme-kind.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-card));
+}
+
+/* 今日／今週 */
+.theme-periods {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+}
+
+.theme-periods button {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.theme-periods button.is-active {
+  background: color-mix(in srgb, var(--text-primary) 9%, transparent);
+  color: var(--text-primary);
+}
+
+/* BEST 1: 方位・星・日時を主役にする。点数は出さない */
+.theme-best-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: var(--bg-card);
+  box-shadow: 0 18px 36px -30px color-mix(in srgb, var(--text-primary) 50%, transparent);
+}
+
+.theme-best-card p {
+  margin: 0;
+}
+
+.theme-best-kicker {
+  color: var(--accent);
+  font-family: var(--font-display);
   font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.theme-best-dir {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+}
+
+.theme-best-grade {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-stars {
+  color: var(--accent);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.theme-stars i {
+  color: color-mix(in srgb, var(--text-secondary) 30%, transparent);
+  font-style: normal;
+}
+
+.theme-best-grade b {
+  padding: 2px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.theme-best-when {
+  margin-top: 4px !important;
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.theme-best-copy {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.theme-best-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.theme-best-tags span {
+  padding: 3px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.theme-best-cta {
+  margin-top: 10px;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.theme-best-card.is-empty {
+  justify-items: start;
+  gap: 10px;
+}
+
+/* 2位・3位は折りたたむ */
+.theme-best-more {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.theme-best-card .theme-best-more {
+  width: auto;
 }
 
 .theme-best-row {
@@ -12391,8 +12593,7 @@ p.saikyo-annual-note.is-open {
   align-items: center;
   gap: 12px;
   width: 100%;
-  margin-top: 6px;
-  padding: 11px 12px;
+  padding: 11px 14px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   background: var(--bg-card);
@@ -12402,54 +12603,43 @@ p.saikyo-annual-note.is-open {
   cursor: pointer;
 }
 
-.theme-best-row.is-top {
-  border-color: var(--accent);
-}
-
 .theme-best-no {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--bg-cell);
   color: var(--text-secondary);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 800;
-}
-
-.theme-best-row.is-top .theme-best-no {
-  background: var(--accent);
-  color: var(--bg-main);
 }
 
 .theme-best-main {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
-}
-
-.theme-best-when {
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  font-weight: 700;
 }
 
 .theme-best-main strong {
   font-family: var(--font-display);
-  font-size: 1.16rem;
+  font-size: 1.06rem;
   letter-spacing: 0.04em;
 }
 
-.theme-best-why {
+.theme-best-main span {
   color: var(--text-secondary);
   font-size: 0.76rem;
 }
 
-.theme-best-score {
-  color: var(--text-accent);
-  font-size: 1.05rem;
-  font-weight: 800;
+.theme-best-rowgrade {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+}
+
+.theme-best-rowgrade .theme-stars {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.theme-best-rowgrade small {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
 }
 
 .theme-best-row > b {
@@ -12457,30 +12647,396 @@ p.saikyo-annual-note.is-open {
   font-weight: 400;
 }
 
-.theme-best-empty {
-  margin: 6px 0 0;
+/* 基準点の帯（「目的で選ぶ」用）: 現在地・自然時・現在時刻を1枚にまとめる */
+.base-bar.is-card {
+  height: auto;
+  padding: 10px 12px 10px 14px;
+  border-radius: 14px;
+  white-space: normal;
+}
+
+.base-bar.is-card .base-meta {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.base-bar.is-card .base-natural {
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+}
+
+.base-bar.is-card .base-now {
+  grid-column: 2 / -1;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+/* 下のメニュー: 5つを同じ高さに。選択中は、細い金の上線と濃い文字だけで示す */
+.bottom-tabbar button.is-active {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.bottom-tabbar button.is-active::after {
+  inset: -8px 26% auto;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: none;
+  z-index: 0;
+}
+
+.bottom-tabbar button.is-active .bottom-tab-icon {
+  color: var(--text-primary);
+  filter: none;
+}
+
+.bottom-tabbar button:not(.is-active) .bottom-tab-icon {
+  color: var(--text-secondary);
+}
+
+/* 「目的で選ぶ」の上の部分: 題と通知を1行に */
+.reverse-view .reverse-header.reverse-header--theme {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 格局検索: やりたいことから選ぶ */
+.kakkyoku-use-note {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
   line-height: 1.6;
 }
 
-.theme-best-more {
-  justify-self: start;
-  margin-top: 6px;
-  padding: 5px 12px;
-  border: 1px solid var(--border-main);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-accent);
-  font: inherit;
+/* 格局検索: 格局の名前に、何に使うか（一言と札）を添える */
+.kakkyoku-names > div {
+  display: grid;
+  gap: 8px;
+}
+
+.kakkyoku-names .kakkyoku-name {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  text-align: left;
+  white-space: normal;
+}
+
+.kakkyoku-name strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.kakkyoku-name span {
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.kakkyoku-name small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.kakkyoku-name small i {
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+/* 古典にある用途の札（講座の用途と見分ける） */
+.kakkyoku-name small i.is-classic {
+  border-style: dashed;
+}
+
+/* 線画アイコン（src/components/icons）。色は置く場所の文字の色（currentColor）に従う */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+
+.bottom-tab-icon .icon {
+  width: 1.38rem;
+  height: 1.38rem;
+}
+
+/* 目的で選ぶ */
+.theme-best-kicker,
+.theme-best-when,
+.theme-best-cta,
+.theme-best-more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-best-cta,
+.theme-best-more {
+  justify-content: center;
+}
+
+.theme-best-when .icon {
+  color: var(--text-secondary);
+}
+
+.theme-stars {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.theme-stars .icon.is-off {
+  color: color-mix(in srgb, var(--text-secondary) 40%, transparent);
+}
+
+.theme-best-rowgrade .theme-stars .icon {
+  width: 11px;
+  height: 11px;
+}
+
+/* 格局検索: 用途のボタン（アイコンの下にラベル） */
+.kakkyoku-uses .kakkyoku-group > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.kakkyoku-uses .kakkyoku-group button {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 4px 10px;
+  border-radius: 14px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.kakkyoku-uses .kakkyoku-group button .icon {
+  color: var(--text-primary);
+}
+
+.kakkyoku-uses .kakkyoku-group button.is-active .icon {
+  color: var(--accent);
+}
+
+/* 格局検索: 格局の名前に印を添える */
+.kakkyoku-names .kakkyoku-name {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+}
+
+.kakkyoku-name strong,
+.kakkyoku-name span,
+.kakkyoku-name small {
+  grid-column: 2;
+}
+
+/* 格局検索: 格局の絵・案内 */
+.kakkyoku-hero.has-mountains {
+  background-image: linear-gradient(color-mix(in srgb, var(--bg-card) 86%, transparent), color-mix(in srgb, var(--bg-card) 86%, transparent)), url("/divination/mountain-bg.webp");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover, 100% auto;
+}
+
+.kakkyoku-item {
+  display: grid;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.kakkyoku-item.is-active {
+  border-color: var(--accent);
+}
+
+.kakkyoku-names .kakkyoku-item .kakkyoku-name {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.kakkyoku-names .kakkyoku-item.is-active .kakkyoku-name {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.kakkyoku-name .kakkyoku-art {
+  grid-row: 1 / span 3;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.kakkyoku-name span,
+.kakkyoku-name small {
+  color: var(--text-secondary);
+}
+
+.kakkyoku-item-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.76rem;
   cursor: pointer;
 }
 
-.theme-best-note {
-  margin: 6px 0 0;
+.kakkyoku-detail {
+  display: grid;
+  gap: 8px;
+  padding: 4px 14px 16px;
+}
+
+.kakkyoku-detail p {
+  margin: 0;
+}
+
+.kakkyoku-detail-hero {
+  width: calc(100% + 28px);
+  margin: 0 -14px 6px;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  object-position: right center;
+}
+
+.kakkyoku-detail-day {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  letter-spacing: 0.06em;
+}
+
+.kakkyoku-detail-desc {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+.kakkyoku-detail-title {
+  margin-top: 6px !important;
   color: var(--text-secondary);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.kakkyoku-detail-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kakkyoku-detail-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.kakkyoku-detail-list .icon {
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+
+.kakkyoku-detail-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.kakkyoku-detail-avoid {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
   line-height: 1.6;
+}
+
+.kakkyoku-detail-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 格局の案内の中は、一覧のボタン・段落の見た目を引き継がない */
+.kakkyoku-names .kakkyoku-detail p {
+  font-weight: 400;
+}
+
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-day,
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-title {
+  font-weight: 700;
+}
+
+.kakkyoku-names .kakkyoku-item .kakkyoku-item-more,
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-more {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.kakkyoku-names .kakkyoku-item .kakkyoku-item-more {
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-more {
+  border: 0;
+  padding: 4px 0;
+}
+
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-cta {
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.kakkyoku-names .kakkyoku-name span {
+  overflow-wrap: anywhere;
 }
