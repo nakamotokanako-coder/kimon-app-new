@@ -1,15 +1,35 @@
 import React, { useMemo, useState } from 'react';
 import Ja from '../utils/Ja.jsx';
-import { THEMES, themeLabel, bestTimesForTheme, bestDaysForTheme } from './themeSearch.js';
+import {
+  THEMES, themeLabel, bestTimesForTheme, bestDaysForTheme, gradeOf, slotClock,
+} from './themeSearch.js';
 
-// 「目的で選ぶ」の画面。目的を選ぶと、いつ・どの方位が一番向くかを順位で出す。この画面はそれだけをする。
-//   近所へ（kind='time'・時盤）   … 今日のこれからの時間帯と、これから1週間の時間帯
-//   遠出・旅行（kind='day'・日盤）… これから1週間の日
-// はじめは1位だけ。「2位・3位も見る」で3位まで開く。行を押すと、その日時・方位の地図が開く。
-// 順位の決め方は themeSearch.js（その目的が◎の方位が先、同じなら総合点の高い順）。ここでは計算しない。
+// 「目的で選ぶ」の画面。目的を選ぶと、いつ・どの方位が一番向くかを出す。この画面はそれだけをする。
+//   目的を選ぶ → どんな移動？（近場＝時盤／遠く＝日盤）→ BEST 1 を大きく → 2位・3位は折りたたみ
+// 答え（方位・星・日時）を主役にして、点数は出さない（点数は、地図を開いた先の詳しいカードにある）。
+// 近場でも遠くでも、同じ形・同じ高さで出す。
+// 順位と星の決め方は themeSearch.js。ここでは計算しない。
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
-const scoreText = (score) => `${score > 0 ? '+' : ''}${score}`;
+
+const KINDS = [
+  { key: 'time', title: '近場へ行く', sub: '散歩・買い物・仕事など', tech: '時盤' },
+  { key: 'day', title: '遠くへ行く', sub: '旅行・出張など', tech: '日盤' },
+];
+
+const PERIODS = [
+  { key: 'today', label: '今日' },
+  { key: 'week', label: '今週' },
+];
+
+// BEST 1 に添える一言。効果は約束しない（「運が上がる」とは書かない）。
+const THEME_COPY = {
+  goen: 'ご縁を結ぶなら、ここ。',
+  shigoto: '仕事を動かすなら、ここ。',
+  kinun: 'お金のことを進めるなら、ここ。',
+  kenko: '体を整えるなら、ここ。',
+  benkyo: '学びを進めるなら、ここ。',
+};
 
 function shift(date, days) {
   const [year, month, day] = String(date).split('-').map(Number);
@@ -25,22 +45,21 @@ export function dayLabel(date, today) {
   return `${month}/${day}（${weekday}）`;
 }
 
-function Row({ index, when, entry, name, onClick }) {
-  const { item } = entry;
-  const elements = [item.palaceData?.hachimon, item.palaceData?.hasshin].filter(Boolean).join('・');
+function Stars({ count }) {
   return (
-    <button type="button" className={`theme-best-row${index === 0 ? ' is-top' : ''}`} onClick={onClick}>
-      <span className="theme-best-no lat">{index + 1}</span>
-      <span className="theme-best-main">
-        <span className="theme-best-when">{when}</span>
-        <strong>{item.label}</strong>
-        <span className="theme-best-why">{`${name}${item.themeRank}${elements ? `・${elements}` : ''}`}</span>
-      </span>
-      <span className="theme-best-score lat">{scoreText(item.score)}</span>
-      <b aria-hidden="true">›</b>
-    </button>
+    <span className="theme-stars" role="img" aria-label={`5つ中${count}つ`}>
+      {'★'.repeat(count)}<i>{'★'.repeat(5 - count)}</i>
+    </span>
   );
 }
+
+function whenText(entry, kind, today, liveSlotHour) {
+  const day = dayLabel(entry.date, today);
+  if (kind === 'day') return day;
+  return `${day} ${slotClock(entry.hour)}${entry.date === today && entry.hour === liveSlotHour ? '（いま）' : ''}`;
+}
+
+const elementsOf = (item) => [item.palaceData?.hachimon, item.palaceData?.hasshin, item.palaceData?.kyusei].filter(Boolean);
 
 export default function ThemeBestView({
   theme,
@@ -49,45 +68,34 @@ export default function ThemeBestView({
   onKindChange,
   today,
   liveSlotHour,
+  lateNight = false, // 夜、自然時の補正で「23-1時」に入っている（今日の残りは、今の時間帯だけ）
   onGoTime, // ({ date, hour, palace }) 時盤の地図を、その日時・方位で開く
   onGoDay,  // ({ date, palace }) 日盤の地図を、その日・方位で開く
 }) {
+  const [period, setPeriod] = useState('week');
   const [expanded, setExpanded] = useState(false);
   const name = themeLabel(theme);
-  const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => shift(today, index)), [today]);
+  const periodLabel = PERIODS.find((item) => item.key === period)?.label || '';
 
-  const groups = useMemo(() => {
-    if (!theme) return [];
-    if (kind === 'day') {
-      return [{
-        key: 'week',
-        label: 'これから1週間',
-        empty: `この1週間には、${name}に向く方位がありません。`,
-        list: bestDaysForTheme({ theme, dates: weekDates }),
-      }];
-    }
-    return [
-      {
-        key: 'today',
-        label: '今日',
-        empty: `今日の残りの時間には、${name}に向く方位がありません。`,
-        list: bestTimesForTheme({ theme, dates: [today], fromHour: liveSlotHour }),
-      },
-      {
-        key: 'week',
-        label: 'これから1週間',
-        empty: `この1週間には、${name}に向く方位がありません。`,
-        list: bestTimesForTheme({ theme, dates: weekDates, fromHour: liveSlotHour }),
-      },
-    ];
-  }, [theme, kind, name, today, weekDates, liveSlotHour]);
+  const list = useMemo(() => {
+    const dates = period === 'today' ? [today] : Array.from({ length: 7 }, (_, index) => shift(today, index));
+    return kind === 'day'
+      ? bestDaysForTheme({ theme, dates })
+      : bestTimesForTheme({ theme, dates, fromHour: liveSlotHour, onlyNowOnFirstDay: lateNight });
+  }, [theme, kind, period, today, liveSlotHour, lateNight]);
 
-  if (!theme) return null;
-  const hasMore = groups.some((group) => group.list.length > 1);
+  const go = (entry) => (kind === 'day'
+    ? onGoDay({ date: entry.date, palace: entry.item.palace })
+    : onGoTime({ date: entry.date, hour: entry.hour, palace: entry.item.palace }));
+
+  const best = list[0] || null;
+  const others = list.slice(1, 3);
+  const bestGrade = best ? gradeOf(best.item) : null;
 
   return (
     <div className="theme-screen">
-      <div className="theme-picker" role="group" aria-label="目的で選ぶ">
+      <section className="theme-step" aria-label="目的を選ぶ">
+        <h3 className="theme-step-title">目的を選ぶ</h3>
         <div className="theme-picker-chips">
           {THEMES.map((item) => (
             <button
@@ -101,51 +109,95 @@ export default function ThemeBestView({
             </button>
           ))}
         </div>
-      </div>
-      <div className="reverse-mode-tabs reverse-mode-tabs--two" aria-label="近所か遠出かを選ぶ">
-        <button type="button" className={kind === 'time' ? 'is-active' : ''} aria-pressed={kind === 'time'} onClick={() => onKindChange('time')}>
-          近所へ（時盤）
-        </button>
-        <button type="button" className={kind === 'day' ? 'is-active' : ''} aria-pressed={kind === 'day'} onClick={() => onKindChange('day')}>
-          遠出・旅行（日盤）
-        </button>
-      </div>
-    <section className="theme-best" aria-label={`${name}に一番向く${kind === 'day' ? '日' : '時間'}と方位`}>
-      <h3 className="theme-best-title"><Ja>{`${name}に一番向くのは`}</Ja></h3>
-      {groups.map((group) => (
-        <div key={group.key} className="theme-best-group">
-          <p className="theme-best-group-label">{group.label}</p>
-          {group.list.length === 0 ? (
-            <p className="theme-best-empty"><Ja>{group.empty}</Ja></p>
-          ) : group.list.slice(0, expanded ? 3 : 1).map((entry, index) => (
-            <Row
-              key={`${entry.date}-${entry.hour ?? 'day'}`}
-              index={index}
-              name={name}
-              entry={entry}
-              when={kind === 'day'
-                ? dayLabel(entry.date, today)
-                : `${group.key === 'today' ? '' : `${dayLabel(entry.date, today)} `}${entry.label}${entry.date === today && entry.hour === liveSlotHour ? '（いま）' : ''}`}
-              onClick={() => (kind === 'day'
-                ? onGoDay({ date: entry.date, palace: entry.item.palace })
-                : onGoTime({ date: entry.date, hour: entry.hour, palace: entry.item.palace }))}
-            />
+      </section>
+
+      <section className="theme-step" aria-label="どんな移動？">
+        <h3 className="theme-step-title">どんな移動？</h3>
+        <div className="theme-kinds">
+          {KINDS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`theme-kind${kind === item.key ? ' is-active' : ''}`}
+              aria-pressed={kind === item.key}
+              onClick={() => onKindChange(item.key)}
+            >
+              <strong>{item.title}</strong>
+              <span>{item.sub}</span>
+              <small>（{item.tech}）</small>
+            </button>
           ))}
         </div>
-      ))}
-      {hasMore && (
-        <button type="button" className="theme-best-more" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
-          {expanded ? '1位だけにする' : '2位・3位も見る'}
-        </button>
-      )}
-      <p className="theme-best-note">
-        <Ja>
-          {kind === 'day'
-            ? '押すと、その日の地図が開きます。遠出は、50キロ以上はなれた場所へ行くときの見方です。'
-            : '押すと、その時間の地図が開きます。朝5時から夜11時までの時間帯で比べています。'}
-        </Ja>
-      </p>
-    </section>
+      </section>
+
+      <section className="theme-step" aria-label={`${periodLabel}の、${name}に一番向く方位`}>
+        <div className="theme-step-head">
+          <h3 className="theme-step-title">{`${periodLabel}のBEST方位`}</h3>
+          <div className="theme-periods" role="group" aria-label="期間">
+            {PERIODS.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={period === item.key ? 'is-active' : ''}
+                aria-pressed={period === item.key}
+                onClick={() => setPeriod(item.key)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {best ? (
+          <div className="theme-best-card">
+            <p className="theme-best-kicker">BEST 1</p>
+            <p className="theme-best-dir">{best.item.label}</p>
+            <p className="theme-best-grade">
+              <Stars count={bestGrade.stars} />
+              <b>{bestGrade.label}</b>
+            </p>
+            <p className="theme-best-when">{whenText(best, kind, today, liveSlotHour)}</p>
+            <p className="theme-best-copy"><Ja>{THEME_COPY[theme] || ''}</Ja></p>
+            <div className="theme-best-tags">
+              {elementsOf(best.item).map((element) => <span key={element}>{element}</span>)}
+            </div>
+            <button type="button" className="theme-best-cta" onClick={() => go(best)}>
+              方位を地図で見る <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        ) : (
+          <div className="theme-best-card is-empty">
+            <p className="theme-best-copy">
+              <Ja>{`${period === 'today' ? '今日の残りの時間' : 'この1週間'}には、${name}に向く方位がありません。`}</Ja>
+            </p>
+            {period === 'today' && (
+              <button type="button" className="theme-best-more" onClick={() => setPeriod('week')}>今週から探す</button>
+            )}
+          </div>
+        )}
+
+        {others.length > 0 && (
+          <>
+            <button type="button" className="theme-best-more" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+              {expanded ? '2位・3位を閉じる' : '2位・3位を見る'} <span aria-hidden="true">{expanded ? '⌃' : '⌄'}</span>
+            </button>
+            {expanded && others.map((entry, index) => {
+              const grade = gradeOf(entry.item);
+              return (
+                <button key={`${entry.date}-${entry.hour ?? 'day'}`} type="button" className="theme-best-row" onClick={() => go(entry)}>
+                  <span className="theme-best-no lat">{index + 2}</span>
+                  <span className="theme-best-main">
+                    <strong>{entry.item.label}</strong>
+                    <span>{whenText(entry, kind, today, liveSlotHour)}</span>
+                  </span>
+                  <span className="theme-best-rowgrade"><Stars count={grade.stars} /><small>{grade.label}</small></span>
+                  <b aria-hidden="true">›</b>
+                </button>
+              );
+            })}
+          </>
+        )}
+      </section>
     </div>
   );
 }
