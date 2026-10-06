@@ -150,13 +150,17 @@ describe('何をしたい？から格局を選ぶ（講座の内容が主、古�
     expect([...covered].sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
   });
 
-  it('発信・宣伝は風遁と青龍返首。交渉・駆け引きは雲遁・虎遁・鬼遁。神社・祈願（神遁）は古典にある用途として出す', async () => {
+  it('発信・宣伝は風遁と青龍返首。交渉・駆け引きは雲遁・虎遁・鬼遁。神社・祈願は神遁（「古典」の印は付けない）', async () => {
     const { KAKKYOKU_USES } = await import('../src/reverseDirection/kakkyokuSearch.js');
     const use = (key) => KAKKYOKU_USES.find((item) => item.key === key);
     expect(use('post').names).toEqual(['風遁', '青龍返首']);
     expect(use('talk').names).toEqual(['雲遁', '虎遁', '鬼遁']);
-    expect(use('shrine')).toMatchObject({ names: ['神遁'], classic: true });
-    expect(KAKKYOKU_USES.filter((item) => item.classic).map((item) => item.key)).toEqual(['shrine']);
+    expect(use('shrine').names).toEqual(['神遁']);
+    expect(KAKKYOKU_USES.some((item) => item.classic)).toBe(false);
+    const { KAKKYOKU_GUIDE } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    expect(KAKKYOKU_GUIDE['神遁'].tags).toContain('神社・祈願');
+    expect(KAKKYOKU_GUIDE['神遁'].classic).toEqual([]);
+    expect(KAKKYOKU_GUIDE['神遁'].line).toContain('神社');
   });
 
   it('検索の結果には、用途の一言を出す', () => {

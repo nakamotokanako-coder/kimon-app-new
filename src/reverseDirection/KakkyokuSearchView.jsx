@@ -246,7 +246,7 @@ export default function KakkyokuSearchView({
         </div>
         <p className="kakkyoku-use-note">
           {activeUse
-            ? `「${activeUse.label}」の格局：${activeUse.names.join('・')}${activeUse.classic ? '（古典にある用途です）' : ''}`
+            ? `「${activeUse.label}」の格局：${activeUse.names.join('・')}`
             : '押すと、その用途の格局が出る日時と方位を、すぐに探します。'}
         </p>
       </div>

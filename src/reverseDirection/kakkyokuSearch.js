@@ -49,14 +49,15 @@ export const KAKKYOKU_GUIDE = {
   雲遁: { line: '駆け引き・戦略を練るときに', tags: ['交渉', '戦略', '駆け引き'], classic: [] },
   龍遁: { line: '海や水辺へ出る・海外や流通の仕事に', tags: ['海・水辺', '釣り', '海外', '流通'], classic: [] },
   虎遁: { line: '強気で押し切る・決断を通すときに', tags: ['強気の交渉', '決断', '回収'], classic: ['守りを固める'] },
-  神遁: { line: '実力以上を狙う・ひらめきを生かすときに', tags: ['財', 'ひらめき', '企画'], classic: ['神社・祈願'] },
+  // 神社・祈願は古典にある用途だが、そのまま用途として出す（「古典」の印は付けない。運営者の判断 2026-10-06）
+  神遁: { line: '神社参拝・祈願に。実力以上を狙うときにも', tags: ['神社・祈願', '財', 'ひらめき', '企画'], classic: [] },
   鬼遁: { line: '相手の隙を突く・調べて備えるときに', tags: ['隙を突く', '差別化'], classic: ['調査', '情報収集'] },
   玉女守門: { line: '面接・縁談・商談など、人と向き合う場面に', tags: ['恋愛', '縁談', '面接', '試験'], classic: ['お祝いの席'] },
 };
 
 /**
  * 「何をしたい？」から格局を選ぶ。押すと、その用途の格局だけを選んで検索する。
- * 格局の当て方は講座の内容（象意辞書）が主。classic: true は、古典にだけある用途。
+ * 格局の当て方は講座の内容（象意辞書）が主。神社・祈願（神遁）だけは古典にある用途を、そのまま出す。
  */
 export const KAKKYOKU_USES = [
   { key: 'post', label: '発信・宣伝', names: ['風遁', '青龍返首'] },
@@ -67,7 +68,7 @@ export const KAKKYOKU_USES = [
   { key: 'talk', label: '交渉・駆け引き', names: ['雲遁', '虎遁', '鬼遁'] },
   { key: 'result', label: '成果を形にする', names: ['地遁'] },
   { key: 'sea', label: '海・海外・流通', names: ['龍遁'] },
-  { key: 'shrine', label: '神社・祈願', names: ['神遁'], classic: true },
+  { key: 'shrine', label: '神社・祈願', names: ['神遁'] },
 ];
 
 const PALACE_ORDER = PALACE_DIRECTIONS.map((item) => item.palace);
