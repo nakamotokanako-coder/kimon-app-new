@@ -5,29 +5,29 @@
   "patterns": "short(見出し) / mid(見出し＋主な理由) / full(4段落)",
   "length": {
     "short": {
-      "min": 17,
-      "avg": 23.5,
-      "median": 23,
+      "min": 18,
+      "avg": 23.7,
+      "median": 24,
       "max": 28
     },
     "mid": {
       "min": 53,
-      "avg": 83.4,
-      "median": 91,
-      "max": 141
+      "avg": 83.3,
+      "median": 89,
+      "max": 135
     },
     "full": {
-      "min": 152,
-      "avg": 243.5,
-      "median": 241,
+      "min": 154,
+      "avg": 245.4,
+      "median": 248,
       "max": 309
     }
   },
   "parts": {
     "tone": {
-      "neg": 22477,
-      "neu": 11419,
-      "pos": 9304
+      "pos": 7201,
+      "neu": 7027,
+      "neg": 28972
     },
     "veto": {
       "伏吟": 5450,
@@ -39,19 +39,19 @@
       "天網四張": 940
     },
     "shoui": {
-      "none": 8640,
-      "weigh": 26241,
-      "support": 3784,
-      "caution": 4535
+      "none": 9009,
+      "weigh": 27076,
+      "support": 3903,
+      "caution": 3212
     },
     "guard": {
       "none": 43200
     },
-    "shouiLed": 1031
+    "shouiLed": 186
   },
   "day_variant": {
-    "cells": 2515,
-    "note": "日盤用の解説（時格・天羅・地網を外したもの）。時盤と違う宮だけ作る"
+    "cells": 2575,
+    "note": "日盤用の解説（時格・天羅・地網を外し、日の干で決まる格局を総合点に入れたもの）。時盤と違う宮だけ作る"
   },
   "checks": {
     "problems": {},

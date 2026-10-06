@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { computeAxisRanks, BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
+import { computeAxisRanks, dateCapNote, BADGE_LABEL } from '../reverseDirection/FusionCard.jsx';
 import { getMiniBoardToneClass } from '../reverseDirection/reverseDirection.js';
 import { buildScoreBreakdown, dateBoundParagraph } from '../kimon/palaceExplain.js';
 import { buildElementStudyCards, buildKakkyokuStudyCards } from '../kimon/studyCards.js';
@@ -102,7 +102,8 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
     return () => root.classList.remove('sheet-scroll-lock');
   }, [isOpen]);
 
-  const axisRanks = useMemo(() => computeAxisRanks(kaisetsuKey, palace?.key), [kaisetsuKey, palace?.key]);
+  const axisRanks = useMemo(() => computeAxisRanks(kaisetsuKey, palace?.key, palace?.score), [kaisetsuKey, palace?.key, palace?.score]);
+  const capNote = useMemo(() => dateCapNote(kaisetsuKey, palace?.key, palace?.score), [kaisetsuKey, palace?.key, palace?.score]);
   const breakdown = useMemo(
     () => buildScoreBreakdown(palace?.score, palace?.data, palace?.banLevel),
     [palace?.score, palace?.data, palace?.banLevel],
@@ -236,6 +237,7 @@ export default function BottomSheet({ palace, kaisetsuKey, onClose, onOverlayTap
             >
               <div className="reading-title">{axisLabel}の読み方</div>
               {readingNode}
+              {capNote && <p className="reading-state ready date-cap-note">{capNote}</p>}
               {dateBoundParagraph(palace.score) && (
                 <ProseText text={dateBoundParagraph(palace.score)} className="date-bound-prose" />
               )}

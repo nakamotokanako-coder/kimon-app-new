@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import FusionCard, { computeAxisRanks, splitMid } from './FusionCard.jsx';
+import FusionCard, { computeAxisRanks, dateCapNote, splitMid } from './FusionCard.jsx';
 
 // selAxis は親からの controlled props（PR-5・L3ボトムシート）。
 // 軸切替を試すテストはこの薄いラッパーでstateを持たせる。
@@ -13,7 +13,8 @@ function ControlledFusionCard({ initialAxis = 'goen', ...props }) {
 
 // 実在する局key（KaisetsuPanel.test.jsx / kaisetsuApi.test.js と同じ既知キー）。
 const KNOWN_KEY = '陰1局丁卯';
-// classifyPalace(KNOWN_KEY, 'kan').axisRanks === { goen:'○', shigoto:'△', kinun:'△', kenko:'▲', benkyo:'○' }
+// classifyPalace(KNOWN_KEY, 'kan').axisRanks は全部 ▲（傷門で総合点がマイナスのため。docs/axis_score_alignment_v2.md）
+// classifyPalace(KNOWN_KEY, 'kun').axisRanks === { goen:'△', shigoto:'◎', kinun:'◎', kenko:'○', benkyo:'△' }（総合 +90）
 const BEST = {
   palace: 'kan',
   label: '北',
@@ -91,8 +92,30 @@ afterEach(() => {
 describe('computeAxisRanks', () => {
   it('既知キー・宮で classifyPalace の axisRanks をそのまま返す', () => {
     expect(computeAxisRanks(KNOWN_KEY, 'kan')).toEqual({
-      goen: '○', shigoto: '△', kinun: '△', kenko: '▲', benkyo: '○',
+      goen: '▲', shigoto: '▲', kinun: '▲', kenko: '▲', benkyo: '▲',
     });
+    expect(computeAxisRanks(KNOWN_KEY, 'kun')).toEqual({
+      goen: '△', shigoto: '◎', kinun: '◎', kenko: '○', benkyo: '△',
+    });
+  });
+  it('その日時の総合点を渡すと、日付で決まる凶の分まで上限を掛ける', () => {
+    // 総合点が +90 のままなら変わらない
+    expect(computeAxisRanks(KNOWN_KEY, 'kun', { score: 90, detected_kakkyoku: [] }).shigoto).toBe('◎');
+    expect(dateCapNote(KNOWN_KEY, 'kun', { score: 90, detected_kakkyoku: [] })).toBe('');
+    // 日格などで +30 に下がった日は ○ まで
+    expect(computeAxisRanks(KNOWN_KEY, 'kun', { score: 30, detected_kakkyoku: [] })).toEqual({
+      goen: '△', shigoto: '○', kinun: '○', kenko: '○', benkyo: '△',
+    });
+    // マイナスまで下がった日は ▲ まで。解説の文より低く出していることを一言添える
+    expect(computeAxisRanks(KNOWN_KEY, 'kun', { score: -10, detected_kakkyoku: [] })).toEqual({
+      goen: '▲', shigoto: '▲', kinun: '▲', kenko: '▲', benkyo: '▲',
+    });
+    expect(dateCapNote(KNOWN_KEY, 'kun', { score: -10, detected_kakkyoku: [] })).toContain('この日時だけの凶');
+    // 三大凶格が付いた日は点数にかかわらず ▲ まで
+    expect(computeAxisRanks(KNOWN_KEY, 'kun', { score: 90, detected_kakkyoku: [{ name: '飛宮格' }] }).shigoto).toBe('▲');
+    // 点数が上がる分（順利の+20）では、解説より上げない
+    expect(computeAxisRanks(KNOWN_KEY, 'kan', { score: 60, detected_kakkyoku: [] }).goen).toBe('▲');
+    expect(dateCapNote(KNOWN_KEY, 'kan', { score: 60, detected_kakkyoku: [] })).toBe('');
   });
   it('不正キーでも例外を投げず null', () => {
     expect(computeAxisRanks('存在しない局', 'kan')).toBe(null);
@@ -126,7 +149,7 @@ describe('FusionCard 軸切替（paid）', () => {
     const chips = screen.getAllByRole('tab');
     const goenChip = chips.find((el) => el.textContent.includes('ご縁'));
     const kenkoChip = chips.find((el) => el.textContent.includes('健康'));
-    expect(goenChip.textContent).toContain('○');
+    expect(goenChip.textContent).toContain('▲');
     expect(kenkoChip.textContent).toContain('▲');
     expect(goenChip.getAttribute('aria-selected')).toBe('true');
   });

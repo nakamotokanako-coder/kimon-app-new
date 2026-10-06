@@ -6,6 +6,9 @@
     },
     "api/kaisetsu-full.js": {
       "includeFiles": "data/kaisetsu/**"
+    },
+    "api/billing.js": {
+      "includeFiles": "data/line/generated/**"
     }
   },
   "git": {

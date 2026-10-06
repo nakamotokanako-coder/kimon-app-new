@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { lookupChito } from '../kimon/loadChito.js';
-import { classifyPalace } from '../kaisetsu/classifyPalace.js';
+import { classifyPalace, axisCapForTotal, capAxisRanks } from '../kaisetsu/classifyPalace.js';
+import { detectSandaiKyokaku } from '../kaisetsu/kyoVeto.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { splitProse, stripBold } from '../kaisetsu/renderProse.jsx';
 import { parseKaisetsuKey } from '../kaisetsu/boardKey.js';
@@ -18,25 +19,51 @@ export const AXES = [
 ];
 
 // 総合スコア（reverseDirection.js 由来）のトーン → 吉凶バッジ文言。
-// 軸チップの◎○△▲×（kaisetsu 由来）とは別エンジンの評価であるため、
-// バッジは "総合スコア" 側にのみ責務を持たせる（axisRanks とは食い違い得る。
-// docs/axis_score_mismatch_v1.md 参照）。
+// 軸チップの◎○△▲×（kaisetsu 由来）は総合点を超えない（docs/axis_score_alignment_v2.md）。
 export const BADGE_LABEL = { daikichi: '大吉', shokichi: '吉', churitsu: '中立', kyo: '凶' };
 
 export function scoreText(score) {
   return `${score > 0 ? '+' : ''}${score}`;
 }
 
+// その日時の総合点（scorePalace の結果）から決まる、テーマ別の上限。
+function actualCap(palaceScore) {
+  if (!palaceScore || !Number.isFinite(palaceScore.score)) return null;
+  return axisCapForTotal(palaceScore.score, Boolean(detectSandaiKyokaku(palaceScore)));
+}
+
 // axisRanks は classifyPalace から直接算出する（認証・ネットワークに依存せず常時表示）。
 // KaisetsuPanel.jsx の computeRanks() と同じデータ源・同じ壊れ方（例外を握りつぶし null）。
-export function computeAxisRanks(key, palace) {
+// classifyPalace は局と干支だけで決まる総合点までしか見られないので、palaceScore（その日時の総合点）を
+// 渡すと、日付で決まる凶（五不遇時・歳格・月格・日格など）の分まで上限を掛ける。
+export function computeAxisRanks(key, palace, palaceScore = null) {
   if (!key || !palace) return null;
   try {
     const parsed = parseKaisetsuKey(key);
     const row = lookupChito(parsed.key);
-    return classifyPalace(row, palace, { boardType: parsed.boardType }).axisRanks || null;
+    const ranks = classifyPalace(row, palace, { boardType: parsed.boardType }).axisRanks || null;
+    return capAxisRanks(ranks, actualCap(palaceScore));
   } catch {
     return null;
+  }
+}
+
+/**
+ * 日付で決まる凶のために、テーマ別の評価を解説文より下げたときの一言。下げていなければ ''。
+ * 解説文は局と干支ごとに作ってあるので、その日だけの凶は文章に入っていない。
+ */
+export function dateCapNote(key, palace, palaceScore) {
+  const cap = actualCap(palaceScore);
+  if (!key || !palace || !cap) return '';
+  try {
+    const parsed = parseKaisetsuKey(key);
+    const base = classifyPalace(lookupChito(parsed.key), palace, { boardType: parsed.boardType }).axisRanks;
+    const shown = capAxisRanks(base, cap);
+    return Object.keys(base).some((axis) => base[axis] !== shown[axis])
+      ? 'この日時だけの凶が重なっているので、◎○×は解説の文より低く出しています。'
+      : '';
+  } catch {
+    return '';
   }
 }
 
@@ -59,8 +86,7 @@ export function splitMid(mid) {
  * 時盤お散歩モードの最大吉カード（統合カード）。
  * 点数・吉凶バッジは reverse.rankings（reverseDirection.js）由来のまま、
  * 軸チップ＋意味テキストは kaisetsu（classifyPalace / /api/kaisetsu-full）由来。
- * 2つのデータ源は独立エンジンで食い違うことがあるため、UI上「テーマ別」と
- * ラベリングして総合スコアとは別軸の評価であることを明示する。
+ * テーマ別の◎○×は総合点を超えない（docs/axis_score_alignment_v2.md）。
  *
  * 軸選択（selAxis）は L3ボトムシートと共有するため親から controlled props で受け取る
  * （PR-5・L3ボトムシート）。boardKey/banLevel は L3 に転送するだけで自身の表示には使わない。
@@ -72,10 +98,11 @@ export default function FusionCard({
   selAxis = 'goen',
   onAxisChange,
   onGoToSearch,
+  emptyNote = '吉のみ表示中です。凶も見ると全方位を確認できます。',
 }) {
   const [isL3Open, setIsL3Open] = useState(false);
   const palace = best?.palace || null;
-  const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace), [boardKey, palace]);
+  const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace, best?.palaceScore), [boardKey, palace, best?.palaceScore]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
 
   if (!best) {
@@ -84,7 +111,7 @@ export default function FusionCard({
         <div className="f-top">
           <div className="f-meta">
             <div className="f-tags">該当なし</div>
-            <div className="f-tags" style={{ opacity: 0.7 }}>吉のみ表示中です。凶も見ると全方位を確認できます。</div>
+            <div className="f-tags" style={{ opacity: 0.7 }}>{emptyNote}</div>
           </div>
         </div>
       </div>

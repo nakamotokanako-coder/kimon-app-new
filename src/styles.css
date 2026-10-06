@@ -12247,3 +12247,62 @@ p.saikyo-annual-note.is-open {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 日付で決まる凶のために、◎○×を解説の文より下げたときの一言 */
+.date-cap-note {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* 目的で選ぶ（ご縁・仕事・金運・健康・勉強）。今日／明日のボタンと同じ形 */
+.theme-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.theme-picker.is-in-card {
+  margin-bottom: 12px;
+}
+
+.reverse-day-card .theme-picker.is-in-card {
+  margin: 12px 0 0;
+}
+
+.theme-picker-label {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.theme-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.theme-picker-chips button {
+  min-height: 36px;
+  padding: 5px 13px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.theme-picker-chips button.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg-main);
+}
+
+.theme-picker-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}

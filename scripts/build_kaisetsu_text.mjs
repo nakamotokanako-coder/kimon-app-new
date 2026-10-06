@@ -90,7 +90,8 @@ function main() {
   }, null, 2)}\n`);
 
   const generated = {};
-  // 日盤用の解説。時格・天羅・地網（時の干で決まる格局）が入っている宮だけ、それを外して作り直す。
+  // 日盤用の解説。時格・天羅・地網（時の干で決まる格局）が入っている宮は、それを外して作り直す。
+  // 日盤では日の干で決まる格局（日格・伏干・雲干）も総合点に入るので、テーマ別の◎○×が時盤と変わる宮も作り直す。
   const dayOverrides = {};
   let dayCells = 0;
   const lengths = { short: [], mid: [], full: [] };
@@ -124,8 +125,10 @@ function main() {
       }
       byPalace[palace] = { axisRanks: judgment.axisRanks, ...axisTexts };
 
-      if (parseShoui(row, palace).some((item) => TIME_ONLY_SHOUI.includes(item.name))) {
-        const dayJudgment = classifyPalace(row, palace, { boardType: '日' });
+      const dayJudgment = classifyPalace(row, palace, { boardType: '日' });
+      const dayDiffers = parseShoui(row, palace).some((item) => TIME_ONLY_SHOUI.includes(item.name))
+        || AXES.some((axis) => dayJudgment.axisRanks[axis] !== judgment.axisRanks[axis]);
+      if (dayDiffers) {
         const dayTexts = {};
         for (const axis of AXES) {
           const d = composeProse(dayJudgment, axis, bank);
@@ -155,7 +158,7 @@ function main() {
     patterns: 'short(見出し) / mid(見出し＋主な理由) / full(4段落)',
     length: { short: dist(lengths.short), mid: dist(lengths.mid), full: dist(lengths.full) },
     parts: count,
-    day_variant: { cells: dayCells, note: '日盤用の解説（時格・天羅・地網を外したもの）。時盤と違う宮だけ作る' },
+    day_variant: { cells: dayCells, note: '日盤用の解説（時格・天羅・地網を外し、日の干で決まる格局を総合点に入れたもの）。時盤と違う宮だけ作る' },
     checks: { problems, limits: { mid: MID_MAX, full: FULL_MAX } },
     ok: problemCount === 0,
   };
@@ -172,7 +175,7 @@ function main() {
   console.log(`吉凶の内訳 : ${JSON.stringify(count.tone)}  / 象意主役 ${count.shouiLed}`);
   console.log(`拒否権     : ${JSON.stringify(count.veto)}`);
   console.log(`象意       : ${JSON.stringify(count.shoui)}  / 字数ガード ${JSON.stringify(count.guard)}`);
-  console.log(`日盤用     : ${dayCells}件（時格・天羅・地網が入る宮だけ作り直し）`);
+  console.log(`日盤用     : ${dayCells}件（時盤と違う宮だけ作り直し）`);
   console.log(`検査       : ${JSON.stringify(problems)}  → ${stats.ok ? 'OK' : 'NG'}`);
   console.log(`代表5局    : ${JSON.stringify(samples)}`);
   if (!stats.ok) process.exitCode = 1;
