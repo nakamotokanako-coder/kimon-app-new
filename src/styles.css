@@ -12842,15 +12842,6 @@ p.saikyo-annual-note.is-open {
   align-items: center;
 }
 
-.kakkyoku-name .kakkyoku-symbol {
-  grid-row: 1 / span 3;
-  color: var(--text-secondary);
-}
-
-.kakkyoku-name.is-active .kakkyoku-symbol {
-  color: var(--accent);
-}
-
 .kakkyoku-name strong,
 .kakkyoku-name span,
 .kakkyoku-name small {

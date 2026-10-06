@@ -1,7 +1,6 @@
 // 格局ごとの案内（格局の名前を知らない人が、読めば「どういう日に使うか」を思い描けるようにする）。
 //
 //   image    … 格局の絵（public/divination/<image>.webp。scripts/build_divination_images.py で作る）
-//   symbol   … 絵が無いときに出す線画の印（src/components/icons/symbolIcons.jsx）
 //   line     … 一言
 //   day      … ひと言でいうと、どんな日か
 //   tags     … 用途の札。講座の内容（象意辞書 data/shoui_dict.json）から拾う。こちらが主
@@ -16,7 +15,6 @@
 export const KAKKYOKU_GUIDE = {
   青龍返首: {
     image: 'seiryu-henko',
-    symbol: 'symbol-qinglong',
     line: '表舞台に出る。大きく仕掛ける。',
     day: '表舞台に出る日',
     tags: ['発表', '勝負', '開始'],
@@ -32,7 +30,6 @@ export const KAKKYOKU_GUIDE = {
   },
   飛鳥跌穴: {
     image: 'asuka-gekketsu',
-    symbol: 'symbol-feiniao',
     line: 'チャンスが来たら、その場でつかむ。',
     day: 'チャンスをつかむ日',
     tags: ['財', '昇進', '婚姻', '即決'],
@@ -47,7 +44,6 @@ export const KAKKYOKU_GUIDE = {
   },
   天遁: {
     image: 'tento',
-    symbol: 'symbol-tiandun',
     line: '世界を広げる。人・お金・知識を取りに行く。',
     day: '世界を広げる日',
     tags: ['人脈', '営業', '財', '学び'],
@@ -63,7 +59,6 @@ export const KAKKYOKU_GUIDE = {
   },
   地遁: {
     image: 'chito',
-    symbol: 'symbol-didun',
     line: '積み重ねてきたものを、成果に変える。',
     day: '努力を形にする日',
     tags: ['成果', '評価', '長い取り組み'],
@@ -78,7 +73,6 @@ export const KAKKYOKU_GUIDE = {
   },
   人遁: {
     image: 'jinto',
-    symbol: 'symbol-rendun',
     line: 'ひとりで頑張らない。人の力を借りる。',
     day: '人の力を借りる日',
     tags: ['和合', '人望', '紹介', 'チーム'],
@@ -93,7 +87,6 @@ export const KAKKYOKU_GUIDE = {
   },
   風遁: {
     image: 'futo',
-    symbol: 'symbol-fengdun',
     line: '届けたいなら、風に乗せる。',
     day: '世の中に広める日',
     tags: ['発信', '広報', '宣伝'],
@@ -108,7 +101,6 @@ export const KAKKYOKU_GUIDE = {
   },
   雲遁: {
     image: 'unto',
-    symbol: 'symbol-yundun',
     line: '正面突破より、一手先を読む。',
     day: '一手先を読む日',
     tags: ['交渉', '戦略', '駆け引き'],
@@ -123,7 +115,6 @@ export const KAKKYOKU_GUIDE = {
   },
   龍遁: {
     image: 'ryuto',
-    symbol: 'symbol-longdun',
     line: '流れに乗って、遠くへ運ぶ。',
     day: '流れに乗せる日',
     tags: ['海・水辺', '釣り', '海外', '流通'],
@@ -138,7 +129,6 @@ export const KAKKYOKU_GUIDE = {
   },
   虎遁: {
     image: 'koto',
-    symbol: 'symbol-hudun',
     line: '今日は引かない。強気で通す。',
     day: 'ここは譲らない日',
     tags: ['強気の交渉', '決断', '回収'],
@@ -154,7 +144,6 @@ export const KAKKYOKU_GUIDE = {
   神遁: {
     image: 'shinto-icon',
     hero: 'shinto-hero',
-    symbol: 'symbol-shendun',
     line: '神様にお願いする。運とひらめきも借りる。',
     day: '神様と運の力も借りる日',
     tags: ['神社・祈願', '財', 'ひらめき', '企画'],
@@ -169,7 +158,6 @@ export const KAKKYOKU_GUIDE = {
   },
   鬼遁: {
     image: 'kito',
-    symbol: 'symbol-guidun',
     line: '相手を調べる。隙を見つける。そこを突く。',
     day: '勝負する前に、弱点を見つける日',
     tags: ['隙を突く', '差別化'],
@@ -184,7 +172,6 @@ export const KAKKYOKU_GUIDE = {
   },
   玉女守門: {
     image: 'gyokunyo',
-    symbol: 'symbol-yunv',
     line: '大事な人と、ちゃんと向き合う日に。',
     day: '大切な人と向き合う日',
     tags: ['恋愛', '縁談', '面接', '試験'],

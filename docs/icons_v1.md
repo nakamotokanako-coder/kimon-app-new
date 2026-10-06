@@ -4,7 +4,7 @@
 
 ## 決まり
 
-- viewBox `0 0 24 24`（格局の印 `symbol-*` だけ `0 0 48 48`）
+- viewBox `0 0 24 24`
 - 線 1.6 ／ 丸い端・丸い角 ／ 塗りなし
 - 色は固定しない（`currentColor`）。色は置く場所の CSS の `color` で決める
   - ふだん … 文字の色のまま
@@ -15,12 +15,10 @@
 ## 使い方
 
 ```jsx
-import { Icon, Decoration } from './components/icons/index.js';
+import { Icon } from './components/icons/index.js';
 
 <Icon name="purpose-shrine" />              // 24px
 <Icon name="star" size={16} filled />       // 塗った星
-<Icon name="symbol-shendun" size={48} />    // 格局の印
-<Decoration name="mountains" />             // 背景の飾り（色と濃さは CSS で）
 ```
 
 ## 置き場所
@@ -33,9 +31,6 @@ import { Icon, Decoration } from './components/icons/index.js';
 | `src/components/icons/resultIcons.jsx` | 結果・評価（10）: crown, star, calendar, compass, map, location, check-circle, info, clock, direction |
 | `src/components/icons/navIcons.jsx` | 下のメニュー（5）: nav-home, nav-board, nav-map, nav-search, nav-more |
 | `src/components/icons/qimenIcons.jsx` | 奇門遁甲らしい補助（6）: yin-yang, nine-grid, direction, sun, moon, cloud |
-| `src/components/icons/symbolIcons.jsx` | 格局の印（12）: qinglong, feiniao, tiandun, didun, rendun, yundun, fengdun, longdun, hudun, shendun, guidun, yunv |
-| `src/components/icons/Decoration.jsx` | 背景の飾りを出す部品 |
-| `src/assets/decorations/*.svg` | 背景の飾り（4）: cloud, mountains, branch, celestial |
 
 用途の `broadcast` `people` `negotiate` `result` `sea` は、格局検索の「何をしたい？」（発信・宣伝／人脈・協力／交渉・駆け引き／成果を形にする／海・海外・流通）のために足したもの。
 
@@ -49,11 +44,15 @@ import { Icon, Decoration } from './components/icons/index.js';
 | 格局の案内（同上） | check-circle（こんな日に）/ calendar・arrow-right（この格局が出る日時を探す）/ chevron-down・up（くわしく） |
 
 まだ使っていないもの: purpose-money / home / travel / purification、bookmark / share / edit / close / reset / filter / search / arrow-left、
-compass / map / location / info / clock / direction、qimen-*、背景の飾りの SVG 4つ、格局の印 symbol-*（下の絵が無いときの代わり）。
+compass / map / location / info / clock / direction、qimen-*。
 
 ## 格局の絵（運営者が用意した絵）
 
-格局の一覧と案内には、線画の印ではなく、運営者が用意した絵を出す。
+格局の絵と背景の飾りは、線画にしない。運営者が用意した絵を出す。
+線画で描いた格局の印（12）と飾り（4）は一度作ったが、絵のほうがはっきり良く、出す場所も無いので外した（2026-10-07）。
+
+- 小さい印（メニュー・ボタン・矢印・星・用途）… 線画（24px で潰れない。色を CSS で切り替えられる）
+- 格局の絵・案内の大きい絵・背景の飾り … 画像（運営者が用意する）
 
 - 元の絵（PNG・1枚 1〜2MB）はリポジトリに入れない。`image/divination/` に置く（`public/` の下には置かない。そのまま配信されてしまうため）
 - `python scripts/build_divination_images.py [元の絵のフォルダ]` で、`public/divination/*.webp` を作る（16枚で合計 約520KB）

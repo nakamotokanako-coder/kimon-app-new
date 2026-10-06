@@ -31,13 +31,11 @@ const PERIODS_BY_BOARD = {
   ],
 };
 
-/** 格局の絵。絵が無い格局は、線画の印を出す */
+/** 格局の絵（絵が無い格局には、何も出さない） */
 function KakkyokuArt({ name, size = 56 }) {
   const guide = KAKKYOKU_GUIDE[name];
-  if (guide?.image) {
-    return <img className="kakkyoku-art" src={`/divination/${guide.image}.webp`} alt="" width={size} height={size} loading="lazy" decoding="async" />;
-  }
-  return <Icon name={guide?.symbol} size={size} className="kakkyoku-art" />;
+  if (!guide?.image) return null;
+  return <img className="kakkyoku-art" src={`/divination/${guide.image}.webp`} alt="" width={size} height={size} loading="lazy" decoding="async" />;
 }
 
 /** 格局の案内（開いたときに読む）: 説明・こんな日に・向かない例 */
