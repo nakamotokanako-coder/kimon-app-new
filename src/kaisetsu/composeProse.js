@@ -17,7 +17,7 @@
 // バリエーション選択は決定的（同じ盤は何度生成しても同じ文）。ランダム禁止。
 
 export const AXES = ['goen', 'shigoto', 'kinun', 'kenko', 'benkyo'];
-export const AXIS_LABELS = { goen: 'ご縁', shigoto: '仕事', kinun: '金運', kenko: '健康', benkyo: '勉強' };
+export const AXIS_LABELS = { goen: 'ご縁', shigoto: '仕事運', kinun: '金運', kenko: '健康運', benkyo: '勉強運' };
 
 export const MID_MAX = 200;
 export const FULL_MAX = 380;

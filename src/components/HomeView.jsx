@@ -79,7 +79,7 @@ export const ENTRIES = [
   },
 ];
 
-/** その方位に入っている門と、そのテーマ（例: 開門｜仕事のテーマ）。効果は書かない */
+/** その方位に入っている門と、そのテーマ（例: 開門｜仕事運のテーマ）。効果は書かない */
 export function gateLine(item) {
   const gate = item?.palaceData?.hachimon;
   if (!gate) return '';

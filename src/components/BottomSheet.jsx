@@ -23,10 +23,10 @@ import './BottomSheet.css';
 
 const AXES = [
   { key: 'goen', label: 'ご縁' },
-  { key: 'shigoto', label: '仕事' },
+  { key: 'shigoto', label: '仕事運' },
   { key: 'kinun', label: '金運' },
-  { key: 'kenko', label: '健康' },
-  { key: 'benkyo', label: '勉強' },
+  { key: 'kenko', label: '健康運' },
+  { key: 'benkyo', label: '勉強運' },
 ];
 
 const axisClassName = (key) => ({

@@ -12,10 +12,10 @@ import { lockedMessage } from '../../lib/accessPolicy.js';
 // 願い5軸（classifyPalace / kaisetsu API と同一キー。KaisetsuPanel.jsx と同じ表示ラベル）。
 export const AXES = [
   { key: 'goen',    label: 'ご縁' },
-  { key: 'shigoto', label: '仕事' },
+  { key: 'shigoto', label: '仕事運' },
   { key: 'kinun',   label: '金運' },
-  { key: 'kenko',   label: '健康' },
-  { key: 'benkyo',  label: '勉強' },
+  { key: 'kenko',   label: '健康運' },
+  { key: 'benkyo',  label: '勉強運' },
 ];
 
 // 総合スコア（reverseDirection.js 由来）のトーン → 吉凶バッジ文言。

@@ -24,10 +24,10 @@ const PALACE_DISPLAY = {
 // 願い5軸（classifyPalace / API と同一キー）。
 const AXES = [
   { key: 'goen',    label: 'ご縁' },
-  { key: 'shigoto', label: '仕事' },
+  { key: 'shigoto', label: '仕事運' },
   { key: 'kinun',   label: '金運' },
-  { key: 'kenko',   label: '健康' },
-  { key: 'benkyo',  label: '勉強' },
+  { key: 'kenko',   label: '健康運' },
+  { key: 'benkyo',  label: '勉強運' },
 ];
 
 // ランク記号 → 配色クラス。ShouiPanel の既存クラス（吉=青 / 中立=accent / 凶=赤）を
