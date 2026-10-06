@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import Ja from '../utils/Ja.jsx';
-import { themeLabel, bestTimesForTheme, bestDaysForTheme } from './themeSearch.js';
+import { THEMES, themeLabel, bestTimesForTheme, bestDaysForTheme } from './themeSearch.js';
 
-// 「目的で選ぶ」で目的を選んだときに、すぐ下に出す答え。いつ・どの方位が一番向くかを順位で出す。
-//   時盤の画面（kind='time'）… 今日のこれからの時間帯と、これから1週間の時間帯
-//   日盤の画面（kind='day'） … これから1週間の日
-// はじめは1位だけ。「ほかの候補も見る」で3位まで開く。行を押すと、同じ画面の地図がその日時・方位に切り替わる。
+// 「目的で選ぶ」の画面。目的を選ぶと、いつ・どの方位が一番向くかを順位で出す。この画面はそれだけをする。
+//   近所へ（kind='time'・時盤）   … 今日のこれからの時間帯と、これから1週間の時間帯
+//   遠出・旅行（kind='day'・日盤）… これから1週間の日
+// はじめは1位だけ。「2位・3位も見る」で3位まで開く。行を押すと、その日時・方位の地図が開く。
 // 順位の決め方は themeSearch.js（その目的が◎の方位が先、同じなら総合点の高い順）。ここでは計算しない。
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -44,11 +44,13 @@ function Row({ index, when, entry, name, onClick }) {
 
 export default function ThemeBestView({
   theme,
+  onThemeChange,
   kind = 'time',
+  onKindChange,
   today,
   liveSlotHour,
-  onGoTime, // ({ date, hour, palace }) 時盤の地図をその日時・方位にする
-  onGoDay,  // ({ date, palace }) 日盤の地図をその日・方位にする
+  onGoTime, // ({ date, hour, palace }) 時盤の地図を、その日時・方位で開く
+  onGoDay,  // ({ date, palace }) 日盤の地図を、その日・方位で開く
 }) {
   const [expanded, setExpanded] = useState(false);
   const name = themeLabel(theme);
@@ -84,6 +86,30 @@ export default function ThemeBestView({
   const hasMore = groups.some((group) => group.list.length > 1);
 
   return (
+    <div className="theme-screen">
+      <div className="theme-picker" role="group" aria-label="目的で選ぶ">
+        <div className="theme-picker-chips">
+          {THEMES.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={theme === item.key ? 'is-active' : ''}
+              aria-pressed={theme === item.key}
+              onClick={() => onThemeChange(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="reverse-mode-tabs reverse-mode-tabs--two" aria-label="近所か遠出かを選ぶ">
+        <button type="button" className={kind === 'time' ? 'is-active' : ''} aria-pressed={kind === 'time'} onClick={() => onKindChange('time')}>
+          近所へ（時盤）
+        </button>
+        <button type="button" className={kind === 'day' ? 'is-active' : ''} aria-pressed={kind === 'day'} onClick={() => onKindChange('day')}>
+          遠出・旅行（日盤）
+        </button>
+      </div>
     <section className="theme-best" aria-label={`${name}に一番向く${kind === 'day' ? '日' : '時間'}と方位`}>
       <h3 className="theme-best-title"><Ja>{`${name}に一番向くのは`}</Ja></h3>
       {groups.map((group) => (
@@ -115,10 +141,11 @@ export default function ThemeBestView({
       <p className="theme-best-note">
         <Ja>
           {kind === 'day'
-            ? '押すと、下の地図がその日に切り替わります。'
-            : '押すと、下の地図がその時間に切り替わります。朝5時から夜11時までの時間帯で比べています。'}
+            ? '押すと、その日の地図が開きます。遠出は、50キロ以上はなれた場所へ行くときの見方です。'
+            : '押すと、その時間の地図が開きます。朝5時から夜11時までの時間帯で比べています。'}
         </Ja>
       </p>
     </section>
+    </div>
   );
 }

@@ -2,7 +2,6 @@ import { buildBoard } from '../kimon/buildBoard.js';
 import { scoreBoard } from '../kimon/scoreEngine.js';
 import { detectSandaiKyokaku } from '../kaisetsu/kyoVeto.js';
 import { getJstHours } from '../utils/jishinLabels.js';
-import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
 import purposeFilters from '../data/purposeFilters.json';
 
 export const TIME_BOARD_TYPE = '\u6642';
@@ -169,8 +168,6 @@ export function buildTimeline({ date, goodOnly }) {
       best: visible[0] || null,
       rawBest: result.rankings[0] || null,
       rankings: result.rankings,
-      // テーマ別の◎○×を引くための鍵（目的から探すときに使う）
-      boardKey: makeKaisetsuKey(result.board.meta),
     };
   });
 }

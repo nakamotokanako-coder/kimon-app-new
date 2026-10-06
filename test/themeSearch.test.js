@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
-  buildReverseBoard, buildDayReverseBoard, buildTimeline, getMiniBoardToneClass,
+  buildReverseBoard, buildDayReverseBoard, getMiniBoardToneClass,
 } from '../src/reverseDirection/reverseDirection.js';
 import { computeAxisRanks } from '../src/reverseDirection/FusionCard.jsx';
 import { makeKaisetsuKey } from '../src/kaisetsu/boardKey.js';
 import {
-  THEMES, themeLabel, rankingsForTheme, timelineForTheme, nextSlotForTheme,
+  THEMES, themeLabel, rankingsForTheme,
   bestTimesForTheme, bestDaysForTheme, DAYTIME_HOURS,
 } from '../src/reverseDirection/themeSearch.js';
 
-// 目的（ご縁・仕事・金運・健康・勉強）から方位を探す。
+// 目的で選ぶ: 目的（ご縁・仕事・金運・健康・勉強）を選ぶと、いつ・どの方位が一番向くかを順位で出す。
 
 const weight = (rank) => (rank === '◎' ? 2 : 1);
 
@@ -57,35 +57,9 @@ describe('目的から方位を探す', () => {
       }
     }
   });
-
-  it('時間帯の一覧: 目的を選ぶと、各時間帯の一番がその目的の一番になる。選ばなければそのまま', () => {
-    const timeline = buildTimeline({ date: '2026-10-06', goodOnly: true });
-    expect(timelineForTheme(timeline, '')).toBe(timeline);
-    const themed = timelineForTheme(timeline, 'benkyo');
-    expect(themed).toHaveLength(12);
-    themed.forEach((slot, index) => {
-      expect(slot.hour).toBe(timeline[index].hour);
-      const found = rankingsForTheme(slot.boardKey, slot.rankings, 'benkyo');
-      expect(slot.best?.palace || null).toBe(found[0]?.palace || null);
-      if (slot.best) expect(['◎', '○']).toContain(slot.best.themeRank);
-    });
-  });
-
-  it('向く方位が無い時間帯からは、次に向く方位がある時間帯を案内できる', () => {
-    const slots = [
-      { hour: 0, best: { label: '北' } },
-      { hour: 2, best: null },
-      { hour: 4, best: null },
-      { hour: 6, best: { label: '南' } },
-      { hour: 8, best: null },
-    ];
-    expect(nextSlotForTheme(slots, 2).hour).toBe(6);
-    expect(nextSlotForTheme(slots, 4).hour).toBe(6);
-    expect(nextSlotForTheme(slots, 8)).toBe(null); // その日の残りに無ければ案内しない
-  });
 });
 
-describe('目的から探す: いつ・どの方位が一番向くか（順位）', () => {
+describe('目的で選ぶ: いつ・どの方位が一番向くか（順位）', () => {
   const week = ['2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12'];
   const weightOf = (entry) => (entry.item.themeRank === '◎' ? 2 : 1);
 

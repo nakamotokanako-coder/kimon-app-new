@@ -12307,7 +12307,7 @@ p.saikyo-annual-note.is-open {
   line-height: 1.6;
 }
 
-/* 目的から探す: 入口（探す・ホーム）と、順位の画面 */
+/* 目的で選ぶ: 入口（探す・ホーム）のボタン */
 .hub-theme {
   margin: 22px 0 6px;
 }
@@ -12337,13 +12337,33 @@ p.saikyo-annual-note.is-open {
   text-align: center;
 }
 
-.theme-best {
+/* 目的で選ぶ: 順位の画面 */
+.theme-screen {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
-.theme-best-section .reverse-mode-tabs {
-  margin-bottom: 10px;
+.theme-best {
+  display: grid;
+  gap: 6px;
+  padding: 14px 12px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text-accent) 6%, var(--bg-card));
+}
+
+.theme-best-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  letter-spacing: 0.04em;
+}
+
+.theme-best-group-label {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .theme-best-row {
@@ -12352,8 +12372,8 @@ p.saikyo-annual-note.is-open {
   align-items: center;
   gap: 12px;
   width: 100%;
-  margin-top: 8px;
-  padding: 12px 14px;
+  margin-top: 6px;
+  padding: 11px 12px;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   background: var(--bg-card);
@@ -12365,7 +12385,6 @@ p.saikyo-annual-note.is-open {
 
 .theme-best-row.is-top {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 9%, var(--bg-card));
 }
 
 .theme-best-no {
@@ -12419,56 +12438,6 @@ p.saikyo-annual-note.is-open {
   font-weight: 400;
 }
 
-.theme-best-note {
-  margin: 10px 2px 0;
-  color: var(--text-secondary);
-  font-size: 0.76rem;
-  line-height: 1.6;
-}
-
-.theme-best-section {
-  padding-bottom: 12px;
-}
-
-.theme-best-section .theme-best-row,
-.theme-best-section .reverse-mode-tabs {
-  width: calc(100% - 20px);
-  margin-inline: 10px;
-}
-
-.theme-best-section .theme-best-note,
-.theme-best-section .reverse-status {
-  margin-inline: 14px;
-}
-
-/* 目的で選ぶ → すぐ下に出す答え（今日の1位・1週間の1位） */
-.theme-best {
-  gap: 6px;
-  padding: 12px;
-  border: 1px solid var(--accent-edge);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--text-accent) 6%, var(--bg-card));
-}
-
-.theme-best-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  letter-spacing: 0.04em;
-}
-
-.theme-best-group-label {
-  margin: 6px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.theme-best .theme-best-row {
-  margin-top: 6px;
-  padding: 10px 12px;
-}
-
 .theme-best-empty {
   margin: 6px 0 0;
   color: var(--text-secondary);
@@ -12478,7 +12447,7 @@ p.saikyo-annual-note.is-open {
 
 .theme-best-more {
   justify-self: start;
-  margin-top: 4px;
+  margin-top: 6px;
   padding: 5px 12px;
   border: 1px solid var(--border-main);
   border-radius: 999px;
@@ -12490,10 +12459,9 @@ p.saikyo-annual-note.is-open {
   cursor: pointer;
 }
 
-.theme-best .theme-best-note {
-  margin: 4px 0 0;
-}
-
-.reverse-day-card .theme-best {
-  margin-top: 12px;
+.theme-best-note {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.6;
 }

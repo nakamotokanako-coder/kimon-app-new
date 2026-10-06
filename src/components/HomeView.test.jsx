@@ -122,14 +122,14 @@ describe('探すの入口', () => {
     const order = [...container.querySelectorAll('.search-hub > section, .search-hub > .hub-row')]
       .map((el) => el.getAttribute('aria-label') || el.querySelector('strong').textContent);
     expect(order).toEqual(['今から吉方位へ', '目的で選ぶ', '予定から探す', 'こだわって探す', '使い方ガイド']);
-    // 目的を押すと、地図（時盤）の「目的で選ぶ」へ
+    // 目的を押すと、「目的で選ぶ」の画面へ
     const onSelect = vi.fn();
     cleanup();
     const hub = render(<SearchHub onSelect={onSelect} onOpenGuide={() => {}} onOpenNotifications={() => {}} />);
     const chips = [...hub.container.querySelectorAll('.hub-theme .theme-picker-chips button')];
     expect(chips.map((b) => b.textContent)).toEqual(['ご縁', '仕事', '金運', '健康', '勉強']);
     fireEvent.click(chips[1]);
-    expect(onSelect).toHaveBeenCalledWith({ key: 'theme', target: 'map', theme: 'shigoto' });
+    expect(onSelect).toHaveBeenCalledWith({ key: 'theme', target: 'search', theme: 'shigoto' });
     expect(NOW_ENTRY).toMatchObject({ key: 'time', target: 'map', cta: '今から探す' });
   });
 

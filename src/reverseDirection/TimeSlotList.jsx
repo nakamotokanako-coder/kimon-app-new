@@ -124,8 +124,7 @@ function SlotDetail({ slot, onGoMap, onOpenBoard }) {
   );
 }
 
-// themeName を渡すと「目的から探す」表示になる（その時間の一番＝目的に向く方位の一番。slot.best.themeRank に◎か○）。
-export default function TimeSlotList({ timeline, nowHour, onGoMap, onOpenBoard, themeName = '' }) {
+export default function TimeSlotList({ timeline, nowHour, onGoMap, onOpenBoard }) {
   const [openHour, setOpenHour] = useState(null);
   const scores = timeline.map((slot) => slot.best?.score).filter((score) => typeof score === 'number');
   const topScore = scores.length > 0 ? Math.max(...scores) : null;
@@ -150,11 +149,7 @@ export default function TimeSlotList({ timeline, nowHour, onGoMap, onOpenBoard, 
               </span>
               <span className="tsl-main">
                 <strong>{best?.label || '該当なし'}</strong>
-                <span>
-                  {best
-                    ? `${themeName && best.themeRank ? `${themeName}${best.themeRank}・` : ''}${gateGod(best)}`
-                    : (themeName ? `${themeName}に向く方位がありません` : '吉の方位がありません')}
-                </span>
+                <span>{best ? gateGod(best) : '吉の方位がありません'}</span>
               </span>
               <span className={`tsl-score lat ${(best?.score || 0) < 0 ? 'is-bad' : ''}${best ? '' : ' is-none'}`}>{best ? scoreText(best.score) : '—'}</span>
               {best && (isTop
