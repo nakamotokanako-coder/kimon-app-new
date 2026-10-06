@@ -12,10 +12,10 @@ import { Icon } from '../components/icons/index.js';
 import { EXAMPLES_SHOWN } from './kakkyokuGuide.js';
 import { buildDayReverseBoard, buildReverseBoard, DAY_BOARD_TYPE, TIME_BOARD_TYPE } from './reverseDirection.js';
 
-// 調べる盤。時盤は1日に12盤あるので期間は短め、日盤は1日1盤なので長い期間を選べる。
+// どんな移動か（＝調べる盤）。時盤は1日に12盤あるので期間は短め、日盤は1日1盤なので長い期間を選べる。
 const BOARD_TYPES = [
-  { key: TIME_BOARD_TYPE, label: '時盤', note: '近場・今日からの外出に' },
-  { key: DAY_BOARD_TYPE, label: '日盤', note: '遠出・旅行の日取りに' },
+  { key: TIME_BOARD_TYPE, title: '近場', tech: '時盤', sub: '散歩・買い物・日帰り' },
+  { key: DAY_BOARD_TYPE, title: '遠くへ', tech: '日盤', sub: '旅行・遠出・出張' },
 ];
 
 const PERIODS_BY_BOARD = {
@@ -158,6 +158,7 @@ export default function KakkyokuSearchView({
   const [detailName, setDetailName] = useState(null);
   // やりたいことを押したら、結果のところまで画面を送る（間に格局の一覧と検索ボタンがあって、結果が見えないため）。
   const resultRef = useRef(null);
+  const namesRef = useRef(null); // 格局の名前の一覧（「各格局の説明を見る」の行き先）
   const [scrollToResult, setScrollToResult] = useState(0);
   useEffect(() => {
     if (scrollToResult > 0) resultRef.current?.scrollIntoView?.({ block: 'start' });
@@ -237,59 +238,51 @@ export default function KakkyokuSearchView({
 
   return (
     <div className="kakkyoku-search-view">
-      <div className="kakkyoku-hero has-mountains">
-        <div>
-          <p>時盤・日盤</p>
-          <h3>特別格局の出現検索</h3>
-          <span>やりたいことに向く大吉格が、いつ・どの方位に出るかを探す</span>
-        </div>
-        <b>格局を探す</b>
-      </div>
-
-      <div className="kakkyoku-basis base-inline-hidden">
-        <span>基準点：<strong>{location.name}</strong></span>
-        <span>自然時補正：<strong>{correctionLabel}</strong></span>
-      </div>
-
-      <div className="kakkyoku-period">
-        <p>調べる盤</p>
-        <div role="group" aria-label="調べる盤">
+      <section className="kakkyoku-step" aria-label="どんな移動？">
+        <h3 className="kakkyoku-step-title">どんな移動？</h3>
+        <div className="theme-kinds" role="group" aria-label="どんな移動？">
           {BOARD_TYPES.map((item) => (
             <button
               key={item.key}
               type="button"
-              className={boardType === item.key ? 'is-active' : ''}
+              className={`theme-kind${boardType === item.key ? ' is-active' : ''}`}
               aria-pressed={boardType === item.key}
               onClick={() => changeBoardType(item.key)}
             >
-              {item.label}
+              <strong>{item.title}<small>（{item.tech}）</small></strong>
+              <span>{item.sub}</span>
             </button>
           ))}
         </div>
-        <small className="kakkyoku-board-note">{BOARD_TYPES.find((item) => item.key === boardType)?.note}</small>
-      </div>
+      </section>
 
-      <div className="kakkyoku-period">
-        <p>検索期間</p>
-        <div>
+      <section className="kakkyoku-step" aria-label="いつまで探す？">
+        <h3 className="kakkyoku-step-title">いつまで探す？</h3>
+        <div className="kakkyoku-step-chips" role="group" aria-label="いつまで探す？">
           {periods.map((item) => (
             <button
               key={item.key}
               type="button"
               className={`${periodKey === item.key ? 'is-active ' : ''}lat`}
+              aria-pressed={periodKey === item.key}
               onClick={() => setPeriodKey(item.key)}
             >
               {item.label}
             </button>
           ))}
         </div>
-      </div>
+      </section>
+
+      <div className="kakkyoku-ornament" aria-hidden="true"><img src="/divination/cloud-ornament.webp" alt="" loading="lazy" decoding="async" /></div>
 
       <div className="kakkyoku-picker kakkyoku-uses">
         <div className="kakkyoku-picker-head">
           <div>
             <h3>何をしたい？</h3>
           </div>
+          <button type="button" className="kakkyoku-jump" onClick={() => namesRef.current?.scrollIntoView?.({ block: 'start' })}>
+            各格局の説明を見る <Icon name="chevron-down" size={14} />
+          </button>
         </div>
         <div className="kakkyoku-group">
           <div>
@@ -314,7 +307,7 @@ export default function KakkyokuSearchView({
         </p>
       </div>
 
-      <div className="kakkyoku-picker">
+      <div className="kakkyoku-picker" ref={namesRef}>
         <div className="kakkyoku-picker-head">
           <div>
             <h3>格局の名前から選ぶ</h3>
