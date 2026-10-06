@@ -9,7 +9,8 @@ const PALACES = ['kan', 'gon', 'shin', 'son', 'ri', 'kun', 'da', 'ken'];
 
 // 全文のハッシュロック。文章が意図せず変わったら落ちる。部品や組み立てを意図して変えたときだけ更新する。
 // v3-prose: です・ます調の4段落（見出し → 門と拒否権 → 神と星 → 象意としめ）へ全面的に書き直し（意図した変更）。
-const FULL_SORTED_SHA256 = '1556852f2000c79009154f9ea83528f3cc6898b20be5f73be0ae964e8bd597c7';
+// 見出しの書き直し: 「金運は、〜方位です」の主語のずれを直し、目的の名前を外して、向く用事が浮かぶ文にした（意図した変更）。
+const FULL_SORTED_SHA256 = 'b88b0c5f29ac22d3dcf78b0a50920e5c11ab2f5932f7ae3199f814f1d4c510cf';
 
 const bank = loadBank();
 const rows = loadRows();

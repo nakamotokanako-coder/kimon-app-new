@@ -5,22 +5,22 @@
   "patterns": "short(見出し) / mid(見出し＋主な理由) / full(4段落)",
   "length": {
     "short": {
-      "min": 18,
-      "avg": 23.7,
-      "median": 24,
-      "max": 28
+      "min": 20,
+      "avg": 26.7,
+      "median": 25,
+      "max": 39
     },
     "mid": {
-      "min": 53,
-      "avg": 83.3,
+      "min": 57,
+      "avg": 86.2,
       "median": 89,
-      "max": 135
+      "max": 131
     },
     "full": {
-      "min": 154,
-      "avg": 245.4,
-      "median": 248,
-      "max": 309
+      "min": 155,
+      "avg": 248.4,
+      "median": 250,
+      "max": 308
     }
   },
   "parts": {
