@@ -45,9 +45,9 @@ function formatSeen(iso) {
   return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-// ログイン中の端末（上限は lib/auth.js の MAX_DEVICES）。この端末以外は個別にログアウトできる。
+// ログイン中の端末（最大3台）。この端末以外は個別にログアウトできる。
 function DeviceList({ email }) {
-  const [state, setState] = useState({ phase: 'loading', max: 5, sessions: [] });
+  const [state, setState] = useState({ phase: 'loading', max: 3, sessions: [] });
   const [busyId, setBusyId] = useState('');
 
   const load = async () => {
