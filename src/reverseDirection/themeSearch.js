@@ -5,6 +5,8 @@
 // 並びは ◎ → ○、同じ記号なら総合点の高い順。
 
 import { AXES, computeAxisRanks } from './FusionCard.jsx';
+import { buildReverseBoard, buildDayReverseBoard, TIME_SLOTS } from './reverseDirection.js';
+import { makeKaisetsuKey } from '../kaisetsu/boardKey.js';
 
 /** 選べる目的（ご縁・仕事・金運・健康・勉強） */
 export const THEMES = AXES;
@@ -47,4 +49,67 @@ export function timelineForTheme(timeline, theme) {
 export function nextSlotForTheme(themedTimeline, hour) {
   const index = themedTimeline.findIndex((slot) => slot.hour === hour);
   return themedTimeline.slice(index + 1).find((slot) => slot.best) || null;
+}
+
+// ---- いつ・どの方位が一番向くか（順位）----
+
+/** 出かけやすい時間帯（5-7時 〜 21-23時）。深夜・早朝の時間帯は順位に入れない */
+export const DAYTIME_HOURS = TIME_SLOTS.filter((slot) => slot.hour >= 6).map((slot) => slot.hour);
+
+// ◎が先、同じ記号なら総合点の高い順、それも同じなら早いほう
+const byBest = (a, b) => (
+  rankWeight(b.item.themeRank) - rankWeight(a.item.themeRank)
+  || b.item.score - a.item.score
+  || a.order - b.order
+);
+
+/**
+ * 時盤で、目的に一番向く「時間帯と方位」を良い順に返す。1つの時間帯からは、一番向く方位を1つだけ出す。
+ * @param {object} options
+ * @param {string} options.theme
+ * @param {string[]} options.dates - 調べる日（'YYYY-MM-DD'）。先頭の日は fromHour 以降の時間帯だけを見る
+ * @param {number|null} options.fromHour - 先頭の日の、今の時間帯（TIME_SLOTS の hour）。null なら1日ぶん
+ * @param {number} options.limit
+ * @returns {{ date: string, hour: number, label: string, item: object }[]}
+ */
+export function bestTimesForTheme({ theme, dates, fromHour = null, limit = 3 }) {
+  if (!theme) return [];
+  const fromIndex = fromHour === null ? 0 : Math.max(0, TIME_SLOTS.findIndex((slot) => slot.hour === fromHour));
+  const found = [];
+  (dates || []).forEach((date, dateIndex) => {
+    TIME_SLOTS.forEach((slot, slotIndex) => {
+      const isNow = dateIndex === 0 && fromHour !== null && slot.hour === fromHour;
+      if (dateIndex === 0 && slotIndex < fromIndex) return;       // 今日の、もう過ぎた時間帯
+      if (!isNow && !DAYTIME_HOURS.includes(slot.hour)) return;   // 深夜・早朝（今の時間帯だけは出す）
+      let result;
+      try {
+        result = buildReverseBoard({ date, hour: slot.hour });
+      } catch {
+        return; // 暦の範囲の外
+      }
+      const item = rankingsForTheme(makeKaisetsuKey(result.board.meta), result.rankings, theme)[0];
+      if (item) found.push({ date, hour: slot.hour, label: slot.label, item, order: dateIndex * 100 + slotIndex });
+    });
+  });
+  return found.sort(byBest).slice(0, limit).map(({ order, ...entry }) => entry);
+}
+
+/**
+ * 日盤で、目的に一番向く「日と方位」を良い順に返す。1つの日からは、一番向く方位を1つだけ出す。
+ * @returns {{ date: string, item: object }[]}
+ */
+export function bestDaysForTheme({ theme, dates, limit = 3 }) {
+  if (!theme) return [];
+  const found = [];
+  (dates || []).forEach((date, order) => {
+    let result;
+    try {
+      result = buildDayReverseBoard({ date });
+    } catch {
+      return; // 日盤の範囲の外
+    }
+    const item = rankingsForTheme(makeKaisetsuKey(result.board.meta), result.rankings, theme)[0];
+    if (item) found.push({ date, item, order });
+  });
+  return found.sort(byBest).slice(0, limit).map(({ order, ...entry }) => entry);
 }

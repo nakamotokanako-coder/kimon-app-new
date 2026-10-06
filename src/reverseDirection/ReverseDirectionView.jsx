@@ -10,6 +10,7 @@ import { getCharm } from '../kimon/charm.js';
 import SanbanRouteView from './SanbanRouteView.jsx';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
 import TimeSlotList from './TimeSlotList.jsx';
+import ThemeBestView from './ThemeBestView.jsx';
 import SaikyoRankingView from './SaikyoRankingView.jsx';
 import BasePointBar from '../components/yoho/BasePointBar.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
@@ -43,6 +44,7 @@ export const MODE_TITLES = {
   time: { title: '今から吉方位へ', lead: '今いる場所から、今の時間の吉方位へ。散歩・カフェ・買い物など、日常の小さな移動に。', tech: '時盤を使用' },
   day: { title: '次の休み、どこへ行く？', lead: '日付を選ぶと、その日の8方位を比較。一番良い方位から旅先を探せます。', tech: '日盤を使用' },
   ranking: { title: 'この方位、いつ行く？', lead: '行きたい方位を選ぶと、良い日がわかります。全方位から探すこともできます。', tech: '日盤ランキング｜遠出 50km〜' },
+  theme: { title: '目的から探す', lead: '目的を選ぶと、いつ・どの方位が一番向くかがわかります。', tech: '時盤・日盤' },
   timeRanking: { title: '今日の時間帯から探す', lead: '今日のどの時間帯に、どの方位が良いかを一覧で見られます。', tech: '時盤ランキング' },
   kakkyoku: { title: 'この条件が出るのはいつ？', lead: '特定の格局が成立する日時を検索します。', tech: '格局検索' },
   range: { title: '吉を3回つなぐ', lead: '同じ日に、吉方位が3回続くルートを探します。', tech: '奇門三盤ルート' },
@@ -226,6 +228,7 @@ export default function ReverseDirectionView({
   onOpenTimeRanking,  // 地図タブの時盤から、今日の時間帯別ランキング（探すタブ）へ
   onOpenMapTime,      // 探すタブの時間帯一覧から、選んだ時間・方位のまま地図タブ（時盤）へ
   onOpenMapDay,       // 探すタブの吉日検索から、選んだ日・方位のまま地図タブ（日盤）へ
+  themeRequest = null, // ホーム・探すの入口で選んだ目的（{ theme, at }）。変わるたびに、その目的に切り替える
   longRangeLocked = false, // 吉日検索の3ヶ月以上が年額プラン限定か（lib/accessPolicy.js）
   longRangeLimit = null,   // 年額プランの人が探せる最後の日（契約期間の終わり。'YYYY-MM-DD'）
   annualMark = false,      // 鍵をかけていなくても「年額」の印を出すか
@@ -366,6 +369,10 @@ export default function ReverseDirectionView({
     setPickedPalace(null);
     setDayPickedPalace(null);
   };
+  useEffect(() => {
+    if (themeRequest?.theme) chooseTheme(themeRequest.theme);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeRequest]);
   const dayPickedItem = dayPickedPalace ? (dayReverse?.rankings || []).find((item) => item.palace === dayPickedPalace) : null;
   const dayTopItem = dayVisibleRankings[0] || null;
   const dayBest = dayPickedItem || dayTopItem;
@@ -999,7 +1006,7 @@ export default function ReverseDirectionView({
 <div className="reverse-header-actions">
           {mode !== 'range' && variant !== 'map' && (
             <div className="reverse-time-chip lat">
-              {mode === 'timeRanking'
+              {mode === 'timeRanking' || mode === 'theme'
                 ? `現在 ${formatCurrentClock(now)}`
                 : mode === 'day' || mode === 'ranking'
                 ? formatDisplayDate(dayDate)
@@ -1258,6 +1265,32 @@ export default function ReverseDirectionView({
       )}
 
       {mode === 'timeRanking' && timelineSection}
+
+      {mode === 'theme' && (
+        <ThemeBestView
+          theme={theme || THEMES[0].key}
+          onThemeChange={chooseTheme}
+          today={today}
+          liveSlotHour={liveSlotHour}
+          onGoTime={({ date: pickedDate, hour, palace }) => {
+            chooseTheme(theme || THEMES[0].key);
+            setTimeDate(pickedDate !== today ? pickedDate : null);
+            setPickedHour(pickedDate === today && hour === liveSlotHour ? null : hour);
+            setPickedPalace(palace);
+            setMode('time');
+            onOpenMapTime?.();
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }}
+          onGoDay={({ date: pickedDate, palace }) => {
+            chooseTheme(theme || THEMES[0].key);
+            setDayDate(pickedDate);
+            setDayPickedPalace(palace);
+            setMode('day');
+            onOpenMapDay?.();
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }}
+        />
+      )}
 
       {mode === 'day' && (
         <>

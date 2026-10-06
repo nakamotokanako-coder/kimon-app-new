@@ -187,7 +187,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(startTab);
   const [previousTab, setPreviousTab] = useState('home');
   const [mapMode, setMapMode] = useState('time');     // 地図タブ: 'time'（時盤・近場）| 'day'（日盤・遠出）
-  const [searchMode, setSearchMode] = useState(null); // 探すタブ: null（入口）| 'ranking' | 'kakkyoku' | 'range' | 'timeRanking'
+  const [searchMode, setSearchMode] = useState(null); // 探すタブ: null（入口）| 'theme' | 'ranking' | 'kakkyoku' | 'range' | 'timeRanking'
   const [hasVisitedDirection, setHasVisitedDirection] = useState(startTab === 'map');
   const [error, setError] = useState(null);
   const [boardReturnTab, setBoardReturnTab] = useState(null);
@@ -328,6 +328,13 @@ export default function App() {
     if (nextMode) setHasVisitedDirection(true);
     setSearchMode(nextMode);
     setActiveTab('search');
+  };
+  // 目的から探す: ホーム・探すの入口で選んだ目的を、その画面へ渡す。
+  const [themeRequest, setThemeRequest] = useState(null);
+  const goTheme = (theme) => {
+    setThemeRequest({ theme, at: Date.now() });
+    goSearch('theme');
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   };
   // LINE の返信などからのリンク: アドレスに ?go=time / day / ranking / guide を付けて開くと、その画面から始める。
   //   time … 地図（時盤）  day … 地図（日盤）  ranking … この方位、いつ行く？  guide … 使い方ガイド
@@ -760,6 +767,7 @@ export default function App() {
           onOpenNotifications={openNotifications}
           onGoMap={goMap}
           onGoSearch={goSearch}
+          onGoTheme={goTheme}
           onOpenBoard={(target) => (target ? openFullBoard(target) : setActiveTab('board'))}
           onOpenGuide={() => setGuideOpen(true)}
           onLogin={openAccountSettings}
@@ -770,7 +778,7 @@ export default function App() {
         <SearchHub
           unreadNotificationCount={unreadNotificationCount}
           onOpenNotifications={openNotifications}
-          onSelect={(entry) => (entry.target === 'map' ? goMap(entry.key) : goSearch(entry.key))}
+          onSelect={(entry) => (entry.key === 'theme' ? goTheme(entry.theme) : entry.target === 'map' ? goMap(entry.key) : goSearch(entry.key))}
           onOpenGuide={() => setGuideOpen(true)}
         />
       )}
@@ -799,6 +807,7 @@ export default function App() {
             onBackToSearch={() => setSearchMode(null)}
             onOpenMapTime={() => goMap('time')}
             onOpenMapDay={() => goMap('day')}
+            themeRequest={themeRequest}
             longRangeLocked={longRangeLocked}
             longRangeLimit={longRangeLimit}
             annualMark={LONG_RANGE_SHOW_ANNUAL_MARK && auth.plan !== 'annual' && !auth.invited}

@@ -12306,3 +12306,137 @@ p.saikyo-annual-note.is-open {
   font-size: 0.76rem;
   line-height: 1.6;
 }
+
+/* 目的から探す: 入口（探す・ホーム）と、順位の画面 */
+.hub-theme {
+  margin: 22px 0 6px;
+}
+
+.hub-theme-lead {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.hub-theme .theme-picker-chips,
+.home-theme .theme-picker-chips {
+  justify-content: center;
+}
+
+.home-theme {
+  margin-top: 16px;
+}
+
+.home-theme-title {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.theme-best {
+  display: grid;
+  gap: 14px;
+}
+
+.theme-best-section .reverse-mode-tabs {
+  margin-bottom: 10px;
+}
+
+.theme-best-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-best-row.is-top {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-card));
+}
+
+.theme-best-no {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.theme-best-row.is-top .theme-best-no {
+  background: var(--accent);
+  color: var(--bg-main);
+}
+
+.theme-best-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.theme-best-when {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.theme-best-main strong {
+  font-family: var(--font-display);
+  font-size: 1.16rem;
+  letter-spacing: 0.04em;
+}
+
+.theme-best-why {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.theme-best-score {
+  color: var(--text-accent);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.theme-best-row > b {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.theme-best-note {
+  margin: 10px 2px 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.theme-best-section {
+  padding-bottom: 12px;
+}
+
+.theme-best-section .theme-best-row,
+.theme-best-section .reverse-mode-tabs {
+  width: calc(100% - 20px);
+  margin-inline: 10px;
+}
+
+.theme-best-section .theme-best-note,
+.theme-best-section .reverse-status {
+  margin-inline: 14px;
+}

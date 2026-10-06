@@ -2,6 +2,7 @@ import React from 'react';
 import Ja from '../utils/Ja.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import { DIRECTION_ICONS } from '../reverseDirection/directionIcons.generated.js';
+import { THEMES } from '../reverseDirection/themeSearch.js';
 
 // 「探す」の入口。4つの検索を同じ強さで並べず、優先順位で分ける。
 //   NOW      今から吉方位へ（いちばんよく使う。上に大きく）
@@ -133,6 +134,17 @@ export default function SearchHub({ unreadNotificationCount = 0, onOpenNotificat
         <button type="button" className="hub-now-link" onClick={() => onSelect({ key: 'timeRanking', target: 'search' })}>
           今日の時間帯を一覧で見る <span aria-hidden="true">›</span>
         </button>
+      </section>
+
+      {/* 目的から探す: 目的を選ぶと、いつ・どの方位が一番向くかを順位で出す */}
+      <section className="hub-theme" aria-label="目的から探す">
+        <h3 className="hub-group-title"><span>目的から探す</span></h3>
+        <p className="hub-theme-lead"><Ja>目的を選ぶと、いつ・どの方位が一番向くかがわかります。</Ja></p>
+        <div className="theme-picker-chips">
+          {THEMES.map((item) => (
+            <button key={item.key} type="button" onClick={() => onSelect({ key: 'theme', target: 'search', theme: item.key })}>{item.label}</button>
+          ))}
+        </div>
       </section>
 
       {HUB_GROUPS.map((group) => (
