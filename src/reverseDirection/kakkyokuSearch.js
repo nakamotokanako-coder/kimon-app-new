@@ -32,24 +32,40 @@ export const SPECIAL_KAKKYOKU_GROUPS = [
 export const SPECIAL_KAKKYOKU_NAMES = SPECIAL_KAKKYOKU_GROUPS.flatMap((group) => group.items);
 
 /**
- * やりたいことから格局を選ぶ（格局の名前を知らない人のための逆引き）。
- * どの用事にどの格局を当てるかは、象意辞書（data/shoui_dict.json）の説明（original / practical）に
- * 書いてある使い道をそのまま拾っている。新しい解釈は足さない。
- *   風遁「放送･広報･宣伝活動に用いて良好」/ 青龍返首「公の場での発表に向く」/ 飛鳥跌穴「告白・応募はその場で」
- *   玉女守門「面接、縁談、商談、試験」/ 天遁「営業、人脈拡大」/ 人遁「紹介営業、チームでの成果」
- *   地遁「積み重ねてきたものが報われる」/ 雲遁「戦略的な交渉」/ 虎遁「強気の交渉」/ 鬼遁「競合の隙を突く」
- *   神遁「ひらめき型の企画」/ 龍遁「海外取引、物流、ネット配信」
+ * 格局ごとの、伝統的な代表用途（格局の名前を知らない人のための手がかり）。
+ *   line … 一言（「〜に」）  tags … 用途の札
+ * 資料や流派で成立条件・用途に差があるので、「代表的な用途」として出す。効果は約束しない（「願いが叶う」とは書かない）。
+ * 根拠: docs/kakkyoku_uses_v1.md
+ */
+export const KAKKYOKU_GUIDE = {
+  青龍返首: { line: '大きなことを始める・積極的に進めるときに', tags: ['開始', '求財', '仕事', '建築'] },
+  飛鳥跌穴: { line: '話をまとめる・広く使える強い吉格', tags: ['開始', '求財', '婚姻', '仕事'] },
+  天遁: { line: '試験・仕事・商売・遠出に', tags: ['試験', '仕事', '商売', '遠出'] },
+  地遁: { line: '建築・修繕・基盤づくりに', tags: ['建築', '修繕', '基盤づくり'] },
+  人遁: { line: '交渉・仲直り・人との協力に', tags: ['交渉', '婚姻', '人脈', '仲直り'] },
+  風遁: { line: '移動・発信・宣伝に', tags: ['移動', '発信', '宣伝'] },
+  雲遁: { line: '雨乞い・ひそかに進めることに', tags: ['天候', '秘密'] },
+  龍遁: { line: '水に関すること・橋や井戸に', tags: ['水', '橋・井戸'] },
+  虎遁: { line: '家を守る・建築・厄除けに', tags: ['安宅', '建築', '守る', '厄除け'] },
+  神遁: { line: '神社参拝・祈願・願掛けに', tags: ['神社', '祈願', '願掛け', '祭祀'] },
+  鬼遁: { line: '調査・情報収集に', tags: ['調査', '情報収集', '秘密'] },
+  玉女守門: { line: 'デート・告白・仲直りに', tags: ['恋愛', '婚姻', '和合', '交渉'] },
+};
+
+/**
+ * 「何をしたい？」から格局を選ぶ。押すと、その用途に使われてきた格局だけを選んで検索する。
+ * 雲遁・龍遁（雨乞い・水）は日常の用途に当てにくいので、ここには入れない（格局の名前からは選べる）。
  */
 export const KAKKYOKU_USES = [
-  { key: 'sns', label: 'SNSの更新・告知・宣伝', names: ['風遁', '青龍返首'] },
-  { key: 'present', label: '人前での発表・勝負に出る', names: ['青龍返首'] },
-  { key: 'apply', label: '告白・申し込み・応募', names: ['飛鳥跌穴'] },
-  { key: 'meet', label: '面接・商談・縁談・試験', names: ['玉女守門'] },
-  { key: 'network', label: '人脈を広げる・営業・紹介', names: ['天遁', '人遁'] },
-  { key: 'result', label: '積み重ねの成果を出す', names: ['地遁'] },
-  { key: 'negotiate', label: '交渉・駆け引き', names: ['雲遁', '虎遁', '鬼遁'] },
-  { key: 'idea', label: '企画・ひらめき', names: ['神遁'] },
-  { key: 'flow', label: '海外・ネット配信・物流', names: ['龍遁'] },
+  { key: 'shrine', label: '神社・祈願', names: ['神遁'] },
+  { key: 'love', label: '恋愛・結婚', names: ['玉女守門', '人遁', '飛鳥跌穴'] },
+  { key: 'work', label: '仕事・お金・商売', names: ['青龍返首', '飛鳥跌穴', '天遁'] },
+  { key: 'exam', label: '学び・試験', names: ['天遁', '玉女守門'] },
+  { key: 'home', label: '家・建築', names: ['地遁', '虎遁', '青龍返首', '飛鳥跌穴'] },
+  { key: 'travel', label: '旅行・移動', names: ['天遁', '風遁', '青龍返首'] },
+  { key: 'talk', label: '交渉・仲直り', names: ['人遁', '玉女守門'] },
+  { key: 'post', label: '発信・宣伝', names: ['風遁'] },
+  { key: 'research', label: '調査', names: ['鬼遁'] },
 ];
 
 const PALACE_ORDER = PALACE_DIRECTIONS.map((item) => item.palace);
@@ -65,6 +81,8 @@ function scoreText(score) {
 }
 
 function getPractical(name) {
+  // 検索の結果には、伝統的な代表用途の一言を出す（用途から選んだときと同じ言葉にそろえる）。
+  if (KAKKYOKU_GUIDE[name]) return KAKKYOKU_GUIDE[name].line;
   const entry = getKakkyokuShoui(name) || getJukanShoui(name);
   return entry?.practical || entry?.summary || entry?.description || '';
 }

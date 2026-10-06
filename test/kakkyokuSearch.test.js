@@ -109,10 +109,20 @@ describe('special kakkyoku lookup search', () => {
   }, 60000);
 });
 
-describe('やりたいことから格局を選ぶ（逆引き）', () => {
-  it('用事ごとの格局は、どれも検索できる格局。検索できる格局は、どれかの用事に入っている', async () => {
+describe('何をしたい？から格局を選ぶ（伝統的な代表用途）', () => {
+  it('検索できる12の格局すべてに、一言と用途の札がある', async () => {
+    const { KAKKYOKU_GUIDE, SPECIAL_KAKKYOKU_NAMES } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    expect(Object.keys(KAKKYOKU_GUIDE).sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
+    for (const guide of Object.values(KAKKYOKU_GUIDE)) {
+      expect(guide.line).toBeTruthy();
+      expect(guide.tags.length).toBeGreaterThan(0);
+      // 効果は約束しない
+      expect(guide.line).not.toMatch(/叶う|上がる|必ず/u);
+    }
+  });
+
+  it('用途ごとの格局は、どれも検索できる格局。雲遁・龍遁（雨乞い・水）だけは用途に入れない', async () => {
     const { KAKKYOKU_USES, SPECIAL_KAKKYOKU_NAMES } = await import('../src/reverseDirection/kakkyokuSearch.js');
-    expect(KAKKYOKU_USES.length).toBeGreaterThan(0);
     expect(new Set(KAKKYOKU_USES.map((use) => use.key)).size).toBe(KAKKYOKU_USES.length);
     for (const use of KAKKYOKU_USES) {
       expect(use.label).toBeTruthy();
@@ -120,15 +130,21 @@ describe('やりたいことから格局を選ぶ（逆引き）', () => {
       for (const name of use.names) expect(SPECIAL_KAKKYOKU_NAMES).toContain(name);
     }
     const covered = new Set(KAKKYOKU_USES.flatMap((use) => use.names));
-    expect([...covered].sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
+    expect(SPECIAL_KAKKYOKU_NAMES.filter((name) => !covered.has(name)).sort()).toEqual(['雲遁', '龍遁'].sort());
   });
 
-  it('「SNSの更新・告知・宣伝」は、宣伝に用いる風遁と、公の場での発表に向く青龍返首', async () => {
+  it('神社・祈願は神遁、発信・宣伝は風遁、調査は鬼遁', async () => {
     const { KAKKYOKU_USES } = await import('../src/reverseDirection/kakkyokuSearch.js');
-    const { getKakkyokuShoui, getJukanShoui } = await import('../src/kimon/loadShouiDict.js');
-    const sns = KAKKYOKU_USES.find((use) => use.key === 'sns');
-    expect(sns.names).toEqual(['風遁', '青龍返首']);
-    expect(getKakkyokuShoui('風遁').original).toContain('宣伝');
-    expect((getKakkyokuShoui('青龍返首') || getJukanShoui('青龍返首')).practical).toContain('発表');
+    const names = (key) => KAKKYOKU_USES.find((use) => use.key === key).names;
+    expect(names('shrine')).toEqual(['神遁']);
+    expect(names('post')).toEqual(['風遁']);
+    expect(names('research')).toEqual(['鬼遁']);
+    expect(names('love')).toContain('玉女守門');
+  });
+
+  it('検索の結果には、用途の一言を出す', () => {
+    const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-06', days: 30, selectedNames: ['神遁'] });
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0].practicals).toEqual([{ name: '神遁', text: '神社参拝・祈願・願掛けに' }]);
   });
 });

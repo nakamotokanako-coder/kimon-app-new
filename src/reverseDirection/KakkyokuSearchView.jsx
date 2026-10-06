@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  KAKKYOKU_GUIDE,
   KAKKYOKU_USES,
   SPECIAL_KAKKYOKU_GROUPS,
   SPECIAL_KAKKYOKU_NAMES,
@@ -225,7 +226,7 @@ export default function KakkyokuSearchView({
       <div className="kakkyoku-picker kakkyoku-uses">
         <div className="kakkyoku-picker-head">
           <div>
-            <h3>やりたいことから選ぶ</h3>
+            <h3>何をしたい？</h3>
           </div>
         </div>
         <div className="kakkyoku-group">
@@ -245,8 +246,8 @@ export default function KakkyokuSearchView({
         </div>
         <p className="kakkyoku-use-note">
           {activeUse
-            ? `「${activeUse.label}」に向く格局：${activeUse.names.join('・')}`
-            : '押すと、その用事に向く格局が出る日時と方位を、すぐに探します。'}
+            ? `「${activeUse.label}」に使われてきた格局：${activeUse.names.join('・')}`
+            : '押すと、その用途に使われてきた格局が出る日時と方位を、すぐに探します。'}
         </p>
       </div>
 
@@ -263,17 +264,20 @@ export default function KakkyokuSearchView({
         </div>
 
         {SPECIAL_KAKKYOKU_GROUPS.map((group) => (
-          <div key={group.group} className="kakkyoku-group">
+          <div key={group.group} className="kakkyoku-group kakkyoku-names">
             <p>{group.group}</p>
             <div>
               {group.items.map((name) => (
                 <button
                   key={name}
                   type="button"
-                  className={selectedSet.has(name) ? 'is-active' : ''}
+                  className={`kakkyoku-name${selectedSet.has(name) ? ' is-active' : ''}`}
+                  aria-pressed={selectedSet.has(name)}
                   onClick={() => toggleName(name)}
                 >
-                  {name}
+                  <strong>{name}</strong>
+                  <span>{KAKKYOKU_GUIDE[name]?.line || ''}</span>
+                  <small>{(KAKKYOKU_GUIDE[name]?.tags || []).map((tag) => <i key={tag}>{tag}</i>)}</small>
                 </button>
               ))}
             </div>
@@ -294,7 +298,7 @@ export default function KakkyokuSearchView({
         <>
           <div className="kakkyoku-result-head" ref={resultRef}>
             <div>
-              <h3>{activeUse ? `「${activeUse.label}」に向く日時` : '検索結果'}</h3>
+              <h3>{activeUse ? `「${activeUse.label}」の格局が出る日時` : '検索結果'}</h3>
               <span>{result.rows.length}件</span>
             </div>
             <div className="kakkyoku-sort-toggle" role="group" aria-label="検索結果の並び順">
