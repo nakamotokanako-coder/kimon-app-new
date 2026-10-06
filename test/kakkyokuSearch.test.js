@@ -108,3 +108,127 @@ describe('special kakkyoku lookup search', () => {
     expect(missing).toEqual([]);
   }, 60000);
 });
+
+describe('何をしたい？から格局を選ぶ（講座の内容が主、古典は補足）', () => {
+  it('検索できる12の格局すべてに、一言と用途の札がある。効果は約束しない。雨乞いは入れない', async () => {
+    const { KAKKYOKU_GUIDE, SPECIAL_KAKKYOKU_NAMES } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    expect(Object.keys(KAKKYOKU_GUIDE).sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
+    for (const guide of Object.values(KAKKYOKU_GUIDE)) {
+      expect(guide.line).toBeTruthy();
+      expect(guide.day).toBeTruthy();
+      expect(guide.desc.length).toBeGreaterThan(30);
+      expect(guide.tags.length).toBeGreaterThan(0);
+      expect(Array.isArray(guide.classic)).toBe(true);
+      expect(guide.examples.length).toBeGreaterThanOrEqual(15);
+      expect(new Set(guide.examples).size).toBe(guide.examples.length);
+      const text = [guide.line, guide.day, guide.desc, ...guide.tags, ...guide.classic, ...guide.examples, ...(guide.avoid || [])].join(' ');
+      expect(text).not.toMatch(/叶う|運が上がる|運が動く|運を運ぶ|必ず|雨乞い|天候|投資する/u);
+    }
+  });
+
+  it('用途の札は、講座の内容（象意辞書）に書いてある使い道と合う', async () => {
+    const { getKakkyokuShoui, getJukanShoui } = await import('../src/kimon/loadShouiDict.js');
+    const text = (name) => {
+      const entry = getKakkyokuShoui(name) || getJukanShoui(name);
+      return `${entry.original} ${entry.practical}`;
+    };
+    expect(text('風遁')).toMatch(/宣伝/u);
+    expect(text('雲遁')).toMatch(/権謀術数|交渉/u);
+    expect(text('龍遁')).toMatch(/海/u);
+    expect(text('虎遁')).toMatch(/力づく|交渉/u);
+    expect(text('神遁')).toMatch(/財|ひらめき/u);
+    expect(text('鬼遁')).toMatch(/虚を突/u);
+    expect(text('地遁')).toMatch(/報われる/u);
+    expect(text('玉女守門')).toMatch(/和合/u);
+  });
+
+  it('用途ごとの格局は、どれも検索できる格局。12の格局は、どれかの用途に入っている', async () => {
+    const { KAKKYOKU_USES, SPECIAL_KAKKYOKU_NAMES } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    expect(new Set(KAKKYOKU_USES.map((use) => use.key)).size).toBe(KAKKYOKU_USES.length);
+    for (const use of KAKKYOKU_USES) {
+      expect(use.label).toBeTruthy();
+      expect(use.names.length).toBeGreaterThan(0);
+      for (const name of use.names) expect(SPECIAL_KAKKYOKU_NAMES).toContain(name);
+    }
+    const covered = new Set(KAKKYOKU_USES.flatMap((use) => use.names));
+    expect([...covered].sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
+  });
+
+  it('発信・宣伝は風遁と青龍返首。交渉・駆け引きは雲遁・虎遁・鬼遁。神社・祈願は神遁（「古典」の印は付けない）', async () => {
+    const { KAKKYOKU_USES } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const use = (key) => KAKKYOKU_USES.find((item) => item.key === key);
+    expect(use('post').names).toEqual(['風遁', '青龍返首']);
+    expect(use('talk').names).toEqual(['雲遁', '虎遁', '鬼遁']);
+    expect(use('shrine').names).toEqual(['神遁']);
+    expect(KAKKYOKU_USES.some((item) => item.classic)).toBe(false);
+    const { KAKKYOKU_GUIDE } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    expect(KAKKYOKU_GUIDE['神遁'].tags).toContain('神社・祈願');
+    expect(KAKKYOKU_GUIDE['神遁'].classic).toEqual([]);
+    expect(KAKKYOKU_GUIDE['神遁'].desc).toContain('神社');
+    expect(KAKKYOKU_GUIDE['神遁'].examples[0]).toBe('神社へ参拝する');
+  });
+
+  it('検索の結果には、用途の一言を出す', () => {
+    const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-06', days: 30, selectedNames: ['風遁'] });
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0].practicals).toEqual([{ name: '風遁', text: '届けたいなら、風に乗せる。' }]);
+  });
+});
+
+describe('格局の絵', () => {
+  it('12の格局すべてに絵があり、ファイルが置いてある', async () => {
+    const { existsSync } = await import('node:fs');
+    const { KAKKYOKU_GUIDE } = await import('../src/reverseDirection/kakkyokuGuide.js');
+    const images = Object.values(KAKKYOKU_GUIDE).map((guide) => guide.image);
+    expect(new Set(images).size).toBe(12);
+    for (const image of images) expect(existsSync(`public/divination/${image}.webp`), image).toBe(true);
+    expect(existsSync(`public/divination/${KAKKYOKU_GUIDE['神遁'].hero}.webp`)).toBe(true);
+    for (const name of ['mountain-bg', 'botanical-branch', 'cloud-ornament']) expect(existsSync(`public/divination/${name}.webp`), name).toBe(true);
+  });
+});
+
+describe('選んだ格局が全部そろう日を探す', () => {
+  const row = (date, hour, palace, matches) => ({ date, text: date.replaceAll('-', '/'), weekday: '水', hour, palace, matches });
+
+  it('日ごとにまとめて、そろう数の多い日を先に、同じ数なら早い日を先に出す', async () => {
+    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const rows = [
+      row('2026-10-07', 10, 'ken', ['人遁']),
+      row('2026-10-07', 14, 'kun', ['玉女守門']),
+      row('2026-10-08', 4, 'son', ['風遁']),
+      row('2026-10-09', 16, 'kan', ['人遁', '風遁']),
+      row('2026-10-09', 6, 'ri', ['玉女守門']),
+    ];
+    const days = groupRowsByDay(rows, ['人遁', '玉女守門', '風遁']);
+    expect(days.map((day) => [day.date, day.matched.length, day.complete])).toEqual([
+      ['2026-10-09', 3, true],
+      ['2026-10-07', 2, false],
+      ['2026-10-08', 1, false],
+    ]);
+    expect(days[0].rows.map((item) => item.hour)).toEqual([6, 16]); // 日の中は時間順
+    expect(days[1].missing).toEqual(['風遁']);
+    expect(days[2].missing).toEqual(['人遁', '玉女守門']);
+  });
+
+  it('時間帯や方位が違っても、同じ日に出ていれば「そろう」と数える。1つも選んでいなければ、そろわない', async () => {
+    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const days = groupRowsByDay([row('2026-10-07', 0, 'kan', ['天遁']), row('2026-10-07', 22, 'ri', ['地遁'])], ['天遁', '地遁']);
+    expect(days).toHaveLength(1);
+    expect(days[0].complete).toBe(true);
+    expect(groupRowsByDay([row('2026-10-07', 0, 'kan', ['天遁'])], [])[0].complete).toBe(false);
+    expect(groupRowsByDay([], ['天遁'])).toEqual([]);
+  });
+
+  it('実際の盤: 全部そろう日には、選んだ格局がすべて出ている', async () => {
+    const { groupRowsByDay } = await import('../src/reverseDirection/kakkyokuSearch.js');
+    const names = ['青龍返首', '飛鳥跌穴', '人遁'];
+    const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-07', days: 30, selectedNames: names });
+    const days = groupRowsByDay(rows, names);
+    expect(days.reduce((sum, day) => sum + day.rows.length, 0)).toBe(rows.length);
+    for (const day of days.filter((item) => item.complete)) {
+      const present = new Set(day.rows.flatMap((item) => item.matches));
+      for (const name of names) expect(present.has(name)).toBe(true);
+    }
+    for (let i = 1; i < days.length; i += 1) expect(days[i - 1].matched.length).toBeGreaterThanOrEqual(days[i].matched.length);
+  });
+});

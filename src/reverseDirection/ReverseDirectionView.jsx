@@ -918,7 +918,7 @@ export default function ReverseDirectionView({
 
   return (
     <section className={`reverse-view${mode === 'time' ? ' reverse-view--walk' : ''}`} aria-label="逆引き方位検索">
-      <div className={`reverse-header${variant === 'map' ? ' reverse-header--map' : ''}`}>
+      <div className={`reverse-header${variant === 'map' ? ' reverse-header--map' : ''}${mode === 'theme' ? ' reverse-header--theme' : ''}`}>
         <div>
           {variant === 'search' && onBackToSearch && (
             <button type="button" className="reverse-back" onClick={onBackToSearch}>‹ 探す</button>
@@ -926,7 +926,7 @@ export default function ReverseDirectionView({
           {modeTitle ? (
             <>
               <h2 className="maru"><Ja>{mode === 'time' && isPickedTime ? `${timeDateLabel}${getTimeSlotLabel(slotHour)}に吉方位へ` : modeTitle.title}</Ja></h2>
-              {variant !== 'map' && <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>}
+              {variant !== 'map' && mode !== 'theme' && <p className="reverse-lead"><Ja>{modeTitle.lead}</Ja></p>}
             </>
           ) : (
             <>
@@ -942,7 +942,7 @@ export default function ReverseDirectionView({
               onCenterChange={handleGlobalBasePointChange}
             />
           )}
-          {modeTitle && variant !== 'map' && (
+          {modeTitle && variant !== 'map' && mode !== 'theme' && (
             <p className="reverse-tech">
               {modeTitle.tech} / {location.name}
               {mode === 'time' ? ` / 自然時補正 ${formatCorrection(correction)}` : ''}
@@ -965,9 +965,9 @@ export default function ReverseDirectionView({
           )}
         </div>
 <div className="reverse-header-actions">
-          {mode !== 'range' && variant !== 'map' && (
+          {mode !== 'range' && mode !== 'theme' && variant !== 'map' && (
             <div className="reverse-time-chip lat">
-              {mode === 'timeRanking' || mode === 'theme'
+              {mode === 'timeRanking'
                 ? `現在 ${formatCurrentClock(now)}`
                 : mode === 'day' || mode === 'ranking'
                 ? formatDisplayDate(dayDate)
@@ -983,6 +983,7 @@ export default function ReverseDirectionView({
           center={[location.longitude, location.latitude]}
           baseName={location.name}
           onCenterChange={handleGlobalBasePointChange}
+          nowLabel={mode === 'theme' ? formatCurrentClock(now) : ''}
         />
       )}
 
@@ -1196,6 +1197,7 @@ export default function ReverseDirectionView({
           onKindChange={setBestKind}
           today={today}
           liveSlotHour={liveSlotHour}
+          lateNight={liveSlotHour === 0 && getJstHours(now) >= 12}
           onGoTime={({ date: pickedDate, hour, palace }) => {
             setSelAxis(bestTheme); // 方位の詳しいカードを、同じ目的の読みで開く
             setTimeDate(pickedDate !== today ? pickedDate : null);

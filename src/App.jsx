@@ -18,6 +18,7 @@ import LegalPage from './components/LegalPage.jsx';
 import MapGuide from './reverseDirection/MapGuide.jsx';
 import { LEGAL_DOCS, OPEN_LEGAL_EVENT } from './legal/documents.js';
 import HomeView from './components/HomeView.jsx';
+import { Icon } from './components/icons/index.js';
 import { makeKaisetsuKey } from './kaisetsu/boardKey.js';
 import SearchHub from './components/SearchHub.jsx';
 import { getJishinSlotHour } from './utils/jishinLabels';
@@ -874,11 +875,7 @@ export default function App() {
 
       <nav className="bottom-tabbar" aria-label="アプリメニュー">
         <button type="button" className={activeTab === 'home' ? 'is-active' : ''} onClick={() => setActiveTab('home')}>
-          <span className="bottom-tab-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 11l8-7 8 7v8.5a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19.5z" />
-            </svg>
-          </span>
+          <span className="bottom-tab-icon" aria-hidden="true"><Icon name="nav-home" /></span>
           <span>ホーム</span>
         </button>
         <button
@@ -886,30 +883,15 @@ export default function App() {
           className={activeTab === 'board' ? 'is-active' : ''}
           onClick={() => setActiveTab('board')}
         >
-          <span className="bottom-tab-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="4" width="16" height="16" rx="2" />
-              <path d="M4 9.33h16M4 14.67h16M9.33 4v16M14.67 4v16" />
-            </svg>
-          </span>
+          <span className="bottom-tab-icon" aria-hidden="true"><Icon name="nav-board" /></span>
           <span>盤</span>
         </button>
         <button type="button" className={activeTab === 'map' ? 'is-active' : ''} onClick={() => goMap()}>
-          <span className="bottom-tab-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 21s-6.5-6.2-6.5-11A6.5 6.5 0 0 1 12 3.5 6.5 6.5 0 0 1 18.5 10c0 4.8-6.5 11-6.5 11z" />
-              <circle cx="12" cy="10" r="2.3" />
-            </svg>
-          </span>
+          <span className="bottom-tab-icon" aria-hidden="true"><Icon name="nav-map" /></span>
           <span>地図</span>
         </button>
         <button type="button" className={activeTab === 'search' ? 'is-active' : ''} onClick={() => goSearch(null)}>
-          <span className="bottom-tab-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="6.5" />
-              <path d="M16 16l4.5 4.5" />
-            </svg>
-          </span>
+          <span className="bottom-tab-icon" aria-hidden="true"><Icon name="nav-search" /></span>
           <span>探す</span>
         </button>
         <button
@@ -917,12 +899,7 @@ export default function App() {
           className={activeTab === 'settings' ? 'is-active' : ''}
           onClick={() => setActiveTab('settings')}
         >
-          <span className="bottom-tab-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </span>
+          <span className="bottom-tab-icon" aria-hidden="true"><Icon name="nav-more" /></span>
           <span>その他</span>
         </button>
       </nav>

@@ -1,10 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  KAKKYOKU_GUIDE,
+  KAKKYOKU_USES,
   SPECIAL_KAKKYOKU_GROUPS,
   SPECIAL_KAKKYOKU_NAMES,
+  groupRowsByDay,
   scanSpecialKakkyoku,
 } from './kakkyokuSearch.js';
 import MiniBoardGrid from './MiniBoardGrid.jsx';
+import { Icon } from '../components/icons/index.js';
+import { EXAMPLES_SHOWN } from './kakkyokuGuide.js';
 import { buildDayReverseBoard, buildReverseBoard, DAY_BOARD_TYPE, TIME_BOARD_TYPE } from './reverseDirection.js';
 
 // 調べる盤。時盤は1日に12盤あるので期間は短め、日盤は1日1盤なので長い期間を選べる。
@@ -26,6 +31,44 @@ const PERIODS_BY_BOARD = {
     { key: 'year', label: '1年', days: 365 },
   ],
 };
+
+/** 格局の絵（絵が無い格局には、何も出さない） */
+function KakkyokuArt({ name, size = 56 }) {
+  const guide = KAKKYOKU_GUIDE[name];
+  if (!guide?.image) return null;
+  return <img className="kakkyoku-art" src={`/divination/${guide.image}.webp`} alt="" width={size} height={size} loading="lazy" decoding="async" />;
+}
+
+/** 格局の案内（開いたときに読む）: 説明・こんな日に・向かない例 */
+function KakkyokuDetail({ name, onSearch }) {
+  const guide = KAKKYOKU_GUIDE[name];
+  const [showAll, setShowAll] = useState(false);
+  if (!guide) return null;
+  const examples = showAll ? guide.examples : guide.examples.slice(0, EXAMPLES_SHOWN);
+  const rest = guide.examples.length - EXAMPLES_SHOWN;
+  return (
+    <div className="kakkyoku-detail">
+      {guide.hero && <img className="kakkyoku-detail-hero" src={`/divination/${guide.hero}.webp`} alt="" loading="lazy" decoding="async" />}
+      <p className="kakkyoku-detail-day">{guide.day}</p>
+      <p className="kakkyoku-detail-desc">{guide.desc}</p>
+      <p className="kakkyoku-detail-title">こんな日に</p>
+      <ul className="kakkyoku-detail-list">
+        {examples.map((text) => (
+          <li key={text}><Icon name="check-circle" size={16} />{text}</li>
+        ))}
+      </ul>
+      {rest > 0 && (
+        <button type="button" className="kakkyoku-detail-more" aria-expanded={showAll} onClick={() => setShowAll((value) => !value)}>
+          {showAll ? '少なくする' : `ほかの例も見る（あと${rest}）`} <Icon name={showAll ? 'chevron-up' : 'chevron-down'} size={14} />
+        </button>
+      )}
+      {guide.avoid && <p className="kakkyoku-detail-avoid">{`向かない例：${guide.avoid.join('、')}`}</p>}
+      <button type="button" className="kakkyoku-detail-cta" onClick={() => onSearch(name)}>
+        <Icon name="calendar" size={18} />この格局が出る日時を探す <Icon name="arrow-right" size={18} />
+      </button>
+    </div>
+  );
+}
 
 function weekdayClass(weekday) {
   if (weekday === '土') return 'is-sat';
@@ -103,9 +146,22 @@ export default function KakkyokuSearchView({
   const [boardType, setBoardType] = useState(TIME_BOARD_TYPE);
   const [periodKey, setPeriodKey] = useState('month');
   const [sortMode, setSortMode] = useState('date');
+  // 探し方: 'any' … 選んだ格局のどれか1つでも出る日時 ／ 'all' … 選んだ格局が全部そろう日
+  const [matchMode, setMatchMode] = useState('any');
   const [hasSearched, setHasSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(null);
   const [openResultKey, setOpenResultKey] = useState(null);
+  // やりたいことから選んだとき、その用事（KAKKYOKU_USES の key）。格局を自分で選び直したら外す。
+  const [useKey, setUseKey] = useState(null);
+  const activeUse = KAKKYOKU_USES.find((item) => item.key === useKey) || null;
+  // 案内を開いている格局（1つだけ）
+  const [detailName, setDetailName] = useState(null);
+  // やりたいことを押したら、結果のところまで画面を送る（間に格局の一覧と検索ボタンがあって、結果が見えないため）。
+  const resultRef = useRef(null);
+  const [scrollToResult, setScrollToResult] = useState(0);
+  useEffect(() => {
+    if (scrollToResult > 0) resultRef.current?.scrollIntoView?.({ block: 'start' });
+  }, [scrollToResult]);
 
   const selectedSet = useMemo(() => new Set(selectedNames), [selectedNames]);
   const periods = PERIODS_BY_BOARD[boardType];
@@ -119,6 +175,15 @@ export default function KakkyokuSearchView({
     setSearchParams(null);
     setOpenResultKey(null);
   };
+  // やりたいことを押すと、向く格局を選んで、そのまま検索する。
+  const pickUse = (use) => {
+    setUseKey(use.key);
+    setSelectedNames(use.names);
+    setOpenResultKey(null);
+    setHasSearched(true);
+    setSearchParams({ days: period.days, selectedNames: use.names, boardType });
+    setScrollToResult((count) => count + 1);
+  };
   const selectedCount = selectedNames.length;
 
   const result = useMemo(() => {
@@ -131,11 +196,28 @@ export default function KakkyokuSearchView({
       boardType: searchParams.boardType,
     });
   }, [searchParams, sortMode, startDate]);
+  // 全部そろう日: 結果を日ごとにまとめる。全部そろう日が無ければ、いちばん多くそろう日を3つまで出す。
+  const searchedNames = searchParams?.selectedNames || [];
+  const wantAll = matchMode === 'all' && searchedNames.length >= 2;
+  const days = useMemo(() => (wantAll ? groupRowsByDay(result.rows, searchedNames) : []), [wantAll, result.rows, searchedNames]);
+  const completeDays = days.filter((day) => day.complete);
+  const shownDays = completeDays.length > 0 ? completeDays : days.slice(0, 3);
   const maxResultScore = useMemo(() => (
     result.rows.length > 0 ? Math.max(...result.rows.map((item) => item.score)) : null
   ), [result.rows]);
 
+  // 案内の「この格局が出る日時を探す」: その格局だけを選んで、すぐ検索する。
+  const searchOne = (name) => {
+    setUseKey(null);
+    setSelectedNames([name]);
+    setOpenResultKey(null);
+    setHasSearched(true);
+    setSearchParams({ days: period.days, selectedNames: [name], boardType });
+    setScrollToResult((count) => count + 1);
+  };
+
   const toggleName = (name) => {
+    setUseKey(null);
     setSelectedNames((current) => (
       current.includes(name)
         ? current.filter((item) => item !== name)
@@ -143,22 +225,23 @@ export default function KakkyokuSearchView({
     ));
   };
 
-  const selectAll = () => setSelectedNames(SPECIAL_KAKKYOKU_NAMES);
-  const clearAll = () => setSelectedNames([]);
+  const selectAll = () => { setUseKey(null); setSelectedNames(SPECIAL_KAKKYOKU_NAMES); };
+  const clearAll = () => { setUseKey(null); setSelectedNames([]); };
 
   const search = () => {
     if (selectedCount === 0) return;
     setHasSearched(true);
     setSearchParams({ days: period.days, selectedNames, boardType });
+    setScrollToResult((count) => count + 1); // 結果のところまで画面を送る
   };
 
   return (
     <div className="kakkyoku-search-view">
-      <div className="kakkyoku-hero">
+      <div className="kakkyoku-hero has-mountains">
         <div>
           <p>時盤・日盤</p>
           <h3>特別格局の出現検索</h3>
-          <span>狙った大吉格が、いつ・どの方位に出るかを探す</span>
+          <span>やりたいことに向く大吉格が、いつ・どの方位に出るかを探す</span>
         </div>
         <b>格局を探す</b>
       </div>
@@ -202,10 +285,39 @@ export default function KakkyokuSearchView({
         </div>
       </div>
 
+      <div className="kakkyoku-picker kakkyoku-uses">
+        <div className="kakkyoku-picker-head">
+          <div>
+            <h3>何をしたい？</h3>
+          </div>
+        </div>
+        <div className="kakkyoku-group">
+          <div>
+            {KAKKYOKU_USES.map((use) => (
+              <button
+                key={use.key}
+                type="button"
+                className={useKey === use.key ? 'is-active' : ''}
+                aria-pressed={useKey === use.key}
+                onClick={() => pickUse(use)}
+              >
+                <Icon name={use.icon} size={22} />
+                {use.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="kakkyoku-use-note">
+          {activeUse
+            ? `「${activeUse.label}」の格局：${activeUse.names.join('・')}`
+            : '押すと、その用途の格局が出る日時と方位を、すぐに探します。'}
+        </p>
+      </div>
+
       <div className="kakkyoku-picker">
         <div className="kakkyoku-picker-head">
           <div>
-            <h3>格局</h3>
+            <h3>格局の名前から選ぶ</h3>
             <span>{selectedCount}件選択中</span>
           </div>
           <div>
@@ -215,23 +327,63 @@ export default function KakkyokuSearchView({
         </div>
 
         {SPECIAL_KAKKYOKU_GROUPS.map((group) => (
-          <div key={group.group} className="kakkyoku-group">
+          <div key={group.group} className="kakkyoku-group kakkyoku-names">
             <p>{group.group}</p>
             <div>
-              {group.items.map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  className={selectedSet.has(name) ? 'is-active' : ''}
-                  onClick={() => toggleName(name)}
-                >
-                  {name}
-                </button>
-              ))}
+              {group.items.map((name) => {
+                const guide = KAKKYOKU_GUIDE[name] || {};
+                const isOpen = detailName === name;
+                return (
+                  <div key={name} className={`kakkyoku-item${selectedSet.has(name) ? ' is-active' : ''}`}>
+                    <button
+                      type="button"
+                      className={`kakkyoku-name${selectedSet.has(name) ? ' is-active' : ''}`}
+                      aria-pressed={selectedSet.has(name)}
+                      onClick={() => toggleName(name)}
+                    >
+                      <KakkyokuArt name={name} />
+                      <strong>{name}</strong>
+                      <span>{guide.line || ''}</span>
+                      <small>
+                        {(guide.tags || []).map((tag) => <i key={tag}>{tag}</i>)}
+                        {(guide.classic || []).map((tag) => <i key={tag} className="is-classic">古典：{tag}</i>)}
+                      </small>
+                    </button>
+                    <button
+                      type="button"
+                      className="kakkyoku-item-more"
+                      aria-expanded={isOpen}
+                      onClick={() => setDetailName(isOpen ? null : name)}
+                    >
+                      {isOpen ? '閉じる' : 'くわしく'} <Icon name={isOpen ? 'chevron-up' : 'chevron-down'} size={14} />
+                    </button>
+                    {isOpen && <KakkyokuDetail name={name} onSearch={searchOne} />}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
+
+      {selectedCount >= 2 && (
+        <div className="kakkyoku-period kakkyoku-match">
+          <p>探し方</p>
+          <div role="group" aria-label="探し方">
+            <button type="button" className={matchMode === 'any' ? 'is-active' : ''} aria-pressed={matchMode === 'any'} onClick={() => setMatchMode('any')}>
+              どれか1つでも出る日時
+            </button>
+            <button type="button" className={matchMode === 'all' ? 'is-active' : ''} aria-pressed={matchMode === 'all'} onClick={() => setMatchMode('all')}>
+              全部がそろう日
+            </button>
+          </div>
+          <small className="kakkyoku-board-note">
+            {matchMode === 'all'
+              ? '選んだ格局が、同じ日のうちに全部出る日を探します（時間帯と方位は、ばらばらでも数えます）。'
+              : '選んだ格局のどれかが出る日時を、すべて並べます。'}
+          </small>
+        </div>
+      )}
 
       <button
         type="button"
@@ -239,16 +391,19 @@ export default function KakkyokuSearchView({
         disabled={selectedCount === 0}
         onClick={search}
       >
-        {selectedCount === 0 ? '格局を選んでください' : `この${selectedCount}件が出る日時を検索`}
+        {selectedCount === 0
+          ? '格局を選んでください'
+          : (matchMode === 'all' && selectedCount >= 2 ? `この${selectedCount}件が全部そろう日を検索` : `この${selectedCount}件が出る日時を検索`)}
       </button>
 
       {hasSearched && (
         <>
-          <div className="kakkyoku-result-head">
+          <div className="kakkyoku-result-head" ref={resultRef}>
             <div>
-              <h3>検索結果</h3>
-              <span>{result.rows.length}件</span>
+              <h3>{wantAll ? `${searchedNames.length}件が全部そろう日` : (activeUse ? `「${activeUse.label}」の格局が出る日時` : '検索結果')}</h3>
+              <span>{wantAll ? `${completeDays.length}日` : `${result.rows.length}件`}</span>
             </div>
+            {!wantAll && (
             <div className="kakkyoku-sort-toggle" role="group" aria-label="検索結果の並び順">
               <button
                 type="button"
@@ -265,6 +420,7 @@ export default function KakkyokuSearchView({
                 スコアが高い順
               </button>
             </div>
+            )}
           </div>
 
           {result.errors.length > 0 && result.rows.length === 0 && (
@@ -281,6 +437,39 @@ export default function KakkyokuSearchView({
             </div>
           )}
 
+          {wantAll && result.rows.length > 0 && completeDays.length === 0 && (
+            <div className="reverse-card reverse-placeholder">
+              <h3>全部がそろう日は、この期間にありません</h3>
+              <p>{`いちばん多くそろう日を、${shownDays.length}日ぶん出します。期間を長くするか、格局を減らすと見つかりやすくなります。`}</p>
+            </div>
+          )}
+
+          {wantAll ? (
+            <div className="kakkyoku-result-list">
+              {shownDays.map((day) => (
+                <section key={day.date} className={`kakkyoku-day${day.complete ? ' is-complete' : ''}`} aria-label={`${day.text}（${day.weekday}）`}>
+                  <header className="kakkyoku-day-head">
+                    <strong>{day.text}<small className={weekdayClass(day.weekday)}>({day.weekday})</small></strong>
+                    <span>{day.complete ? `${searchedNames.length}件そろう` : `${searchedNames.length}件中${day.matched.length}件`}</span>
+                  </header>
+                  {!day.complete && <p className="kakkyoku-day-missing">{`出ない格局：${day.missing.join('・')}`}</p>}
+                  {day.rows.map((item) => {
+                    const key = `${item.date}-${item.hour}-${item.palace}-${item.matches.join('-')}`;
+                    return (
+                    <KakkyokuResultCard
+                      key={key}
+                      item={item}
+                      isFeatured={false}
+                      isOpen={openResultKey === key}
+                      onToggle={() => setOpenResultKey((current) => (current === key ? null : key))}
+                      onOpenBoard={onOpenBoard}
+                    />
+                    );
+                  })}
+                </section>
+              ))}
+            </div>
+          ) : (
           <div className="kakkyoku-result-list">
             {result.rows.map((item) => {
               const key = `${item.date}-${item.hour}-${item.palace}-${item.matches.join('-')}`;
@@ -296,6 +485,7 @@ export default function KakkyokuSearchView({
               );
             })}
           </div>
+          )}
         </>
       )}
     </div>

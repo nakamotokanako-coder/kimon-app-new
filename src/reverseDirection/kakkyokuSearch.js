@@ -10,6 +10,7 @@ import {
   getScoreTone,
 } from './reverseDirection.js';
 import { formatRankingDate } from './strongestRanking.js';
+import { KAKKYOKU_GUIDE } from './kakkyokuGuide.js';
 
 export const SPECIAL_KAKKYOKU_GROUPS = [
   {
@@ -31,6 +32,25 @@ export const SPECIAL_KAKKYOKU_GROUPS = [
 
 export const SPECIAL_KAKKYOKU_NAMES = SPECIAL_KAKKYOKU_GROUPS.flatMap((group) => group.items);
 
+// 格局ごとの案内（一言・札・説明・こんな日に）は kakkyokuGuide.js。
+export { KAKKYOKU_GUIDE };
+
+/**
+ * 「何をしたい？」から格局を選ぶ。押すと、その用途の格局だけを選んで検索する。
+ * 格局の当て方は講座の内容（象意辞書）が主。神社・祈願（神遁）だけは古典にある用途を、そのまま出す。
+ */
+export const KAKKYOKU_USES = [
+  { key: 'post', icon: 'purpose-broadcast', label: '発信・宣伝', names: ['風遁', '青龍返首'] },
+  { key: 'love', icon: 'purpose-love', label: '恋愛・結婚', names: ['玉女守門', '飛鳥跌穴', '人遁'] },
+  { key: 'work', icon: 'purpose-work', label: '仕事・お金・商売', names: ['青龍返首', '飛鳥跌穴', '天遁', '神遁'] },
+  { key: 'exam', icon: 'purpose-study', label: '面接・試験・学び', names: ['玉女守門', '天遁'] },
+  { key: 'people', icon: 'purpose-people', label: '人脈・協力', names: ['人遁', '天遁'] },
+  { key: 'talk', icon: 'purpose-negotiate', label: '交渉・駆け引き', names: ['雲遁', '虎遁', '鬼遁'] },
+  { key: 'result', icon: 'purpose-result', label: '成果を形にする', names: ['地遁'] },
+  { key: 'sea', icon: 'purpose-sea', label: '海・海外・流通', names: ['龍遁'] },
+  { key: 'shrine', icon: 'purpose-shrine', label: '神社・祈願', names: ['神遁'] },
+];
+
 const PALACE_ORDER = PALACE_DIRECTIONS.map((item) => item.palace);
 
 function addDays(date, days) {
@@ -44,6 +64,8 @@ function scoreText(score) {
 }
 
 function getPractical(name) {
+  // 検索の結果には、伝統的な代表用途の一言を出す（用途から選んだときと同じ言葉にそろえる）。
+  if (KAKKYOKU_GUIDE[name]) return KAKKYOKU_GUIDE[name].line;
   const entry = getKakkyokuShoui(name) || getJukanShoui(name);
   return entry?.practical || entry?.summary || entry?.description || '';
 }
@@ -90,6 +112,34 @@ export function sortKakkyokuSearchRows(rows, sortMode) {
 
     return PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace);
   });
+}
+
+/**
+ * 検索の結果を日ごとにまとめて、選んだ格局がその日にいくつそろうかを数える。
+ * 「そろう」は、その日のどこかの時間帯・方位に出ていること（同じ時間・同じ方位でなくてよい）。
+ * 並びは、そろう数の多い日が先。同じ数なら早い日。
+ * @returns {{ date, text, weekday, matched: string[], missing: string[], complete: boolean, rows: object[] }[]}
+ */
+export function groupRowsByDay(rows, selectedNames) {
+  const selected = [...new Set(selectedNames || [])];
+  const days = new Map();
+  for (const row of rows || []) {
+    if (!days.has(row.date)) days.set(row.date, { date: row.date, text: row.text, weekday: row.weekday, rows: [] });
+    days.get(row.date).rows.push(row);
+  }
+  return [...days.values()]
+    .map((day) => {
+      const present = new Set(day.rows.flatMap((row) => row.matches));
+      const matched = selected.filter((name) => present.has(name));
+      return {
+        ...day,
+        rows: [...day.rows].sort((a, b) => a.hour - b.hour || PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace)),
+        matched,
+        missing: selected.filter((name) => !present.has(name)),
+        complete: selected.length > 0 && matched.length === selected.length,
+      };
+    })
+    .sort((a, b) => b.matched.length - a.matched.length || a.date.localeCompare(b.date));
 }
 
 /** 日盤は1日に盤が1つ（時刻なし） */
