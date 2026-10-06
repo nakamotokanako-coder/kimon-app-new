@@ -114,6 +114,34 @@ export function sortKakkyokuSearchRows(rows, sortMode) {
   });
 }
 
+/**
+ * 検索の結果を日ごとにまとめて、選んだ格局がその日にいくつそろうかを数える。
+ * 「そろう」は、その日のどこかの時間帯・方位に出ていること（同じ時間・同じ方位でなくてよい）。
+ * 並びは、そろう数の多い日が先。同じ数なら早い日。
+ * @returns {{ date, text, weekday, matched: string[], missing: string[], complete: boolean, rows: object[] }[]}
+ */
+export function groupRowsByDay(rows, selectedNames) {
+  const selected = [...new Set(selectedNames || [])];
+  const days = new Map();
+  for (const row of rows || []) {
+    if (!days.has(row.date)) days.set(row.date, { date: row.date, text: row.text, weekday: row.weekday, rows: [] });
+    days.get(row.date).rows.push(row);
+  }
+  return [...days.values()]
+    .map((day) => {
+      const present = new Set(day.rows.flatMap((row) => row.matches));
+      const matched = selected.filter((name) => present.has(name));
+      return {
+        ...day,
+        rows: [...day.rows].sort((a, b) => a.hour - b.hour || PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace)),
+        matched,
+        missing: selected.filter((name) => !present.has(name)),
+        complete: selected.length > 0 && matched.length === selected.length,
+      };
+    })
+    .sort((a, b) => b.matched.length - a.matched.length || a.date.localeCompare(b.date));
+}
+
 /** 日盤は1日に盤が1つ（時刻なし） */
 const DAY_SLOTS = [{ hour: 0, label: '日盤' }];
 

@@ -13040,3 +13040,94 @@ p.saikyo-annual-note.is-open {
 .kakkyoku-names .kakkyoku-name span {
   overflow-wrap: anywhere;
 }
+
+/* 格局検索: 全部そろう日（日ごとにまとめて出す） */
+.kakkyoku-day {
+  display: grid;
+  gap: 8px;
+  padding: 12px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.kakkyoku-day.is-complete {
+  border-color: var(--accent);
+}
+
+.kakkyoku-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.kakkyoku-day-head strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.kakkyoku-day-head strong small {
+  margin-left: 4px;
+  font-size: 0.78rem;
+}
+
+.kakkyoku-day-head span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.kakkyoku-day.is-complete .kakkyoku-day-head span {
+  color: var(--text-accent);
+}
+
+.kakkyoku-day-missing {
+  margin: 0;
+  padding: 0 4px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+/* 格局検索の結果: 見出しが長くても、並び順のボタンが2行に折れないようにする（見出しの下の行に置く） */
+.kakkyoku-search-view .kakkyoku-result-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.kakkyoku-search-view .kakkyoku-sort-toggle {
+  justify-self: start;
+}
+
+.kakkyoku-search-view .kakkyoku-sort-toggle button {
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+/* いちばん点数の高い結果の枠が、右にはみ出していたのを直す（外側の余白のぶん、幅を引く） */
+.kakkyoku-search-view .kakkyoku-result-card.is-featured {
+  width: calc(100% - 16px);
+  box-sizing: border-box;
+}
+
+/* 全部そろう日の一覧は、日ごとの枠を並べる（外側の枠は付けない） */
+.kakkyoku-search-view .kakkyoku-result-list:has(.kakkyoku-day) {
+  display: grid;
+  gap: 12px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.kakkyoku-day .kakkyoku-result-wrap {
+  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+}
+
+.kakkyoku-match button {
+  white-space: nowrap;
+}
