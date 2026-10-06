@@ -12537,3 +12537,8 @@ p.saikyo-annual-note.is-open {
   font-weight: 400;
   opacity: 0.75;
 }
+
+/* 古典にある用途の札（講座の用途と見分ける） */
+.kakkyoku-name small i.is-classic {
+  border-style: dashed;
+}

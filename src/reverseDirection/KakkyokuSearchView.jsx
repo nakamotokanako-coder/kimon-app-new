@@ -246,8 +246,8 @@ export default function KakkyokuSearchView({
         </div>
         <p className="kakkyoku-use-note">
           {activeUse
-            ? `「${activeUse.label}」に使われてきた格局：${activeUse.names.join('・')}`
-            : '押すと、その用途に使われてきた格局が出る日時と方位を、すぐに探します。'}
+            ? `「${activeUse.label}」の格局：${activeUse.names.join('・')}${activeUse.classic ? '（古典にある用途です）' : ''}`
+            : '押すと、その用途の格局が出る日時と方位を、すぐに探します。'}
         </p>
       </div>
 
@@ -277,7 +277,10 @@ export default function KakkyokuSearchView({
                 >
                   <strong>{name}</strong>
                   <span>{KAKKYOKU_GUIDE[name]?.line || ''}</span>
-                  <small>{(KAKKYOKU_GUIDE[name]?.tags || []).map((tag) => <i key={tag}>{tag}</i>)}</small>
+                  <small>
+                    {(KAKKYOKU_GUIDE[name]?.tags || []).map((tag) => <i key={tag}>{tag}</i>)}
+                    {(KAKKYOKU_GUIDE[name]?.classic || []).map((tag) => <i key={tag} className="is-classic">古典：{tag}</i>)}
+                  </small>
                 </button>
               ))}
             </div>
