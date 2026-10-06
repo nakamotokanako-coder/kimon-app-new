@@ -115,10 +115,14 @@ describe('何をしたい？から格局を選ぶ（講座の内容が主、古�
     expect(Object.keys(KAKKYOKU_GUIDE).sort()).toEqual([...SPECIAL_KAKKYOKU_NAMES].sort());
     for (const guide of Object.values(KAKKYOKU_GUIDE)) {
       expect(guide.line).toBeTruthy();
+      expect(guide.day).toBeTruthy();
+      expect(guide.desc.length).toBeGreaterThan(30);
       expect(guide.tags.length).toBeGreaterThan(0);
       expect(Array.isArray(guide.classic)).toBe(true);
-      const text = [guide.line, ...guide.tags, ...guide.classic].join(' ');
-      expect(text).not.toMatch(/叶う|上がる|必ず|雨乞い|天候/u);
+      expect(guide.examples.length).toBeGreaterThanOrEqual(15);
+      expect(new Set(guide.examples).size).toBe(guide.examples.length);
+      const text = [guide.line, guide.day, guide.desc, ...guide.tags, ...guide.classic, ...guide.examples, ...(guide.avoid || [])].join(' ');
+      expect(text).not.toMatch(/叶う|運が上がる|運が動く|運を運ぶ|必ず|雨乞い|天候|投資する/u);
     }
   });
 
@@ -160,12 +164,25 @@ describe('何をしたい？から格局を選ぶ（講座の内容が主、古�
     const { KAKKYOKU_GUIDE } = await import('../src/reverseDirection/kakkyokuSearch.js');
     expect(KAKKYOKU_GUIDE['神遁'].tags).toContain('神社・祈願');
     expect(KAKKYOKU_GUIDE['神遁'].classic).toEqual([]);
-    expect(KAKKYOKU_GUIDE['神遁'].line).toContain('神社');
+    expect(KAKKYOKU_GUIDE['神遁'].desc).toContain('神社');
+    expect(KAKKYOKU_GUIDE['神遁'].examples[0]).toBe('神社へ参拝する');
   });
 
   it('検索の結果には、用途の一言を出す', () => {
     const { rows } = scanSpecialKakkyoku({ startDate: '2026-10-06', days: 30, selectedNames: ['風遁'] });
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows[0].practicals).toEqual([{ name: '風遁', text: '発信・告知・宣伝に' }]);
+    expect(rows[0].practicals).toEqual([{ name: '風遁', text: '届けたいなら、風に乗せる。' }]);
+  });
+});
+
+describe('格局の絵', () => {
+  it('12の格局すべてに絵があり、ファイルが置いてある', async () => {
+    const { existsSync } = await import('node:fs');
+    const { KAKKYOKU_GUIDE } = await import('../src/reverseDirection/kakkyokuGuide.js');
+    const images = Object.values(KAKKYOKU_GUIDE).map((guide) => guide.image);
+    expect(new Set(images).size).toBe(12);
+    for (const image of images) expect(existsSync(`public/divination/${image}.webp`), image).toBe(true);
+    expect(existsSync(`public/divination/${KAKKYOKU_GUIDE['神遁'].hero}.webp`)).toBe(true);
+    for (const name of ['mountain-bg', 'botanical-branch', 'cloud-ornament']) expect(existsSync(`public/divination/${name}.webp`), name).toBe(true);
   });
 });

@@ -12763,3 +12763,289 @@ p.saikyo-annual-note.is-open {
 .kakkyoku-name small i.is-classic {
   border-style: dashed;
 }
+
+/* 線画アイコン（src/components/icons）。色は置く場所の文字の色（currentColor）に従う */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+
+.bottom-tab-icon .icon {
+  width: 1.38rem;
+  height: 1.38rem;
+}
+
+/* 目的で選ぶ */
+.theme-best-kicker,
+.theme-best-when,
+.theme-best-cta,
+.theme-best-more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-best-cta,
+.theme-best-more {
+  justify-content: center;
+}
+
+.theme-best-when .icon {
+  color: var(--text-secondary);
+}
+
+.theme-stars {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.theme-stars .icon.is-off {
+  color: color-mix(in srgb, var(--text-secondary) 40%, transparent);
+}
+
+.theme-best-rowgrade .theme-stars .icon {
+  width: 11px;
+  height: 11px;
+}
+
+/* 格局検索: 用途のボタン（アイコンの下にラベル） */
+.kakkyoku-uses .kakkyoku-group > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.kakkyoku-uses .kakkyoku-group button {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 4px 10px;
+  border-radius: 14px;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.kakkyoku-uses .kakkyoku-group button .icon {
+  color: var(--text-primary);
+}
+
+.kakkyoku-uses .kakkyoku-group button.is-active .icon {
+  color: var(--accent);
+}
+
+/* 格局検索: 格局の名前に印を添える */
+.kakkyoku-names .kakkyoku-name {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+}
+
+.kakkyoku-name .kakkyoku-symbol {
+  grid-row: 1 / span 3;
+  color: var(--text-secondary);
+}
+
+.kakkyoku-name.is-active .kakkyoku-symbol {
+  color: var(--accent);
+}
+
+.kakkyoku-name strong,
+.kakkyoku-name span,
+.kakkyoku-name small {
+  grid-column: 2;
+}
+
+/* 格局検索: 格局の絵・案内 */
+.kakkyoku-hero.has-mountains {
+  background-image: linear-gradient(color-mix(in srgb, var(--bg-card) 86%, transparent), color-mix(in srgb, var(--bg-card) 86%, transparent)), url("/divination/mountain-bg.webp");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover, 100% auto;
+}
+
+.kakkyoku-item {
+  display: grid;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.kakkyoku-item.is-active {
+  border-color: var(--accent);
+}
+
+.kakkyoku-names .kakkyoku-item .kakkyoku-name {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.kakkyoku-names .kakkyoku-item.is-active .kakkyoku-name {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.kakkyoku-name .kakkyoku-art {
+  grid-row: 1 / span 3;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.kakkyoku-name span,
+.kakkyoku-name small {
+  color: var(--text-secondary);
+}
+
+.kakkyoku-item-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.kakkyoku-detail {
+  display: grid;
+  gap: 8px;
+  padding: 4px 14px 16px;
+}
+
+.kakkyoku-detail p {
+  margin: 0;
+}
+
+.kakkyoku-detail-hero {
+  width: calc(100% + 28px);
+  margin: 0 -14px 6px;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  object-position: right center;
+}
+
+.kakkyoku-detail-day {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  letter-spacing: 0.06em;
+}
+
+.kakkyoku-detail-desc {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+.kakkyoku-detail-title {
+  margin-top: 6px !important;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.kakkyoku-detail-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kakkyoku-detail-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.kakkyoku-detail-list .icon {
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+
+.kakkyoku-detail-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.kakkyoku-detail-avoid {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.kakkyoku-detail-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* 格局の案内の中は、一覧のボタン・段落の見た目を引き継がない */
+.kakkyoku-names .kakkyoku-detail p {
+  font-weight: 400;
+}
+
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-day,
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-title {
+  font-weight: 700;
+}
+
+.kakkyoku-names .kakkyoku-item .kakkyoku-item-more,
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-more {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.kakkyoku-names .kakkyoku-item .kakkyoku-item-more {
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-more {
+  border: 0;
+  padding: 4px 0;
+}
+
+.kakkyoku-names .kakkyoku-detail .kakkyoku-detail-cta {
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+}
+
+.kakkyoku-names .kakkyoku-name span {
+  overflow-wrap: anywhere;
+}

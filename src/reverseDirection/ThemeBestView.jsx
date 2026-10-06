@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import Ja from '../utils/Ja.jsx';
+import { Icon } from '../components/icons/index.js';
 import {
   THEMES, themeLabel, bestTimesForTheme, bestDaysForTheme, gradeOf, slotClock,
 } from './themeSearch.js';
@@ -48,7 +49,9 @@ export function dayLabel(date, today) {
 function Stars({ count }) {
   return (
     <span className="theme-stars" role="img" aria-label={`5つ中${count}つ`}>
-      {'★'.repeat(count)}<i>{'★'.repeat(5 - count)}</i>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Icon key={n} name="star" size={16} filled={n <= count} className={n <= count ? '' : 'is-off'} />
+      ))}
     </span>
   );
 }
@@ -150,19 +153,19 @@ export default function ThemeBestView({
 
         {best ? (
           <div className="theme-best-card">
-            <p className="theme-best-kicker">BEST 1</p>
+            <p className="theme-best-kicker"><Icon name="crown" size={18} />BEST 1</p>
             <p className="theme-best-dir">{best.item.label}</p>
             <p className="theme-best-grade">
               <Stars count={bestGrade.stars} />
               <b>{bestGrade.label}</b>
             </p>
-            <p className="theme-best-when">{whenText(best, kind, today, liveSlotHour)}</p>
+            <p className="theme-best-when"><Icon name="calendar" size={18} />{whenText(best, kind, today, liveSlotHour)}</p>
             <p className="theme-best-copy"><Ja>{THEME_COPY[theme] || ''}</Ja></p>
             <div className="theme-best-tags">
               {elementsOf(best.item).map((element) => <span key={element}>{element}</span>)}
             </div>
             <button type="button" className="theme-best-cta" onClick={() => go(best)}>
-              方位を地図で見る <span aria-hidden="true">→</span>
+              方位を地図で見る <Icon name="arrow-right" size={18} />
             </button>
           </div>
         ) : (
@@ -179,7 +182,7 @@ export default function ThemeBestView({
         {others.length > 0 && (
           <>
             <button type="button" className="theme-best-more" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
-              {expanded ? '2位・3位を閉じる' : '2位・3位を見る'} <span aria-hidden="true">{expanded ? '⌃' : '⌄'}</span>
+              {expanded ? '2位・3位を閉じる' : '2位・3位を見る'} <Icon name={expanded ? 'chevron-up' : 'chevron-down'} size={16} />
             </button>
             {expanded && others.map((entry, index) => {
               const grade = gradeOf(entry.item);
