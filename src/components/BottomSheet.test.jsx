@@ -168,7 +168,7 @@ describe('BottomSheet', () => {
     // 今回の盤だけの話は、別の枠に入れる
     const here = card.querySelector('.study-block.is-here').textContent;
     expect(here).toContain('この方位の配置は、天盤乙・地盤丙・休門・六合・天蓬です。');
-    expect(here).toContain('この格局で、点数が+10点されています。');
+    expect(here).not.toMatch(/点/u); // 要素ごとの点数は書かない
     expect(here).not.toContain('営業');
   });
 
@@ -260,23 +260,16 @@ describe('BottomSheet', () => {
     expect(onOpenAccountSettings).toHaveBeenCalledTimes(1);
   });
 
-  it('「評価の解説」は点数付きで、行を足すと総合評価になる', () => {
+  it('点数は総合点だけ。要素ごとの点数の内訳は出さない', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
-    const toggle = screen.getByRole('button', { name: '評価の解説' });
-    const detail = document.body.querySelector('.why-detail');
-
-    expect(detail.className).not.toContain('open');
-    fireEvent.click(toggle);
-    expect(detail.className).toContain('open');
-    expect(screen.getByText('八門（休門）')).toBeTruthy();
-    expect(screen.getByText('和やかさをもたらす門。休息・仲直り・縁談に向く。')).toBeTruthy();
-    expect(screen.getByText('+40')).toBeTruthy();
-    expect(screen.getByText('-10')).toBeTruthy();
-    expect(screen.getByText('総合評価')).toBeTruthy();
-    const pts = [...detail.querySelectorAll('.why-row:not(.total) .pts')].map((el) => Number(el.textContent));
-    expect(pts.reduce((a, b) => a + b, 0)).toBe(70);
-    fireEvent.click(toggle);
-    expect(detail.className).not.toContain('open');
+    expect(screen.getAllByText('+70').length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByRole('button', { name: '評価の解説' })).toBe(null);
+    expect(document.body.querySelector('.why-detail')).toBe(null);
+    expect(screen.queryByText('+40')).toBe(null);
+    expect(screen.queryByText('総合評価')).toBe(null);
+    // 学習カードを全部開いても、要素ごとの点数は出ない
+    for (const toggle of document.body.querySelectorAll('.study-toggle')) fireEvent.click(toggle);
+    expect(document.body.querySelector('.ds-learn').textContent).not.toMatch(/[+−-]\d+点|点数/u);
   });
 
   it('格局は全件カードで出し、仮置きの「墨絵」は出さない', () => {

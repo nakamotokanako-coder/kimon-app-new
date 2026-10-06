@@ -11,7 +11,8 @@
 //     here      … 今回の盤ではどうか（この盤・この方位だけの話。文の配列）
 //
 // 「一般的な意味」と「今回の盤では」を混ぜないのが、このカードの決まり。
-// 判定・点数は scoreEngine / kakkyoku の結果をそのまま使い、ここでは計算しない。
+// 判定は scoreEngine / kakkyoku の結果をそのまま使い、ここでは計算しない。
+// 要素ごとの点数（内訳）は書かない。吉凶の向きだけを札で示す。
 import { ELEMENT_TEXTS } from './elementTexts.generated.js';
 import { kakkyokuData } from './kakkyoku.js';
 import { DATE_BOUND_KAKKYOKU, KAN_TEXTS, findKakkyokuEntry } from './palaceExplain.js';
@@ -101,8 +102,6 @@ function categoryOf(name, raw) {
   return label === name ? '' : label;
 }
 
-const signed = (n) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`);
-
 function placementText(data) {
   const parts = [
     data?.tenban ? `天盤${data.tenban}` : '',
@@ -134,9 +133,8 @@ export function buildKakkyokuStudyCards(palaceScore, palaceData) {
     const dateBound = DATE_BOUND_KAKKYOKU.includes(k.name);
 
     const here = [placementText(palaceData)];
-    if (typeof k.score === 'number' && k.score !== 0) here.push(`この格局で、点数が${signed(k.score)}点されています。`);
     if (VETO_OF[k.name] && vetoes.includes(VETO_OF[k.name])) {
-      here.push('この格局があるため、ほかの要素が良くても、この方位は凶として扱っています（点数は−20が上限）。');
+      here.push('この格局があるため、ほかの要素が良くても、この方位は凶として扱っています。');
     }
     if (dateBound) here.push('年・月・日の干で決まる格局なので、この日時だけに付いています。');
     if (others.length) here.push(`同じ方位に、${others.join('・')}も出ています。`);
@@ -189,9 +187,7 @@ export function buildElementStudyCards(palaceScore, palaceData) {
       meaning: rest,
       usage: '',
       condition: '',
-      here: [typeof points === 'number'
-        ? (points === 0 ? `この方位では、${name}の点数は0点です。` : `この方位では、${name}で点数が${signed(points)}点されています。`)
-        : `この方位に、${name}が入っています。`],
+      here: [`この方位に、${name}が入っています。`],
     });
   };
   push('八門', data.hachimon, ELEMENT_TEXTS.gates[data.hachimon], b.hachimon);
