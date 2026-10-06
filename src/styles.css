@@ -12440,3 +12440,60 @@ p.saikyo-annual-note.is-open {
 .theme-best-section .reverse-status {
   margin-inline: 14px;
 }
+
+/* 目的で選ぶ → すぐ下に出す答え（今日の1位・1週間の1位） */
+.theme-best {
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--accent-edge);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text-accent) 6%, var(--bg-card));
+}
+
+.theme-best-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.theme-best-group-label {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.theme-best .theme-best-row {
+  margin-top: 6px;
+  padding: 10px 12px;
+}
+
+.theme-best-empty {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.theme-best-more {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-main);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-accent);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.theme-best .theme-best-note {
+  margin: 4px 0 0;
+}
+
+.reverse-day-card .theme-best {
+  margin-top: 12px;
+}

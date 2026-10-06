@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import Ja from '../utils/Ja.jsx';
-import { THEMES, themeLabel, bestTimesForTheme, bestDaysForTheme } from './themeSearch.js';
+import { themeLabel, bestTimesForTheme, bestDaysForTheme } from './themeSearch.js';
 
-// 「目的から探す」の答えを出す画面。目的を選ぶと、いつ・どの方位が一番向くかを順位で出す。
-//   今日          … これからの時間帯（時盤）の中の上位
-//   これから1週間 … 近所なら時間帯（時盤）、遠出なら日（日盤）の中の上位
+// 「目的で選ぶ」で目的を選んだときに、すぐ下に出す答え。いつ・どの方位が一番向くかを順位で出す。
+//   時盤の画面（kind='time'）… 今日のこれからの時間帯と、これから1週間の時間帯
+//   日盤の画面（kind='day'） … これから1週間の日
+// はじめは1位だけ。「ほかの候補も見る」で3位まで開く。行を押すと、同じ画面の地図がその日時・方位に切り替わる。
 // 順位の決め方は themeSearch.js（その目的が◎の方位が先、同じなら総合点の高い順）。ここでは計算しない。
-// 行を押すと、その日時・方位のまま地図へ進む。
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 const scoreText = (score) => `${score > 0 ? '+' : ''}${score}`;
@@ -44,98 +44,81 @@ function Row({ index, when, entry, name, onClick }) {
 
 export default function ThemeBestView({
   theme,
-  onThemeChange,
+  kind = 'time',
   today,
   liveSlotHour,
-  onGoTime, // ({ date, hour, palace }) 地図（時盤）へ
-  onGoDay,  // ({ date, palace }) 地図（日盤）へ
+  onGoTime, // ({ date, hour, palace }) 時盤の地図をその日時・方位にする
+  onGoDay,  // ({ date, palace }) 日盤の地図をその日・方位にする
 }) {
-  const [weekKind, setWeekKind] = useState('time');
+  const [expanded, setExpanded] = useState(false);
   const name = themeLabel(theme);
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => shift(today, index)), [today]);
 
-  const todayBest = useMemo(() => (
-    bestTimesForTheme({ theme, dates: [today], fromHour: liveSlotHour })
-  ), [theme, today, liveSlotHour]);
-  const weekBest = useMemo(() => (
-    weekKind === 'day'
-      ? bestDaysForTheme({ theme, dates: weekDates })
-      : bestTimesForTheme({ theme, dates: weekDates, fromHour: liveSlotHour })
-  ), [theme, weekDates, weekKind, liveSlotHour]);
+  const groups = useMemo(() => {
+    if (!theme) return [];
+    if (kind === 'day') {
+      return [{
+        key: 'week',
+        label: 'これから1週間',
+        empty: `この1週間には、${name}に向く方位がありません。`,
+        list: bestDaysForTheme({ theme, dates: weekDates }),
+      }];
+    }
+    return [
+      {
+        key: 'today',
+        label: '今日',
+        empty: `今日の残りの時間には、${name}に向く方位がありません。`,
+        list: bestTimesForTheme({ theme, dates: [today], fromHour: liveSlotHour }),
+      },
+      {
+        key: 'week',
+        label: 'これから1週間',
+        empty: `この1週間には、${name}に向く方位がありません。`,
+        list: bestTimesForTheme({ theme, dates: weekDates, fromHour: liveSlotHour }),
+      },
+    ];
+  }, [theme, kind, name, today, weekDates, liveSlotHour]);
+
+  if (!theme) return null;
+  const hasMore = groups.some((group) => group.list.length > 1);
 
   return (
-    <div className="theme-best">
-      <div className="reverse-card theme-best-pick">
-        <div className="theme-picker" role="group" aria-label="目的を選ぶ">
-          <span className="theme-picker-label">目的を選ぶ</span>
-          <div className="theme-picker-chips">
-            {THEMES.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                className={theme === item.key ? 'is-active' : ''}
-                aria-pressed={theme === item.key}
-                onClick={() => onThemeChange(item.key)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+    <section className="theme-best" aria-label={`${name}に一番向く${kind === 'day' ? '日' : '時間'}と方位`}>
+      <h3 className="theme-best-title"><Ja>{`${name}に一番向くのは`}</Ja></h3>
+      {groups.map((group) => (
+        <div key={group.key} className="theme-best-group">
+          <p className="theme-best-group-label">{group.label}</p>
+          {group.list.length === 0 ? (
+            <p className="theme-best-empty"><Ja>{group.empty}</Ja></p>
+          ) : group.list.slice(0, expanded ? 3 : 1).map((entry, index) => (
+            <Row
+              key={`${entry.date}-${entry.hour ?? 'day'}`}
+              index={index}
+              name={name}
+              entry={entry}
+              when={kind === 'day'
+                ? dayLabel(entry.date, today)
+                : `${group.key === 'today' ? '' : `${dayLabel(entry.date, today)} `}${entry.label}${entry.date === today && entry.hour === liveSlotHour ? '（いま）' : ''}`}
+              onClick={() => (kind === 'day'
+                ? onGoDay({ date: entry.date, palace: entry.item.palace })
+                : onGoTime({ date: entry.date, hour: entry.hour, palace: entry.item.palace }))}
+            />
+          ))}
         </div>
-      </div>
-
-      <section className="reverse-timeline theme-best-section" aria-label={`今日、${name}に向く時間と方位`}>
-        <div className="reverse-section-title">
-          <h3 className="maru"><Ja>{`今日、${name}に一番向く時間と方位`}</Ja></h3>
-        </div>
-        {todayBest.length === 0 ? (
-          <p className="reverse-status"><Ja>{`今日の残りの時間には、${name}に向く方位がありません。下の1週間から探してください。`}</Ja></p>
-        ) : todayBest.map((entry, index) => (
-          <Row
-            key={`${entry.date}-${entry.hour}`}
-            index={index}
-            name={name}
-            entry={entry}
-            when={`${entry.label}${entry.hour === liveSlotHour ? '（いま）' : ''}`}
-            onClick={() => onGoTime({ date: entry.date, hour: entry.hour, palace: entry.item.palace })}
-          />
-        ))}
-      </section>
-
-      <section className="reverse-timeline theme-best-section" aria-label={`これから1週間で、${name}に向く日と方位`}>
-        <div className="reverse-section-title">
-          <h3 className="maru"><Ja>{`これから1週間で、${name}に一番向く日と方位`}</Ja></h3>
-        </div>
-        <div className="reverse-mode-tabs reverse-mode-tabs--two" aria-label="近所か遠出かを選ぶ">
-          <button type="button" className={weekKind === 'time' ? 'is-active' : ''} aria-pressed={weekKind === 'time'} onClick={() => setWeekKind('time')}>
-            近所へ（時盤）
-          </button>
-          <button type="button" className={weekKind === 'day' ? 'is-active' : ''} aria-pressed={weekKind === 'day'} onClick={() => setWeekKind('day')}>
-            遠出・旅行（日盤）
-          </button>
-        </div>
-        {weekBest.length === 0 ? (
-          <p className="reverse-status"><Ja>{`この1週間には、${name}に向く方位がありません。`}</Ja></p>
-        ) : weekBest.map((entry, index) => (
-          <Row
-            key={`${entry.date}-${entry.hour ?? 'day'}`}
-            index={index}
-            name={name}
-            entry={entry}
-            when={weekKind === 'day' ? dayLabel(entry.date, today) : `${dayLabel(entry.date, today)} ${entry.label}`}
-            onClick={() => (weekKind === 'day'
-              ? onGoDay({ date: entry.date, palace: entry.item.palace })
-              : onGoTime({ date: entry.date, hour: entry.hour, palace: entry.item.palace }))}
-          />
-        ))}
-        <p className="theme-best-note">
-          <Ja>
-            {weekKind === 'day'
-              ? '遠出は、50キロ以上はなれた場所へ行くときの見方です。行を押すと、その日の地図が開きます。'
-              : '朝5時から夜11時までの時間帯で比べています。行を押すと、その時間の地図が開きます。'}
-          </Ja>
-        </p>
-      </section>
-    </div>
+      ))}
+      {hasMore && (
+        <button type="button" className="theme-best-more" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+          {expanded ? '1位だけにする' : '2位・3位も見る'}
+        </button>
+      )}
+      <p className="theme-best-note">
+        <Ja>
+          {kind === 'day'
+            ? '押すと、下の地図がその日に切り替わります。'
+            : '押すと、下の地図がその時間に切り替わります。朝5時から夜11時までの時間帯で比べています。'}
+        </Ja>
+      </p>
+    </section>
   );
 }

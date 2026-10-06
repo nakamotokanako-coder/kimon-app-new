@@ -136,13 +136,13 @@ export default function SearchHub({ unreadNotificationCount = 0, onOpenNotificat
         </button>
       </section>
 
-      {/* 目的から探す: 目的を選ぶと、いつ・どの方位が一番向くかを順位で出す */}
-      <section className="hub-theme" aria-label="目的から探す">
-        <h3 className="hub-group-title"><span>目的から探す</span></h3>
+      {/* 目的で選ぶ: 地図（時盤）の「目的で選ぶ」と同じもの。選ぶと地図が開き、いつ・どの方位が一番向くかが出る */}
+      <section className="hub-theme" aria-label="目的で選ぶ">
+        <h3 className="hub-group-title"><span>目的で選ぶ</span></h3>
         <p className="hub-theme-lead"><Ja>目的を選ぶと、いつ・どの方位が一番向くかがわかります。</Ja></p>
         <div className="theme-picker-chips">
           {THEMES.map((item) => (
-            <button key={item.key} type="button" onClick={() => onSelect({ key: 'theme', target: 'search', theme: item.key })}>{item.label}</button>
+            <button key={item.key} type="button" onClick={() => onSelect({ key: 'theme', target: 'map', theme: item.key })}>{item.label}</button>
           ))}
         </div>
       </section>

@@ -225,7 +225,7 @@ export default function HomeView({
           ))}
         </div>
         <div className="home-theme">
-          <p className="home-theme-title">目的から探す</p>
+          <p className="home-theme-title">目的で選ぶ</p>
           <div className="theme-picker-chips">
             {THEMES.map((item) => (
               <button key={item.key} type="button" onClick={() => (limited ? onLogin() : onGoTheme?.(item.key))}>{item.label}</button>
