@@ -781,3 +781,614 @@ html.sheet-scroll-lock body {
     font-size: 13px;
   }
 }
+
+/* ==========================================================================
+   方位の詳しい画面（作り直し）: 「この方位をどう使う？」と「この盤から学ぶ」
+   墨色の地に、細い線と小さな札だけで吉凶を示す（カード全体は塗らない）。
+   ========================================================================== */
+.sheet.ds {
+  --ds-bg: #131311;
+  --ds-card: #1d1d1a;
+  --ds-card-2: #24241f;
+  --ds-line: rgba(241, 238, 230, 0.1);
+  --ds-text: #f1eee6;
+  --ds-sub: #aaa69c;
+  --ds-gold: #c1a363;
+  --ds-neg: #a84d47;
+  --ds-pos: #70866f;
+  --ds-caution: #b28a4a;
+  background: var(--ds-bg);
+  color: var(--ds-text);
+}
+
+.sheet.ds .sheet-content {
+  padding-top: 4px;
+}
+
+/* 上のナビ: 左右が隣の方位、中央がいま見ている方位 */
+.sheet.ds .sheet-nav {
+  position: static;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.sheet.ds .sheet-nav-btn {
+  min-height: 40px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ds-sub);
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.sheet.ds .sheet-nav-btn.is-prev {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.sheet.ds .sheet-nav-btn.is-next {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.sheet-nav-now {
+  display: grid;
+  grid-column: 2;
+  justify-items: center;
+  gap: 1px;
+  margin: 0;
+  padding: 4px 16px;
+  border-right: 1px solid var(--ds-line);
+  border-left: 1px solid var(--ds-line);
+}
+
+.sheet-nav-now strong {
+  color: var(--ds-gold);
+  font-family: var(--font-display, serif);
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.sheet-nav-now span {
+  color: var(--ds-sub);
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+}
+
+.sheet.ds .sheet-close-btn {
+  position: static;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--ds-line);
+  background: transparent;
+  box-shadow: none;
+  color: var(--ds-sub);
+}
+
+.sheet.ds .sheet-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 10px;
+  border-bottom: 1px solid var(--ds-line);
+}
+
+.sheet.ds .sheet-handle {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 層 */
+.ds-section {
+  padding: 22px 0 6px;
+}
+
+.ds-learn {
+  margin-top: 22px;
+  border-top: 1px solid var(--ds-line);
+}
+
+.ds-eyebrow {
+  margin: 0 0 12px;
+  color: var(--ds-gold);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+
+.ds-title {
+  margin: 0 0 16px;
+  color: var(--ds-text);
+  font-family: var(--font-display, serif);
+  font-size: 1.24rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ds-subtitle {
+  margin: 28px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ds-line);
+  color: var(--ds-sub);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+/* 1. この方位をどう使う？ */
+.sheet.ds .sh-header {
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+}
+
+.sheet.ds .sh-dir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+}
+
+.sheet.ds .sh-dir-name {
+  flex-basis: 100%;
+  color: var(--ds-sub);
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+}
+
+.sheet.ds .sh-score {
+  font-family: var(--font-latin, var(--font-display, serif));
+  font-size: 3.2rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-shadow: none;
+}
+
+.sheet.ds .sh-score.plus { color: var(--ds-gold); }
+.sheet.ds .sh-score.minus { color: var(--ds-neg); }
+
+.sheet.ds .sh-badge {
+  align-self: center;
+  padding: 3px 12px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.sheet.ds .sh-badge.kichi { color: var(--ds-pos); }
+.sheet.ds .sh-badge.kyo { color: var(--ds-neg); }
+.sheet.ds .sh-badge.chu { color: var(--ds-sub); }
+
+.ds-headline {
+  margin: 16px 0 0;
+  color: var(--ds-text);
+  font-family: var(--font-display, serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+}
+
+.ds-summary {
+  margin: 6px 0 0;
+  color: var(--ds-sub);
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.sheet.ds .sh-axis-title {
+  margin: 0 0 8px;
+  color: var(--ds-sub);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+/* 5テーマ: 表のように並べる（色の面は使わない） */
+.sheet.ds .axis-seg {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 14px;
+  padding: 0;
+  overflow: visible;
+  border: 1px solid var(--ds-line);
+  border-radius: 10px;
+  background: var(--ds-card);
+}
+
+.sheet.ds .axis-btn,
+.sheet.ds .axis-btn.active,
+.sheet.ds .axis-btn.active[data-axis] {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 2px 9px;
+  border: 0;
+  border-right: 1px solid var(--ds-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ds-sub);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  transform: none;
+}
+
+.sheet.ds .axis-btn:last-child {
+  border-right: 0;
+}
+
+.sheet.ds .axis-btn.active,
+.sheet.ds .axis-btn.active[data-axis] {
+  background: var(--ds-card-2);
+  box-shadow: inset 0 -2px 0 var(--ds-gold);
+  color: var(--ds-text);
+  font-weight: 700;
+}
+
+.sheet.ds .axis-btn .axis-symbol {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sheet.ds .axis-symbol.good { color: var(--ds-pos); }
+.sheet.ds .axis-symbol.neutral { color: var(--ds-caution); }
+.sheet.ds .axis-symbol.bad { color: var(--ds-neg); }
+
+/* テーマ別の読み方 */
+.sheet.ds .reading,
+.sheet.ds .reading[data-axis] {
+  margin: 0;
+  padding: 18px 18px 20px;
+  border: 1px solid var(--ds-line);
+  border-radius: 12px;
+  background: var(--ds-card);
+  box-shadow: none;
+  color: var(--ds-text);
+}
+
+.sheet.ds .reading-title {
+  margin: 0 0 10px;
+  color: var(--ds-gold);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.sheet.ds .reading p {
+  color: var(--ds-text);
+  font-size: 0.92rem;
+  line-height: 1.95;
+}
+
+.sheet.ds .reading .prose-text strong {
+  color: var(--ds-text);
+  font-weight: 700;
+}
+
+.sheet.ds .reading .date-bound-prose {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--ds-line);
+}
+
+.sheet.ds .reading .date-bound-prose strong {
+  color: var(--ds-caution);
+}
+
+.sheet.ds .reading-state.loading,
+.sheet.ds .reading-lock-note {
+  color: var(--ds-sub);
+}
+
+/* 2. この盤から学ぶ */
+.ds-placement {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-left: 2px solid var(--ds-gold);
+  background: var(--ds-card);
+}
+
+.ds-placement-label {
+  margin: 0 0 4px;
+  color: var(--ds-sub);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.sheet.ds .sh-meta {
+  margin: 0;
+  color: var(--ds-text);
+  font-family: var(--font-display, serif);
+  font-size: 1.04rem;
+  letter-spacing: 0.1em;
+}
+
+.sheet.ds .sh-kanpair {
+  margin: 2px 0 0;
+  color: var(--ds-sub);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.ds-lead {
+  margin: 0 0 10px;
+  color: var(--ds-text);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.ds-index {
+  display: grid;
+  margin: 0 0 16px;
+  padding: 0;
+  border-top: 1px solid var(--ds-line);
+  list-style: none;
+}
+
+.ds-index li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--ds-line);
+  font-family: var(--font-display, serif);
+  font-size: 0.98rem;
+  letter-spacing: 0.08em;
+}
+
+.ds-index li b,
+.study-badge {
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.ds-index li.tone-kichi b,
+.study-badge.tone-kichi { color: var(--ds-pos); }
+.ds-index li.tone-kyo b,
+.study-badge.tone-kyo { color: var(--ds-neg); }
+.ds-index li.tone-chu b,
+.study-badge.tone-chu,
+.study-badge.is-tag { color: var(--ds-sub); }
+
+/* 学習カード（src/components/StudyCard.jsx） */
+.sheet.ds .study-card,
+.sheet.ds .kakkyoku-card,
+.sheet.ds .kakkyoku-card.kichi,
+.sheet.ds .kakkyoku-card.chu {
+  display: block;
+  margin: 0 0 10px;
+  padding: 16px 16px 6px 18px;
+  border: 1px solid var(--ds-line);
+  border-left: 3px solid var(--ds-sub);
+  border-radius: 4px 12px 12px 4px;
+  background: var(--ds-card);
+  box-shadow: none;
+  color: var(--ds-text);
+}
+
+.sheet.ds .study-card.tone-kichi { border-left-color: var(--ds-pos); }
+.sheet.ds .study-card.tone-kyo { border-left-color: var(--ds-neg); }
+.sheet.ds .study-card.tone-chu { border-left-color: rgba(170, 166, 156, 0.5); }
+
+.study-kind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0 0 6px;
+  color: var(--ds-sub);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.study-kind span + span::before {
+  margin-right: 10px;
+  content: "／";
+  opacity: 0.5;
+}
+
+.study-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.study-title h4 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin: 0;
+}
+
+.study-name {
+  color: var(--ds-text);
+  font-family: var(--font-display, serif);
+  font-size: 1.28rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.study-reading {
+  color: var(--ds-sub);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+.study-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.study-block {
+  margin-top: 14px;
+}
+
+.study-label {
+  margin: 0 0 4px;
+  color: var(--ds-sub);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.study-block p:not(.study-label) {
+  margin: 0;
+  color: var(--ds-text);
+  font-size: 0.9rem;
+  line-height: 1.85;
+}
+
+.study-block p.study-gist {
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+/* 「今回の盤では」は、一般的な話と枠を分ける */
+.study-block.is-here {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--ds-gold) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ds-gold) 7%, transparent);
+}
+
+.study-block.is-here .study-label {
+  color: var(--ds-gold);
+}
+
+.study-block.is-here p + p {
+  margin-top: 4px;
+}
+
+.study-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--ds-line);
+  background: transparent;
+  color: var(--ds-sub);
+  font: inherit;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+}
+
+.study-toggle span {
+  color: var(--ds-gold);
+  font-size: 1rem;
+}
+
+/* 点数の内訳 */
+.sheet.ds .why-card {
+  margin: 28px 0 0;
+  padding: 0;
+  border: 1px solid var(--ds-line);
+  border-radius: 12px;
+  background: var(--ds-card);
+  box-shadow: none;
+  color: var(--ds-text);
+}
+
+.sheet.ds .why-toggle {
+  width: 100%;
+  padding: 16px 18px;
+  background: transparent;
+  color: var(--ds-text);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: left;
+}
+
+.sheet.ds .why-detail.open {
+  padding: 0 18px 14px;
+}
+
+.sheet.ds .why-item {
+  border-color: var(--ds-line);
+  color: var(--ds-text);
+}
+
+.sheet.ds .why-item .factor {
+  color: var(--ds-text);
+}
+
+.sheet.ds .why-item .why-desc,
+.sheet.ds .why-item .why-desc.kichi,
+.sheet.ds .why-item .why-desc.kyo,
+.sheet.ds .why-item .why-desc.chu,
+.sheet.ds .why-item .why-desc.neutral {
+  color: var(--ds-sub);
+}
+
+.sheet.ds .pts.plus { color: var(--ds-pos); }
+.sheet.ds .pts.minus { color: var(--ds-neg); }
+
+.sheet.ds .why-item.total {
+  border-top: 1px solid var(--ds-gold);
+}
+
+.sheet.ds .why-item.total .pts {
+  color: var(--ds-gold);
+}
+
+.sheet.ds .sheet-top {
+  padding-top: 26px;
+}
+
+.ds-index li span {
+  color: var(--ds-text);
+}
+
+.sheet.ds .sheet-top {
+  height: auto;
+}
+
+.sheet.ds .sheet-handle {
+  top: 4px;
+  width: 80px;
+  height: 18px;
+}

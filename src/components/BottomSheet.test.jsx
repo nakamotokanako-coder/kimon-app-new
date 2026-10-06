@@ -2,7 +2,7 @@
 import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import BottomSheet, { getBadge } from './BottomSheet.jsx';
+import BottomSheet, { getBadge, summarizeAxes } from './BottomSheet.jsx';
 import { computeAxisRanks } from '../reverseDirection/FusionCard.jsx';
 
 const KNOWN_KEY = '陰1局丁卯';
@@ -134,8 +134,69 @@ describe('BottomSheet', () => {
     render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
 
     expect(document.body.querySelector('.kakkyoku-card')).toBeTruthy();
-    expect(screen.getByText('天遁')).toBeTruthy();
+    expect(document.body.querySelector('.kakkyoku-card .study-name').textContent).toBe('天遁');
     expect(screen.getAllByText(/天盤の丙/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('2つの層に分ける: 「この方位をどう使う？」が先、「この盤から学ぶ」が後', () => {
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+    const sections = [...document.body.querySelectorAll('.ds-section')].map((el) => el.getAttribute('aria-label'));
+    expect(sections).toEqual(['この方位をどう使う？', 'この盤から学ぶ']);
+    // 結論（点数・吉凶・ひとこと）は上の層、格局と配置は下の層
+    const use = document.body.querySelector('.ds-use');
+    const learn = document.body.querySelector('.ds-learn');
+    expect(use.textContent).toContain('+70');
+    expect(use.textContent).toContain('積極的に使いたい方位');
+    expect(use.querySelector('.kakkyoku-card')).toBe(null);
+    expect(learn.querySelectorAll('.kakkyoku-card')).toHaveLength(1);
+    expect(learn.textContent).toContain('この方位には、格局が1つ出ています。');
+    expect(learn.textContent).toContain('休門・六合・天蓬');
+  });
+
+  it('学習カードは「一般的な意味」と「今回の盤では」を分けて出す', () => {
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+    const card = document.body.querySelector('.kakkyoku-card');
+    // 閉じているあいだは、ひとことだけ
+    expect(card.textContent).toContain('ひとことで');
+    expect(card.querySelector('.study-block.is-here')).toBe(null);
+    fireEvent.click(screen.getByRole('button', { name: '天遁をさらに詳しく' }));
+    const labels = [...card.querySelectorAll('.study-label')].map((el) => el.textContent);
+    expect(labels).toEqual(['ひとことで', '格局の意味', '成立する条件', '使い方の目安', '今回の盤では']);
+    // 一般的な話（どの盤でも同じ）
+    expect(card.textContent).toContain('天盤に丙、地盤に丁、八門が生門');
+    expect(card.textContent).toContain('営業、人脈拡大、自己投資、視野を広げる学びに向く。');
+    // 今回の盤だけの話は、別の枠に入れる
+    const here = card.querySelector('.study-block.is-here').textContent;
+    expect(here).toContain('この方位の配置は、天盤乙・地盤丙・休門・六合・天蓬です。');
+    expect(here).toContain('この格局で、点数が+10点されています。');
+    expect(here).not.toContain('営業');
+  });
+
+  it('八門・九星・八神・天盤干も、同じ学習カードで出す', () => {
+    render(<BottomSheet palace={makePalace()} onClose={() => {}} />);
+    const kinds = [...document.body.querySelectorAll('.ds-learn .study-card:not(.kakkyoku-card)')].map((el) => el.dataset.kind);
+    expect(kinds).toEqual(['八門', '九星', '八神', '天盤干']);
+  });
+
+  it('上のナビは、中央がいま見ている方位', () => {
+    render(
+      <BottomSheet
+        palace={makePalace()}
+        onClose={() => {}}
+        prev={{ key: 'ken', direction: '北西' }}
+        next={{ key: 'gon', direction: '北東' }}
+        onNavigate={() => {}}
+      />,
+    );
+    const nav = document.body.querySelector('.sheet-nav');
+    expect([...nav.children].map((el) => el.textContent.replace(/[←→\s]/g, ''))).toEqual(['北西', '北坎', '北東']);
+  });
+
+  it('5テーマの結果を、ひとことにまとめる', () => {
+    expect(summarizeAxes({ goen: '◎', shigoto: '×', kinun: '○', kenko: '×', benkyo: '△' })).toBe('向いているのは、ご縁・金運です。');
+    expect(summarizeAxes({ goen: '×', shigoto: '×', kinun: '×', kenko: '△', benkyo: '△' })).toContain('健康・勉強の用事にとどめます');
+    expect(summarizeAxes({ goen: '×', shigoto: '×', kinun: '×', kenko: '×', benkyo: '×' })).toContain('どのテーマにも向きません');
+    expect(summarizeAxes(null)).toBe('');
   });
 
   it('格局がない宮では格局カードが表示されない', () => {

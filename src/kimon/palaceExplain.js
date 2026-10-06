@@ -10,7 +10,7 @@ import { ELEMENT_TEXTS } from './elementTexts.generated.js';
 import { getJukanShouiByPair } from './loadShouiDict.js';
 
 /** 天盤干（三奇・六儀）の意味 */
-const KAN_TEXTS = {
+export const KAN_TEXTS = {
   '乙': '三奇の乙。柔軟さと人縁を司る。',
   '丙': '三奇の丙。発信と栄光を司る。',
   '丁': '三奇の丁。知性と専門技術を司る。',
@@ -48,7 +48,7 @@ function findJukkanEntry(item) {
   return indexes.length === 1 ? shouiDict.jukan_kokuou?.find((e) => e.no === indexes[0]) || null : null;
 }
 
-function findKakkyokuEntry(name) {
+export function findKakkyokuEntry(name) {
   if (!name) return null;
   const index = shouiDict.kakkyoku_index_by_name?.[name];
   return shouiDict.kakkyoku?.find((item) => item.no === index || item.name === name) || null;
