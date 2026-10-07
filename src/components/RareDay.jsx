@@ -4,7 +4,7 @@ import Ja from '../utils/Ja.jsx';
 import { Icon } from './icons/index.js';
 import { KAKKYOKU_GUIDE } from '../reverseDirection/kakkyokuGuide.js';
 import {
-  RARE_TIERS, addDays, countdownLabel, rareOutlook, remainingLabel,
+  RARE_TIERS, addDays, countdownLabel, rareOutlook, remainingLabel, remainingThisYear,
 } from '../reverseDirection/rareDays.js';
 import { slotClock } from '../reverseDirection/themeSearch.js';
 
@@ -141,8 +141,8 @@ export function RareDaySheet({ event, today, onClose, onGoMap, limited = false, 
               <strong>{tier.rarity}</strong>
             </div>
             <div>
-              <small>今年のうちに</small>
-              <strong>{remainingLabel(event).replace(/^\d+年は、/u, '')}</strong>
+              <small>今年は、この回を入れて</small>
+              <strong>{remainingThisYear(event) <= 1 ? 'これが最後' : `あと${remainingThisYear(event)}回`}</strong>
             </div>
             <div>
               <small>この次に出るのは</small>
