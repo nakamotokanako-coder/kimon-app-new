@@ -822,6 +822,7 @@ export default function ReverseDirectionView({
     selectedPalace,
     onSelectPalace,
     conditionLabel,
+    renderDetail,
   }) => (
     <div className="reverse-zone reverse-go-zone reverse-go-zone--nichiban">
       <div className="reverse-zone-title">
@@ -840,6 +841,7 @@ export default function ReverseDirectionView({
           selectedPalace={selectedPalace}
           onSelectPalace={onSelectPalace}
           conditionLabel={conditionLabel}
+          renderDetail={renderDetail}
           goodOnly={goodOnly}
           onGoodOnlyChange={setGoodOnly}
           autoGuide={autoMapGuide}
@@ -1257,6 +1259,17 @@ export default function ReverseDirectionView({
                 selectedPalace: dayPickedPalace,
                 onSelectPalace: setDayPickedPalace,
                 conditionLabel: `${formatDisplayDate(dayDate)} の日盤`,
+                // 時盤の地図と同じく、パネルの中にテーマ別の相性を入れる（解説は日盤用の鍵で引く）。
+                renderDetail: (item) => (
+                  <FusionCard
+                    best={item}
+                    boardKey={makeKaisetsuKey(dayReverse.board.meta)}
+                    banLevel={dayReverse.board.score.ban_level}
+                    selAxis={selAxis}
+                    onAxisChange={setSelAxis}
+                    onGoToSearch={scrollToGoSearch}
+                  />
+                ),
                 profileKey: 'nichiban',
                 showScale: true,
                 chips: dayFavoriteChips,
