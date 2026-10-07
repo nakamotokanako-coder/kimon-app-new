@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      奇門遁甲Z の紹介ページ（/about）。アプリを知らない人が、検索や SNS から最初に来るページ。
+      - 文は、この about.html に全部書いてある（直すときは、このファイルだけ）。見た目は src/about/about.css
+      - 画面の写真は、実際のアプリの画面だけ。アプリに無い機能は書かない
+      - 効果は約束しない（「運が上がる」「叶う」「必ず」などは書かない）。test/aboutPage.test.js が見張る
+      - 料金は lib/accessPolicy.js と同じ文字にする（テストが見張る）
+      - アプリの中の案内（src/components/IntroPage.jsx）とは別のページ
+    -->
+    <title>奇門遁甲Z｜目的を選ぶだけで、吉方位と時間がわかるアプリ</title>
+    <meta name="description" content="奇門遁甲（きもんとんこう）は、いつ・どの方位へ動くかを盤から読む方位術。奇門遁甲Zは、難しい盤を自動で出し、目的に合う時間と方位を順位で見せ、行き先を地図で選べるアプリです。" />
+    <link rel="canonical" href="https://kimon-tonko.vercel.app/about" />
+    <meta name="theme-color" content="#faf7f0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="奇門遁甲Z" />
+    <meta property="og:title" content="奇門遁甲Z｜運は、待つものじゃない。取りに行くものだ。" />
+    <meta property="og:description" content="目的を選ぶだけで、いつ・どの方位へ動くかがわかる。奇門遁甲の盤を自動で出し、行き先を地図で選べるアプリ。" />
+    <meta property="og:url" content="https://kimon-tonko.vercel.app/about" />
+    <meta property="og:image" content="https://kimon-tonko.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="奇門遁甲Z｜運は、待つものじゃない。取りに行くものだ。" />
+    <meta name="twitter:description" content="目的を選ぶだけで、いつ・どの方位へ動くかがわかる。奇門遁甲の盤を自動で出し、行き先を地図で選べるアプリ。" />
+    <meta name="twitter:image" content="https://kimon-tonko.vercel.app/og.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;1,500&family=Shippori+Mincho:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/about/about.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="/about" aria-label="奇門遁甲Z">
+        <span class="brand-mark" aria-hidden="true">遁</span>
+        <span class="brand-name">奇門遁甲Z</span>
+      </a>
+      <a class="top-cta js-open-app" href="/">アプリを開く</a>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero" aria-label="奇門遁甲Zとは">
+        <img class="hero-bg" src="/lp/hero-ink.webp" alt="" width="1600" height="600" />
+        <div class="hero-inner">
+          <p class="eyebrow">FORTUNE × TIME × DIRECTION</p>
+          <h1 class="hero-title">運は、待つものじゃない。<br />取りに行くものだ。</h1>
+          <p class="hero-lead">
+            奇門遁甲（きもんとんこう）は、約1,800年前から伝わるとされる方位術です。<br class="pc" />
+            「いつ・どの方位へ動くか」を、盤から読みます。
+          </p>
+          <p class="hero-lead">
+            奇門遁甲Zは、その盤を自動で出して、<br class="pc" />
+            目的に合う時間と方位を教え、行き先を地図で選べるアプリです。
+          </p>
+          <a class="cta js-open-app" href="/">今日の吉方位を見る <span aria-hidden="true">→</span></a>
+          <p class="cta-note">登録なしで、今日の盤が見られます。<br />地図や検索は、メールアドレスでログインすると使えます。</p>
+        </div>
+      </section>
+
+      <!-- 01 -->
+      <section class="sec" id="what">
+        <div class="wrap narrow">
+          <p class="num">01</p>
+          <h2>奇門遁甲って、なに？</h2>
+          <p class="lead">時間と方位を組み合わせて、「いま、どちらへ動くか」を見る術です。古代の中国で、兵法として使われたと伝えられています。</p>
+          <p class="lead">運勢を読んで待つのではなく、自分から動く。そこが、ふつうの占いと違うところです。</p>
+          <ul class="facts">
+            <li><b>8<small>方位</small></b><span>北・北東・東・南東・南・南西・西・北西を見ます</span></li>
+            <li><b>2<small>時間ごと</small></b><span>近場へ行くときの盤（時盤）は、2時間ごとに変わります</span></li>
+            <li><b>1<small>日ごと</small></b><span>旅行や遠出の盤（日盤）は、1日ごとに変わります</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="sec tint" id="hard">
+        <div class="wrap split">
+          <div class="split-text">
+            <p class="num">02</p>
+            <h2>でも、本来の奇門遁甲は難しい</h2>
+            <p class="lead">これが、ある時間の本物の盤です。</p>
+            <p>ひとつの方位に、門・星・神・干が重なります。組み合わせで吉にも凶にもなり、さらに「格局」という特別な形も出ます。</p>
+            <p>盤を作るのにも、読むのにも、たくさんの決まりを覚えなければいけません。</p>
+          </div>
+          <figure class="shot">
+            <img src="/lp/app-board.webp" alt="奇門遁甲Zの時盤の画面。8つの方位それぞれに、門・星・神・干と点数が並んでいる" width="750" height="785" loading="lazy" />
+            <figcaption>アプリが出す時盤（実際の画面）</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="sec" id="easy">
+        <div class="wrap split reverse">
+          <div class="split-text">
+            <p class="num">03</p>
+            <h2>難しい計算は、アプリに任せる</h2>
+            <p class="lead">やることは、目的を選ぶだけ。</p>
+            <p>ご縁・仕事運・金運・健康運・勉強運から選ぶと、今日と今週のなかで、いちばん合う時間と方位を1位から順に出します。</p>
+            <p>盤を読めなくても大丈夫です。読める人は、理由を盤でそのまま確かめられます。</p>
+          </div>
+          <figure class="shot phone">
+            <img src="/lp/app-theme.webp" alt="「目的で選ぶ」の画面。仕事運を選ぶと、今週のBEST方位として南西と日時が出ている" width="750" height="1390" loading="lazy" />
+            <figcaption>「目的で選ぶ」（実際の画面）</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="sec tint" id="steps">
+        <div class="wrap">
+          <div class="head-center">
+            <p class="num">04</p>
+            <h2>使い方は、3ステップ</h2>
+          </div>
+          <ol class="steps">
+            <li>
+              <span class="step-no">1</span>
+              <h3>目的を選ぶ</h3>
+              <p>ご縁・仕事運・金運・健康運・勉強運から、いまの自分に近いものを選びます。</p>
+            </li>
+            <li>
+              <span class="step-no">2</span>
+              <h3>いつ・どの方位かを見る</h3>
+              <p>いちばん合う日時と方位が、1位から並びます。近場か、遠出かも選べます。</p>
+            </li>
+            <li>
+              <span class="step-no">3</span>
+              <h3>地図で行き先を決めて、動く</h3>
+              <p>その方位にあるカフェ・神社・公園などを、地図で探せます。あとは出かけるだけ。</p>
+            </li>
+          </ol>
+          <div class="split map-row">
+            <figure class="shot phone">
+              <img src="/lp/app-map.webp" alt="地図の画面。いまいる場所を中心に、8つの方位が色分けされ、点数が出ている" width="750" height="930" loading="lazy" />
+              <figcaption>方位を地図に重ねて見る（実際の画面）</figcaption>
+            </figure>
+            <div class="split-text">
+              <h3 class="sub">どのくらい動けばいい？</h3>
+              <dl class="guide">
+                <dt>近場（時盤）</dt>
+                <dd>500メートル以上はなれた場所へ行くか、5分以上かけて移動。着いた先で5分以上過ごすのが目安です。</dd>
+                <dt>遠出（日盤）</dt>
+                <dd>50キロ以上はなれた場所へ行き、3時間以上そこで過ごすのが目安です。</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="sec" id="scenes">
+        <div class="wrap">
+          <div class="head-center">
+            <p class="num">05</p>
+            <h2>たとえば、こんな日に</h2>
+          </div>
+          <ul class="scenes">
+            <li>
+              <img src="/lp/spot-cafe.webp" alt="" width="640" height="480" loading="lazy" />
+              <h3>大事な予定の前に</h3>
+              <p>面接や商談の前に、良い方位のカフェへ寄ってから向かう。</p>
+            </li>
+            <li>
+              <img src="/lp/spot-shop.webp" alt="" width="640" height="480" loading="lazy" />
+              <h3>いつもの買い物で</h3>
+              <p>どの店へ行くか迷ったら、今日の方位で決める。</p>
+            </li>
+            <li>
+              <img src="/lp/spot-sea.webp" alt="" width="640" height="480" loading="lazy" />
+              <h3>休みの日の遠出に</h3>
+              <p>旅行の日取りと行き先を、日盤で決める。</p>
+            </li>
+            <li>
+              <img src="/lp/spot-shrine.webp" alt="" width="640" height="480" loading="lazy" />
+              <h3>お参りの日に</h3>
+              <p>神社へ行く日と方位を、先に探しておく。</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 06 -->
+      <section class="sec tint" id="kakkyoku">
+        <div class="wrap">
+          <div class="head-center">
+            <p class="num">06</p>
+            <h2>やりたいことから、特別な日を探す</h2>
+            <p class="lead">盤には、ときどき「格局（かっきょく）」という特別な形が出ます。<br class="pc" />アプリでは12の吉格を、やりたいことから逆に探せます。</p>
+          </div>
+          <ul class="kaku">
+            <li><img src="/divination/seiryu-henko.webp" alt="" width="320" height="320" loading="lazy" /><b>青龍返首</b><span>表舞台に出る。大きく仕掛ける。</span></li>
+            <li><img src="/divination/asuka-gekketsu.webp" alt="" width="320" height="320" loading="lazy" /><b>飛鳥跌穴</b><span>チャンスが来たら、その場でつかむ。</span></li>
+            <li><img src="/divination/tento.webp" alt="" width="320" height="320" loading="lazy" /><b>天遁</b><span>世界を広げる。人・お金・知識を取りに行く。</span></li>
+            <li><img src="/divination/chito.webp" alt="" width="320" height="320" loading="lazy" /><b>地遁</b><span>積み重ねてきたものを、成果に変える。</span></li>
+            <li><img src="/divination/jinto.webp" alt="" width="320" height="320" loading="lazy" /><b>人遁</b><span>ひとりで頑張らない。人の力を借りる。</span></li>
+            <li><img src="/divination/futo.webp" alt="" width="320" height="320" loading="lazy" /><b>風遁</b><span>届けたいなら、風に乗せる。</span></li>
+            <li><img src="/divination/unto.webp" alt="" width="320" height="320" loading="lazy" /><b>雲遁</b><span>正面突破より、一手先を読む。</span></li>
+            <li><img src="/divination/ryuto.webp" alt="" width="320" height="320" loading="lazy" /><b>龍遁</b><span>流れに乗って、遠くへ運ぶ。</span></li>
+            <li><img src="/divination/koto.webp" alt="" width="320" height="320" loading="lazy" /><b>虎遁</b><span>今日は引かない。強気で通す。</span></li>
+            <li><img src="/divination/shinto-icon.webp" alt="" width="320" height="320" loading="lazy" /><b>神遁</b><span>神様にお願いする。運とひらめきも借りる。</span></li>
+            <li><img src="/divination/kito.webp" alt="" width="320" height="320" loading="lazy" /><b>鬼遁</b><span>相手を調べる。隙を見つける。そこを突く。</span></li>
+            <li><img src="/divination/gyokunyo.webp" alt="" width="320" height="320" loading="lazy" /><b>玉女守門</b><span>大事な人と、ちゃんと向き合う日に。</span></li>
+          </ul>
+          <p class="kaku-note">「発信・宣伝」「恋愛・結婚」「面接・試験・学び」などから選ぶと、合う格局が出る日時と方位を探します。</p>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section class="sec dark" id="rare">
+        <div class="wrap">
+          <div class="head-center">
+            <p class="num">07</p>
+            <h2>めったにない盤を、知らせる</h2>
+            <p class="lead">特別な格局が、とても高い点数で出る日があります。<br class="pc" />3日前から、ホームとベルでお知らせします。</p>
+          </div>
+          <ul class="rare">
+            <li>
+              <p class="rare-name">満盤<small>まんばん</small></p>
+              <p class="rare-count">年に約18回</p>
+              <p>格局が乗った方位が、満点の120点になる時間帯。</p>
+            </li>
+            <li>
+              <p class="rare-name">極盤<small>きょくばん</small></p>
+              <p class="rare-count">年に約7回</p>
+              <p>格局が乗った方位が、日盤で100点以上になる日。</p>
+            </li>
+            <li>
+              <p class="rare-name">双格<small>そうかく</small></p>
+              <p class="rare-count">年に4回だけ</p>
+              <p>格局が、同じ日の日盤に2つ並ぶ日。</p>
+            </li>
+          </ul>
+          <p class="rare-note">満盤・極盤・双格は、このアプリだけの呼び名です。回数は、2026年から18年ぶんの盤を、実際に数えた結果です。</p>
+        </div>
+      </section>
+
+      <!-- 盤は簡略化しない -->
+      <section class="sec" id="honest">
+        <div class="wrap narrow">
+          <p class="num">08</p>
+          <h2>かんたんに見せる。でも、盤は省かない</h2>
+          <p class="lead">入口はやさしくしても、中身は削っていません。</p>
+          <ul class="checks">
+            <li>門・星・神・干・格局まで、盤にそのまま出します</li>
+            <li>点数がなぜその数字なのか、理由を読めます</li>
+            <li>その土地の太陽の時刻（自然時）で計算します</li>
+            <li>注意が要る方位は、点数が高くても注意を出します</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 料金 -->
+      <section class="sec tint" id="price">
+        <div class="wrap narrow">
+          <div class="head-center">
+            <p class="num">PRICE</p>
+            <h2>料金</h2>
+          </div>
+          <div class="price">
+            <div class="price-now">
+              <p class="badge">いまはβ期間中</p>
+              <p class="price-big">無料</p>
+              <p>ログインすると、すべての機能を無料で使えます。<br />ログインはメールアドレスだけ。パスワードはいりません。</p>
+            </div>
+            <div class="price-later">
+              <p class="price-label">正式版（予定）</p>
+              <p class="price-plan" data-price="monthly">月額980円（税込）</p>
+              <p class="price-plan" data-price="annual">年額10,000円（税込）</p>
+              <p class="price-small">正式版は、いつでも解約できます。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- よくある質問 -->
+      <section class="sec" id="faq">
+        <div class="wrap narrow">
+          <div class="head-center">
+            <p class="num">Q &amp; A</p>
+            <h2>よくある質問</h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>奇門遁甲を知らなくても使えますか？</summary>
+              <p>使えます。目的を選ぶと、合う時間と方位が順位で出ます。盤の読み方は、使いながら少しずつで大丈夫です。</p>
+            </details>
+            <details>
+              <summary>登録は必要ですか？</summary>
+              <p>今日の盤は、登録なしで見られます。地図や検索などは、メールアドレスでログインすると使えます。</p>
+            </details>
+            <details>
+              <summary>アプリを入れる必要はありますか？</summary>
+              <p>いりません。スマホやパソコンのブラウザで、そのまま使えます。スマホのホーム画面に追加して使うこともできます。</p>
+            </details>
+            <details>
+              <summary>吉方位へ行けば、良いことが起きますか？</summary>
+              <p>結果を約束するものではありません。「いつ・どこへ動くか」を決める、ひとつの目安として使ってください。</p>
+            </details>
+            <details>
+              <summary>近場と遠出で、見る盤が違うのはなぜですか？</summary>
+              <p>奇門遁甲では、近くへ短い時間で行くときは時盤（2時間ごと）、遠くへ行って長く過ごすときは日盤（1日ごと）を見ます。アプリでは「近場」「遠出」を選ぶだけで切り替わります。</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- 締め -->
+      <section class="final" aria-label="はじめる">
+        <img class="final-bg" src="/lp/final-sunset.webp" alt="" width="1600" height="600" loading="lazy" />
+        <div class="final-inner">
+          <h2>今日の運勢を見るのではなく、<br />今日の運を取りに行く。</h2>
+          <a class="cta gold js-open-app" href="/">今日の吉方位を見る <span aria-hidden="true">→</span></a>
+          <p class="cta-note">登録なしで、今日の盤が見られます。</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p class="foot-brand">奇門遁甲Z</p>
+      <p><a class="js-open-app" href="/">アプリを開く</a></p>
+    </footer>
+
+    <script>
+      // このページを読んだ人には、アプリの中の「はじめての案内」をもう一度は出さない
+      document.querySelectorAll('.js-open-app').forEach(function (link) {
+        link.addEventListener('click', function () {
+          try { window.localStorage.setItem('kimon-intro-seen', '1'); } catch (e) { /* 保存できなくても開く */ }
+        });
+      });
+    </script>
+  </body>
+</html>
