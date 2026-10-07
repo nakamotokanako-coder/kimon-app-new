@@ -5,9 +5,10 @@ import { createHmac } from 'node:crypto';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import billingHandler from '../api/billing.js';
 import { answer, isValidSignature, MENU } from '../lib/billingApi/line.js';
+import { bestDaysForTheme, bestTimesForTheme, THEMES } from '../src/reverseDirection/themeSearch.js';
 import {
-  buildDayText, buildNowText, buildWhenText, correctionMinutes, dateLabel, loadLineToday,
-  restDayChoices, setLineTodayData, slotLabel,
+  addDays, buildDayText, buildNowText, buildThemeText, buildWhenText, correctionMinutes, dateLabel, loadLineToday,
+  restDayChoices, setLineTodayData, slotClock, slotLabel, themeDayPicks, themeTimePicks,
 } from '../lib/lineToday.js';
 import { setKvClient } from '../lib/kv.js';
 import {
@@ -76,7 +77,7 @@ function timeTable(date, slotHour, entry) {
 beforeAll(() => {
   // 表の形が古い（作り直していない）ときも作り直す
   let stale = !existsSync(DATA_PATH);
-  if (!stale) stale = !loadLineToday().dayDirs;
+  if (!stale) stale = !loadLineToday().themeTime;
   if (stale) {
     execFileSync('node', ['scripts/build_line_today.mjs'], { cwd: fileURLToPath(ROOT), stdio: 'ignore' });
     setLineTodayData(null);
@@ -362,5 +363,134 @@ describe('LINE の Webhook（/api/billing?action=line）', () => {
     delete process.env.LINE_CHANNEL_SECRET;
     const res = await post({ events: [] });
     expect(res.statusCode).toBe(503);
+  });
+});
+
+describe('目的から探す（表と文）', () => {
+  afterEach(() => setLineTodayData(null));
+  const TODAY = '2026-10-07'; // 水曜
+  const week = Array.from({ length: 7 }, (_, i) => addDays(TODAY, i));
+
+  it('目的の名前は、アプリの「目的で選ぶ」と同じ', () => {
+    expect(loadLineToday().themes).toEqual(THEMES.map((theme) => ({ key: theme.key, label: theme.label })));
+  });
+
+  it('日盤の順位が、アプリの「目的で選ぶ」と同じ', () => {
+    THEMES.forEach((theme, index) => {
+      const app = bestDaysForTheme({ theme: theme.key, dates: week, limit: 3 });
+      const line = themeDayPicks(index, TODAY).slice(0, 3);
+      expect(line.map((p) => [p.date, p.entry.dir, p.entry.rank, p.entry.score]))
+        .toEqual(app.map((p) => [p.date, p.item.label, p.item.themeRank, p.item.score]));
+    });
+  });
+
+  it('週末の時盤の一番が、アプリの「目的で選ぶ」と同じ', () => {
+    const weekend = week.filter((date) => [0, 6].includes(new Date(`${date}T00:00:00Z`).getUTCDay()));
+    THEMES.forEach((theme, index) => {
+      const [app] = bestTimesForTheme({ theme: theme.key, dates: weekend, limit: 1 });
+      const [line] = themeTimePicks(index, TODAY, 12);
+      expect([line?.date, line?.hour, line?.entry.dir, line?.entry.score]).toEqual([app?.date, app?.hour, app?.item.label, app?.item.score]);
+    });
+  });
+
+  it('時間帯を「15:00〜17:00」の形にする', () => {
+    expect(slotClock(16)).toBe('15:00〜17:00');
+    expect(slotClock(0)).toBe('23:00〜1:00');
+  });
+
+  const entry = (over = {}) => ({ dir: '南東', gate: '生門', rank: '◎', score: 80, stars: 5, grade: '最適', short: '土台づくりに向く方位です。', ...over });
+  // 目的は金運（3番目）だけ中身を入れる
+  const table = ({ themeDay = {}, themeTime = {}, entries }) => ({
+    dirs: DIRS,
+    entries,
+    time: {}, day: {}, dayDirs: {},
+    themes: [{ key: 'goen', label: 'ご縁' }, { key: 'shigoto', label: '仕事運' }, { key: 'kinun', label: '金運' }],
+    themeHours: [6, 8, 10, 12, 14, 16, 18, 20, 22],
+    themeDay,
+    themeTime,
+  });
+  const dayRow = (index) => [-1, -1, index];
+  // 時間帯ごとに目的3つぶん。slots は { 時間帯の番号: 中身の番号 }
+  const timeRow = (slots) => {
+    const row = Array(27).fill(-1);
+    for (const [slotIndex, index] of Object.entries(slots)) row[Number(slotIndex) * 3 + 2] = index;
+    return row;
+  };
+  const NOW = new Date('2026-10-07T10:00:00+09:00');
+
+  it('日盤と時盤を分けて書く。門の一言・ほかの候補・地図への誘い・プロ版の案内を入れる', () => {
+    setLineTodayData(table({
+      entries: [entry(), entry({ dir: '東', rank: '◎', score: 50, stars: 4, grade: 'かなり良い' }), entry({ dir: '南', score: 100, short: '別の一言です。' })],
+      themeDay: { '2026-10-09': dayRow(0), '2026-10-12': dayRow(1) },
+      themeTime: { '2026-10-10': timeRow({ 5: 2 }) },
+    }));
+    const text = buildThemeText('kinun', NOW, APP);
+    expect(text.startsWith('💰 この1週間、金運で動くなら')).toBe(true);
+    expect(text).toContain('1日かけてしっかり方位を取るなら、\n10月9日（金）の「南東」がおすすめ。');
+    expect(text).toContain('★★★★★ 最適（生門）\n土台づくりに向く方位です。');
+    expect(text).toContain('ほかの候補\n・10月12日（月）東　★★★★ かなり良い');
+    expect(text).toContain('🚶 近場なら、週末のこの時間');
+    expect(text).toContain('10月10日（土）15:00〜17:00の「南」');
+    expect(text).toContain('別の一言です。');
+    expect(text).toContain('南東・南に何があるか、アプリの地図で探してみる →');
+    expect(text).toContain(`${APP}/?go=theme&theme=kinun&openExternalBrowser=1`);
+    expect(text).toContain('なぜ今回は金運向きなのか？');
+    // 点数は出さない（アプリの「目的で選ぶ」と同じく、星と言葉で見せる）
+    expect(text).not.toMatch(/点/);
+  });
+
+  it('◎が先、同じ記号なら点数の高い順（○の高得点より、◎が上）', () => {
+    setLineTodayData(table({
+      entries: [entry({ dir: '北', rank: '○', score: 90, stars: 3, grade: '良い' }), entry({ dir: '西', rank: '◎', score: 50, stars: 4, grade: 'かなり良い' })],
+      themeDay: { '2026-10-08': dayRow(0), '2026-10-09': dayRow(1) },
+    }));
+    expect(buildThemeText('kinun', NOW)).toContain('10月9日（金）の「西」がおすすめ。');
+  });
+
+  it('時盤と日盤で一言が同じなら、2回は書かない', () => {
+    setLineTodayData(table({
+      entries: [entry()],
+      themeDay: { '2026-10-09': dayRow(0) },
+      themeTime: { '2026-10-10': timeRow({ 5: 0 }) },
+    }));
+    expect(buildThemeText('kinun', NOW).split('土台づくりに向く方位です。')).toHaveLength(2);
+  });
+
+  it('今日が土日のとき、もう過ぎた時間帯は出さない', () => {
+    setLineTodayData(table({
+      entries: [entry({ dir: '北', score: 100 }), entry({ dir: '南', score: 60 })],
+      themeTime: { '2026-10-10': timeRow({ 1: 0, 5: 1 }) }, // 7-9時が北、15-17時が南
+    }));
+    const text = buildThemeText('kinun', new Date('2026-10-10T12:30:00+09:00'));
+    expect(text).toContain('15:00〜17:00の「南」');
+    expect(text).not.toContain('「北」');
+  });
+
+  it('向く方位がなければ、ないと伝える。知らない目的は null', () => {
+    setLineTodayData(table({ entries: [] }));
+    expect(buildThemeText('kinun', NOW)).toContain('金運に向く方位が見つかりませんでした。');
+    expect(buildThemeText('unknown', NOW)).toBeNull();
+  });
+});
+
+describe('LINE の「目的から探す」', () => {
+  const NOW = new Date('2026-10-07T10:00:00+09:00');
+
+  it('押したら目的のボタンを出し、選んだ目的の結果を返信する', async () => {
+    const picker = await answer(textEvent(MENU.theme), NOW, APP);
+    expect(picker.text).toBe('どの目的で探しますか？');
+    expect(picker.quickReply.items.map((item) => item.action.data)).toEqual(THEMES.map((theme) => `theme:${theme.key}`));
+    expect(picker.quickReply.items[2].action.label).toBe('💰 金運');
+
+    const result = await answer(postbackEvent('theme:kinun'), NOW, APP);
+    expect(result.text).toContain('この1週間、金運で動くなら');
+    expect(await answer(postbackEvent('theme:unknown'), NOW, APP)).toBeNull();
+  });
+
+  it('「今の吉方位」の返信に、次に押せるもの（目的から探す・次の休み）を添える', async () => {
+    setKvClient({ async get() { return null; }, async set() {}, async del() {} });
+    const message = await answer(textEvent(MENU.now), NOW, APP);
+    expect(message.quickReply.items.map((item) => item.action.text).filter(Boolean)).toEqual([MENU.theme, MENU.day]);
+    setKvClient(null);
   });
 });

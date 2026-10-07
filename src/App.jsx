@@ -27,6 +27,7 @@ import { startUserDataSync, isSyncEnabled, SYNC_SETTING_CHANGED_EVENT } from './
 import { lockedMessage } from '../lib/accessPolicy.js';
 import { computeDynamicNotices } from './notifications/dynamicNotices.js';
 import { captureLineLoginCallback, capturePendingLineLink, finishLineLogin } from './auth/lineLink.js';
+import { THEMES as SEARCH_THEMES } from './reverseDirection/themeSearch.js';
 import packageJson from '../package.json';
 
 // 標準は白地に金（パール）。前から使っている人が選んだテーマは localStorage に残っているのでそのまま。
@@ -386,6 +387,7 @@ export default function App() {
   };
   // LINE の返信などからのリンク: アドレスに ?go=time / day / ranking / guide を付けて開くと、その画面から始める。
   //   time … 地図（時盤）  day … 地図（日盤）  ranking … この方位、いつ行く？  guide … 使い方ガイド
+  //   theme … 目的で選ぶ（&theme=kinun のように目的も付ける）
   // 地図と検索は全機能を使える人だけ（使えない人はホームのまま）。ログインの判定が済んでから1回だけ移る。
   const [goTarget, setGoTarget] = useState(() => (
     typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('go') : null
@@ -393,12 +395,18 @@ export default function App() {
   useEffect(() => {
     if (!goTarget || auth.phase !== 'ready') return;
     const params = new URLSearchParams(window.location.search);
+    const goThemeKey = params.get('theme');
     params.delete('go');
+    params.delete('theme');
     const rest = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}`);
     setGoTarget(null);
     if (goTarget === 'guide') setGuideOpen(true);
     else if (limited) return;
+    else if (goTarget === 'theme') {
+      if (SEARCH_THEMES.some((item) => item.key === goThemeKey)) goTheme(goThemeKey);
+      else goSearch(null);
+    }
     else if (goTarget === 'time' || goTarget === 'day') goMap(goTarget);
     else if (goTarget === 'ranking') goSearch('ranking');
     // eslint-disable-next-line react-hooks/exhaustive-deps
