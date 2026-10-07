@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:kaisetsu": "node scripts/build_kaisetsu_text.mjs",
     "build:line": "node scripts/build_line_today.mjs",
+    "build:rare": "node scripts/build_rare_days.mjs",
     "vercel-build": "npm run build:kaisetsu && npm run build:line && vite build",
     "preview": "vite preview",
     "test": "vitest run",
