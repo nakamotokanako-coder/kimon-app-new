@@ -227,6 +227,7 @@ export default function ReverseDirectionView({
   onOpenTimeRanking,  // 地図タブの時盤から、今日の時間帯別ランキング（探すタブ）へ
   onOpenMapTime,      // 探すタブの時間帯一覧から、選んだ時間・方位のまま地図タブ（時盤）へ
   onOpenMapDay,       // 探すタブの吉日検索から、選んだ日・方位のまま地図タブ（日盤）へ
+  mapRequest = null,   // 稀日の画面で選んだ日時・方位（{ date, hour, palace, at }）。hour が null なら日盤
   themeRequest = null, // ホーム・探すの入口で選んだ目的（{ theme, at }）。変わるたびに、「目的で選ぶ」の画面の目的を切り替える
   longRangeLocked = false, // 吉日検索の3ヶ月以上が年額プラン限定か（lib/accessPolicy.js）
   longRangeLimit = null,   // 年額プランの人が探せる最後の日（契約期間の終わり。'YYYY-MM-DD'）
@@ -355,6 +356,19 @@ export default function ReverseDirectionView({
   const dayVisibleRankings = filterGoodRankings(dayReverse?.rankings || [], goodOnly);
   // 吉日検索で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
   const [dayPickedPalace, setDayPickedPalace] = useState(null);
+  // 稀日から来たとき: その日時・方位を、地図に引き継ぐ。
+  useEffect(() => {
+    if (!mapRequest?.date) return;
+    if (mapRequest.hour === null || mapRequest.hour === undefined) {
+      setDayDate(mapRequest.date);
+      setDayPickedPalace(mapRequest.palace || null);
+      return;
+    }
+    setTimeDate(mapRequest.date !== today ? mapRequest.date : null);
+    setPickedHour(mapRequest.date === today && mapRequest.hour === liveSlotHour ? null : mapRequest.hour);
+    setPickedPalace(mapRequest.palace || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapRequest]);
   const dayPickedItem = dayPickedPalace ? (dayReverse?.rankings || []).find((item) => item.palace === dayPickedPalace) : null;
   const dayTopItem = dayVisibleRankings[0] || null;
   const dayBest = dayPickedItem || dayTopItem;

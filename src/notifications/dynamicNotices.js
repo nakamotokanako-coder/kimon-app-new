@@ -11,6 +11,8 @@ import {
 } from '../reverseDirection/reverseDirection.js';
 import { decoratePlaces, favoriteDisplayName, MAP_SEARCH_STORAGE_KEY } from '../reverseDirection/mapSearch.js';
 import { getBoardDate } from '../utils/boardDate.js';
+import { RARE_TIERS, countdownLabel, upcomingRareEvents } from '../reverseDirection/rareDays.js';
+import { rareHeadline, rareWhenLabel } from '../components/RareDay.jsx';
 
 export const OMAMORI_OPENED_KEY = 'kimon-omamori-opened-date';
 const BASE_POINT_KEY = 'kimon_go_base_point_v1';
@@ -66,8 +68,24 @@ export function buildFavoriteNotices({ today, slotHour, rankings, base, favorite
     }));
 }
 
+/** 稀日（満盤・極盤・双格）のお知らせ。3日前から当日まで出す */
+export function buildRareNotices({ today, events }) {
+  return (events || []).map((event) => {
+    const tier = RARE_TIERS[event.tier];
+    const count = countdownLabel(event, today);
+    return {
+      id: `rare-${event.id}`,
+      type: 'history',
+      sender: '稀日',
+      title: count === '今日' ? `今日は「${tier.name}」です` : count === '明日' ? `明日は「${tier.name}」です` : `${count}で「${tier.name}」です`,
+      body: `${rareWhenLabel(event)} ${event.best.label}。${rareHeadline(event)}${tier.rarity}。ホームのいちばん上から見られます。`,
+      date: slashDate(today),
+    };
+  });
+}
+
 /** 設定に応じた、今出すべきお知らせの一覧（アプリを開いたとき・設定を変えたときに計算する） */
-export function computeDynamicNotices({ omamoriReminder, favoriteBestNotify, now = new Date() }) {
+export function computeDynamicNotices({ omamoriReminder, favoriteBestNotify, rareNotify = true, now = new Date() }) {
   if (typeof window === 'undefined') return [];
   const notices = [];
   const today = getBoardDate(now);
@@ -75,6 +93,12 @@ export function computeDynamicNotices({ omamoriReminder, favoriteBestNotify, now
     if (omamoriReminder) {
       const n = buildOmamoriNotice({ today, openedDate: window.localStorage.getItem(OMAMORI_OPENED_KEY) });
       if (n) notices.push(n);
+    }
+    if (rareNotify) {
+      const stored = readJson(BASE_POINT_KEY)?.location;
+      const longitude = Number.isFinite(Number(stored?.longitude)) ? Number(stored.longitude) : DEFAULT_BASE.longitude;
+      const liveSlotHour = getTimeSlotHour(applyNaturalTime(now, getLongitudeCorrectionMinutes(longitude)));
+      notices.push(...buildRareNotices({ today, events: upcomingRareEvents({ today, liveSlotHour }) }));
     }
     if (favoriteBestNotify) {
       const stored = readJson(BASE_POINT_KEY)?.location;

@@ -13316,3 +13316,314 @@ p.saikyo-annual-note.is-open {
   margin-left: 8px;
   font-weight: 700;
 }
+
+/* 稀日（満盤・極盤・双格）。金の枠は、このカードだけに使う */
+.rare-card {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1.5px solid var(--accent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
+}
+
+.rare-card p {
+  margin: 0;
+}
+
+.rare-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rare-seal {
+  display: inline-grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 12px 5px;
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  color: var(--text-primary);
+}
+
+.rare-seal b {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+}
+
+.rare-seal small {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+}
+
+.rare-card-count {
+  padding: 3px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.rare-card-rarity {
+  margin-top: 4px !important;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+}
+
+.rare-card-headline {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.rare-card-spot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+
+.rare-card-arts {
+  display: flex;
+  flex: none;
+}
+
+.rare-card-arts .rare-art + .rare-art {
+  margin-left: -14px;
+}
+
+.rare-art {
+  object-fit: contain;
+}
+
+.rare-card-when {
+  display: grid;
+  gap: 1px;
+}
+
+.rare-card-when small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.rare-card-when strong {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+}
+
+.rare-card-cta,
+.rare-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rare-card-cta {
+  margin-top: 4px;
+}
+
+/* 開いたときの画面 */
+.rare-sheet-body {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 28px;
+}
+
+.rare-sheet-body p {
+  margin: 0;
+}
+
+.rare-hero {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  border-radius: 14px;
+  object-fit: cover;
+  object-position: right center;
+}
+
+.rare-hero-arts {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 0 2px;
+}
+
+.rare-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rare-sheet-meaning {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.rare-sheet-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.rare-sheet-when span {
+  color: var(--text-accent);
+  font-size: 0.8rem;
+}
+
+.rare-sheet-headline {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.rare-spots {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rare-spots li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+}
+
+.rare-spots strong {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+}
+
+.rare-spots span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.rare-title {
+  margin: 8px 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+}
+
+.rare-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rare-stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+
+.rare-stats small {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.rare-stats strong {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.16rem;
+  letter-spacing: 0.04em;
+}
+
+.rare-weeks {
+  display: flex;
+  gap: 3px;
+}
+
+.rare-weeks span {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+}
+
+.rare-weeks span.is-on {
+  background: var(--accent);
+}
+
+.rare-note,
+.rare-guide-desc {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.rare-guide {
+  display: grid;
+  gap: 6px;
+}
+
+.rare-guide-list {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rare-guide-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.rare-guide-list .icon {
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+
+.rare-cta {
+  margin-top: 8px;
+}
+
+.rare-stats strong {
+  font-size: 1.06rem;
+  line-height: 1.4;
+}
