@@ -7592,11 +7592,22 @@ body {
    .openクラス・transformスライド・Escape対応）。backdrop-filterは使わない。
    z-index は下部タブバー(100)より確実に上、BasePointSheet(200/201)より下に
    固定する（同時に開かないため衝突しない）。 ── */
-.fusion-more-hint {
-  margin-top: 8px;
-  text-align: right;
-  font-size: 11px;
-  color: var(--text-secondary);
+.fusion-inline {
+  display: grid;
+  min-width: 0;
+}
+
+.fusion-more-link {
+  justify-self: end;
+  margin-top: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* 地図（Leaflet）は中で大きな重なり順（最大1000）を使う。外に漏れると、手前に出したシートやメニューの上に
@@ -10240,18 +10251,6 @@ p.saikyo-annual-note.is-open {
   color: var(--text-secondary);
   font-size: 0.82rem;
   line-height: 1.7;
-}
-
-.direction-select-detail {
-  justify-self: start;
-  padding: 2px 0;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .direction-select-search {

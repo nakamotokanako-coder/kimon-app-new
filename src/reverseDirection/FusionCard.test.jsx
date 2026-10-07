@@ -195,22 +195,22 @@ describe('FusionCard フォールバック', () => {
     await screen.findByText(SHORT_TEXT);
   });
 
-  it('best が無くてもクラッシュせず該当なし表示', () => {
+  it('best が無くてもクラッシュせず、何も出さない', () => {
     mockFetchAuth({ loggedIn: false });
-    render(<FusionCard best={null} boardKey={KNOWN_KEY} selAxis="goen" />);
-    expect(screen.getByText('該当なし')).toBeTruthy();
+    const { container } = render(<FusionCard best={null} boardKey={KNOWN_KEY} selAxis="goen" />);
+    expect(container.textContent).toBe('');
   });
 });
 
 describe('FusionCard → L3ボトムシート（PR-5）', () => {
-  it('カードタップでL3シートが開き、スクリムタップで閉じる', async () => {
+  it('「方位の詳しい解説」でL3シートが開き、スクリムタップで閉じる', async () => {
     mockFetchAuth({ loggedIn: false });
     render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(SHORT_TEXT);
     expect(screen.queryByRole('dialog')).toBe(null);
 
-    fireEvent.click(screen.getByText('詳しく ›'));
+    fireEvent.click(screen.getByRole('button', { name: '方位の詳しい解説 ›' }));
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toBeTruthy();
 
@@ -223,7 +223,7 @@ describe('FusionCard → L3ボトムシート（PR-5）', () => {
     render(<ControlledFusionCard best={BEST} boardKey={KNOWN_KEY} />);
 
     await screen.findByText('ご縁の短文リード。');
-    fireEvent.click(screen.getByText('詳しく ›'));
+    fireEvent.click(screen.getByRole('button', { name: '方位の詳しい解説 ›' }));
     const dialog = await screen.findByRole('dialog');
 
     const kenkoChipInSheet = within(dialog).getAllByRole('tab').find((el) => el.textContent.includes('健康'));
@@ -239,7 +239,7 @@ describe('FusionCard → L3ボトムシート（PR-5）', () => {
     render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(SHORT_TEXT);
-    fireEvent.click(screen.getByText('詳しく ›'));
+    fireEvent.click(screen.getByRole('button', { name: '方位の詳しい解説 ›' }));
     const dialog = await screen.findByRole('dialog');
 
     expect(within(dialog).getAllByText(SHORT_TEXT).length).toBeGreaterThan(0);
@@ -251,7 +251,7 @@ describe('FusionCard → L3ボトムシート（PR-5）', () => {
     render(<FusionCard best={BEST} boardKey={KNOWN_KEY} selAxis="goen" />);
 
     await screen.findByText(SHORT_TEXT);
-    fireEvent.click(screen.getByText('詳しく ›'));
+    fireEvent.click(screen.getByRole('button', { name: '方位の詳しい解説 ›' }));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).queryByText('評価の解説')).toBe(null);
     expect(dialog.querySelector('.l3-why-detail')).toBe(null);

@@ -281,7 +281,7 @@ export default function DirectionMap({
   conditionLabel = '',   // 選んだ方位のパネルに小さく出す条件（例: 17:00-19:00 の時盤）
   goodOnly,              // 設定「凶方位の表示」の逆（渡されたときは「吉方位のみ表示」と連動する）
   onGoodOnlyChange,
-  onOpenDetail,          // 選んだ方位の詳しい内容（方位詳細）へ
+  renderDetail,          // (方位) → パネルの中に入れる詳しい内容（テーマ別の相性）
   autoGuide = false,     // true: 初めて地図を開いたときに、説明書を1回だけ自動で出す
   onSetBasePoint,        // ([経度, 緯度], 名前) → 探した場所を基準点にする
 }) {
@@ -407,6 +407,12 @@ export default function DirectionMap({
   const selectedItem = useMemo(
     () => (selectedPalace ? (rankings || []).find((item) => item.palace === selectedPalace) || null : null),
     [rankings, selectedPalace],
+  );
+  // パネルに出す方位。選んでいなければ、一番良い方位を出す（テーマ別の相性を中に入れる画面だけ）。
+  const panelItem = useMemo(
+    () => selectedItem
+      || (renderDetail && bestPalace ? (rankings || []).find((item) => item.palace === bestPalace) || null : null),
+    [selectedItem, renderDetail, bestPalace, rankings],
   );
   // 方位を選んでいるときは、その方位の中にある場所だけを出す（方位 × 場所の種類）。
   const visibleSearchResults = useMemo(
@@ -726,8 +732,10 @@ export default function DirectionMap({
   // 結果は visibleSearchResults で、その方位に入る場所だけに絞られる。
   const runDirectionSearch = async (word) => {
     const map = mapRef.current;
-    if (map && selectedItem) {
-      const angle = bearingFor(directionIndexFor(selectedItem), bearingOptions);
+    if (map && panelItem) {
+      // 一番良い方位をそのまま探すときは、その方位を選んだことにする（結果をその方位に絞るため）。
+      if (!selectedItem) onSelectPalace?.(panelItem.palace);
+      const angle = bearingFor(directionIndexFor(panelItem), bearingOptions);
       const half = MAP_FAN.sectorDeg / 2;
       const km = distanceKm || DEFAULT_DIRECTION_SEARCH_KM[profileKey] || DEFAULT_DIRECTION_SEARCH_KM.jiban;
       map.fitBounds(
@@ -1477,34 +1485,32 @@ export default function DirectionMap({
         <p className="direction-select-hint">地図の方位を押すと、その方位にある場所を探せます。</p>
       )}
 
-      {!isFullscreen && selectedItem && (() => {
-        const tone = getMiniBoardToneClass(selectedItem.score, selectedItem.palaceScore);
-        const gate = selectedItem.palaceData?.hachimon;
+      {!isFullscreen && panelItem && (() => {
+        const tone = getMiniBoardToneClass(panelItem.score, panelItem.palaceScore);
+        const gate = panelItem.palaceData?.hachimon;
         return (
-          <div className="direction-select-panel" aria-label="選んだ方位">
-            <button
-              type="button"
-              className="direction-select-close"
-              aria-label="方位の選択をやめる"
-              onClick={() => onSelectPalace?.(null)}
-            >
-              ×
-            </button>
+          <div className="direction-select-panel" aria-label={selectedItem ? '選んだ方位' : '一番良い方位'}>
+            {selectedItem && (
+              <button
+                type="button"
+                className="direction-select-close"
+                aria-label="方位の選択をやめる"
+                onClick={() => onSelectPalace?.(null)}
+              >
+                ×
+              </button>
+            )}
             <div className="direction-select-info">
               {conditionLabel && <p className="direction-select-cond">{conditionLabel}</p>}
               <div className="direction-select-head">
-                <strong>{selectedItem.label}</strong>
-                <b className="lat">{scoreText(selectedItem.score)}</b>
+                <strong>{panelItem.label}</strong>
+                <b className="lat">{scoreText(panelItem.score)}</b>
                 <span className={`direction-select-badge is-${tone}`}>{BADGE_LABEL[tone]}</span>
-                {selectedItem.palace === bestPalace && <span className="direction-select-best lat">BEST</span>}
+                {panelItem.palace === bestPalace && <span className="direction-select-best lat">BEST</span>}
               </div>
               {gate && <p className="direction-select-gate">{gate}</p>}
-              <p className="direction-select-text">{describeDirection(selectedItem)}</p>
-              {onOpenDetail && (
-                <button type="button" className="direction-select-detail" onClick={() => onOpenDetail(selectedItem)}>
-                  この方位を詳しく見る ›
-                </button>
-              )}
+              <p className="direction-select-text">{describeDirection(panelItem)}</p>
+              {renderDetail?.(panelItem)}
             </div>
             <div className="direction-select-search">
               <p className="direction-select-lead">この方位にある場所を探す</p>
@@ -1527,7 +1533,7 @@ export default function DirectionMap({
                 disabled={mapSearching}
                 onClick={() => runDirectionSearch(panelCategory)}
               >
-                {mapSearching ? '探しています…' : `${selectedItem.label}でスポットを探す →`}
+                {mapSearching ? '探しています…' : `${panelItem.label}でスポットを探す →`}
               </button>
             </div>
           </div>

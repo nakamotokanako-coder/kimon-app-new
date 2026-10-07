@@ -403,7 +403,6 @@ describe('DirectionMap 方位を選ぶ（BEST と 選択中 は別）', () => {
 describe('DirectionMap 選んだ方位のパネル（次に何をするかを主にする）', () => {
   const setup = (props = {}) => {
     const onSelectPalace = vi.fn();
-    const onOpenDetail = vi.fn();
     render(
       <DirectionMap
         location={LOCATION}
@@ -411,13 +410,12 @@ describe('DirectionMap 選んだ方位のパネル（次に何をするかを主
         bestPalace="gon"
         selectedPalace="son"
         onSelectPalace={onSelectPalace}
-        onOpenDetail={onOpenDetail}
         conditionLabel="17:00-19:00 の時盤"
         profileKey="jiban"
         {...props}
       />,
     );
-    return { onSelectPalace, onOpenDetail, panel: document.querySelector('.direction-select-panel') };
+    return { onSelectPalace, panel: document.querySelector('.direction-select-panel') };
   };
 
   it('方位・点数・吉凶・八門・短い説明と、条件を出す', () => {
@@ -447,12 +445,21 @@ describe('DirectionMap 選んだ方位のパネル（次に何をするかを主
     expect(within(setup({ selectedPalace: 'gon' }).panel).getByRole('button', { name: '北東でスポットを探す →' })).toBeTruthy();
   });
 
-  it('× で選択をやめ、「詳しく見る」で方位詳細へ', () => {
-    const { panel, onSelectPalace, onOpenDetail } = setup();
-    fireEvent.click(within(panel).getByRole('button', { name: 'この方位を詳しく見る ›' }));
-    expect(onOpenDetail).toHaveBeenCalledWith(expect.objectContaining({ palace: 'son' }));
+  it('× で選択をやめる。詳しい内容（テーマ別の相性）は、パネルの中に入れる', () => {
+    const renderDetail = vi.fn((item) => <p>相性:{item.label}</p>);
+    const { panel, onSelectPalace } = setup({ renderDetail });
+    expect(within(panel).getByText('相性:南東')).toBeTruthy();
     fireEvent.click(within(panel).getByRole('button', { name: '方位の選択をやめる' }));
     expect(onSelectPalace).toHaveBeenCalledWith(null);
+  });
+
+  it('方位を選んでいないときは、一番良い方位をパネルに出す（× は出さない）', () => {
+    const { panel } = setup({ selectedPalace: null, renderDetail: (item) => <p>相性:{item.label}</p> });
+    expect(panel.querySelector('.direction-select-head').textContent).toContain('北東');
+    expect(within(panel).getByText('相性:北東')).toBeTruthy();
+    expect(within(panel).queryByRole('button', { name: '方位の選択をやめる' })).toBe(null);
+    cleanup();
+    expect(setup({ selectedPalace: null }).panel).toBe(null);
   });
 
   it('短い説明は、吉凶と、その方位に入っているものだけで作る（八門は見出しに出すので重ねない）', () => {
