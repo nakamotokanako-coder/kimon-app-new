@@ -1,5 +1,6 @@
 {
   "buildCommand": "npm run vercel-build",
+  "cleanUrls": true,
   "functions": {
     "api/kaisetsu.js": {
       "includeFiles": "data/kaisetsu/**"

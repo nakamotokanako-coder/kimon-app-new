@@ -62,8 +62,25 @@ function fakeLoginForLocalPreview() {
   };
 }
 
+// 紹介ページ（about.html）を、手元でも本番と同じ /about で開けるようにする。
+// 本番は vercel.json の cleanUrls が同じことをする。
+function aboutPageCleanUrl() {
+  const rewrite = (req, _res, next) => {
+    const [path, query] = String(req.url).split('?');
+    if (path === '/about') req.url = '/about.html' + (query ? '?' + query : '');
+    next();
+  };
+  return {
+    name: 'kimon-about-clean-url',
+    configureServer(server) { server.middlewares.use(rewrite); },
+    configurePreviewServer(server) { server.middlewares.use(rewrite); },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), fakeLoginForLocalPreview()],
+  plugins: [react(), fakeLoginForLocalPreview(), aboutPageCleanUrl()],
+  // アプリ（index.html）と、紹介ページ（about.html）の2つを作る
+  build: { rollupOptions: { input: { main: 'index.html', about: 'about.html' } } },
   // 画面のテストは、全部まとめて走らせると1件5秒を超えることがある（内容の失敗ではなく、混み合いで）。
   test: { testTimeout: 20000 },
   server: {
