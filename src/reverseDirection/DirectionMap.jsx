@@ -1308,7 +1308,7 @@ export default function DirectionMap({
             }}
           >
             <input
-              id={profileKey === 'jiban' ? 'yoho-go-search-input' : undefined}
+              id="yoho-go-search-input"
               type="search"
               value={mapQuery}
               placeholder="施設や地名を検索"
