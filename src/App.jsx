@@ -372,6 +372,13 @@ export default function App() {
   };
   // 目的で選ぶ: ホーム・探すの入口で選んだ目的を、「目的で選ぶ」の画面（探すタブの中）へ渡す。
   const [themeRequest, setThemeRequest] = useState(null);
+  // 稀日の画面から、その日時・方位のまま地図へ（満盤は時盤、極盤・双格は日盤）。
+  const [mapRequest, setMapRequest] = useState(null);
+  const goRare = (event) => {
+    setMapRequest({ date: event.date, hour: event.hour, palace: event.best.palace, at: Date.now() });
+    goMap(event.hour === null ? 'day' : 'time');
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  };
   const goTheme = (theme) => {
     setThemeRequest({ theme, at: Date.now() });
     goSearch('theme');
@@ -810,6 +817,7 @@ export default function App() {
           onGoMap={goMap}
           onGoSearch={goSearch}
           onGoTheme={goTheme}
+          onGoRare={goRare}
           onOpenBoard={(target) => (target ? openFullBoard(target) : setActiveTab('board'))}
           onOpenGuide={() => setGuideOpen(true)}
           onLogin={openAccountSettings}
@@ -850,6 +858,7 @@ export default function App() {
             onOpenMapTime={() => goMap('time')}
             onOpenMapDay={() => goMap('day')}
             themeRequest={themeRequest}
+            mapRequest={mapRequest}
             longRangeLocked={longRangeLocked}
             longRangeLimit={longRangeLimit}
             annualMark={LONG_RANGE_SHOW_ANNUAL_MARK && auth.plan !== 'annual' && !auth.invited}

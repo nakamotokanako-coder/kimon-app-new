@@ -18,6 +18,8 @@ import { GATE_ICONS, THEME_MARKS } from '../reverseDirection/CompassWheel.jsx';
 import { DEFAULT_LOCATIONS } from '../reverseDirection/locations.js';
 import { lockedMessage } from '../../lib/accessPolicy.js';
 import { THEMES } from '../reverseDirection/themeSearch.js';
+import { upcomingRareEvents } from '../reverseDirection/rareDays.js';
+import { RareDayCard, RareDaySheet } from './RareDay.jsx';
 
 // ホーム画面。役割は「今日の私に必要なことを、ひと目で伝える」。
 //   上: 今から使える吉方位（今の時盤の最高方位。基準点の経度で自然時補正）→ 地図へ
@@ -115,6 +117,7 @@ export default function HomeView({
   onGoMap,
   onGoSearch,
   onGoTheme,
+  onGoRare, // 稀日の画面から、その日時・方位の地図へ
   onOpenBoard,
   onOpenGuide,
   onLogin,
@@ -137,6 +140,15 @@ export default function HomeView({
       return null;
     }
   }, [today]);
+  // 稀日（満盤・極盤・双格）: 3日前から当日まで、いちばん珍しいものを1つ出す。
+  const rareEvent = useMemo(() => {
+    try {
+      return upcomingRareEvents({ today, liveSlotHour: slotHour })[0] || null;
+    } catch {
+      return null; // 見つけられなくても、ホームは出す
+    }
+  }, [today, slotHour]);
+  const [rareOpen, setRareOpen] = useState(false);
   const badge = best ? BADGE_LABEL[getMiniBoardToneClass(best.score, best.palaceScore)] : '';
   const vetoes = best?.vetoes || [];
   const dateText = `${now.getMonth() + 1}月${now.getDate()}日（${WEEKDAYS[now.getDay()]}） ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -163,6 +175,16 @@ export default function HomeView({
           <span>{dateText}</span>
           <span className="home-base"><HomeIcon name="pin" />{base.name}</span>
         </p>
+
+        <RareDayCard event={rareEvent} today={today} onOpen={() => setRareOpen(true)} />
+        <RareDaySheet
+          event={rareOpen ? rareEvent : null}
+          today={today}
+          limited={limited}
+          onLogin={() => { setRareOpen(false); onLogin(); }}
+          onClose={() => setRareOpen(false)}
+          onGoMap={(event) => { setRareOpen(false); onGoRare?.(event); }}
+        />
 
         <section className="home-today" aria-label="今から使える吉方位">
           <img className="home-today-art" src="/hub/now.webp" alt="" aria-hidden="true" decoding="async" />
