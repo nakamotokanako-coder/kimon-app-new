@@ -11,7 +11,7 @@ import {
 } from '../reverseDirection/reverseDirection.js';
 import { decoratePlaces, favoriteDisplayName, MAP_SEARCH_STORAGE_KEY } from '../reverseDirection/mapSearch.js';
 import { getBoardDate } from '../utils/boardDate.js';
-import { RARE_TIERS, countdownLabel, upcomingRareEvents } from '../reverseDirection/rareDays.js';
+import { RARE_TIERS, countdownLabel, remainingLabel, upcomingRareEvents } from '../reverseDirection/rareDays.js';
 import { rareHeadline, rareWhenLabel } from '../components/RareDay.jsx';
 
 export const OMAMORI_OPENED_KEY = 'kimon-omamori-opened-date';
@@ -78,7 +78,7 @@ export function buildRareNotices({ today, events }) {
       type: 'history',
       sender: '稀日',
       title: count === '今日' ? `今日は「${tier.name}」です` : count === '明日' ? `明日は「${tier.name}」です` : `${count}で「${tier.name}」です`,
-      body: `${rareWhenLabel(event)} ${event.best.label}。${rareHeadline(event)}${tier.rarity}。ホームのいちばん上から見られます。`,
+      body: `${rareWhenLabel(event)} ${event.best.label}。${rareHeadline(event)}この盤が出るのは${tier.rarity}。${remainingLabel(event)}です。`,
       date: slashDate(today),
     };
   });
