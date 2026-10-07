@@ -115,16 +115,45 @@ export function sortKakkyokuSearchRows(rows, sortMode) {
 }
 
 /**
- * 検索の結果を日ごとにまとめて、選んだ格局がその日にいくつそろうかを数える。
- * 「そろう」は、その日のどこかの時間帯・方位に出ていること（同じ時間・同じ方位でなくてよい）。
- * 並びは、そろう数の多い日が先。同じ数なら早い日。
- * @returns {{ date, text, weekday, matched: string[], missing: string[], complete: boolean, rows: object[] }[]}
+ * 検索の結果を盤ごと（時盤なら時間帯ごと、日盤なら日ごと）にまとめて、選んだ格局がその盤にいくつそろうかを数える。
+ * 「そろう」は、同じ1つの盤に出ていること（方位は違ってよい）。同じ日でも、時間帯が違えば別の盤なので数えない。
+ * 並びは、そろう数の多い盤が先。同じ数なら早い日時。
+ * @returns {{ date, hour, timeLabel, text, weekday, matched: string[], missing: string[], complete: boolean, rows: object[] }[]}
+ */
+export function groupRowsByBoard(rows, selectedNames) {
+  const selected = [...new Set(selectedNames || [])];
+  const boards = new Map();
+  for (const row of rows || []) {
+    const key = `${row.date}|${row.hour}`;
+    if (!boards.has(key)) {
+      boards.set(key, { date: row.date, hour: row.hour, timeLabel: row.timeLabel, text: row.text, weekday: row.weekday, rows: [] });
+    }
+    boards.get(key).rows.push(row);
+  }
+  return [...boards.values()]
+    .map((board) => {
+      const present = new Set(board.rows.flatMap((row) => row.matches));
+      const matched = selected.filter((name) => present.has(name));
+      return {
+        ...board,
+        rows: [...board.rows].sort((a, b) => PALACE_ORDER.indexOf(a.palace) - PALACE_ORDER.indexOf(b.palace)),
+        matched,
+        missing: selected.filter((name) => !present.has(name)),
+        complete: selected.length > 0 && matched.length === selected.length,
+      };
+    })
+    .sort((a, b) => b.matched.length - a.matched.length || a.date.localeCompare(b.date) || a.hour - b.hour);
+}
+
+/**
+ * 検索の結果を日ごとにまとめる（同じ日のうちなら、時間帯が違っても「そろう」と数える）。
+ * 時盤で、同じ時間帯に全部そろう盤が無かったときの、次の手がかりに使う。
  */
 export function groupRowsByDay(rows, selectedNames) {
   const selected = [...new Set(selectedNames || [])];
   const days = new Map();
   for (const row of rows || []) {
-    if (!days.has(row.date)) days.set(row.date, { date: row.date, text: row.text, weekday: row.weekday, rows: [] });
+    if (!days.has(row.date)) days.set(row.date, { date: row.date, hour: null, timeLabel: '', text: row.text, weekday: row.weekday, rows: [] });
     days.get(row.date).rows.push(row);
   }
   return [...days.values()]

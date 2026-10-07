@@ -13311,3 +13311,9 @@ p.saikyo-annual-note.is-open {
 .reverse-header--top .reverse-lead {
   max-width: 58%;
 }
+
+/* 全部そろう時間帯: 見出しに時間帯を添える */
+.kakkyoku-day-head strong b {
+  margin-left: 8px;
+  font-weight: 700;
+}
