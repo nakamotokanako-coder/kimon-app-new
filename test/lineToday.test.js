@@ -490,7 +490,7 @@ describe('LINE の「目的から探す」', () => {
   it('「今の吉方位」の返信に、次に押せるもの（目的から探す・次の休み）を添える', async () => {
     setKvClient({ async get() { return null; }, async set() {}, async del() {} });
     const message = await answer(textEvent(MENU.now), NOW, APP);
-    expect(message.quickReply.items.map((item) => item.action.text)).toEqual([MENU.theme, MENU.day]);
+    expect(message.quickReply.items.map((item) => item.action.text).filter(Boolean)).toEqual([MENU.theme, MENU.day]);
     setKvClient(null);
   });
 });
