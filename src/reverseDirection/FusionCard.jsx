@@ -5,7 +5,6 @@ import { detectSandaiKyokaku } from '../kaisetsu/kyoVeto.js';
 import { useKaisetsuPalace } from '../kaisetsu/useKaisetsuPalace.js';
 import { splitProse, stripBold } from '../kaisetsu/renderProse.jsx';
 import { parseKaisetsuKey } from '../kaisetsu/boardKey.js';
-import { getMiniBoardToneClass } from './reverseDirection.js';
 import L3Sheet from '../components/yoho/L3Sheet.jsx';
 import { lockedMessage } from '../../lib/accessPolicy.js';
 
@@ -83,8 +82,8 @@ export function splitMid(mid) {
 }
 
 /**
- * 時盤お散歩モードの最大吉カード（統合カード）。
- * 点数・吉凶バッジは reverse.rankings（reverseDirection.js）由来のまま、
+ * 選んだ方位の「テーマ別の相性」。地図の下の、選んだ方位のパネル（DirectionMap）の中に入れて使う。
+ * 方位・点数・吉凶はパネルの見出しが出すので、ここでは出さない（同じ解説を2か所に出さないため）。
  * 軸チップ＋意味テキストは kaisetsu（classifyPalace / /api/kaisetsu-full）由来。
  * テーマ別の◎○×は総合点を超えない（docs/axis_score_alignment_v2.md）。
  *
@@ -104,25 +103,7 @@ export default function FusionCard({
   const axisRanks = useMemo(() => computeAxisRanks(boardKey, palace, best?.palaceScore), [boardKey, palace, best?.palaceScore]);
   const { palaces, fullPalaces, fullErrorKey, isPaid } = useKaisetsuPalace(boardKey);
 
-  if (!best) {
-    return (
-      <div className="reverse-card fusion">
-        <div className="f-top">
-          <div className="f-meta">
-            <div className="f-tags">該当なし</div>
-            <div className="f-tags" style={{ opacity: 0.7 }}>吉のみ表示中です。凶も見ると全方位を確認できます。</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const toneClass = getMiniBoardToneClass(best.score, best.palaceScore);
-  const badgeLabel = BADGE_LABEL[toneClass] || '';
-  const tags = [best.palaceData?.hachimon, best.palaceData?.hasshin, best.palaceData?.kyusei]
-    .filter(Boolean)
-    .join('・');
-  const ganshi = `天盤${best.palaceData?.tenban || '-'} / 地盤${best.palaceData?.chiban || '-'}`;
+  if (!best) return null;
 
   const fetchFailed = fullErrorKey === boardKey;
   const short = palaces?.[palace]?.[selAxis]?.short || null;
@@ -147,19 +128,7 @@ export default function FusionCard({
 
   return (
     <>
-      <div className="reverse-card fusion" onClick={() => setIsL3Open(true)}>
-        <div className="f-top">
-          <div className="dir-badge">
-            <span className="jp">{best.label}</span>
-          </div>
-          <div className="f-score metal lat">{scoreText(best.score)}</div>
-          <div className="f-meta">
-            <div className="f-tags">{tags || '—'}</div>
-            <div className="f-tags" style={{ opacity: 0.7 }}>{ganshi}</div>
-          </div>
-          {badgeLabel && <div className="kichi-badge">{badgeLabel}</div>}
-        </div>
-
+      <div className="fusion-inline">
         <div className="fusion-axis-kicker">テーマ別の相性</div>
         <div className="axes" role="tablist" aria-label="願いごと">
           {AXES.map((a) => {
@@ -173,10 +142,7 @@ export default function FusionCard({
                 aria-selected={on}
                 className={`axis${on ? ' on' : ''}`}
                 style={on ? { background: `var(--axis-${a.key})`, borderColor: `var(--axis-${a.key})` } : undefined}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onAxisChange?.(a.key);
-                }}
+                onClick={() => onAxisChange?.(a.key)}
               >
                 {a.label}
                 <span className="rk">{rank}</span>
@@ -190,7 +156,9 @@ export default function FusionCard({
           {bodyNode}
         </div>
 
-        <div className="fusion-more-hint">詳しく ›</div>
+        <button type="button" className="fusion-more-link" onClick={() => setIsL3Open(true)}>
+          方位の詳しい解説 ›
+        </button>
       </div>
 
       <L3Sheet

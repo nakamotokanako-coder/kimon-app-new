@@ -335,11 +335,8 @@ export default function ReverseDirectionView({
   const timeCharm = useMemo(() => getCharm({ rankings: reverse.rankings, sourceType: 'hour' }), [reverse.rankings]);
 
   const visibleRankings = filterGoodRankings(reverse.rankings, goodOnly);
-  // 一覧で方位を選んで来たときは、その方位を主役にする（選んでいなければ一番良い方位）。
-  const pickedItem = pickedPalace ? reverse.rankings.find((item) => item.palace === pickedPalace) : null;
-  // topItem = 一番評価の高い方位（BEST）。best = 詳しく見せる方位（選んでいればそれ、なければ BEST）。
+  // topItem = 一番評価の高い方位（BEST）。地図の下のパネルは、選んだ方位（なければ BEST）を詳しく見せる。
   const topItem = visibleRankings[0] || null;
-  const best = pickedItem || topItem;
   const favoriteChips = useMemo(() => (
     decoratePlaces(favorites, [location.latitude, location.longitude], reverse.rankings)
   ), [favorites, location.latitude, location.longitude, reverse.rankings]);
@@ -448,12 +445,6 @@ export default function ReverseDirectionView({
 
   // L3ボトムシートのCTA「この方位で行き先を探す」用。GOゾーンの検索窓へ
   // スクロール＋フォーカスする（DirectionMap.jsx側のid付与とセット）。
-  // 地図の「この方位を詳しく見る」用。方位詳細（統合カード）まで送る。
-  const scrollToDirectionDetail = useCallback(() => {
-    if (typeof document === 'undefined') return;
-    document.getElementById('yoho-direction-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
-
   const scrollToGoSearch = useCallback(() => {
     if (typeof document === 'undefined') return;
     const el = document.getElementById('yoho-go-search-input');
@@ -876,7 +867,16 @@ export default function ReverseDirectionView({
           onGoodOnlyChange={setGoodOnly}
           autoGuide={autoMapGuide}
           onSetBasePoint={handleGlobalBasePointChange}
-          onOpenDetail={scrollToDirectionDetail}
+          renderDetail={(item) => (
+            <FusionCard
+              best={item}
+              boardKey={makeKaisetsuKey(reverse.board.meta)}
+              banLevel={reverse.board.score.ban_level}
+              selAxis={selAxis}
+              onAxisChange={setSelAxis}
+              onGoToSearch={scrollToGoSearch}
+            />
+          )}
           onSeeInOtherMode={seeInOtherMode}
           carryPlace={carriedPlace?.mode === 'time' ? carriedPlace.place : null}
         />
@@ -1116,16 +1116,7 @@ export default function ReverseDirectionView({
             bestPalace: topItem?.palace,
           })}
 
-          <div className="reverse-zone" id="yoho-direction-detail">
-            <FusionCard
-              best={best}
-              boardKey={makeKaisetsuKey(reverse.board.meta)}
-              banLevel={reverse.board.score.ban_level}
-              selAxis={selAxis}
-              onAxisChange={setSelAxis}
-              onGoToSearch={scrollToGoSearch}
-            />
-
+          <div className="reverse-zone">
             <div className="reverse-card reverse-now-board-card">
               <button
                 type="button"
