@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  RARE_TIERS, findRareEvents, upcomingRareEvents, countdownLabel, rareOutlook, daysBetween, addDays,
+  RARE_TIERS, RARE_RANGE, computeRareEvents, findRareEvents, upcomingRareEvents, countdownLabel, rareOutlook,
+  remainingThisYear, remainingLabel, eventStartDate, daysBetween, addDays,
 } from '../src/reverseDirection/rareDays.js';
 import { buildRareNotices } from '../src/notifications/dynamicNotices.js';
 import { rareHeadline, rareWhenLabel, rareDateLabel } from '../src/components/RareDay.jsx';
@@ -14,7 +15,7 @@ describe('稀日の種類', () => {
     expect(Object.keys(RARE_TIERS)).toEqual(['manban', 'kyokuban', 'soukaku']);
     expect(Object.values(RARE_TIERS).map((tier) => [tier.name, tier.reading, tier.rarity])).toEqual([
       ['満盤', 'まんばん', '年に約18回'],
-      ['極盤', 'きょくばん', '年に約9回'],
+      ['極盤', 'きょくばん', '年に約7回'],
       ['双格', 'そうかく', '年に4回だけ'],
     ]);
     const orders = Object.values(RARE_TIERS).map((tier) => tier.order);
@@ -40,7 +41,6 @@ describe('稀日を見つける（2026-10-07 から）', () => {
       const { rankings } = buildReverseBoard({ date: event.date, hour: event.hour });
       const spot = rankings.find((item) => item.palace === event.best.palace);
       expect(spot.score).toBe(120);
-      expect([6, 8, 10, 12, 14, 16, 18, 20, 22]).toContain(event.hour); // 朝5時〜夜11時だけ
       for (const name of event.names) expect(SPECIAL_KAKKYOKU_NAMES).toContain(name);
     }
   });
@@ -128,10 +128,77 @@ describe('画面とお知らせの言葉', () => {
     const [notice] = buildRareNotices({ today: '2026-10-25', events: [manban] });
     expect(notice).toMatchObject({ id: 'rare-manban-2026-10-28-22', sender: '稀日', title: 'あと3日で「満盤」です', date: '2026/10/25' });
     expect(notice.body).toContain('10/28（水） 21:00–23:00 南東');
-    expect(notice.body).toContain('年に約18回');
+    expect(notice.body).toContain('この盤が出るのは年に約18回。2026年は、この回を入れてあと6回です。');
     expect(buildRareNotices({ today: '2026-10-27', events: [manban] })[0].title).toBe('明日は「満盤」です');
     expect(buildRareNotices({ today: '2026-10-28', events: [manban] })[0].title).toBe('今日は「満盤」です');
     expect(`${notice.title}${notice.body}`).not.toMatch(/運が|開運|叶う|必ず/u);
     expect(buildRareNotices({ today: '2026-10-25', events: [] })).toEqual([]);
+  });
+});
+
+describe('先に数えておいた表（rareDays.generated.js）', () => {
+  it('表は、実際の盤を数えた結果と同じ（点数や格局の判定を変えたら npm run build:rare で作り直す）', () => {
+    for (const startDate of ['2026-10-07', '2027-04-01', '2031-07-20']) {
+      const live = computeRareEvents({ startDate, days: 60 });
+      const table = findRareEvents({ startDate, days: 60 });
+      expect(table.map((item) => item.id)).toEqual(live.map((item) => item.id));
+      expect(table).toEqual(live);
+    }
+  }, 120000);
+
+  it('表の期間は、アプリの日盤と同じ。1年あたりの回数は、画面の表示と合う', () => {
+    expect(RARE_RANGE).toEqual({ min: '2026-01-01', max: '2044-01-31' });
+    const all = findRareEvents({ startDate: RARE_RANGE.min, days: daysBetween(RARE_RANGE.min, RARE_RANGE.max) + 1 });
+    const years = (daysBetween(RARE_RANGE.min, RARE_RANGE.max) + 1) / 365.25;
+    for (const tier of Object.values(RARE_TIERS)) {
+      const perYear = all.filter((item) => item.tier === tier.key).length / years;
+      expect(Math.round(perYear), tier.name).toBe(tier.perYear);
+      expect(tier.rarity).toContain(String(tier.perYear));
+    }
+    // 表の外の日付には出さない
+    expect(findRareEvents({ startDate: '2050-01-01', days: 30 })).toEqual([]);
+  });
+});
+
+describe('深夜・早朝の満盤も入れる', () => {
+  const all = findRareEvents({ startDate: '2026-10-07', days: 400 });
+
+  it('23-1時の満盤は、盤の日付の前の日の夜に始まる（7/27 の盤 → 7/26（月）23:00–翌1:00）', () => {
+    const night = all.find((item) => item.hour === 0);
+    expect(night.id).toBe('manban-2027-07-27-0');
+    expect(eventStartDate(night)).toBe('2027-07-26');
+    expect(rareWhenLabel(night)).toBe('7/26（月） 23:00–翌1:00');
+    // 知らせるのも、始まる日で数える
+    expect(countdownLabel(night, '2027-07-26')).toBe('今日');
+    expect(countdownLabel(night, '2027-07-25')).toBe('明日');
+    expect(upcomingRareEvents({ today: '2027-07-23', liveSlotHour: 10 }).map((item) => item.id)).toContain('manban-2027-07-27-0');
+    expect(upcomingRareEvents({ today: '2027-07-22', liveSlotHour: 10 }).map((item) => item.id)).not.toContain('manban-2027-07-27-0');
+    // 夜11時を過ぎると盤の日付が次の日になり、その時間帯のあいだは出る。1時を過ぎたら消える
+    expect(upcomingRareEvents({ today: '2027-07-27', liveSlotHour: 0 }).map((item) => item.id)).toContain('manban-2027-07-27-0');
+    expect(upcomingRareEvents({ today: '2027-07-27', liveSlotHour: 2 }).map((item) => item.id)).not.toContain('manban-2027-07-27-0');
+  });
+
+  it('深夜・早朝（朝5時より前・夜11時より後）の満盤が、表に入っている', () => {
+    const lateOrEarly = all.filter((item) => item.tier === 'manban' && [0, 2, 4].includes(item.hour));
+    expect(lateOrEarly.length).toBeGreaterThan(0);
+  });
+});
+
+describe('今年はあと何回', () => {
+  const events = findRareEvents({ startDate: '2026-10-07', days: 90 });
+
+  it('同じ種類が、その年のうちにあと何回出るか（この回を入れて数える）', () => {
+    const manban = events.filter((item) => item.tier === 'manban');
+    expect(manban.map((item) => remainingThisYear(item))).toEqual([6, 5, 4, 3, 2, 1]);
+    expect(remainingLabel(manban[0])).toBe('2026年は、この回を入れてあと6回');
+    expect(remainingLabel(manban[5])).toBe('2026年は、これが最後');
+    const kyokuban = events.filter((item) => item.tier === 'kyokuban');
+    expect(kyokuban.map((item) => remainingLabel(item))).toEqual(['2026年は、この回を入れてあと2回', '2026年は、これが最後']);
+  });
+
+  it('年が変わると、数え直す', () => {
+    const first2027 = findRareEvents({ startDate: '2027-01-01', days: 365 }).find((item) => item.tier === 'soukaku');
+    expect(first2027.date).toBe('2027-01-17');
+    expect(remainingLabel(first2027)).toBe('2027年は、この回を入れてあと4回');
   });
 });

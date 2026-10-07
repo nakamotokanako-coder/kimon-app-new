@@ -13627,3 +13627,23 @@ p.saikyo-annual-note.is-open {
   font-size: 1.06rem;
   line-height: 1.4;
 }
+
+/* 稀日: 今年はあと何回 */
+.rare-card-remaining {
+  color: var(--text-accent);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.rare-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rare-stats > div {
+  padding: 10px;
+}
+
+.rare-stats strong {
+  font-size: 0.94rem;
+}

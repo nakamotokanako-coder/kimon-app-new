@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom';
 import Ja from '../utils/Ja.jsx';
 import { Icon } from './icons/index.js';
 import { KAKKYOKU_GUIDE } from '../reverseDirection/kakkyokuGuide.js';
-import { RARE_TIERS, countdownLabel, rareOutlook } from '../reverseDirection/rareDays.js';
+import {
+  RARE_TIERS, addDays, countdownLabel, rareOutlook, remainingLabel,
+} from '../reverseDirection/rareDays.js';
 import { slotClock } from '../reverseDirection/themeSearch.js';
 
 // 稀日（満盤・極盤・双格）の見せ方。
@@ -20,9 +22,14 @@ export function rareDateLabel(date) {
   return `${month}/${day}（${WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]}）`;
 }
 
-/** 「10/28（水）21:00–23:00」（極盤・双格は日付だけ） */
+/**
+ * 「10/28（水）21:00–23:00」（極盤・双格は日付だけ）。
+ * 23-1時の時間帯は、始まるのが前の日の夜なので「10/27（火）23:00–翌1:00」と書く。
+ */
 export function rareWhenLabel(event) {
-  return `${rareDateLabel(event.date)}${event.hour === null ? '' : ` ${slotClock(event.hour)}`}`;
+  if (event.hour === null) return rareDateLabel(event.date);
+  if (event.hour === 0) return `${rareDateLabel(addDays(event.date, -1))} 23:00–翌1:00`;
+  return `${rareDateLabel(event.date)} ${slotClock(event.hour)}`;
 }
 
 /** 「天遁と神遁」 */
@@ -60,6 +67,7 @@ export function RareDayCard({ event, today, onOpen }) {
         <span className="rare-card-count">{countdownLabel(event, today)}</span>
       </div>
       <p className="rare-card-rarity">{tier.rarity}</p>
+      <p className="rare-card-remaining">{remainingLabel(event)}</p>
       <p className="rare-card-headline"><Ja>{rareHeadline(event)}</Ja></p>
       <div className="rare-card-spot">
         <span className="rare-card-arts">{event.names.slice(0, 2).map((name) => <Art key={name} name={name} size={52} />)}</span>
@@ -133,8 +141,12 @@ export function RareDaySheet({ event, today, onClose, onGoMap, limited = false, 
               <strong>{tier.rarity}</strong>
             </div>
             <div>
+              <small>今年のうちに</small>
+              <strong>{remainingLabel(event).replace(/^\d+年は、/u, '')}</strong>
+            </div>
+            <div>
               <small>この次に出るのは</small>
-              <strong>{outlook.nextInDays === null ? '12週間は出ない' : `${outlook.nextInDays}日後`}</strong>
+              <strong>{outlook.nextInDays === null ? '当分ありません' : `${outlook.nextInDays}日後`}</strong>
             </div>
           </div>
           <div className="rare-weeks" role="img" aria-label="これから12週間のうち、出る週">
