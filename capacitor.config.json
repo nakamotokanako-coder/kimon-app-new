@@ -1,0 +1,9 @@
+{
+  "appId": "app.kimontonko.z",
+  "appName": "奇門遁甲Z",
+  "webDir": "dist",
+  "backgroundColor": "#08080c",
+  "ios": {
+    "contentInset": "always"
+  }
+}
