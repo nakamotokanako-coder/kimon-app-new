@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@upstash/redis": "^1.38.0",
+    "@vercel/analytics": "^2.0.1",
     "budoux": "^0.9.3",
     "leaflet": "^1.9.4",
     "nodemailer": "^10.0.14",
