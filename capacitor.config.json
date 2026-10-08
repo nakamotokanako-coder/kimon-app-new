@@ -5,5 +5,13 @@
   "backgroundColor": "#08080c",
   "ios": {
     "contentInset": "always"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "CapacitorCookies": {
+      "enabled": true
+    }
   }
 }
