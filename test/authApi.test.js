@@ -8,6 +8,8 @@ import sessionsHandler from '../api/auth/sessions.js';
 import { deviceLabel, issueSession, MAX_DEVICES } from '../lib/auth.js';
 import { SESSION_MAX_AGE_SEC } from '../lib/session.js';
 import { setKvClient } from '../lib/kv.js';
+import { setStripeClient } from '../lib/billing.js';
+import { linkedEmail, linkLineUser } from '../lib/lineLink.js';
 import {
   setEmailSender,
   setGmailTransportFactory,
@@ -304,6 +306,94 @@ describe('GET /api/auth/me & POST /api/auth/logout', () => {
     const res = createRes();
     await meHandler({ method: 'GET', headers: { cookie: cookieC } }, res);
     expect(res.body.loggedIn).toBe(true);
+  });
+
+  describe('アカウントの削除（?delete=1）', () => {
+    const remove = (cookie, body = { confirm: 'delete' }) => {
+      const res = createRes();
+      return logoutHandler({ method: 'POST', query: { delete: '1' }, body, headers: cookie ? { cookie } : {} }, res).then(() => res);
+    };
+    afterEach(() => { setStripeClient(null); delete process.env.STRIPE_SECRET_KEY; delete process.env.OWNER_EMAIL; });
+
+    it('会員の記録・保存した内容・LINEとの連携を消し、同じCookieではログインできなくなる', async () => {
+      const cookie = await login('bye@example.com');
+      kvFake.store.set('userdata:bye@example.com', { favorites: [] });
+      await linkLineUser('U123', 'bye@example.com');
+
+      const res = await remove(cookie);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({ ok: true, deleted: true });
+      expect(res.headers['Set-Cookie']).toContain('Max-Age=0');
+      expect(kvFake.store.has('user:bye@example.com')).toBe(false);
+      expect(kvFake.store.has('userdata:bye@example.com')).toBe(false);
+      expect(await linkedEmail('U123')).toBe(null);
+
+      const me = createRes();
+      await meHandler({ method: 'GET', headers: { cookie } }, me);
+      expect(me.body.loggedIn).toBe(false);
+    });
+
+    it('確かめた印が無ければ消さない', async () => {
+      const cookie = await login('keep@example.com');
+      const res = await remove(cookie, {});
+      expect(res.statusCode).toBe(400);
+      expect(kvFake.store.has('user:keep@example.com')).toBe(true);
+    });
+
+    it('ログインしていなければ 401', async () => {
+      expect((await remove(null)).statusCode).toBe(401);
+    });
+
+    it('運営者のアカウントは消せない', async () => {
+      process.env.OWNER_EMAIL = 'owner@example.com';
+      const cookie = await login('owner@example.com');
+      const res = await remove(cookie);
+      expect(res.statusCode).toBe(403);
+      expect(kvFake.store.has('user:owner@example.com')).toBe(true);
+    });
+
+    it('有料プランが続いていれば、先に Stripe で解約してから消す', async () => {
+      process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+      const cancelled = [];
+      setStripeClient({ subscriptions: {
+        retrieve: async (id) => ({ id, status: 'active' }),
+        cancel: async (id) => { cancelled.push(id); },
+      } });
+      const cookie = await login('paid@example.com');
+      kvFake.store.set('user:paid@example.com', { ...kvFake.store.get('user:paid@example.com'), stripeCustomerId: 'cus_1', stripeSubscriptionId: 'sub_1' });
+      kvFake.store.set('stripe_customer:cus_1', 'paid@example.com');
+
+      const res = await remove(cookie);
+      expect(res.statusCode).toBe(200);
+      expect(cancelled).toEqual(['sub_1']);
+      expect(kvFake.store.has('user:paid@example.com')).toBe(false);
+      expect(kvFake.store.has('stripe_customer:cus_1')).toBe(false);
+    });
+
+    it('解約に失敗したら、何も消さずに 502 を返す', async () => {
+      process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+      setStripeClient({ subscriptions: {
+        retrieve: async (id) => ({ id, status: 'active' }),
+        cancel: async () => { throw new Error('stripe down'); },
+      } });
+      const cookie = await login('stuck@example.com');
+      kvFake.store.set('user:stuck@example.com', { ...kvFake.store.get('user:stuck@example.com'), stripeSubscriptionId: 'sub_2' });
+
+      const res = await remove(cookie);
+      expect(res.statusCode).toBe(502);
+      expect(kvFake.store.has('user:stuck@example.com')).toBe(true);
+    });
+
+    it('もう終わっているサブスクは、解約を呼ばずに消す', async () => {
+      process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+      const cancel = async () => { throw new Error('should not be called'); };
+      setStripeClient({ subscriptions: { retrieve: async (id) => ({ id, status: 'canceled' }), cancel } });
+      const cookie = await login('ended@example.com');
+      kvFake.store.set('user:ended@example.com', { ...kvFake.store.get('user:ended@example.com'), stripeSubscriptionId: 'sub_3' });
+
+      expect((await remove(cookie)).statusCode).toBe(200);
+      expect(kvFake.store.has('user:ended@example.com')).toBe(false);
+    });
   });
 
   it('logout returns a clearing cookie', async () => {
