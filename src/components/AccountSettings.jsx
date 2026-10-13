@@ -9,6 +9,7 @@ import {
   clearPendingLineLink, confirmLineLink, fetchLineLinked, isPendingFromLineLogin, LINE_LOGIN_START,
   peekLineLink, readPendingLineLink, unlinkLine,
 } from '../auth/lineLink.js';
+import { isNativeApp } from '../native/platform.js';
 
 // 設定タブ「アカウント」セクションの中身。メールマジックリンクでログイン/ログアウトする。
 // 認証状態・利用範囲の判定はすべてサーバー側（/api/auth/me → AuthContext）。ここでは表示だけ。
@@ -108,6 +109,8 @@ const BILLING_PREVIEW_KEY = 'kimon-billing-preview';
 
 /** 申し込みボタンを出すか。販売開始後は全員、それまでは ?billing=preview で開いた端末だけ（動作確認用）。 */
 function billingVisible() {
+  // iPhone アプリの中では Stripe の申し込みを出さない（App Store の決まり。アプリ内課金は別に用意する）。
+  if (isNativeApp()) return false;
   if (isBillingUiVisible()) return true;
   try {
     if (new URLSearchParams(window.location.search).get('billing') === 'preview') {
@@ -252,7 +255,7 @@ function LineLink({ loggedIn, canLineLogin = false }) {
           <button type="button" className="account-btn account-btn-ghost" onClick={unlink} disabled={busy}>連携をやめる</button>
         </div>
       )}
-      {linked === false && canLineLogin && !token && step !== 'confirm' && (
+      {linked === false && canLineLogin && !isNativeApp() && !token && step !== 'confirm' && (
         <>
           <a className="account-btn account-btn-line" href={LINE_LOGIN_START}>LINEと連携する</a>
           <p className="account-note account-note-small">連携すると、次からはLINEでもログインできます。</p>
@@ -594,7 +597,9 @@ export default function AccountSettings() {
           メールアドレスを入れ直す・再送する
         </button>
         <p className="account-note account-note-small">
-          ※ ホーム画面に追加したアプリでは、メールのリンクを押すと別のブラウザでログインしてしまうことがあります。コードの入力がおすすめです。
+          {isNativeApp()
+            ? '※ メールのリンクを押すと、アプリではなくブラウザでログインします。アプリでは、このコードを入力してください。'
+            : '※ ホーム画面に追加したアプリでは、メールのリンクを押すと別のブラウザでログインしてしまうことがあります。コードの入力がおすすめです。'}
         </p>
       </div>
     );
@@ -604,7 +609,8 @@ export default function AccountSettings() {
     <div className="account-login">
       <LineLink loggedIn={false} />
       {note && <p className="account-note">{note}</p>}
-      {auth.lineLogin && (
+      {/* LINE の画面へ行って戻る流れは、iPhone アプリの中には戻ってこられないので出さない */}
+      {auth.lineLogin && !isNativeApp() && (
         <>
           <a className="account-btn account-btn-line" href={LINE_LOGIN_START}>LINEでログイン</a>
           <p className="account-or" aria-hidden="true">または</p>
@@ -625,7 +631,7 @@ export default function AccountSettings() {
       />
       {error && <p className="account-error">{error}</p>}
       <button type="button" className="account-btn" onClick={sendLink} disabled={busy}>
-        ログインリンクを送る
+        {isNativeApp() ? 'ログインコードを送る' : 'ログインリンクを送る'}
       </button>
       <p className="account-note account-note-small account-legal">
         ログインすると、
