@@ -429,6 +429,59 @@ function BillingSection({ auth }) {
   );
 }
 
+// アカウントの削除（退会）。押し間違いで消えないよう、消えるものを見せてから、もう一度押してもらう。
+// 運営者のアカウントは招待の管理に使うので、ここには出さない。
+function DeleteAccount({ auth, onDeleted }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  if (auth.owner) return null;
+
+  const remove = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/logout?delete=1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ confirm: 'delete' }),
+      });
+      if (res.ok) {
+        onDeleted();
+        return;
+      }
+      setError('削除できませんでした。時間をおいて、もう一度お試しください。');
+    } catch {
+      setError('削除できませんでした。時間をおいて、もう一度お試しください。');
+    }
+    setBusy(false);
+  };
+
+  if (!open) {
+    return (
+      <button type="button" className="account-btn account-btn-ghost" onClick={() => setOpen(true)}>
+        アカウントを削除する
+      </button>
+    );
+  }
+  return (
+    <div className="account-login">
+      <p className="account-note">
+        アカウントを削除すると、メールアドレスの登録、アカウントに保存したお気に入りと基準点、LINEとの連携が消えます。元には戻せません。
+      </p>
+      {auth.billing?.subscribed && (
+        <p className="account-note">プロ版は、削除と同時に解約されます。残りの期間の料金はお返しできません。</p>
+      )}
+      {error && <p className="account-error">{error}</p>}
+      <button type="button" className="account-btn" onClick={remove} disabled={busy}>削除する</button>
+      <button type="button" className="account-btn account-btn-ghost" onClick={() => { setOpen(false); setError(''); }} disabled={busy}>
+        やめる
+      </button>
+    </div>
+  );
+}
+
 function planLabel(auth) {
   if (auth.status === 'paid') {
     const t = Date.parse(auth.paidUntil || '');
@@ -558,6 +611,10 @@ export default function AccountSettings() {
         <button type="button" className="account-btn account-btn-ghost" onClick={() => logout(true)} disabled={busy}>
           すべての端末からログアウト
         </button>
+        <DeleteAccount
+          auth={auth}
+          onDeleted={() => { setEmail(''); setSent(false); setNote('アカウントを削除しました。'); auth.refresh?.(); }}
+        />
       </>
     );
   }

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AccountSettings from './AccountSettings.jsx';
 
 // /api/auth/me の応答だけを差し替える（AccountSettings は useAuth で自分で取りに行く）
@@ -52,5 +52,46 @@ describe('アカウント画面の LINE ログイン', () => {
     render(<AccountSettings />);
     expect(await screen.findByRole('button', { name: '連携をやめる' })).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole('link', { name: 'LINEと連携する' })).toBeNull());
+  });
+});
+
+describe('アカウントの削除', () => {
+  const me = { loggedIn: true, email: 'a@example.com', status: 'free', full: true, accessMode: 'beta' };
+
+  it('1回押しただけでは消さず、消えるものを見せてから「削除する」で消す', async () => {
+    stubMe(me);
+    render(<AccountSettings />);
+    fireEvent.click(await screen.findByRole('button', { name: 'アカウントを削除する' }));
+    expect(fetch.mock.calls.some(([url]) => String(url).includes('delete=1'))).toBe(false);
+    expect(screen.getByText(/元には戻せません/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '削除する' }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/auth/logout?delete=1', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ confirm: 'delete' }),
+    })));
+  });
+
+  it('「やめる」で元の画面に戻る', async () => {
+    stubMe(me);
+    render(<AccountSettings />);
+    fireEvent.click(await screen.findByRole('button', { name: 'アカウントを削除する' }));
+    fireEvent.click(screen.getByRole('button', { name: 'やめる' }));
+    expect(screen.getByRole('button', { name: 'アカウントを削除する' })).toBeTruthy();
+    expect(screen.queryByText(/元には戻せません/)).toBeNull();
+  });
+
+  it('有料プランの人には、同時に解約されることを伝える', async () => {
+    stubMe({ ...me, status: 'paid', billing: { available: true, subscribed: true, cancelAtPeriodEnd: false } });
+    render(<AccountSettings />);
+    fireEvent.click(await screen.findByRole('button', { name: 'アカウントを削除する' }));
+    expect(screen.getByText(/削除と同時に解約されます/)).toBeTruthy();
+  });
+
+  it('運営者のアカウントには出さない', async () => {
+    stubMe({ ...me, owner: true });
+    render(<AccountSettings />);
+    await screen.findByRole('button', { name: 'ログアウト' });
+    expect(screen.queryByRole('button', { name: 'アカウントを削除する' })).toBeNull();
   });
 });
